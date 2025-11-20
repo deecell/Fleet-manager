@@ -48,54 +48,54 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-[180px] whitespace-nowrap">
+              <TableHead className="w-[180px] whitespace-nowrap font-semibold text-foreground">
                 <button 
                   onClick={() => handleSort("name")}
-                  className="flex items-center gap-1 font-medium hover-elevate active-elevate-2 px-2 py-1 -mx-2 -my-1 rounded-md"
+                  className="flex items-center gap-1 font-semibold hover-elevate active-elevate-2 px-2 py-1 -mx-2 -my-1 rounded-md"
                   data-testid="sort-name"
                 >
                   Name <ArrowUpDown className="h-3 w-3" />
                 </button>
               </TableHead>
-              <TableHead className="whitespace-nowrap">
+              <TableHead className="whitespace-nowrap font-semibold text-foreground">
                 <button 
                   onClick={() => handleSort("model")}
-                  className="flex items-center gap-1 font-medium hover-elevate active-elevate-2 px-2 py-1 -mx-2 -my-1 rounded-md"
+                  className="flex items-center gap-1 font-semibold hover-elevate active-elevate-2 px-2 py-1 -mx-2 -my-1 rounded-md"
                   data-testid="sort-model"
                 >
                   Model <ArrowUpDown className="h-3 w-3" />
                 </button>
               </TableHead>
-              <TableHead className="whitespace-nowrap">Serial</TableHead>
-              <TableHead className="whitespace-nowrap">FW</TableHead>
-              <TableHead className="text-right whitespace-nowrap">V1</TableHead>
-              <TableHead className="text-right whitespace-nowrap">V2</TableHead>
-              <TableHead className="text-right whitespace-nowrap">P (kW)</TableHead>
-              <TableHead className="text-right whitespace-nowrap">Wh</TableHead>
-              <TableHead className="text-right whitespace-nowrap">Ah</TableHead>
-              <TableHead className="text-right whitespace-nowrap">
+              <TableHead className="whitespace-nowrap font-semibold text-foreground">Serial</TableHead>
+              <TableHead className="whitespace-nowrap font-semibold text-foreground">FW</TableHead>
+              <TableHead className="text-right whitespace-nowrap font-semibold text-foreground">V1</TableHead>
+              <TableHead className="text-right whitespace-nowrap font-semibold text-foreground">V2</TableHead>
+              <TableHead className="text-right whitespace-nowrap font-semibold text-foreground">P (kW)</TableHead>
+              <TableHead className="text-right whitespace-nowrap font-semibold text-foreground">Wh</TableHead>
+              <TableHead className="text-right whitespace-nowrap font-semibold text-foreground">Ah</TableHead>
+              <TableHead className="text-right whitespace-nowrap font-semibold text-foreground">
                 <button 
                   onClick={() => handleSort("temp")}
-                  className="flex items-center gap-1 font-medium hover-elevate active-elevate-2 px-2 py-1 -mx-2 -my-1 rounded-md ml-auto whitespace-nowrap"
+                  className="flex items-center gap-1 font-semibold hover-elevate active-elevate-2 px-2 py-1 -mx-2 -my-1 rounded-md ml-auto whitespace-nowrap"
                   data-testid="sort-temp"
                 >
                   Temp (°C) <ArrowUpDown className="h-3 w-3" />
                 </button>
               </TableHead>
-              <TableHead className="text-right whitespace-nowrap">
+              <TableHead className="text-right whitespace-nowrap font-semibold text-foreground">
                 <button 
                   onClick={() => handleSort("soc")}
-                  className="flex items-center gap-1 font-medium hover-elevate active-elevate-2 px-2 py-1 -mx-2 -my-1 rounded-md ml-auto whitespace-nowrap"
+                  className="flex items-center gap-1 font-semibold hover-elevate active-elevate-2 px-2 py-1 -mx-2 -my-1 rounded-md ml-auto whitespace-nowrap"
                   data-testid="sort-soc"
                 >
                   SoC (%) <ArrowUpDown className="h-3 w-3" />
                 </button>
               </TableHead>
-              <TableHead className="text-right whitespace-nowrap">Runtime (h)</TableHead>
-              <TableHead className="whitespace-nowrap">PS</TableHead>
-              <TableHead className="whitespace-nowrap">Address</TableHead>
-              <TableHead className="whitespace-nowrap">X</TableHead>
-              <TableHead className="text-right whitespace-nowrap">RSSI</TableHead>
+              <TableHead className="text-right whitespace-nowrap font-semibold text-foreground">Runtime (h)</TableHead>
+              <TableHead className="whitespace-nowrap font-semibold text-foreground">PS</TableHead>
+              <TableHead className="whitespace-nowrap font-semibold text-foreground">Address</TableHead>
+              <TableHead className="whitespace-nowrap font-semibold text-foreground">X</TableHead>
+              <TableHead className="text-right whitespace-nowrap font-semibold text-foreground">RSSI</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
