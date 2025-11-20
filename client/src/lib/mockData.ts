@@ -47,7 +47,8 @@ function generateHistoricalData(): HistoricalDataPoint[] {
 export function generateMockTrucks(): TruckWithHistory[] {
   return truckNames.map((name, index) => {
     const location = locations[index];
-    const isInService = Math.random() > 0.2;
+    // Make exactly 3 trucks not in service (indices 2, 5, 8)
+    const isInService = ![2, 5, 8].includes(index);
     const soc = isInService ? 60 + Math.random() * 35 : 20 + Math.random() * 40;
     
     const truck: TruckWithHistory = {
