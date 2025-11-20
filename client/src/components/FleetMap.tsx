@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Truck } from "@shared/schema";
 
 interface FleetMapProps {
@@ -7,6 +8,8 @@ interface FleetMapProps {
 }
 
 export default function FleetMap({ trucks, selectedTruckId, onTruckSelect }: FleetMapProps) {
+  const [hoveredTruckId, setHoveredTruckId] = useState<string | undefined>();
+  
   const minLat = 24;
   const maxLat = 50;
   const minLon = -125;
@@ -19,6 +22,8 @@ export default function FleetMap({ trucks, selectedTruckId, onTruckSelect }: Fle
   const lonToX = (lon: number) => {
     return ((lon - minLon) / (maxLon - minLon)) * 100;
   };
+
+  const hoveredTruck = trucks.find(t => t.id === hoveredTruckId);
 
   return (
     <div className="bg-card rounded-md border border-card-border p-6">
@@ -42,6 +47,8 @@ export default function FleetMap({ trucks, selectedTruckId, onTruckSelect }: Fle
               <g
                 key={truck.id}
                 onClick={() => onTruckSelect(truck.id)}
+                onMouseEnter={() => setHoveredTruckId(truck.id)}
+                onMouseLeave={() => setHoveredTruckId(undefined)}
                 className="cursor-pointer"
                 data-testid={`map-marker-${truck.id}`}
               >
@@ -70,6 +77,42 @@ export default function FleetMap({ trucks, selectedTruckId, onTruckSelect }: Fle
           })}
         </svg>
         
+        {hoveredTruck && (
+          <div 
+            className="absolute bg-background border border-border rounded-md p-3 shadow-lg pointer-events-none z-10"
+            style={{
+              left: `${lonToX(hoveredTruck.longitude)}%`,
+              top: `${latToY(hoveredTruck.latitude)}%`,
+              transform: 'translate(-50%, calc(-100% - 20px))'
+            }}
+            data-testid={`tooltip-${hoveredTruck.id}`}
+          >
+            <div className="space-y-1 text-sm min-w-[200px]">
+              <div className="font-semibold flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${
+                  hoveredTruck.status === "in-service" ? "bg-green-500" : "bg-red-500"
+                }`}></div>
+                {hoveredTruck.name}
+              </div>
+              <div className="text-muted-foreground">{hoveredTruck.model}</div>
+              <div className="pt-1 border-t border-border space-y-0.5">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">SoC:</span>
+                  <span className="font-medium">{hoveredTruck.soc.toFixed(0)}%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Temp:</span>
+                  <span className="font-medium">{hoveredTruck.temp.toFixed(1)}°C</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Location:</span>
+                  <span className="font-medium">{hoveredTruck.address}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="absolute bottom-4 right-4 bg-background/90 backdrop-blur-sm rounded-md p-3 border border-border">
           <div className="flex items-center gap-4 text-xs">
             <div className="flex items-center gap-2">
