@@ -48,7 +48,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-[180px]">
+              <TableHead className="w-[180px] whitespace-nowrap">
                 <button 
                   onClick={() => handleSort("name")}
                   className="flex items-center gap-1 font-medium hover-elevate active-elevate-2 px-2 py-1 -mx-2 -my-1 rounded-md"
@@ -57,7 +57,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
                   Name <ArrowUpDown className="h-3 w-3" />
                 </button>
               </TableHead>
-              <TableHead>
+              <TableHead className="whitespace-nowrap">
                 <button 
                   onClick={() => handleSort("model")}
                   className="flex items-center gap-1 font-medium hover-elevate active-elevate-2 px-2 py-1 -mx-2 -my-1 rounded-md"
@@ -66,36 +66,36 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
                   Model <ArrowUpDown className="h-3 w-3" />
                 </button>
               </TableHead>
-              <TableHead>Serial</TableHead>
-              <TableHead>FW</TableHead>
-              <TableHead className="text-right">V1</TableHead>
-              <TableHead className="text-right">V2</TableHead>
-              <TableHead className="text-right">P (kW)</TableHead>
-              <TableHead className="text-right">Wh</TableHead>
-              <TableHead className="text-right">Ah</TableHead>
-              <TableHead className="text-right">
+              <TableHead className="whitespace-nowrap">Serial</TableHead>
+              <TableHead className="whitespace-nowrap">FW</TableHead>
+              <TableHead className="text-right whitespace-nowrap">V1</TableHead>
+              <TableHead className="text-right whitespace-nowrap">V2</TableHead>
+              <TableHead className="text-right whitespace-nowrap">P (kW)</TableHead>
+              <TableHead className="text-right whitespace-nowrap">Wh</TableHead>
+              <TableHead className="text-right whitespace-nowrap">Ah</TableHead>
+              <TableHead className="text-right whitespace-nowrap">
                 <button 
                   onClick={() => handleSort("temp")}
-                  className="flex items-center gap-1 font-medium hover-elevate active-elevate-2 px-2 py-1 -mx-2 -my-1 rounded-md ml-auto"
+                  className="flex items-center gap-1 font-medium hover-elevate active-elevate-2 px-2 py-1 -mx-2 -my-1 rounded-md ml-auto whitespace-nowrap"
                   data-testid="sort-temp"
                 >
                   Temp (°C) <ArrowUpDown className="h-3 w-3" />
                 </button>
               </TableHead>
-              <TableHead className="text-right">
+              <TableHead className="text-right whitespace-nowrap">
                 <button 
                   onClick={() => handleSort("soc")}
-                  className="flex items-center gap-1 font-medium hover-elevate active-elevate-2 px-2 py-1 -mx-2 -my-1 rounded-md ml-auto"
+                  className="flex items-center gap-1 font-medium hover-elevate active-elevate-2 px-2 py-1 -mx-2 -my-1 rounded-md ml-auto whitespace-nowrap"
                   data-testid="sort-soc"
                 >
                   SoC (%) <ArrowUpDown className="h-3 w-3" />
                 </button>
               </TableHead>
-              <TableHead className="text-right">Runtime (h)</TableHead>
-              <TableHead>PS</TableHead>
-              <TableHead>Address</TableHead>
-              <TableHead>X</TableHead>
-              <TableHead className="text-right">RSSI</TableHead>
+              <TableHead className="text-right whitespace-nowrap">Runtime (h)</TableHead>
+              <TableHead className="whitespace-nowrap">PS</TableHead>
+              <TableHead className="whitespace-nowrap">Address</TableHead>
+              <TableHead className="whitespace-nowrap">X</TableHead>
+              <TableHead className="text-right whitespace-nowrap">RSSI</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
