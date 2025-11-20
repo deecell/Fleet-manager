@@ -1,5 +1,4 @@
 import { Truck } from "@shared/schema";
-import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowUpDown } from "lucide-react";
 import { useState } from "react";
@@ -97,7 +96,6 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
               <TableHead>Address</TableHead>
               <TableHead>X</TableHead>
               <TableHead className="text-right">RSSI</TableHead>
-              <TableHead>Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -110,7 +108,17 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
                 }`}
                 data-testid={`truck-row-${truck.id}`}
               >
-                <TableCell className="font-medium">{truck.name}</TableCell>
+                <TableCell className="font-medium">
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className={`w-2 h-2 rounded-full ${
+                        truck.status === "in-service" ? "bg-green-500" : "bg-red-500"
+                      }`}
+                      data-testid={`status-dot-${truck.id}`}
+                    ></div>
+                    {truck.name}
+                  </div>
+                </TableCell>
                 <TableCell>{truck.model}</TableCell>
                 <TableCell className="text-muted-foreground">{truck.serial}</TableCell>
                 <TableCell className="text-muted-foreground">{truck.fw}</TableCell>
@@ -128,18 +136,6 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
                 </TableCell>
                 <TableCell className="text-muted-foreground">{truck.x}</TableCell>
                 <TableCell className="text-right font-mono">{truck.rssi}</TableCell>
-                <TableCell>
-                  <Badge
-                    variant={truck.status === "in-service" ? "default" : "destructive"}
-                    className="whitespace-nowrap"
-                    data-testid={`status-badge-${truck.id}`}
-                  >
-                    <div className={`w-2 h-2 rounded-full mr-1.5 ${
-                      truck.status === "in-service" ? "bg-green-500" : "bg-red-500"
-                    }`}></div>
-                    {truck.status === "in-service" ? "In Service" : "Not in Service"}
-                  </Badge>
-                </TableCell>
               </TableRow>
             ))}
           </TableBody>
