@@ -6,6 +6,10 @@ import FleetTable from "@/components/FleetTable";
 import TruckDetail from "@/components/TruckDetail";
 import { generateMockTrucks } from "@/lib/mockData";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Bell, Settings, LogOut } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 
 //todo: remove mock functionality
 const mockTrucks = generateMockTrucks();
@@ -32,6 +36,59 @@ export default function Dashboard() {
             <div>
               <h1 className="text-2xl font-semibold" data-testid="header-title">Deecell Fleet Tracking</h1>
               <p className="text-sm text-muted-foreground">Integrated Clean Energy System</p>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <button 
+                className="relative hover-elevate active-elevate-2 p-2 rounded-md"
+                data-testid="button-notifications"
+                onClick={() => console.log('Notifications clicked')}
+              >
+                <Bell className="h-5 w-5" />
+                <Badge 
+                  variant="destructive" 
+                  className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                >
+                  3
+                </Badge>
+              </button>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button 
+                    className="flex items-center gap-3 hover-elevate active-elevate-2 p-2 rounded-md"
+                    data-testid="button-user-menu"
+                  >
+                    <div className="text-right hidden sm:block">
+                      <div className="text-sm font-medium">John Operator</div>
+                      <div className="text-xs text-muted-foreground">Fleet Manager</div>
+                    </div>
+                    <Avatar>
+                      <AvatarImage src="" alt="User" />
+                      <AvatarFallback className="bg-primary text-primary-foreground">JO</AvatarFallback>
+                    </Avatar>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={() => console.log('Settings clicked')}
+                    data-testid="menu-settings"
+                  >
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={() => console.log('Logout clicked')}
+                    data-testid="menu-logout"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Logout</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
