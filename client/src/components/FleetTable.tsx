@@ -128,7 +128,15 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
                 <TableCell className="text-right font-mono">{truck.wh.toFixed(0)}</TableCell>
                 <TableCell className="text-right font-mono">{truck.ah.toFixed(1)}</TableCell>
                 <TableCell className="text-right font-mono">{truck.temp.toFixed(1)}</TableCell>
-                <TableCell className="text-right font-mono font-semibold">{truck.soc.toFixed(0)}</TableCell>
+                <TableCell className="text-right font-mono font-semibold">
+                  <span className={
+                    truck.soc >= 60 ? "text-green-600 dark:text-green-500" :
+                    truck.soc >= 30 ? "text-yellow-600 dark:text-yellow-500" :
+                    "text-red-600 dark:text-red-500"
+                  }>
+                    {truck.soc.toFixed(0)}
+                  </span>
+                </TableCell>
                 <TableCell className="text-right font-mono">{truck.runtime.toFixed(1)}</TableCell>
                 <TableCell className="text-muted-foreground">{truck.ps}</TableCell>
                 <TableCell className="text-muted-foreground max-w-[200px] truncate" title={truck.address}>
