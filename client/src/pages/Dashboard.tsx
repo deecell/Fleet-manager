@@ -34,7 +34,7 @@ export default function Dashboard() {
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-semibold" data-testid="header-title">Deecell Fleet Tracking</h1>
+              <h1 className="text-2xl font-semibold" data-testid="header-title">Deecell Power Systems</h1>
               <p className="text-sm text-muted-foreground">Integrated Clean Energy System</p>
             </div>
             
@@ -93,7 +93,6 @@ export default function Dashboard() {
           </div>
         </div>
       </header>
-
       <main className="container mx-auto px-6 py-8 space-y-6">
         <FleetStats trucks={trucks} />
         <FleetMap 
@@ -119,7 +118,6 @@ export default function Dashboard() {
           />
         </div>
       </main>
-
       {selectedTruck && (
         <TruckDetail 
           truck={selectedTruck} 
