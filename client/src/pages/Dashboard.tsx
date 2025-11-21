@@ -35,7 +35,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-semibold" data-testid="header-title">Deecell Power Systems</h1>
-              <p className="text-sm text-muted-foreground">Integrated Clean Energy System</p>
+              <p className="text-sm text-muted-foreground">Integrated Energy System</p>
             </div>
             
             <div className="flex items-center gap-4">
