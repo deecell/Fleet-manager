@@ -131,7 +131,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
                 <TableCell className="text-right font-mono font-semibold">
                   <span className={
                     truck.soc >= 60 ? "text-green-600 dark:text-green-500" :
-                    truck.soc >= 20 ? "text-yellow-600 dark:text-yellow-500" :
+                    truck.soc >= 30 ? "text-yellow-600 dark:text-yellow-500" :
                     "text-red-600 dark:text-red-500"
                   }>
                     {truck.soc.toFixed(0)}
