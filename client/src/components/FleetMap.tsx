@@ -34,6 +34,7 @@ export default function FleetMap({ trucks, selectedTruckId, onTruckSelect }: Fle
           src={mapImage} 
           alt="USA Map" 
           className="absolute inset-0 w-full h-full object-cover"
+          style={{ transform: 'scale(0.5)' }}
         />
         <svg className="absolute inset-0 w-full h-full">
           {trucks.map((truck) => {
