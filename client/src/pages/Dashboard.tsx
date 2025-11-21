@@ -1,18 +1,19 @@
 import { useState } from "react";
-import { TruckWithHistory } from "@shared/schema";
+import { TruckWithHistory, Notification } from "@shared/schema";
 import FleetStats from "@/components/FleetStats";
 import FleetMap from "@/components/FleetMap";
 import FleetTable from "@/components/FleetTable";
 import TruckDetail from "@/components/TruckDetail";
-import { generateMockTrucks } from "@/lib/mockData";
+import { Notifications } from "@/components/Notifications";
+import { generateMockTrucks, generateMockNotifications } from "@/lib/mockData";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bell, Settings, LogOut } from "lucide-react";
+import { Settings, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
 
 //todo: remove mock functionality
 const mockTrucks = generateMockTrucks();
+const mockNotifications = generateMockNotifications();
 
 type FilterStatus = "all" | "in-service" | "not-in-service";
 
@@ -20,6 +21,23 @@ export default function Dashboard() {
   const [selectedTruckId, setSelectedTruckId] = useState<string | undefined>();
   const [trucks] = useState<TruckWithHistory[]>(mockTrucks);
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
+  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+
+  const handleMarkAsRead = (id: string) => {
+    setNotifications(prev => 
+      prev.map(n => n.id === id ? { ...n, read: true } : n)
+    );
+  };
+
+  const handleMarkAllAsRead = () => {
+    setNotifications(prev => 
+      prev.map(n => ({ ...n, read: true }))
+    );
+  };
+
+  const handleDismiss = (id: string) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
 
   const filteredTrucks = trucks.filter(truck => {
     if (filterStatus === "all") return true;
@@ -39,19 +57,12 @@ export default function Dashboard() {
             </div>
             
             <div className="flex items-center gap-4">
-              <button 
-                className="relative hover-elevate active-elevate-2 p-2 rounded-md"
-                data-testid="button-notifications"
-                onClick={() => console.log('Notifications clicked')}
-              >
-                <Bell className="h-5 w-5" />
-                <Badge 
-                  variant="destructive" 
-                  className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
-                >
-                  3
-                </Badge>
-              </button>
+              <Notifications 
+                notifications={notifications}
+                onMarkAsRead={handleMarkAsRead}
+                onMarkAllAsRead={handleMarkAllAsRead}
+                onDismiss={handleDismiss}
+              />
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

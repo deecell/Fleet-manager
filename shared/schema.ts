@@ -43,3 +43,17 @@ export const truckWithHistorySchema = truckSchema.extend({
 });
 
 export type TruckWithHistory = z.infer<typeof truckWithHistorySchema>;
+
+// Notification schema
+export const notificationSchema = z.object({
+  id: z.string(),
+  type: z.enum(["alert", "warning", "info"]),
+  title: z.string(),
+  message: z.string(),
+  truckId: z.string().optional(),
+  truckName: z.string().optional(),
+  timestamp: z.number(),
+  read: z.boolean(),
+});
+
+export type Notification = z.infer<typeof notificationSchema>;

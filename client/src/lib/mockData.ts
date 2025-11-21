@@ -1,4 +1,4 @@
-import { Truck, HistoricalDataPoint, TruckWithHistory } from "@shared/schema";
+import { Truck, HistoricalDataPoint, TruckWithHistory, Notification } from "@shared/schema";
 
 //todo: remove mock functionality
 const truckNames = [
@@ -77,4 +77,40 @@ export function generateMockTrucks(): TruckWithHistory[] {
     
     return truck;
   });
+}
+
+export function generateMockNotifications(): Notification[] {
+  const now = Date.now();
+  return [
+    {
+      id: "notif-1",
+      type: "alert",
+      title: "Low Battery Alert",
+      message: "Gamma-3 battery level has dropped below 30%",
+      truckId: "truck-3",
+      truckName: "Gamma-3",
+      timestamp: now - 2 * 60 * 60 * 1000, // 2 hours ago
+      read: false,
+    },
+    {
+      id: "notif-2",
+      type: "warning",
+      title: "High Temperature",
+      message: "Zeta-6 temperature reading is above normal range",
+      truckId: "truck-6",
+      truckName: "Zeta-6",
+      timestamp: now - 5 * 60 * 60 * 1000, // 5 hours ago
+      read: false,
+    },
+    {
+      id: "notif-3",
+      type: "alert",
+      title: "Connection Lost",
+      message: "Iota-9 has lost connection to the system",
+      truckId: "truck-9",
+      truckName: "Iota-9",
+      timestamp: now - 8 * 60 * 60 * 1000, // 8 hours ago
+      read: false,
+    },
+  ];
 }
