@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Truck } from "@shared/schema";
-import mapImage from "@assets/generated_images/usa_satellite_map_view.png";
+import mapImage from "@assets/map-test_1763683850537.png";
 
 interface FleetMapProps {
   trucks: Truck[];
