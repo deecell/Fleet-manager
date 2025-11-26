@@ -66,7 +66,7 @@ export function Notifications({ notifications, onMarkAsRead, onMarkAllAsRead, on
             </Button>
           )}
         </div>
-        <ScrollArea className="h-[400px]">
+        <ScrollArea className="h-[400px] bg-white">
           {notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-8 text-center">
               <Bell className="h-12 w-12 text-muted-foreground mb-2" />
