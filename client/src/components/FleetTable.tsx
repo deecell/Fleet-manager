@@ -48,7 +48,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
         <table className="w-full">
           <thead>
             <tr className="bg-[#303030] h-[41px]">
-              <th className="pl-6 pr-3 py-3 text-left">
+              <th className="py-3 text-left pl-[14px] pr-[14px]">
                 <button 
                   onClick={() => handleSort("name")}
                   className="flex items-center gap-1.5 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap"
