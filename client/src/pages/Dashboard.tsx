@@ -28,7 +28,7 @@ export default function Dashboard() {
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
-  const [showAlert, setShowAlert] = useState(true);
+  const [dismissedAlertId, setDismissedAlertId] = useState<string | null>(null);
 
   const handleMarkAsRead = (id: string) => {
     setNotifications(prev => 
@@ -59,6 +59,10 @@ export default function Dashboard() {
   const selectedTruck = trucks.find(t => t.id === selectedTruckId);
   const activeTrucksCount = trucks.filter(t => t.status === "in-service").length;
   const totalTrucks = trucks.length;
+  
+  const latestNotification = notifications
+    .filter(n => !n.read && n.id !== dismissedAlertId)
+    .sort((a, b) => b.timestamp - a.timestamp)[0];
 
   return (
     <div className="min-h-screen bg-[#fafbfc]">
@@ -118,11 +122,11 @@ export default function Dashboard() {
       </header>
 
       <main className="px-6 lg:px-[144px] py-8 space-y-6">
-        {showAlert && (
+        {latestNotification && (
           <AlertBanner 
-            title="Energy Waste Detected"
-            description="1 machine is consuming power while idle: Packaging Unit"
-            onClose={() => setShowAlert(false)}
+            title={latestNotification.title}
+            description={latestNotification.message}
+            onClose={() => setDismissedAlertId(latestNotification.id)}
           />
         )}
         
