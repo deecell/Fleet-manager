@@ -28,6 +28,7 @@ export default function Dashboard() {
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  const [showAlert, setShowAlert] = useState(true);
 
   const handleMarkAsRead = (id: string) => {
     setNotifications(prev => 
@@ -117,10 +118,13 @@ export default function Dashboard() {
       </header>
 
       <main className="px-6 lg:px-[144px] py-8 space-y-6">
-        <AlertBanner 
-          title="Energy Waste Detected"
-          description="1 machine is consuming power while idle: Packaging Unit"
-        />
+        {showAlert && (
+          <AlertBanner 
+            title="Energy Waste Detected"
+            description="1 machine is consuming power while idle: Packaging Unit"
+            onClose={() => setShowAlert(false)}
+          />
+        )}
         
         <FleetStats trucks={trucks} />
         
