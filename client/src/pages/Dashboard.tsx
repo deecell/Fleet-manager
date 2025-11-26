@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { TruckWithHistory, Notification } from "@shared/schema";
 import FleetStats from "@/components/FleetStats";
-import FleetMap from "@/components/FleetMap";
 import FleetTable from "@/components/FleetTable";
 import TruckDetail from "@/components/TruckDetail";
 import { Notifications } from "@/components/Notifications";
@@ -106,11 +105,6 @@ export default function Dashboard() {
       </header>
       <main className="container mx-auto px-6 py-8 space-y-6">
         <FleetStats trucks={trucks} />
-        <FleetMap 
-          trucks={filteredTrucks} 
-          selectedTruckId={selectedTruckId}
-          onTruckSelect={setSelectedTruckId}
-        />
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">Fleet Overview</h2>
