@@ -142,7 +142,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
               <th className="px-3 py-3 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap text-center">V</th>
               <th className="px-3 py-3 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">P (kW)</th>
               <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Wh</th>
-              <th className="px-3 py-3 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Ah</th>
+              <th className="px-3 py-3 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap text-left">Ah</th>
               <th className="px-3 pr-6 py-3 text-right">
                 <button 
                   onClick={() => handleSort("temp")}
