@@ -136,7 +136,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between mb-4 gap-4">
             <h2 className="text-lg font-semibold text-neutral-950 shrink-0">Fleet Overview</h2>
             
-            <div className="relative w-[289px]">
+            <div className="relative w-[289px] ml-[10px]">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9c9ca7]" />
               <input
                 type="text"
