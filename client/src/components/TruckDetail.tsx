@@ -1,6 +1,7 @@
 import { TruckWithHistory } from "@shared/schema";
 import { X, Battery, Zap, Activity, Thermometer, Check, ChevronDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useState } from "react";
 
@@ -27,14 +28,45 @@ function Toggle({ enabled, onToggle }: { enabled: boolean; onToggle: () => void 
   );
 }
 
-function InputField({ label, value, type = "text" }: { label: string; value: string; type?: "text" | "dropdown" }) {
+function InputField({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-white border border-[#ebeef2] rounded h-[59px] px-4 py-2 flex flex-col justify-center">
       <p className="text-xs text-[#323941] opacity-80">{label}</p>
       <div className="flex items-center justify-between">
         <p className="text-base text-neutral-950">{value}</p>
-        {type === "dropdown" && <ChevronDown className="w-3 h-3 text-[#323941]" />}
       </div>
+    </div>
+  );
+}
+
+function DropdownField({ 
+  label, 
+  value, 
+  options, 
+  onValueChange,
+  testId
+}: { 
+  label: string; 
+  value: string; 
+  options: string[];
+  onValueChange: (value: string) => void;
+  testId?: string;
+}) {
+  return (
+    <div className="bg-white border border-[#ebeef2] rounded h-[59px] px-4 py-2 flex flex-col justify-center">
+      <p className="text-xs text-[#323941] opacity-80">{label}</p>
+      <Select value={value} onValueChange={onValueChange}>
+        <SelectTrigger className="h-auto p-0 border-0 shadow-none focus:ring-0 text-base text-neutral-950" data-testid={testId}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="bg-white">
+          {options.map((option) => (
+            <SelectItem key={option} value={option}>
+              {option}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }
@@ -46,6 +78,8 @@ export default function TruckDetail({ truck, onClose }: TruckDetailProps) {
   const [turnOnAtStartup, setTurnOnAtStartup] = useState(false);
   const [latchRelayOn, setLatchRelayOn] = useState(false);
   const [invertRelayLogic, setInvertRelayLogic] = useState(false);
+  const [mfTerminalFunction, setMfTerminalFunction] = useState("Push button input");
+  const [dataLoggingMode, setDataLoggingMode] = useState("Every 10 seconds");
 
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp);
@@ -160,8 +194,20 @@ export default function TruckDetail({ truck, onClose }: TruckDetailProps) {
         {/* Input Fields */}
         <div className="space-y-4 pt-4">
           <InputField label="Connect Filter (milliseconds)" value="1000" />
-          <InputField label="MF Terminal Function" value="Push button input" type="dropdown" />
-          <InputField label="Data Logging mode" value="Every 10 seconds" type="dropdown" />
+          <DropdownField 
+            label="MF Terminal Function" 
+            value={mfTerminalFunction}
+            options={["Push button input", "Toggle switch input", "Momentary switch", "Disabled"]}
+            onValueChange={setMfTerminalFunction}
+            testId="dropdown-mf-terminal"
+          />
+          <DropdownField 
+            label="Data Logging mode" 
+            value={dataLoggingMode}
+            options={["Every 10 seconds", "Every 30 seconds", "Every minute", "Every 5 minutes", "Disabled"]}
+            onValueChange={setDataLoggingMode}
+            testId="dropdown-data-logging"
+          />
         </div>
 
         {/* Current Metrics - moved below Figma content */}
