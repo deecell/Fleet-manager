@@ -70,7 +70,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
                 } ${selectedTruckId === truck.id ? "bg-blue-50" : ""}`}
                 data-testid={`truck-row-${truck.id}`}
               >
-                <td className="pl-6 pr-3 py-3">
+                <td className="py-3 pl-[14px] pr-[14px]">
                   <div className="flex items-center gap-2.5">
                     <div 
                       className={`w-2 h-2 rounded-full shrink-0 ${
@@ -92,7 +92,6 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
           </tbody>
         </table>
       </div>
-
       {/* Section 2: Chassis */}
       <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[8]">
         <table className="w-full">
@@ -121,7 +120,6 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
           </tbody>
         </table>
       </div>
-
       {/* Section 3: Sleeper */}
       <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[46]">
         <table className="w-full">
@@ -182,7 +180,6 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
           </tbody>
         </table>
       </div>
-
       {/* Section 4: Model, Serial, FW */}
       <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[20] mt-[21px]">
         <table className="w-full">
