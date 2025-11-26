@@ -76,7 +76,6 @@ function DropdownField({
 
 export default function TruckDetail({ truck, onClose }: TruckDetailProps) {
   const [voltageSource, setVoltageSource] = useState<"V1" | "V2">("V1");
-  const [disableV2, setDisableV2] = useState(false);
   const [flipCurrentSign, setFlipCurrentSign] = useState(true);
   const [turnOnAtStartup, setTurnOnAtStartup] = useState(false);
   const [latchRelayOn, setLatchRelayOn] = useState(false);
@@ -137,12 +136,6 @@ export default function TruckDetail({ truck, onClose }: TruckDetailProps) {
       </div>
       {/* Settings Content */}
       <div className="px-[68px] py-8 space-y-6">
-        {/* Disable V2 */}
-        <div className="flex items-center justify-between">
-          <p className="text-lg font-medium text-neutral-950">Disable V2</p>
-          <Toggle enabled={disableV2} onToggle={() => setDisableV2(!disableV2)} />
-        </div>
-
         {/* Power Meter Voltage Source */}
         <div className="space-y-4">
           <p className="text-lg font-medium text-neutral-950">Power Meter Voltage Source</p>
