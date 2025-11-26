@@ -47,9 +47,6 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
       <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[26]">
         <table className="w-full">
           <thead>
-            <tr className="h-[21px]">
-              <th colSpan={2} className="bg-white"></th>
-            </tr>
             <tr className="bg-[#303030] h-[41px]">
               <th className="pl-6 pr-3 py-3 text-left">
                 <button 
@@ -190,9 +187,6 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
       <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[20]">
         <table className="w-full">
           <thead>
-            <tr className="h-[21px]">
-              <th colSpan={3} className="bg-white"></th>
-            </tr>
             <tr className="bg-[#303030] h-[41px]">
               <th className="px-3 pl-6 py-3 text-left">
                 <button 
