@@ -67,7 +67,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
               </th>
               <th className="px-3 py-4 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Serial</th>
               <th className="px-3 py-4 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">FW</th>
-              <th className="px-3 py-4 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">V1</th>
+              <th className="px-3 py-4 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Chassis (V)</th>
               <th className="px-3 py-4 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">V2</th>
               <th className="px-3 py-4 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">P (kW)</th>
               <th className="px-3 py-4 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Wh</th>
