@@ -53,7 +53,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
                   className="flex items-center gap-1 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap"
                   data-testid="sort-name"
                 >
-                  Name <ArrowUpDown className="h-3.5 w-3.5" />
+                  Name <ArrowUpDown className="h-3.5 w-3.5 text-[#838383]" />
                 </button>
               </th>
               <th className="px-2 py-4 text-left">
@@ -62,7 +62,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
                   className="flex items-center gap-1 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap"
                   data-testid="sort-model"
                 >
-                  Model <ArrowUpDown className="h-3.5 w-3.5" />
+                  Model <ArrowUpDown className="h-3.5 w-3.5 text-[#838383]" />
                 </button>
               </th>
               <th className="px-2 py-4 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Serial</th>
@@ -78,7 +78,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
                   className="flex items-center gap-1 text-white text-[13px] 2xl:text-sm font-medium ml-auto whitespace-nowrap"
                   data-testid="sort-temp"
                 >
-                  Temp (°C) <ArrowUpDown className="h-3.5 w-3.5" />
+                  Temp (°C) <ArrowUpDown className="h-3.5 w-3.5 text-[#838383]" />
                 </button>
               </th>
               <th className="px-2 py-4 text-right">
@@ -87,7 +87,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
                   className="flex items-center gap-1 text-white text-[13px] 2xl:text-sm font-medium ml-auto whitespace-nowrap"
                   data-testid="sort-soc"
                 >
-                  SoC (%) <ArrowUpDown className="h-3.5 w-3.5" />
+                  SoC (%) <ArrowUpDown className="h-3.5 w-3.5 text-[#838383]" />
                 </button>
               </th>
               <th className="px-2 py-4 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Runtime (h)</th>
