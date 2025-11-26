@@ -140,8 +140,8 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
                 </button>
               </th>
               <th className="px-3 py-3 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap text-center">V</th>
-              <th className="px-3 py-3 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">P (kW)</th>
-              <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Wh</th>
+              <th className="px-3 py-3 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap text-center">P (kW)</th>
+              <th className="px-3 py-3 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap text-center">Wh</th>
               <th className="px-3 py-3 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap text-center">Ah</th>
               <th className="px-3 pr-6 py-3 text-right">
                 <button 
@@ -172,7 +172,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
                 </td>
                 <td className="px-3 py-3 text-[13px] 2xl:text-sm text-[#4a5565] whitespace-nowrap tabular-nums text-center">{truck.v2.toFixed(2)}</td>
                 <td className="px-3 py-3 text-[13px] 2xl:text-sm text-[#4a5565] whitespace-nowrap tabular-nums text-center">{truck.p.toFixed(1)}</td>
-                <td className="px-3 py-3 text-[13px] 2xl:text-sm text-[#4a5565] text-left whitespace-nowrap tabular-nums">{truck.wh.toFixed(0)}</td>
+                <td className="px-3 py-3 text-[13px] 2xl:text-sm text-[#4a5565] whitespace-nowrap tabular-nums text-center">{truck.wh.toFixed(0)}</td>
                 <td className="px-3 py-3 text-[13px] 2xl:text-sm text-[#4a5565] whitespace-nowrap tabular-nums text-center">{truck.ah.toFixed(1)}</td>
                 <td className="px-3 py-3 text-[13px] 2xl:text-sm font-medium text-black whitespace-nowrap tabular-nums pr-[18px] text-center">{truck.temp.toFixed(1)}</td>
               </tr>
