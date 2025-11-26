@@ -8,6 +8,7 @@ import { AlertBanner } from "@/components/AlertBanner";
 import { generateMockTrucks, generateMockNotifications } from "@/lib/mockData";
 import { User } from "lucide-react";
 import deecellLogo from "@assets/deecell-logo.png";
+import allIcon from "@assets/all.svg";
 
 const mockTrucks = generateMockTrucks();
 const mockNotifications = generateMockNotifications();
@@ -112,7 +113,7 @@ export default function Dashboard() {
                     }`}
                     data-testid="filter-all"
                   >
-                    <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-[#39c900] to-[#ff0900]" style={{ visibility: filterStatus === "all" ? "visible" : "hidden" }} />
+                    <img src={allIcon} alt="" className="w-2.5 h-2.5" />
                     All
                   </button>
                   <button
