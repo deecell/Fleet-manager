@@ -6,7 +6,14 @@ import TruckDetail from "@/components/TruckDetail";
 import { Notifications } from "@/components/Notifications";
 import { AlertBanner } from "@/components/AlertBanner";
 import { generateMockTrucks, generateMockNotifications } from "@/lib/mockData";
-import { User } from "lucide-react";
+import { User, LogOut, ChevronDown } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import logoSvg from "@assets/logo.svg";
 import allIcon from "@assets/all.svg";
 
@@ -71,12 +78,34 @@ export default function Dashboard() {
               onDismiss={handleDismiss}
             />
             
-            <button 
-              className="w-[46px] h-[41px] rounded-full flex items-center justify-center hover-elevate active-elevate-2"
-              data-testid="button-user-menu"
-            >
-              <User className="w-5 h-5 text-gray-600" />
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button 
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg hover-elevate active-elevate-2"
+                  data-testid="button-user-menu"
+                >
+                  <div className="w-8 h-8 rounded-full bg-[#e2e8f8] flex items-center justify-center">
+                    <User className="w-4 h-4 text-[#6a7fbc]" />
+                  </div>
+                  <span className="text-sm font-medium text-neutral-950">John Doe</span>
+                  <ChevronDown className="w-4 h-4 text-[#4a5565]" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <div className="px-3 py-2">
+                  <p className="text-sm font-medium text-neutral-950">John Doe</p>
+                  <p className="text-xs text-[#4a5565]">john.doe@deecell.com</p>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  className="cursor-pointer text-[#ff0900] focus:text-[#ff0900]"
+                  data-testid="button-logout"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>
