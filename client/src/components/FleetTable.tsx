@@ -42,12 +42,12 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
   });
 
   return (
-    <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.05)] overflow-hidden">
+    <div className="bg-white rounded-lg border border-[#ebeef2] shadow-[0px_1px_3px_0px_rgba(96,108,128,0.05)] overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="bg-[#303030] h-[62px]">
-              <th className="px-4 py-4 text-left">
+              <th className="px-4 py-4 text-left first:rounded-tl-lg">
                 <button 
                   onClick={() => handleSort("name")}
                   className="flex items-center gap-1.5 text-white text-sm font-medium"
@@ -65,17 +65,17 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
                   Model <ArrowUpDown className="h-3.5 w-3.5" />
                 </button>
               </th>
-              <th className="px-4 py-4 text-left text-white text-sm font-bold">Serial</th>
-              <th className="px-4 py-4 text-left text-white text-sm font-bold">FW</th>
-              <th className="px-4 py-4 text-left text-white text-sm font-bold">V1</th>
-              <th className="px-4 py-4 text-left text-white text-sm font-bold">V2</th>
-              <th className="px-4 py-4 text-left text-white text-sm font-bold">P (kW)</th>
-              <th className="px-4 py-4 text-left text-white text-sm font-bold">Wh</th>
-              <th className="px-4 py-4 text-right text-white text-sm font-bold">Ah</th>
+              <th className="px-4 py-4 text-left text-white text-sm font-medium">Serial</th>
+              <th className="px-4 py-4 text-left text-white text-sm font-medium">FW</th>
+              <th className="px-4 py-4 text-left text-white text-sm font-medium">V1</th>
+              <th className="px-4 py-4 text-left text-white text-sm font-medium">V2</th>
+              <th className="px-4 py-4 text-left text-white text-sm font-medium">P (kW)</th>
+              <th className="px-4 py-4 text-left text-white text-sm font-medium">Wh</th>
+              <th className="px-4 py-4 text-right text-white text-sm font-medium">Ah</th>
               <th className="px-4 py-4 text-right">
                 <button 
                   onClick={() => handleSort("temp")}
-                  className="flex items-center gap-1.5 text-white text-sm font-bold ml-auto"
+                  className="flex items-center gap-1.5 text-white text-sm font-medium ml-auto"
                   data-testid="sort-temp"
                 >
                   Temp (°C) <ArrowUpDown className="h-3.5 w-3.5" />
@@ -84,17 +84,17 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
               <th className="px-4 py-4 text-right">
                 <button 
                   onClick={() => handleSort("soc")}
-                  className="flex items-center gap-1.5 text-white text-sm font-bold ml-auto"
+                  className="flex items-center gap-1.5 text-white text-sm font-medium ml-auto"
                   data-testid="sort-soc"
                 >
                   SoC (%) <ArrowUpDown className="h-3.5 w-3.5" />
                 </button>
               </th>
-              <th className="px-4 py-4 text-left text-white text-sm font-bold">Runtime (h)</th>
-              <th className="px-4 py-4 text-left text-white text-sm font-bold">PS</th>
-              <th className="px-4 py-4 text-left text-white text-sm font-bold">Address</th>
-              <th className="px-4 py-4 text-left text-white text-sm font-bold">X</th>
-              <th className="px-4 py-4 text-right text-white text-sm font-bold">RSSI</th>
+              <th className="px-4 py-4 text-left text-white text-sm font-medium">Runtime (h)</th>
+              <th className="px-4 py-4 text-left text-white text-sm font-medium">PS</th>
+              <th className="px-4 py-4 text-left text-white text-sm font-medium">Address</th>
+              <th className="px-4 py-4 text-left text-white text-sm font-medium">X</th>
+              <th className="px-4 py-4 text-right text-white text-sm font-medium last:rounded-tr-lg">RSSI</th>
             </tr>
           </thead>
           <tbody>
@@ -102,7 +102,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
               <tr
                 key={truck.id}
                 onClick={() => onTruckSelect(truck.id)}
-                className={`cursor-pointer h-[62px] border-b border-gray-100 hover:bg-gray-50 ${
+                className={`cursor-pointer h-[62px] hover:bg-gray-100 ${
                   index % 2 === 1 ? "bg-[#fafbfc]" : "bg-white"
                 } ${selectedTruckId === truck.id ? "bg-blue-50" : ""}`}
                 data-testid={`truck-row-${truck.id}`}
@@ -115,7 +115,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
                       }`}
                       data-testid={`status-dot-${truck.id}`}
                     />
-                    <span className="text-sm font-medium text-black">{truck.name}</span>
+                    <span className="text-sm font-medium text-neutral-950">{truck.name}</span>
                   </div>
                 </td>
                 <td className="px-4 py-4 text-sm text-[#4a5565]">{truck.model}</td>
@@ -126,7 +126,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
                 <td className="px-4 py-4 text-sm text-[#4a5565] text-right">{truck.p.toFixed(1)}</td>
                 <td className="px-4 py-4 text-sm text-[#4a5565] text-right">{truck.wh.toFixed(0)}</td>
                 <td className="px-4 py-4 text-sm text-[#4a5565] text-right">{truck.ah.toFixed(1)}</td>
-                <td className="px-4 py-4 text-sm font-medium text-black text-right">{truck.temp.toFixed(1)}</td>
+                <td className="px-4 py-4 text-sm font-medium text-neutral-950 text-right">{truck.temp.toFixed(1)}</td>
                 <td className="px-4 py-4 text-right">
                   <span className={`text-sm font-semibold ${
                     truck.soc >= 60 ? "text-[#39c900]" : "text-[#ff0900]"
@@ -134,13 +134,13 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
                     {truck.soc.toFixed(0)}
                   </span>
                 </td>
-                <td className="px-4 py-4 text-sm font-medium text-black text-right">{truck.runtime.toFixed(1)}</td>
+                <td className="px-4 py-4 text-sm font-medium text-neutral-950 text-right">{truck.runtime.toFixed(1)}</td>
                 <td className="px-4 py-4 text-sm text-[#4a5565]">{truck.ps}</td>
                 <td className="px-4 py-4 text-sm text-[#4a5565] max-w-[100px] truncate" title={truck.address}>
                   {truck.address}
                 </td>
                 <td className="px-4 py-4 text-sm text-[#4a5565]">{truck.x}</td>
-                <td className="px-4 py-4 text-sm font-medium text-black text-right">{truck.rssi}</td>
+                <td className="px-4 py-4 text-sm font-medium text-neutral-950 text-right">{truck.rssi}</td>
               </tr>
             ))}
           </tbody>
