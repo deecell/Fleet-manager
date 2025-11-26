@@ -76,7 +76,7 @@ export default function Dashboard() {
               data-testid="header-logo"
             />
             <div>
-              <h1 className="text-base font-medium text-neutral-950" data-testid="header-title">Dashboard</h1>
+              <h1 className="text-base font-medium text-neutral-950" data-testid="header-title">Fleet Manager</h1>
               <p className="text-xs text-[#717182]">Deecell Power Systems</p>
             </div>
           </div>
@@ -120,7 +120,6 @@ export default function Dashboard() {
           </div>
         </div>
       </header>
-
       <main className="px-6 lg:px-[144px] py-8 space-y-6">
         {latestNotification && (
           <AlertBanner 
@@ -213,7 +212,6 @@ export default function Dashboard() {
           />
         </div>
       </main>
-
       {selectedTruck && (
         <TruckDetail 
           truck={selectedTruck} 
