@@ -78,7 +78,7 @@ export function Notifications({ notifications, onMarkAsRead, onMarkAllAsRead, on
                 <div
                   key={notification.id}
                   className={`p-4 hover-elevate cursor-pointer ${
-                    !notification.read ? "bg-blue-50" : "bg-white"
+                    !notification.read ? "bg-[#FAFBFC]" : "bg-white"
                   }`}
                   onClick={() => handleNotificationClick(notification)}
                   data-testid={`notification-${notification.id}`}
