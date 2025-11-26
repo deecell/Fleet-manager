@@ -103,7 +103,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
                 key={truck.id}
                 onClick={() => onTruckSelect(truck.id)}
                 className={`cursor-pointer h-[62px] hover:bg-gray-100 ${
-                  index % 2 === 1 ? "bg-[#fafbfc]" : "bg-white"
+                  index % 2 === 1 ? "bg-[#F4F7F9]" : "bg-white"
                 } ${selectedTruckId === truck.id ? "bg-blue-50" : ""}`}
                 data-testid={`truck-row-${truck.id}`}
               >
