@@ -44,7 +44,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
   return (
     <div className="bg-white rounded-lg border border-[#ebeef2] shadow-[0px_1px_3px_0px_rgba(96,108,128,0.05)] overflow-hidden">
       <div className="overflow-x-auto 2xl:overflow-x-visible">
-        <table className="w-full min-w-[1200px] 2xl:min-w-0">
+        <table className="w-full min-w-[1100px] 2xl:min-w-0">
           <thead>
             <tr className="bg-[#303030] h-[54px]">
               <th className="pl-4 pr-3 py-4 text-left first:rounded-tl-lg">
@@ -92,9 +92,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
               </th>
               <th className="px-3 py-4 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Runtime (h)</th>
               <th className="px-3 py-4 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">PS</th>
-              <th className="px-3 py-4 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Address</th>
-              <th className="px-3 py-4 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">X</th>
-              <th className="pl-3 pr-4 py-4 text-right text-white text-[13px] 2xl:text-sm font-medium last:rounded-tr-lg whitespace-nowrap">RSSI</th>
+              <th className="pl-3 pr-4 py-4 text-left text-white text-[13px] 2xl:text-sm font-medium last:rounded-tr-lg whitespace-nowrap">Address</th>
             </tr>
           </thead>
           <tbody>
@@ -136,11 +134,9 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
                 </td>
                 <td className="px-3 py-3 text-[13px] 2xl:text-sm font-medium text-neutral-950 text-right whitespace-nowrap tabular-nums">{truck.runtime.toFixed(1)}</td>
                 <td className="px-3 py-3 text-[13px] 2xl:text-sm text-[#4a5565] whitespace-nowrap">{truck.ps}</td>
-                <td className="px-3 py-3 text-[13px] 2xl:text-sm text-[#4a5565] whitespace-nowrap max-w-[100px] truncate" title={truck.address}>
+                <td className="pl-3 pr-4 py-3 text-[13px] 2xl:text-sm text-[#4a5565] whitespace-nowrap max-w-[120px] truncate" title={truck.address}>
                   {truck.address}
                 </td>
-                <td className="px-3 py-3 text-[13px] 2xl:text-sm text-[#4a5565] whitespace-nowrap">{truck.x}</td>
-                <td className="pl-3 pr-4 py-3 text-[13px] 2xl:text-sm font-medium text-neutral-950 text-right whitespace-nowrap tabular-nums">{truck.rssi}</td>
               </tr>
             ))}
           </tbody>
