@@ -1,5 +1,5 @@
 import { Truck } from "@shared/schema";
-import { Battery, Clock, Wrench, TrendingUp } from "lucide-react";
+import { Battery, Clock, Wrench, TrendingUp, TrendingDown } from "lucide-react";
 
 interface FleetStatsProps {
   trucks: Truck[];
@@ -25,19 +25,12 @@ function StatCard({ title, value, trend, icon, iconBgColor, valueColor = "text-n
           {icon}
         </div>
         {trend && (
-          <div className="flex items-center gap-0.5">
-            <svg 
-              width="16" 
-              height="12" 
-              viewBox="0 0 16 12" 
-              fill="none"
-              className={trend.isPositive ? "" : "rotate-180"}
-            >
-              <path 
-                d="M8 0L15.7942 12H0.205771L8 0Z" 
-                fill={trend.isPositive ? "#39c900" : "#ff0900"}
-              />
-            </svg>
+          <div className="flex items-center gap-1">
+            {trend.isPositive ? (
+              <TrendingUp className="h-4 w-4 text-[#39c900]" />
+            ) : (
+              <TrendingDown className="h-4 w-4 text-[#ff0900]" />
+            )}
             <span className={`text-xs font-normal ${trend.isPositive ? "text-[#39c900]" : "text-[#ff0900]"}`}>
               {trend.value}
             </span>
