@@ -93,16 +93,16 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
         </table>
       </div>
       {/* Section 2: Chassis */}
-      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[8]">
+      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[6]">
         <table className="w-full">
           <thead>
             <tr className="h-[21px]">
-              <th className="bg-[#e2e8f8] text-[10px] font-medium text-[#6a7fbc] uppercase tracking-[0.7px] text-center rounded-t-lg px-4">
+              <th className="bg-[#e2e8f8] text-[10px] font-medium text-[#6a7fbc] uppercase tracking-[0.7px] text-center rounded-t-lg px-2">
                 Chassis
               </th>
             </tr>
             <tr className="bg-[#303030] h-[41px]">
-              <th className="px-6 py-3 text-center text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">V</th>
+              <th className="px-3 py-3 text-center text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">V</th>
             </tr>
           </thead>
           <tbody>
@@ -114,7 +114,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
                   index % 2 === 1 ? "bg-[#fafbfc]" : "bg-white"
                 } ${selectedTruckId === truck.id ? "bg-blue-50" : ""}`}
               >
-                <td className="px-6 py-3 text-[13px] 2xl:text-sm text-[#4a5565] text-center whitespace-nowrap tabular-nums">{truck.v1.toFixed(2)}</td>
+                <td className="px-3 py-3 text-[13px] 2xl:text-sm text-[#4a5565] text-center whitespace-nowrap tabular-nums">{truck.v1.toFixed(2)}</td>
               </tr>
             ))}
           </tbody>
@@ -181,7 +181,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
         </table>
       </div>
       {/* Section 4: Model, Serial, FW */}
-      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[20] mt-[21px]">
+      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[22] mt-[21px]">
         <table className="w-full">
           <thead>
             <tr className="bg-[#303030] h-[41px]">
