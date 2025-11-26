@@ -70,7 +70,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
                 } ${selectedTruckId === truck.id ? "bg-blue-50" : ""}`}
                 data-testid={`truck-row-${truck.id}`}
               >
-                <td className="py-3 pl-[14px] pr-[14px]">
+                <td className="py-3 pl-[18px] pr-[18px]">
                   <div className="flex items-center gap-2.5">
                     <div 
                       className={`w-2 h-2 rounded-full shrink-0 ${
@@ -81,7 +81,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
                     <span className="text-[13px] 2xl:text-sm font-medium text-black whitespace-nowrap">{truck.name}</span>
                   </div>
                 </td>
-                <td className="px-3 py-3 pl-[14px] pr-[14px]">
+                <td className="px-3 py-3 pl-[18px] pr-[18px]">
                   <div className="flex items-center gap-1.5 justify-end">
                     <Globe className="w-4 h-4 text-[#4a5565] shrink-0" />
                     <span className="text-[13px] 2xl:text-sm text-[#4a5565] whitespace-nowrap">{truck.address}</span>
