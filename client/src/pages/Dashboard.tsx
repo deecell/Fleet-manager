@@ -89,7 +89,7 @@ export default function Dashboard() {
         
         <FleetStats trucks={trucks} />
         
-        <div>
+        <div className="mt-[60px]">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-neutral-950">Fleet Overview</h2>
             
