@@ -60,7 +60,7 @@ export default function TruckDetail({ truck, onClose }: TruckDetailProps) {
   return (
     <div className="fixed inset-y-0 right-0 w-full md:w-[610px] bg-white shadow-[-1px_0px_22px_-6px_rgba(0,0,0,0.17)] overflow-y-auto z-50">
       {/* Header */}
-      <div className="px-[68px] pt-[43px] pb-6 border-b border-[#ebeef2]">
+      <div className="px-[68px] border-b border-[#ebeef2] pt-[19.5px] pb-[19.5px]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <h2 className="text-[26px] font-medium text-black leading-6 tracking-tight" data-testid="truck-detail-name">
@@ -98,7 +98,6 @@ export default function TruckDetail({ truck, onClose }: TruckDetailProps) {
           <p className="text-base text-[#4a5565]">Serial: {truck.serial}</p>
         </div>
       </div>
-
       {/* Settings Content */}
       <div className="px-[68px] py-8 space-y-6">
         {/* Disable V2 */}
