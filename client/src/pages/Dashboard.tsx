@@ -7,7 +7,7 @@ import { Notifications } from "@/components/Notifications";
 import { AlertBanner } from "@/components/AlertBanner";
 import { generateMockTrucks, generateMockNotifications } from "@/lib/mockData";
 import { User } from "lucide-react";
-import deecellLogo from "@assets/deecell-logo.png";
+import containerLogo from "@assets/Container.svg";
 import allIcon from "@assets/all.svg";
 
 const mockTrucks = generateMockTrucks();
@@ -52,7 +52,7 @@ export default function Dashboard() {
         <div className="h-full px-6 lg:px-[144px] flex items-center justify-between">
           <div className="flex items-center gap-4">
             <img 
-              src={deecellLogo} 
+              src={containerLogo} 
               alt="Deecell" 
               className="w-[42px] h-[42px]"
               data-testid="header-logo"
