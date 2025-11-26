@@ -174,7 +174,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
                 <td className="px-3 py-3 text-[13px] 2xl:text-sm text-[#4a5565] text-right whitespace-nowrap tabular-nums">{truck.p.toFixed(1)}</td>
                 <td className="px-3 py-3 text-[13px] 2xl:text-sm text-[#4a5565] text-left whitespace-nowrap tabular-nums">{truck.wh.toFixed(0)}</td>
                 <td className="px-3 py-3 text-[13px] 2xl:text-sm text-[#4a5565] text-right whitespace-nowrap tabular-nums">{truck.ah.toFixed(1)}</td>
-                <td className="px-3 py-3 text-[13px] 2xl:text-sm font-medium text-black text-right whitespace-nowrap tabular-nums pl-[14px] pr-[14px]">{truck.temp.toFixed(1)}</td>
+                <td className="px-3 py-3 text-[13px] 2xl:text-sm font-medium text-black text-right whitespace-nowrap tabular-nums pl-[18px] pr-[18px]">{truck.temp.toFixed(1)}</td>
               </tr>
             ))}
           </tbody>
