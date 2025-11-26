@@ -138,11 +138,19 @@ export default function Dashboard() {
         <FleetStats trucks={trucks} />
         
         <div className="!mt-[74px]">
-          <div className="flex items-center justify-between mb-4 gap-4">
-            <h2 className="text-lg font-semibold text-neutral-950 shrink-0">Fleet Overview</h2>
+          <div className="flex items-center mb-4 gap-4">
+            <h2 className="text-[18px] font-semibold text-neutral-950 shrink-0">Fleet Overview</h2>
             
-            <div className="relative w-[289px] ml-[10px]">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9c9ca7]" />
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-neutral-950">Active Trucks</span>
+              <span>
+                <span className="font-semibold text-[#39c900]">{activeTrucksCount.toString().padStart(2, '0')}</span>
+                <span className="text-neutral-950"> / {totalTrucks.toString().padStart(2, '0')}</span>
+              </span>
+            </div>
+            
+            <div className="relative w-[289px] ml-auto">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-[17px] h-[17px] text-[#9c9ca7]" />
               <input
                 type="text"
                 placeholder="Search for something"
@@ -153,54 +161,44 @@ export default function Dashboard() {
               />
             </div>
             
-            <div className="flex items-center gap-4 ml-auto">
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-neutral-950">Active Trucks</span>
-                <span>
-                  <span className="font-semibold text-[#39c900]">{activeTrucksCount.toString().padStart(2, '0')}</span>
-                  <span className="text-neutral-950"> / {totalTrucks.toString().padStart(2, '0')}</span>
-                </span>
-              </div>
-              
-              <div className="bg-[#fafbfc] border border-[#ebeef2] rounded-lg p-1 shadow-[0px_1px_3px_0px_rgba(96,108,128,0.05)]">
-                <div className="flex items-center">
-                  <button
-                    onClick={() => setFilterStatus("all")}
-                    className={`px-3 py-1 text-sm rounded-md flex items-center gap-2 ${
-                      filterStatus === "all" 
-                        ? "bg-white border border-[#ebeef2] font-semibold text-neutral-950" 
-                        : "text-[#4a5565]"
-                    }`}
-                    data-testid="filter-all"
-                  >
-                    <img src={allIcon} alt="" className="w-2.5 h-2.5" />
-                    All
-                  </button>
-                  <button
-                    onClick={() => setFilterStatus("in-service")}
-                    className={`px-3 py-1 text-sm rounded-md flex items-center gap-2 ${
-                      filterStatus === "in-service" 
-                        ? "bg-white border border-[#ebeef2] font-semibold text-neutral-950" 
-                        : "text-[#4a5565]"
-                    }`}
-                    data-testid="filter-in-service"
-                  >
-                    <div className="w-2 h-2 rounded-full bg-[#39c900]" />
-                    In Service
-                  </button>
-                  <button
-                    onClick={() => setFilterStatus("not-in-service")}
-                    className={`px-3 py-1 text-sm rounded-md flex items-center gap-2 ${
-                      filterStatus === "not-in-service" 
-                        ? "bg-white border border-[#ebeef2] font-semibold text-neutral-950" 
-                        : "text-[#4a5565]"
-                    }`}
-                    data-testid="filter-not-in-service"
-                  >
-                    <div className="w-2 h-2 rounded-full bg-[#ff0900]" />
-                    Not In Service
-                  </button>
-                </div>
+            <div className="bg-[#fafbfc] border border-[#ebeef2] rounded-lg h-[40px] p-[6px] shadow-[0px_1px_3px_0px_rgba(96,108,128,0.05)]">
+              <div className="flex items-center h-full">
+                <button
+                  onClick={() => setFilterStatus("all")}
+                  className={`px-2 h-[28px] text-sm rounded-md flex items-center gap-2.5 ${
+                    filterStatus === "all" 
+                      ? "bg-white border border-[#ebeef2] font-semibold text-neutral-950" 
+                      : "text-[#4a5565]"
+                  }`}
+                  data-testid="filter-all"
+                >
+                  <img src={allIcon} alt="" className="w-2.5 h-2.5" />
+                  All
+                </button>
+                <button
+                  onClick={() => setFilterStatus("in-service")}
+                  className={`px-3 h-[28px] text-sm rounded-md flex items-center gap-2 ${
+                    filterStatus === "in-service" 
+                      ? "bg-white border border-[#ebeef2] font-semibold text-neutral-950" 
+                      : "text-[#4a5565]"
+                  }`}
+                  data-testid="filter-in-service"
+                >
+                  <div className="w-2 h-2 rounded-full bg-[#39c900]" />
+                  In Service
+                </button>
+                <button
+                  onClick={() => setFilterStatus("not-in-service")}
+                  className={`px-3 h-[28px] text-sm rounded-md flex items-center gap-2 ${
+                    filterStatus === "not-in-service" 
+                      ? "bg-white border border-[#ebeef2] font-semibold text-neutral-950" 
+                      : "text-[#4a5565]"
+                  }`}
+                  data-testid="filter-not-in-service"
+                >
+                  <div className="w-2 h-2 rounded-full bg-[#ff0900]" />
+                  Not In Service
+                </button>
               </div>
             </div>
           </div>
