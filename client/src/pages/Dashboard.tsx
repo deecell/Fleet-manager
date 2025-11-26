@@ -126,6 +126,12 @@ export default function Dashboard() {
           <AlertBanner 
             title={latestNotification.title}
             description={latestNotification.message}
+            truckName={latestNotification.truckName}
+            onTruckClick={() => {
+              if (latestNotification.truckId) {
+                setSelectedTruckId(latestNotification.truckId);
+              }
+            }}
             onClose={() => setDismissedAlertId(latestNotification.id)}
           />
         )}
