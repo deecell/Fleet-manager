@@ -6,7 +6,7 @@ import TruckDetail from "@/components/TruckDetail";
 import { Notifications } from "@/components/Notifications";
 import { AlertBanner } from "@/components/AlertBanner";
 import { generateMockTrucks, generateMockNotifications } from "@/lib/mockData";
-import { User, LogOut, ChevronDown } from "lucide-react";
+import { User, LogOut, ChevronDown, Search } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,6 +26,7 @@ export default function Dashboard() {
   const [selectedTruckId, setSelectedTruckId] = useState<string | undefined>();
   const [trucks] = useState<TruckWithHistory[]>(mockTrucks);
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
 
   const handleMarkAsRead = (id: string) => {
@@ -45,8 +46,13 @@ export default function Dashboard() {
   };
 
   const filteredTrucks = trucks.filter(truck => {
-    if (filterStatus === "all") return true;
-    return truck.status === filterStatus;
+    const matchesStatus = filterStatus === "all" || truck.status === filterStatus;
+    const matchesSearch = searchQuery === "" || 
+      truck.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      truck.model.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      truck.serial.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      truck.address.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesStatus && matchesSearch;
   });
 
   const selectedTruck = trucks.find(t => t.id === selectedTruckId);
@@ -119,10 +125,22 @@ export default function Dashboard() {
         <FleetStats trucks={trucks} />
         
         <div className="!mt-[74px]">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-neutral-950">Fleet Overview</h2>
+          <div className="flex items-center justify-between mb-4 gap-4">
+            <h2 className="text-lg font-semibold text-neutral-950 shrink-0">Fleet Overview</h2>
             
-            <div className="flex items-center gap-4">
+            <div className="relative w-[289px]">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9c9ca7]" />
+              <input
+                type="text"
+                placeholder="Search for something"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full h-10 pl-11 pr-4 bg-white border border-[#ebeef2] rounded-lg text-sm text-neutral-950 placeholder:text-[#9c9ca7] focus:outline-none focus:ring-1 focus:ring-[#ebeef2]"
+                data-testid="input-search"
+              />
+            </div>
+            
+            <div className="flex items-center gap-4 ml-auto">
               <div className="flex items-center gap-2 text-sm">
                 <span className="text-neutral-950">Active Trucks</span>
                 <span>
