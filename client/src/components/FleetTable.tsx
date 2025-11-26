@@ -48,7 +48,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
         <table className="w-full">
           <thead>
             <tr className="bg-[#303030] h-[41px]">
-              <th className="py-3 text-left pl-[14px] pr-[14px]">
+              <th className="py-3 text-left pl-[14px] pr-[14px] rounded-tl-[3px]">
                 <button 
                   onClick={() => handleSort("name")}
                   className="flex items-center gap-1.5 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap"
@@ -57,7 +57,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
                   Truck <ArrowUpDown className="h-3.5 w-3.5 text-[#838383]" />
                 </button>
               </th>
-              <th className="px-3 pr-6 py-3 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Location</th>
+              <th className="px-3 pr-6 py-3 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap rounded-tr-[3px]">Location</th>
             </tr>
           </thead>
           <tbody>
@@ -185,7 +185,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
         <table className="w-full">
           <thead>
             <tr className="bg-[#303030] h-[41px]">
-              <th className="px-3 pl-6 py-3 text-left">
+              <th className="px-3 pl-6 py-3 text-left rounded-tl-[3px]">
                 <button 
                   onClick={() => handleSort("model")}
                   className="flex items-center gap-1.5 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap"
@@ -195,7 +195,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
                 </button>
               </th>
               <th className="px-3 py-3 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Serial</th>
-              <th className="pr-6 pl-3 py-3 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">FW</th>
+              <th className="pr-6 pl-3 py-3 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap rounded-tr-[3px]">FW</th>
             </tr>
           </thead>
           <tbody>
