@@ -4,13 +4,11 @@ import FleetStats from "@/components/FleetStats";
 import FleetTable from "@/components/FleetTable";
 import TruckDetail from "@/components/TruckDetail";
 import { Notifications } from "@/components/Notifications";
+import { AlertBanner } from "@/components/AlertBanner";
 import { generateMockTrucks, generateMockNotifications } from "@/lib/mockData";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, LogOut } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { User } from "lucide-react";
+import deecellLogo from "@assets/deecell-logo.png";
 
-//todo: remove mock functionality
 const mockTrucks = generateMockTrucks();
 const mockNotifications = generateMockNotifications();
 
@@ -44,78 +42,108 @@ export default function Dashboard() {
   });
 
   const selectedTruck = trucks.find(t => t.id === selectedTruckId);
+  const activeTrucksCount = trucks.filter(t => t.status === "in-service").length;
+  const totalTrucks = trucks.length;
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-background sticky top-0 z-40">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-[#fafbfc]">
+      <header className="border-b border-gray-200 bg-white h-[75px]">
+        <div className="h-full px-6 lg:px-[144px] flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <img 
+              src={deecellLogo} 
+              alt="Deecell" 
+              className="w-[42px] h-[42px]"
+              data-testid="header-logo"
+            />
             <div>
-              <h1 className="text-2xl font-semibold" data-testid="header-title">Deecell Power Systems</h1>
-              <p className="text-sm text-muted-foreground">Integrated Energy System</p>
+              <h1 className="text-base font-medium text-neutral-950" data-testid="header-title">Dashboard</h1>
+              <p className="text-xs text-[#717182]">Deecell Power Systems</p>
             </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Notifications 
+              notifications={notifications}
+              onMarkAsRead={handleMarkAsRead}
+              onMarkAllAsRead={handleMarkAllAsRead}
+              onDismiss={handleDismiss}
+            />
             
-            <div className="flex items-center gap-4">
-              <Notifications 
-                notifications={notifications}
-                onMarkAsRead={handleMarkAsRead}
-                onMarkAllAsRead={handleMarkAllAsRead}
-                onDismiss={handleDismiss}
-              />
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button 
-                    className="flex items-center gap-3 hover-elevate active-elevate-2 p-2 rounded-md"
-                    data-testid="button-user-menu"
-                  >
-                    <div className="text-right hidden sm:block">
-                      <div className="text-sm font-medium">John Operator</div>
-                      <div className="text-xs text-muted-foreground">Fleet Manager</div>
-                    </div>
-                    <Avatar>
-                      <AvatarImage src="" alt="User" />
-                      <AvatarFallback className="bg-primary text-primary-foreground">JO</AvatarFallback>
-                    </Avatar>
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    onClick={() => console.log('Settings clicked')}
-                    data-testid="menu-settings"
-                  >
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    onClick={() => console.log('Logout clicked')}
-                    data-testid="menu-logout"
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Logout</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+            <button 
+              className="w-[46px] h-[41px] rounded-full flex items-center justify-center hover-elevate active-elevate-2"
+              data-testid="button-user-menu"
+            >
+              <User className="w-5 h-5 text-gray-600" />
+            </button>
           </div>
         </div>
       </header>
-      <main className="container mx-auto px-6 py-8 space-y-6">
+
+      <main className="px-6 lg:px-[144px] py-8 space-y-6">
+        <AlertBanner 
+          title="Energy Waste Detected"
+          description="1 machine is consuming power while idle: Packaging Unit"
+        />
+        
         <FleetStats trucks={trucks} />
+        
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Fleet Overview</h2>
-            <Tabs value={filterStatus} onValueChange={(value) => setFilterStatus(value as FilterStatus)}>
-              <TabsList>
-                <TabsTrigger value="all" data-testid="filter-all">All</TabsTrigger>
-                <TabsTrigger value="in-service" data-testid="filter-in-service">In Service</TabsTrigger>
-                <TabsTrigger value="not-in-service" data-testid="filter-not-in-service">Not in Service</TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <h2 className="text-lg font-semibold text-neutral-950">Fleet Overview</h2>
+            
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-neutral-950">Active Trucks</span>
+                <span>
+                  <span className="font-semibold text-[#39c900]">{activeTrucksCount.toString().padStart(2, '0')}</span>
+                  <span className="text-neutral-950"> / {totalTrucks.toString().padStart(2, '0')}</span>
+                </span>
+              </div>
+              
+              <div className="bg-[#fafbfc] border border-[#ebeef2] rounded-lg p-1 shadow-[0px_1px_3px_0px_rgba(96,108,128,0.05)]">
+                <div className="flex items-center">
+                  <button
+                    onClick={() => setFilterStatus("all")}
+                    className={`px-3 py-1 text-sm rounded-md flex items-center gap-2 ${
+                      filterStatus === "all" 
+                        ? "bg-white border border-[#ebeef2] font-semibold text-neutral-950" 
+                        : "text-[#4a5565]"
+                    }`}
+                    data-testid="filter-all"
+                  >
+                    <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-[#39c900] to-[#ff0900]" style={{ visibility: filterStatus === "all" ? "visible" : "hidden" }} />
+                    All
+                  </button>
+                  <button
+                    onClick={() => setFilterStatus("in-service")}
+                    className={`px-3 py-1 text-sm rounded-md flex items-center gap-2 ${
+                      filterStatus === "in-service" 
+                        ? "bg-white border border-[#ebeef2] font-semibold text-neutral-950" 
+                        : "text-[#4a5565]"
+                    }`}
+                    data-testid="filter-in-service"
+                  >
+                    <div className="w-2 h-2 rounded-full bg-[#39c900]" />
+                    In Service
+                  </button>
+                  <button
+                    onClick={() => setFilterStatus("not-in-service")}
+                    className={`px-3 py-1 text-sm rounded-md flex items-center gap-2 ${
+                      filterStatus === "not-in-service" 
+                        ? "bg-white border border-[#ebeef2] font-semibold text-neutral-950" 
+                        : "text-[#4a5565]"
+                    }`}
+                    data-testid="filter-not-in-service"
+                  >
+                    <div className="w-2 h-2 rounded-full bg-[#ff0900]" />
+                    Not In Service
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
+          
           <FleetTable 
             trucks={filteredTrucks}
             selectedTruckId={selectedTruckId}
@@ -123,6 +151,7 @@ export default function Dashboard() {
           />
         </div>
       </main>
+
       {selectedTruck && (
         <TruckDetail 
           truck={selectedTruck} 

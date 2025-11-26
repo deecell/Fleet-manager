@@ -1,61 +1,86 @@
 import { Truck } from "@shared/schema";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TruckIcon, Battery, Clock, CheckCircle2 } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { TrendingUp, TrendingDown, Battery, Wrench, Clock } from "lucide-react";
 
 interface FleetStatsProps {
   trucks: Truck[];
 }
 
+interface StatCardProps {
+  title: string;
+  value: string;
+  trend?: {
+    value: string;
+    isPositive: boolean;
+  };
+  icon: JSX.Element;
+  iconBgColor: string;
+  valueColor?: string;
+}
+
+function StatCard({ title, value, trend, icon, iconBgColor, valueColor = "text-foreground" }: StatCardProps) {
+  return (
+    <Card className="p-6 relative">
+      <div className="flex items-start justify-between">
+        <div className={`w-[49px] h-[49px] rounded-[9px] flex items-center justify-center ${iconBgColor}`}>
+          {icon}
+        </div>
+        {trend && (
+          <div className="flex items-center gap-0.5">
+            {trend.isPositive ? (
+              <TrendingUp className="h-3 w-4 text-[#39c900]" />
+            ) : (
+              <TrendingDown className="h-3 w-4 text-[#ff0900]" />
+            )}
+            <span className={`text-xs ${trend.isPositive ? "text-[#39c900]" : "text-[#ff0900]"}`}>
+              {trend.value}
+            </span>
+          </div>
+        )}
+      </div>
+      <p className="text-sm text-[#4a5565] mt-4">{title}</p>
+      <p className={`text-[30px] font-medium leading-8 mt-2 tracking-tight ${valueColor}`} data-testid={`stat-${title.toLowerCase().replace(/\s+/g, '-')}`}>
+        {value}
+      </p>
+    </Card>
+  );
+}
+
 export default function FleetStats({ trucks }: FleetStatsProps) {
-  const totalTrucks = trucks.length;
   const activeTrucks = trucks.filter(t => t.status === "in-service").length;
-  const avgSoc = trucks.reduce((sum, t) => sum + t.soc, 0) / trucks.length;
-  const totalRuntime = trucks.reduce((sum, t) => sum + t.runtime, 0);
+  const avgSoc = trucks.length > 0 ? trucks.reduce((sum, t) => sum + t.soc, 0) / trucks.length : 0;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Total Trucks</CardTitle>
-          <TruckIcon className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-3xl font-bold" data-testid="stat-total-trucks">{totalTrucks}</div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Active Trucks</CardTitle>
-          <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-3xl font-bold text-primary" data-testid="stat-active-trucks">{activeTrucks}</div>
-          <p className="text-xs text-muted-foreground mt-1">
-            {((activeTrucks / totalTrucks) * 100).toFixed(0)}% of fleet
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Avg State of Charge</CardTitle>
-          <Battery className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-3xl font-bold" data-testid="stat-avg-soc">{avgSoc.toFixed(0)}%</div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Total Runtime</CardTitle>
-          <Clock className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-3xl font-bold" data-testid="stat-total-runtime">{totalRuntime.toFixed(0)}h</div>
-        </CardContent>
-      </Card>
+      <StatCard
+        title="Today's Savings"
+        value="12,249.05 USD"
+        trend={{ value: "$ 582 (14%)", isPositive: true }}
+        icon={<TrendingUp className="h-6 w-6 text-[#008236]" style={{ transform: 'scaleY(-1)' }} />}
+        iconBgColor="bg-[#effcdc]"
+        valueColor="text-[#008236]"
+      />
+      <StatCard
+        title="Avg. State of charge"
+        value={`${avgSoc.toFixed(0)}%`}
+        trend={{ value: "2 131kW (14%)", isPositive: true }}
+        icon={<Battery className="h-6 w-6 text-[#fa671e]" />}
+        iconBgColor="bg-[#fef4e8]"
+      />
+      <StatCard
+        title="Tractor maintenance interval increase"
+        value="24%"
+        trend={{ value: "2 131kW (14%)", isPositive: true }}
+        icon={<Wrench className="h-6 w-6 text-[#6b6164]" />}
+        iconBgColor="bg-[#ece8e4]"
+      />
+      <StatCard
+        title="Tractor hours offset"
+        value="07:39 h"
+        trend={{ value: "-2:37 (10%)", isPositive: false }}
+        icon={<Clock className="h-6 w-6 text-[#6a7fbc]" />}
+        iconBgColor="bg-[#e2e8f8]"
+      />
     </div>
   );
 }

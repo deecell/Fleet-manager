@@ -1,5 +1,4 @@
 import { Truck } from "@shared/schema";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowUpDown } from "lucide-react";
 import { useState } from "react";
 
@@ -43,111 +42,109 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
   });
 
   return (
-    <div className="bg-card rounded-md border border-card-border">
+    <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.05)] overflow-hidden">
       <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow className="hover:bg-transparent">
-              <TableHead className="w-[180px] whitespace-nowrap font-semibold text-foreground">
+        <table className="w-full">
+          <thead>
+            <tr className="bg-[#303030] h-[62px]">
+              <th className="px-4 py-4 text-left">
                 <button 
                   onClick={() => handleSort("name")}
-                  className="flex items-center gap-1 font-semibold hover-elevate active-elevate-2 px-2 py-1 -mx-2 -my-1 rounded-md"
+                  className="flex items-center gap-1.5 text-white text-sm font-medium"
                   data-testid="sort-name"
                 >
-                  Name <ArrowUpDown className="h-3 w-3" />
+                  Name <ArrowUpDown className="h-3.5 w-3.5" />
                 </button>
-              </TableHead>
-              <TableHead className="whitespace-nowrap font-semibold text-foreground">
+              </th>
+              <th className="px-4 py-4 text-left">
                 <button 
                   onClick={() => handleSort("model")}
-                  className="flex items-center gap-1 font-semibold hover-elevate active-elevate-2 px-2 py-1 -mx-2 -my-1 rounded-md"
+                  className="flex items-center gap-1.5 text-white text-sm font-medium"
                   data-testid="sort-model"
                 >
-                  Model <ArrowUpDown className="h-3 w-3" />
+                  Model <ArrowUpDown className="h-3.5 w-3.5" />
                 </button>
-              </TableHead>
-              <TableHead className="whitespace-nowrap font-semibold text-foreground">Serial</TableHead>
-              <TableHead className="whitespace-nowrap font-semibold text-foreground">FW</TableHead>
-              <TableHead className="text-right whitespace-nowrap font-semibold text-foreground">V1</TableHead>
-              <TableHead className="text-right whitespace-nowrap font-semibold text-foreground">V2</TableHead>
-              <TableHead className="text-right whitespace-nowrap font-semibold text-foreground">P (kW)</TableHead>
-              <TableHead className="text-right whitespace-nowrap font-semibold text-foreground">Wh</TableHead>
-              <TableHead className="text-right whitespace-nowrap font-semibold text-foreground">Ah</TableHead>
-              <TableHead className="text-right whitespace-nowrap font-semibold text-foreground">
+              </th>
+              <th className="px-4 py-4 text-left text-white text-sm font-bold">Serial</th>
+              <th className="px-4 py-4 text-left text-white text-sm font-bold">FW</th>
+              <th className="px-4 py-4 text-left text-white text-sm font-bold">V1</th>
+              <th className="px-4 py-4 text-left text-white text-sm font-bold">V2</th>
+              <th className="px-4 py-4 text-left text-white text-sm font-bold">P (kW)</th>
+              <th className="px-4 py-4 text-left text-white text-sm font-bold">Wh</th>
+              <th className="px-4 py-4 text-right text-white text-sm font-bold">Ah</th>
+              <th className="px-4 py-4 text-right">
                 <button 
                   onClick={() => handleSort("temp")}
-                  className="flex items-center gap-1 font-semibold hover-elevate active-elevate-2 px-2 py-1 -mx-2 -my-1 rounded-md ml-auto whitespace-nowrap"
+                  className="flex items-center gap-1.5 text-white text-sm font-bold ml-auto"
                   data-testid="sort-temp"
                 >
-                  Temp (°C) <ArrowUpDown className="h-3 w-3" />
+                  Temp (°C) <ArrowUpDown className="h-3.5 w-3.5" />
                 </button>
-              </TableHead>
-              <TableHead className="text-right whitespace-nowrap font-semibold text-foreground">
+              </th>
+              <th className="px-4 py-4 text-right">
                 <button 
                   onClick={() => handleSort("soc")}
-                  className="flex items-center gap-1 font-semibold hover-elevate active-elevate-2 px-2 py-1 -mx-2 -my-1 rounded-md ml-auto whitespace-nowrap"
+                  className="flex items-center gap-1.5 text-white text-sm font-bold ml-auto"
                   data-testid="sort-soc"
                 >
-                  SoC (%) <ArrowUpDown className="h-3 w-3" />
+                  SoC (%) <ArrowUpDown className="h-3.5 w-3.5" />
                 </button>
-              </TableHead>
-              <TableHead className="text-right whitespace-nowrap font-semibold text-foreground">Runtime (h)</TableHead>
-              <TableHead className="whitespace-nowrap font-semibold text-foreground">PS</TableHead>
-              <TableHead className="whitespace-nowrap font-semibold text-foreground">Address</TableHead>
-              <TableHead className="whitespace-nowrap font-semibold text-foreground">X</TableHead>
-              <TableHead className="text-right whitespace-nowrap font-semibold text-foreground">RSSI</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sortedTrucks.map((truck) => (
-              <TableRow
+              </th>
+              <th className="px-4 py-4 text-left text-white text-sm font-bold">Runtime (h)</th>
+              <th className="px-4 py-4 text-left text-white text-sm font-bold">PS</th>
+              <th className="px-4 py-4 text-left text-white text-sm font-bold">Address</th>
+              <th className="px-4 py-4 text-left text-white text-sm font-bold">X</th>
+              <th className="px-4 py-4 text-right text-white text-sm font-bold">RSSI</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sortedTrucks.map((truck, index) => (
+              <tr
                 key={truck.id}
                 onClick={() => onTruckSelect(truck.id)}
-                className={`cursor-pointer hover-elevate ${
-                  selectedTruckId === truck.id ? "bg-accent" : ""
-                }`}
+                className={`cursor-pointer h-[62px] border-b border-gray-100 hover:bg-gray-50 ${
+                  index % 2 === 1 ? "bg-[#fafbfc]" : "bg-white"
+                } ${selectedTruckId === truck.id ? "bg-blue-50" : ""}`}
                 data-testid={`truck-row-${truck.id}`}
               >
-                <TableCell className="font-medium">
-                  <div className="flex items-center gap-2">
+                <td className="px-4 py-4">
+                  <div className="flex items-center gap-3">
                     <div 
                       className={`w-2 h-2 rounded-full ${
-                        truck.status === "in-service" ? "bg-green-500" : "bg-red-500"
+                        truck.status === "in-service" ? "bg-[#00c950]" : "bg-[#ff0900]"
                       }`}
                       data-testid={`status-dot-${truck.id}`}
-                    ></div>
-                    {truck.name}
+                    />
+                    <span className="text-sm font-medium text-black">{truck.name}</span>
                   </div>
-                </TableCell>
-                <TableCell>{truck.model}</TableCell>
-                <TableCell className="text-muted-foreground">{truck.serial}</TableCell>
-                <TableCell className="text-muted-foreground">{truck.fw}</TableCell>
-                <TableCell className="text-right font-mono">{truck.v1.toFixed(2)}</TableCell>
-                <TableCell className="text-right font-mono">{truck.v2.toFixed(2)}</TableCell>
-                <TableCell className="text-right font-mono">{truck.p.toFixed(1)}</TableCell>
-                <TableCell className="text-right font-mono">{truck.wh.toFixed(0)}</TableCell>
-                <TableCell className="text-right font-mono">{truck.ah.toFixed(1)}</TableCell>
-                <TableCell className="text-right font-mono">{truck.temp.toFixed(1)}</TableCell>
-                <TableCell className="text-right font-mono font-semibold">
-                  <span className={
-                    truck.soc >= 60 ? "text-green-600 dark:text-green-500" :
-                    truck.soc >= 30 ? "text-yellow-600 dark:text-yellow-500" :
-                    "text-red-600 dark:text-red-500"
-                  }>
+                </td>
+                <td className="px-4 py-4 text-sm text-[#4a5565]">{truck.model}</td>
+                <td className="px-4 py-4 text-sm text-[#4a5565]">{truck.serial}</td>
+                <td className="px-4 py-4 text-sm text-[#4a5565]">{truck.fw}</td>
+                <td className="px-4 py-4 text-sm text-[#4a5565] text-right">{truck.v1.toFixed(2)}</td>
+                <td className="px-4 py-4 text-sm text-[#4a5565] text-right">{truck.v2.toFixed(2)}</td>
+                <td className="px-4 py-4 text-sm text-[#4a5565] text-right">{truck.p.toFixed(1)}</td>
+                <td className="px-4 py-4 text-sm text-[#4a5565] text-right">{truck.wh.toFixed(0)}</td>
+                <td className="px-4 py-4 text-sm text-[#4a5565] text-right">{truck.ah.toFixed(1)}</td>
+                <td className="px-4 py-4 text-sm font-medium text-black text-right">{truck.temp.toFixed(1)}</td>
+                <td className="px-4 py-4 text-right">
+                  <span className={`text-sm font-semibold ${
+                    truck.soc >= 60 ? "text-[#39c900]" : "text-[#ff0900]"
+                  }`}>
                     {truck.soc.toFixed(0)}
                   </span>
-                </TableCell>
-                <TableCell className="text-right font-mono">{truck.runtime.toFixed(1)}</TableCell>
-                <TableCell className="text-muted-foreground">{truck.ps}</TableCell>
-                <TableCell className="text-muted-foreground max-w-[200px] truncate" title={truck.address}>
+                </td>
+                <td className="px-4 py-4 text-sm font-medium text-black text-right">{truck.runtime.toFixed(1)}</td>
+                <td className="px-4 py-4 text-sm text-[#4a5565]">{truck.ps}</td>
+                <td className="px-4 py-4 text-sm text-[#4a5565] max-w-[100px] truncate" title={truck.address}>
                   {truck.address}
-                </TableCell>
-                <TableCell className="text-muted-foreground">{truck.x}</TableCell>
-                <TableCell className="text-right font-mono">{truck.rssi}</TableCell>
-              </TableRow>
+                </td>
+                <td className="px-4 py-4 text-sm text-[#4a5565]">{truck.x}</td>
+                <td className="px-4 py-4 text-sm font-medium text-black text-right">{truck.rssi}</td>
+              </tr>
             ))}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
       </div>
     </div>
   );

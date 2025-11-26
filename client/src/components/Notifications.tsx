@@ -43,17 +43,12 @@ export function Notifications({ notifications, onMarkAsRead, onMarkAllAsRead, on
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button 
-          className="relative hover-elevate active-elevate-2 p-2 rounded-md"
+          className="relative w-[46px] h-[41px] rounded-full flex items-center justify-center hover-elevate active-elevate-2"
           data-testid="button-notifications"
         >
-          <Bell className="h-5 w-5" />
+          <Bell className="h-5 w-5 text-gray-600" />
           {unreadCount > 0 && (
-            <Badge 
-              variant="destructive" 
-              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
-            >
-              {unreadCount}
-            </Badge>
+            <div className="absolute top-1 right-2 w-2.5 h-2.5 bg-[#fb2c36] rounded-full" />
           )}
         </button>
       </PopoverTrigger>
