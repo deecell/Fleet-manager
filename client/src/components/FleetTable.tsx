@@ -94,7 +94,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
               <th className="px-2 py-4 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">PS</th>
               <th className="px-2 py-4 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Address</th>
               <th className="px-2 py-4 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">X</th>
-              <th className="px-2 py-4 text-right text-white text-[13px] 2xl:text-sm font-medium last:rounded-tr-lg whitespace-nowrap">RSSI</th>
+              <th className="pl-2 pr-3 py-4 text-right text-white text-[13px] 2xl:text-sm font-medium last:rounded-tr-lg whitespace-nowrap">RSSI</th>
             </tr>
           </thead>
           <tbody>
@@ -140,7 +140,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
                   {truck.address}
                 </td>
                 <td className="px-2 py-4 text-[13px] 2xl:text-sm text-[#4a5565] whitespace-nowrap">{truck.x}</td>
-                <td className="px-2 py-4 text-[13px] 2xl:text-sm font-medium text-neutral-950 text-right whitespace-nowrap">{truck.rssi}</td>
+                <td className="pl-2 pr-3 py-4 text-[13px] 2xl:text-sm font-medium text-neutral-950 text-right whitespace-nowrap">{truck.rssi}</td>
               </tr>
             ))}
           </tbody>
