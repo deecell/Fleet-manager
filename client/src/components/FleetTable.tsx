@@ -42,9 +42,10 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
   });
 
   return (
-    <div className="flex gap-[20px] w-full overflow-x-auto 2xl:overflow-x-visible">
+    <div className="overflow-x-auto">
+      <div className="grid grid-cols-[346fr_102fr_617fr_247fr] gap-[20px] w-full min-w-[1200px]">
       {/* Section 1: Truck & Location */}
-      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[346]">
+      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden">
         <table className="w-full">
           <thead>
             <tr className="h-[21px]">
@@ -97,7 +98,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
       </div>
 
       {/* Section 2: Chassis */}
-      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[102]">
+      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden">
         <table className="w-full">
           <thead>
             <tr className="h-[21px]">
@@ -126,7 +127,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
       </div>
 
       {/* Section 3: Sleeper */}
-      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[617]">
+      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden">
         <table className="w-full">
           <thead>
             <tr className="h-[21px]">
@@ -187,7 +188,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
       </div>
 
       {/* Section 4: Model, Serial, FW */}
-      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[247]">
+      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden">
         <table className="w-full">
           <thead>
             <tr className="h-[21px]">
@@ -223,6 +224,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
             ))}
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   );
