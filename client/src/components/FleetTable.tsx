@@ -163,7 +163,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
                   index % 2 === 1 ? "bg-[#fafbfc]" : "bg-white"
                 } ${selectedTruckId === truck.id ? "bg-blue-50" : ""}`}
               >
-                <td className="px-3 pl-6 py-3 text-left whitespace-nowrap">
+                <td className="px-3 py-3 text-left whitespace-nowrap pl-[14px] pr-[14px]">
                   <span className={`text-[13px] 2xl:text-sm font-semibold tabular-nums ${
                     truck.soc >= 60 ? "text-[#39c900]" : "text-[#ff0900]"
                   }`}>
