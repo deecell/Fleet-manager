@@ -44,7 +44,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
   return (
     <div className="flex gap-3 w-full">
       {/* Section 1: Truck & Location */}
-      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[26]">
+      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[26] mt-[21px]">
         <table className="w-full">
           <thead>
             <tr className="bg-[#303030] h-[41px]">
@@ -184,7 +184,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
       </div>
 
       {/* Section 4: Model, Serial, FW */}
-      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[20]">
+      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[20] mt-[21px]">
         <table className="w-full">
           <thead>
             <tr className="bg-[#303030] h-[41px]">
