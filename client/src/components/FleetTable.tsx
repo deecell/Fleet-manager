@@ -47,7 +47,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
         <table className="w-full min-w-[1100px] 2xl:min-w-0">
           <thead>
             <tr className="bg-[#303030] h-[54px]">
-              <th className="px-2 py-4 text-left first:rounded-tl-lg">
+              <th className="pl-3 pr-2 py-4 text-left first:rounded-tl-lg">
                 <button 
                   onClick={() => handleSort("name")}
                   className="flex items-center gap-1 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap"
@@ -107,7 +107,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
                 } ${selectedTruckId === truck.id ? "bg-blue-50" : ""}`}
                 data-testid={`truck-row-${truck.id}`}
               >
-                <td className="px-2 py-4">
+                <td className="pl-3 pr-2 py-4">
                   <div className="flex items-center gap-2">
                     <div 
                       className={`w-2 h-2 rounded-full shrink-0 ${
