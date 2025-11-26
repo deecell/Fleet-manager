@@ -207,7 +207,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
                   index % 2 === 1 ? "bg-[#fafbfc]" : "bg-white"
                 } ${selectedTruckId === truck.id ? "bg-blue-50" : ""}`}
               >
-                <td className="px-3 pl-6 py-3 text-[13px] 2xl:text-sm text-[#4a5565] whitespace-nowrap">{truck.model}</td>
+                <td className="px-3 py-3 text-[13px] 2xl:text-sm text-[#4a5565] whitespace-nowrap pl-[14px] pr-[14px]">{truck.model}</td>
                 <td className="px-3 py-3 text-[13px] 2xl:text-sm text-[#4a5565] text-right whitespace-nowrap">{truck.serial}</td>
                 <td className="pr-6 pl-3 py-3 text-[13px] 2xl:text-sm text-[#4a5565] text-right whitespace-nowrap">{truck.fw}</td>
               </tr>
