@@ -53,20 +53,23 @@ function DropdownField({
   testId?: string;
 }) {
   return (
-    <div className="bg-white border border-[#ebeef2] rounded h-[59px] px-4 py-2 flex flex-col justify-center">
-      <p className="text-xs text-[#323941] opacity-80">{label}</p>
-      <Select value={value} onValueChange={onValueChange}>
-        <SelectTrigger className="h-auto p-0 border-0 shadow-none focus:ring-0 text-base text-neutral-950" data-testid={testId}>
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent className="bg-white">
-          {options.map((option) => (
-            <SelectItem key={option} value={option}>
-              {option}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+    <div className="bg-white border border-[#ebeef2] rounded h-[59px] px-4 py-2 flex items-center">
+      <div className="flex-1">
+        <p className="text-xs text-[#323941] opacity-80">{label}</p>
+        <Select value={value} onValueChange={onValueChange}>
+          <SelectTrigger className="h-auto p-0 border-0 shadow-none focus:ring-0 text-base text-neutral-950 [&>svg]:hidden" data-testid={testId}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="bg-white">
+            {options.map((option) => (
+              <SelectItem key={option} value={option}>
+                {option}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <ChevronDown className="w-3 h-3 text-[#323941]" />
     </div>
   );
 }
