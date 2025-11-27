@@ -1,16 +1,17 @@
 import { Truck } from "@shared/schema";
-import { ArrowUpDown, Globe } from "lucide-react";
+import { ArrowUpDown, Globe, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 
 interface FleetTableProps {
   trucks: Truck[];
   selectedTruckId?: string;
   onTruckSelect: (truckId: string) => void;
+  alertTruckIds?: string[];
 }
 
 type SortField = keyof Truck | null;
 
-export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: FleetTableProps) {
+export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, alertTruckIds = [] }: FleetTableProps) {
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
@@ -24,6 +25,12 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
   };
 
   const sortedTrucks = [...trucks].sort((a, b) => {
+    const aHasAlert = alertTruckIds.includes(a.id);
+    const bHasAlert = alertTruckIds.includes(b.id);
+    
+    if (aHasAlert && !bHasAlert) return -1;
+    if (!aHasAlert && bHasAlert) return 1;
+    
     if (!sortField) return 0;
     const aVal = a[sortField];
     const bVal = b[sortField];
@@ -78,7 +85,12 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect }: F
                       }`}
                       data-testid={`status-dot-${truck.id}`}
                     />
-                    <span className="text-[13px] 2xl:text-sm font-medium text-black whitespace-nowrap">{truck.name}</span>
+                    <span className={`text-[13px] 2xl:text-sm font-medium whitespace-nowrap ${
+                      alertTruckIds.includes(truck.id) ? "text-[#f55200]" : "text-black"
+                    }`}>{truck.name}</span>
+                    {alertTruckIds.includes(truck.id) && (
+                      <AlertTriangle className="w-4 h-4 text-[#f55200] shrink-0" data-testid={`alert-icon-${truck.id}`} />
+                    )}
                   </div>
                 </td>
                 <td className="px-3 py-3 pl-[18px] pr-[18px]">

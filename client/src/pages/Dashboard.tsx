@@ -63,6 +63,10 @@ export default function Dashboard() {
   const latestNotification = alertBannerDismissed ? undefined : notifications
     .filter(n => !n.read)
     .sort((a, b) => b.timestamp - a.timestamp)[0];
+  
+  const alertTruckIds = notifications
+    .filter(n => !n.read && n.truckId)
+    .map(n => n.truckId as string);
 
   return (
     <div className="min-h-screen bg-[#fafbfc]">
@@ -207,6 +211,7 @@ export default function Dashboard() {
             trucks={filteredTrucks}
             selectedTruckId={selectedTruckId}
             onTruckSelect={setSelectedTruckId}
+            alertTruckIds={alertTruckIds}
           />
         </div>
       </main>
