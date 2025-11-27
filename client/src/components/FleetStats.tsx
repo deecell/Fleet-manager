@@ -52,7 +52,7 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <StatCard
         title="Today's Savings"
-        value="12,249.05 USD"
+        value="$ 12,249.05"
         trend={{ value: "$ 582 (14%)", isPositive: true }}
         icon={<TrendingUp className="h-6 w-6 text-[#008236]" />}
         iconBgColor="bg-[#effcdc]"
