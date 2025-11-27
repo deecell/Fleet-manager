@@ -106,7 +106,7 @@ export default function Dashboard() {
                   <ChevronDown className="w-4 h-4 text-[#4a5565]" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent align="end" className="w-48 bg-white">
                 <div className="px-3 py-2">
                   <p className="text-sm font-medium text-neutral-950">John Doe</p>
                   <p className="text-xs text-[#4a5565]">john.doe@deecell.com</p>
