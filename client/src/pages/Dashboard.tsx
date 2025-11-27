@@ -28,7 +28,7 @@ export default function Dashboard() {
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
-  const [dismissedAlertId, setDismissedAlertId] = useState<string | null>(null);
+  const [alertBannerDismissed, setAlertBannerDismissed] = useState(false);
 
   const handleMarkAsRead = (id: string) => {
     setNotifications(prev => 
@@ -60,8 +60,8 @@ export default function Dashboard() {
   const activeTrucksCount = trucks.filter(t => t.status === "in-service").length;
   const totalTrucks = trucks.length;
   
-  const latestNotification = notifications
-    .filter(n => !n.read && n.id !== dismissedAlertId)
+  const latestNotification = alertBannerDismissed ? undefined : notifications
+    .filter(n => !n.read)
     .sort((a, b) => b.timestamp - a.timestamp)[0];
 
   return (
@@ -131,7 +131,7 @@ export default function Dashboard() {
                 setSelectedTruckId(latestNotification.truckId);
               }
             }}
-            onClose={() => setDismissedAlertId(latestNotification.id)}
+            onClose={() => setAlertBannerDismissed(true)}
           />
         )}
         
