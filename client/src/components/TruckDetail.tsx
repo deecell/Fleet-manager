@@ -147,7 +147,7 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
         )}
       </div>
       {/* Settings Content */}
-      <div className="px-[68px] py-8 space-y-6">
+      <div className="px-[68px] py-8 space-y-6 pl-[58px] pr-[58px]">
         {/* Power Meter Voltage Source */}
         <div className="space-y-4">
           <p className="text-lg font-medium text-neutral-950">Power Meter Voltage Source</p>
