@@ -123,7 +123,7 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
           </div>
           <button
             onClick={onClose}
-            className="hover-elevate active-elevate-2 p-2 rounded-md"
+            className="hover-elevate active-elevate-2 p-2 rounded-md ml-[-14px] mr-[-14px]"
             data-testid="button-close-detail"
           >
             <X className="h-5 w-5" />
