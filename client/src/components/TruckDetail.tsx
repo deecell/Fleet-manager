@@ -1,5 +1,5 @@
-import { TruckWithHistory } from "@shared/schema";
-import { X, Battery, Zap, Activity, Thermometer, Check, ChevronDown } from "lucide-react";
+import { TruckWithHistory, Notification } from "@shared/schema";
+import { X, Battery, Zap, Activity, Thermometer, Check, ChevronDown, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
@@ -8,6 +8,7 @@ import { useState } from "react";
 interface TruckDetailProps {
   truck: TruckWithHistory;
   onClose: () => void;
+  alert?: Notification;
 }
 
 function Toggle({ enabled, onToggle }: { enabled: boolean; onToggle: () => void }) {
@@ -74,7 +75,7 @@ function DropdownField({
   );
 }
 
-export default function TruckDetail({ truck, onClose }: TruckDetailProps) {
+export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps) {
   const [voltageSource, setVoltageSource] = useState<"V1" | "V2">("V1");
   const [flipCurrentSign, setFlipCurrentSign] = useState(true);
   const [turnOnAtStartup, setTurnOnAtStartup] = useState(false);
@@ -133,6 +134,17 @@ export default function TruckDetail({ truck, onClose }: TruckDetailProps) {
           <div className="w-1 h-1 bg-[#4a5565] rounded-full" />
           <p className="text-base text-[#4a5565]">Serial: {truck.serial}</p>
         </div>
+        {alert && (
+          <div className="bg-[#fff1d4] border border-[#ffd6a7] rounded-[10px] p-4 mt-4" data-testid="truck-detail-alert">
+            <div className="flex gap-3">
+              <AlertTriangle className="h-4 w-4 text-[#f55200] mt-0.5 flex-shrink-0" />
+              <div className="space-y-1 flex-1">
+                <p className="text-sm font-medium text-[#f55200]">{alert.title}</p>
+                <p className="text-sm text-[#d54700]">{alert.message}</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       {/* Settings Content */}
       <div className="px-[68px] py-8 space-y-6">

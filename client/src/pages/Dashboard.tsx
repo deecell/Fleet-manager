@@ -219,6 +219,7 @@ export default function Dashboard() {
         <TruckDetail 
           truck={selectedTruck} 
           onClose={() => setSelectedTruckId(undefined)}
+          alert={notifications.find(n => n.truckId === selectedTruck.id)}
         />
       )}
     </div>
