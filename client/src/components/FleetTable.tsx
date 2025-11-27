@@ -207,7 +207,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                 </button>
               </th>
               <th className="px-3 py-3 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Serial</th>
-              <th className="pr-6 pl-3 py-3 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">FW</th>
+              <th className="pr-6 pl-3 py-3 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap rounded-tr-lg">FW</th>
             </tr>
           </thead>
           <tbody>
