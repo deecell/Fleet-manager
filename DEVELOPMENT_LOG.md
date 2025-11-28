@@ -21,8 +21,8 @@
 | Phase | Description | Status |
 |-------|-------------|--------|
 | Step 1 | Database Schema | ✅ Complete |
-| Step 2 | Storage Layer | ⏳ Pending |
-| Step 3 | API Routes | ⏳ Pending |
+| Step 2 | Storage Layer | ✅ Complete |
+| Step 3 | API Routes | ✅ Complete |
 | Step 4 | Test Data Hydration | ⏳ Pending |
 | Step 5 | Connect Dashboard | ⏳ Pending |
 | Step 6 | Device Manager Simulation | ⏳ Pending |
@@ -191,6 +191,116 @@ Multi-tenancy Isolation Test:
 - `server/db-storage.ts` - Full storage implementation
 - `server/storage.ts` - Interface definition
 - `server/test-storage.ts` - Integration tests
+
+---
+
+## Step 3: API Routes (Completed)
+
+### Implementation Date
+November 28, 2025
+
+### What Was Built
+
+**Tenant Middleware** (`server/middleware/tenant.ts`):
+- Extracts `organizationId` from `X-Organization-Id` header
+- Also supports `X-Organization-Slug` for organization lookup
+- Adds `organizationId` to Express Request object
+- Returns 400 if no tenant context provided
+
+**Fleet Routes** (`server/api/fleet-routes.ts`):
+- RESTful API structure at `/api/v1/*`
+- All routes use tenant middleware for multi-tenancy isolation
+- Zod validation on all POST/PATCH endpoints
+
+### API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| **Organizations** | | |
+| GET | /api/v1/organizations | List all organizations (admin) |
+| GET | /api/v1/organizations/:id | Get organization details |
+| POST | /api/v1/organizations | Create organization |
+| PATCH | /api/v1/organizations/:id | Update organization |
+| **Fleets** | | (tenant-scoped) |
+| GET | /api/v1/fleets | List fleets |
+| GET | /api/v1/fleets/:id | Get fleet details |
+| POST | /api/v1/fleets | Create fleet |
+| PATCH | /api/v1/fleets/:id | Update fleet |
+| DELETE | /api/v1/fleets/:id | Delete fleet |
+| **Trucks** | | (tenant-scoped) |
+| GET | /api/v1/trucks | List trucks with filtering/pagination |
+| GET | /api/v1/trucks/:id | Get truck details with snapshot |
+| POST | /api/v1/trucks | Create truck |
+| PATCH | /api/v1/trucks/:id | Update truck |
+| PATCH | /api/v1/trucks/:id/location | Update truck GPS location |
+| DELETE | /api/v1/trucks/:id | Delete truck |
+| **Devices** | | (tenant-scoped) |
+| GET | /api/v1/devices | List PowerMon devices |
+| GET | /api/v1/devices/:id | Get device details |
+| POST | /api/v1/devices | Create device |
+| PATCH | /api/v1/devices/:id | Update device |
+| POST | /api/v1/devices/:id/assign | Assign device to truck |
+| POST | /api/v1/devices/:id/unassign | Unassign device from truck |
+| PATCH | /api/v1/devices/:id/status | Update device online status |
+| **Dashboard** | | (tenant-scoped) |
+| GET | /api/v1/dashboard | Aggregated fleet stats |
+| GET | /api/v1/fleets/:id/stats | Fleet-specific stats |
+| GET | /api/v1/dashboard/active-trucks | Trucks with latest snapshots |
+| **Alerts** | | (tenant-scoped) |
+| GET | /api/v1/alerts | List alerts with pagination |
+| POST | /api/v1/alerts | Create new alert |
+| POST | /api/v1/alerts/:id/acknowledge | Acknowledge alert |
+| POST | /api/v1/alerts/:id/resolve | Resolve alert |
+| **Measurements** | | (tenant-scoped) |
+| GET | /api/v1/measurements | Time-series data (date range, limit, offset) |
+| GET | /api/v1/trucks/:id/measurements | Truck-specific measurements |
+| GET | /api/v1/devices/:id/measurements | Device-specific measurements |
+| **Polling Settings** | | (tenant-scoped) |
+| GET | /api/v1/polling-settings | Get polling configuration |
+| PATCH | /api/v1/polling-settings | Update polling frequency |
+
+### Query Parameters
+
+**Trucks List** (`GET /api/v1/trucks`):
+- `fleetId` - Filter by fleet
+- `status` - Filter by status (in-service, not-in-service, maintenance)
+- `limit` - Pagination limit (default: 50)
+- `offset` - Pagination offset
+
+**Measurements** (`GET /api/v1/measurements`):
+- `deviceId` - Filter by device
+- `startDate` - Start of date range (ISO 8601)
+- `endDate` - End of date range (ISO 8601)
+- `limit` - Pagination limit (default: 1000)
+- `offset` - Pagination offset
+
+### Validation Schemas
+
+All POST/PATCH endpoints validate request body with Zod:
+- `updateLocationSchema` - lat/lng as numbers
+- `assignDeviceSchema` - truckId as number
+- `updateDeviceStatusSchema` - status enum (online/offline/unknown)
+- `acknowledgeAlertSchema` - userId as number
+
+### Test Results
+
+All endpoints tested successfully:
+```
+Organizations API: ✓
+Fleets API (tenant-scoped): ✓
+Trucks API (with filtering): ✓
+Devices API (assign/unassign): ✓
+Dashboard API (aggregations): ✓
+Alerts API (acknowledge/resolve): ✓
+Measurements API (pagination): ✓
+Polling Settings API: ✓
+Zod Validation: ✓
+```
+
+### Key Files
+- `server/middleware/tenant.ts` - Tenant extraction middleware
+- `server/api/fleet-routes.ts` - All API route handlers
+- `server/routes.ts` - Route registration
 
 ---
 
