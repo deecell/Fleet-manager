@@ -1,25 +1,69 @@
-import { Pool, PoolClient } from "pg";
+import { Pool, PoolClient, Client } from "pg";
 
-const pool = new Pool({
+const RDS_CONFIG = {
   host: process.env.RDS_HOST || "deecell-fleet-db.cn4qsw8g8yyx.us-east-2.rds.amazonaws.com",
   port: parseInt(process.env.RDS_PORT || "5432"),
-  database: process.env.RDS_DATABASE || "fleet_db",
   user: process.env.RDS_USERNAME || "postgres",
   password: process.env.RDS_PASSWORD || "",
   ssl: {
     rejectUnauthorized: false,
   },
-  max: 10,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000,
-});
+};
 
-pool.on("error", (err) => {
-  console.error("Unexpected error on idle client", err);
-});
+const DATABASE_NAME = process.env.RDS_DATABASE || "fleet_db";
+
+let pool: Pool | null = null;
+
+function getPool(): Pool {
+  if (!pool) {
+    pool = new Pool({
+      ...RDS_CONFIG,
+      database: DATABASE_NAME,
+      max: 10,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000,
+    });
+
+    pool.on("error", (err) => {
+      console.error("Unexpected error on idle client", err);
+    });
+  }
+  return pool;
+}
+
+export async function createDatabaseIfNotExists(): Promise<boolean> {
+  const client = new Client({
+    ...RDS_CONFIG,
+    database: "postgres",
+  });
+
+  try {
+    await client.connect();
+    
+    const result = await client.query(
+      "SELECT 1 FROM pg_database WHERE datname = $1",
+      [DATABASE_NAME]
+    );
+
+    if (result.rows.length === 0) {
+      console.log(`Creating database "${DATABASE_NAME}"...`);
+      await client.query(`CREATE DATABASE ${DATABASE_NAME}`);
+      console.log(`Database "${DATABASE_NAME}" created successfully`);
+    } else {
+      console.log(`Database "${DATABASE_NAME}" already exists`);
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Failed to create database:", error);
+    return false;
+  } finally {
+    await client.end();
+  }
+}
 
 export async function query<T = any>(text: string, params?: any[]): Promise<T[]> {
-  const client = await pool.connect();
+  const client = await getPool().connect();
   try {
     const result = await client.query(text, params);
     return result.rows;
@@ -29,13 +73,18 @@ export async function query<T = any>(text: string, params?: any[]): Promise<T[]>
 }
 
 export async function getClient(): Promise<PoolClient> {
-  return await pool.connect();
+  return await getPool().connect();
 }
 
 export async function testConnection(): Promise<boolean> {
+  const dbCreated = await createDatabaseIfNotExists();
+  if (!dbCreated) {
+    return false;
+  }
+
   let client: PoolClient | null = null;
   try {
-    client = await pool.connect();
+    client = await getPool().connect();
     await client.query("SELECT NOW()");
     console.log("RDS PostgreSQL connection successful");
     return true;
@@ -50,7 +99,7 @@ export async function testConnection(): Promise<boolean> {
 }
 
 export async function initializeTables(): Promise<void> {
-  const client = await pool.connect();
+  const client = await getPool().connect();
   try {
     await client.query(`
       CREATE TABLE IF NOT EXISTS trucks (
@@ -115,4 +164,4 @@ export async function initializeTables(): Promise<void> {
   }
 }
 
-export { pool };
+export { pool, getPool };
