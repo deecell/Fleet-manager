@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { getFileUrl, listFiles, getUploadPresignedUrl } from "./aws/s3";
 import { query, testConnection, initializeTables } from "./aws/rds";
+import fleetRoutes from "./api/fleet-routes";
 
 const requireApiKey = (req: Request, res: Response, next: NextFunction) => {
   const apiKeyHeader = req.headers["x-api-key"];
@@ -33,6 +34,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } else {
     console.warn("AWS RDS connection failed - using in-memory storage");
   }
+
+  // Register Fleet Management API routes
+  app.use("/api/v1", fleetRoutes);
 
   // Health check endpoint
   app.get("/api/health", async (req: Request, res: Response) => {
