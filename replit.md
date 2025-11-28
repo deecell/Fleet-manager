@@ -122,3 +122,88 @@ Preferred communication style: Simple, everyday language.
 - **@replit/vite-plugin-runtime-error-modal**: Development error overlay
 - **@replit/vite-plugin-cartographer**: Development tooling
 - **@replit/vite-plugin-dev-banner**: Development environment indicator
+
+## AWS Deployment Documentation
+
+Complete deployment documentation is stored in `Deployment/Solar/`. This documentation provides everything needed to deploy the application to AWS with enterprise-grade security and compliance.
+
+### Documentation Files
+
+| File | Purpose |
+|------|---------|
+| `1-AGENT-INSTRUCTIONS.md` | Step-by-step setup guide for AWS deployment |
+| `2-ARCHITECTURE-OVERVIEW.md` | System architecture diagrams and component details |
+| `3-TERRAFORM-SETUP.md` | Complete Terraform infrastructure-as-code templates |
+| `4-GITHUB-ACTIONS-SETUP.md` | CI/CD pipeline configuration for automated deployments |
+| `5-SECURITY-COMPLIANCE.md` | SOC2, ISO27001, CIS AWS security controls |
+| `6-MULTI-TENANCY-GUIDE.md` | Multi-tenant database patterns and middleware |
+| `7-OPERATIONS-RUNBOOK.md` | Day-to-day operations, monitoring, troubleshooting |
+| `README.md` | Documentation index and quick start guide |
+
+### Infrastructure Components (Terraform)
+
+The Terraform templates provision:
+- **VPC**: Multi-AZ with public, private, and isolated database subnets
+- **ECS Fargate**: Serverless container hosting with auto-scaling
+- **RDS PostgreSQL**: Managed database with encryption and backups
+- **ALB**: Application Load Balancer with SSL termination
+- **Security Groups**: Layered network security (ALB → ECS → RDS)
+- **Secrets Manager**: Secure credential storage
+- **CloudWatch**: Logging, monitoring, and alerting
+- **CloudTrail**: API audit logging (SOC2 compliance)
+- **GuardDuty**: Threat detection and security monitoring
+
+### CI/CD Pipeline (GitHub Actions)
+
+Two main workflows:
+1. **deploy.yml**: Application deployment on push to main
+   - Test → Security Scan → Build Docker → Push to ECR → Deploy to ECS → Run Migrations
+2. **terraform.yml**: Infrastructure changes on terraform/ directory changes
+   - Format Check → Validate → Plan → Apply (with PR review)
+
+### Multi-Tenancy Pattern
+
+Uses shared database with row-level security:
+- All business tables include `organizationId` foreign key
+- Tenant middleware extracts organization context from user sessions
+- Storage interface enforces organization scoping on all queries
+- RBAC roles: super_admin, org_admin, manager, user, viewer
+
+### Required GitHub Secrets for Deployment
+
+| Secret | Description |
+|--------|-------------|
+| `AWS_ACCESS_KEY_ID` | IAM user access key |
+| `AWS_SECRET_ACCESS_KEY` | IAM user secret key |
+| `AWS_REGION` | AWS region (e.g., us-east-1) |
+| `AWS_ACCOUNT_ID` | 12-digit AWS account ID |
+| `ECR_REPOSITORY` | ECR repository name |
+| `TF_VAR_db_password` | Database password |
+| `TF_VAR_session_secret` | Session encryption key |
+
+### Estimated Monthly Costs (Dev/Staging)
+
+| Component | Cost |
+|-----------|------|
+| ECS Fargate (0.5 vCPU, 1GB) | ~$15 |
+| RDS PostgreSQL (db.t3.micro) | ~$15 |
+| ALB | ~$20 |
+| NAT Gateway | ~$35 |
+| Secrets Manager | ~$2 |
+| CloudWatch Logs | ~$5 |
+| **Total** | **~$92/month** |
+
+### Cloud-Agnostic Design Considerations
+
+While the current templates are AWS-specific, the architecture follows cloud-agnostic patterns:
+- **Terraform**: Can be adapted for Azure (AzureRM provider) or GCP (Google provider)
+- **Container-based**: ECS Fargate patterns translate to Azure Container Apps or GCP Cloud Run
+- **PostgreSQL**: Standard PostgreSQL works on any cloud managed database service
+- **CI/CD**: GitHub Actions can deploy to any cloud with appropriate credentials
+- **Secrets**: Vault or cloud-native secret managers follow similar patterns
+
+To adapt for other clouds, the main changes would be:
+1. Replace AWS provider with target cloud provider
+2. Update resource types (e.g., `aws_ecs_service` → `azurerm_container_app`)
+3. Adjust networking constructs to cloud-specific equivalents
+4. Update GitHub Actions to use target cloud's CLI/SDK
