@@ -101,7 +101,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                   <span className="text-[13px] 2xl:text-sm text-[#4a5565] line-clamp-2">{truck.driver}</span>
                 </td>
                 <td className="px-3 py-2 pl-[10px] pr-[18px] max-w-[160px]">
-                  <div className="flex items-start gap-1.5 justify-end">
+                  <div className="flex items-start gap-1 justify-end">
                     <Globe className="w-4 h-4 text-[#4a5565] shrink-0 mt-0.5" />
                     <span className="text-[13px] 2xl:text-sm text-[#4a5565] text-right line-clamp-2">{truck.address}</span>
                   </div>
