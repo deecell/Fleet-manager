@@ -14,6 +14,7 @@ type SortField = keyof Truck | null;
 export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, alertTruckIds = [] }: FleetTableProps) {
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [hoveredRowIndex, setHoveredRowIndex] = useState<number | null>(null);
 
   const handleSort = (field: keyof Truck) => {
     if (sortField === field) {
@@ -72,8 +73,10 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
               <tr
                 key={truck.id}
                 onClick={() => onTruckSelect(truck.id)}
-                className={`cursor-pointer h-[62px] hover:bg-[#EEF1FB] ${
-                  index % 2 === 1 ? "bg-[#fafbfc]" : "bg-white"
+                onMouseEnter={() => setHoveredRowIndex(index)}
+                onMouseLeave={() => setHoveredRowIndex(null)}
+                className={`cursor-pointer h-[62px] ${
+                  hoveredRowIndex === index ? "bg-[#EEF1FB]" : index % 2 === 1 ? "bg-[#fafbfc]" : "bg-white"
                 } ${selectedTruckId === truck.id ? "bg-[#EEF1FB]" : ""}`}
                 data-testid={`truck-row-${truck.id}`}
               >
@@ -122,8 +125,10 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
               <tr
                 key={truck.id}
                 onClick={() => onTruckSelect(truck.id)}
-                className={`cursor-pointer h-[62px] hover:bg-[#EEF1FB] ${
-                  index % 2 === 1 ? "bg-[#fafbfc]" : "bg-white"
+                onMouseEnter={() => setHoveredRowIndex(index)}
+                onMouseLeave={() => setHoveredRowIndex(null)}
+                className={`cursor-pointer h-[62px] ${
+                  hoveredRowIndex === index ? "bg-[#EEF1FB]" : index % 2 === 1 ? "bg-[#fafbfc]" : "bg-white"
                 } ${selectedTruckId === truck.id ? "bg-[#EEF1FB]" : ""}`}
               >
                 <td className="px-3 py-3 text-[13px] 2xl:text-sm text-[#4a5565] text-center whitespace-nowrap tabular-nums">{truck.v1.toFixed(2)}</td>
@@ -171,8 +176,10 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
               <tr
                 key={truck.id}
                 onClick={() => onTruckSelect(truck.id)}
-                className={`cursor-pointer h-[62px] hover:bg-[#EEF1FB] ${
-                  index % 2 === 1 ? "bg-[#fafbfc]" : "bg-white"
+                onMouseEnter={() => setHoveredRowIndex(index)}
+                onMouseLeave={() => setHoveredRowIndex(null)}
+                className={`cursor-pointer h-[62px] ${
+                  hoveredRowIndex === index ? "bg-[#EEF1FB]" : index % 2 === 1 ? "bg-[#fafbfc]" : "bg-white"
                 } ${selectedTruckId === truck.id ? "bg-[#EEF1FB]" : ""}`}
               >
                 <td className="px-3 py-3 whitespace-nowrap pl-[18px] pr-[18px] text-center">
@@ -215,8 +222,10 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
               <tr
                 key={truck.id}
                 onClick={() => onTruckSelect(truck.id)}
-                className={`cursor-pointer h-[62px] hover:bg-[#EEF1FB] ${
-                  index % 2 === 1 ? "bg-[#fafbfc]" : "bg-white"
+                onMouseEnter={() => setHoveredRowIndex(index)}
+                onMouseLeave={() => setHoveredRowIndex(null)}
+                className={`cursor-pointer h-[62px] ${
+                  hoveredRowIndex === index ? "bg-[#EEF1FB]" : index % 2 === 1 ? "bg-[#fafbfc]" : "bg-white"
                 } ${selectedTruckId === truck.id ? "bg-[#EEF1FB]" : ""}`}
               >
                 <td className="px-3 py-3 text-[13px] 2xl:text-sm text-[#4a5565] whitespace-nowrap pl-[14px] pr-[14px]">{truck.model}</td>
