@@ -86,7 +86,7 @@ function StatCard({ title, trend, icon, iconBgColor, valueColor = "text-neutral-
         )}
       </div>
       <p className="text-sm text-[#4a5565] mt-[17px]">{title}</p>
-      <p className={`text-[30px] font-medium leading-8 mt-3 tracking-tight ${valueColor}`} data-testid={`stat-${title.toLowerCase().replace(/\s+/g, '-')}`}>
+      <p className={`text-[26px] min-[1440px]:text-[30px] font-medium leading-8 mt-3 tracking-tight ${valueColor}`} data-testid={`stat-${title.toLowerCase().replace(/\s+/g, '-')}`}>
         {prefix}{formattedValue}{suffix}
       </p>
     </div>
@@ -125,7 +125,7 @@ function TimeStatCard({ title, trend, icon, iconBgColor, valueColor = "text-neut
         )}
       </div>
       <p className="text-sm text-[#4a5565] mt-[17px]">{title}</p>
-      <p className={`text-[30px] font-medium leading-8 mt-3 tracking-tight ${valueColor}`} data-testid={`stat-${title.toLowerCase().replace(/\s+/g, '-')}`}>
+      <p className={`text-[26px] min-[1440px]:text-[30px] font-medium leading-8 mt-3 tracking-tight ${valueColor}`} data-testid={`stat-${title.toLowerCase().replace(/\s+/g, '-')}`}>
         {animatedHours.toString().padStart(2, '0')}:{animatedMinutes.toString().padStart(2, '0')} h
       </p>
     </div>
