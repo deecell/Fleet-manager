@@ -46,19 +46,30 @@ Preferred communication style: Simple, everyday language.
 
 ### Data Storage
 
-**Current Implementation**: In-memory storage using JavaScript Maps for development and prototyping.
+**Current Implementation**: PostgreSQL database with Drizzle ORM. Multi-tenant schema with organization-scoped data.
 
-**Planned Database**: PostgreSQL via Neon serverless driver (`@neondatabase/serverless`). Drizzle ORM configured for schema management and migrations.
+**Database**: PostgreSQL via Neon serverless driver (`@neondatabase/serverless`). Drizzle ORM for type-safe queries and schema management.
 
-**Schema Management**: Drizzle Kit configured to generate migrations from TypeScript schema definitions. Migration output directory: `./migrations`, schema location: `./shared/schema.ts`.
+**Schema Management**: Drizzle Kit configured to push schema changes directly to database via `npm run db:push`. Schema location: `./shared/schema.ts`.
 
 **Session Storage**: Infrastructure in place for PostgreSQL-backed sessions using `connect-pg-simple` package.
 
-**Data Models**:
-- **Trucks**: Core fleet entities with real-time metrics (voltage, current, power, SOC, temperature, location)
-- **Historical Data**: Time-series performance data points for trend analysis
-- **Notifications**: Alert system for fleet events (alerts, warnings, info)
-- **Users**: Basic user authentication structure (currently skeleton implementation)
+**Data Models** (13 tables implemented):
+- **Organizations**: Customer accounts (tenants) with multi-tenant isolation
+- **Users**: Login accounts scoped to organizations with RBAC roles
+- **Fleets**: Named truck groups (1-N per organization, e.g., "Flatbed Fleet", "Van-Trailer Fleet")
+- **Trucks**: Vehicles with metadata (truck number, driver name, location, status)
+- **PowerMonDevices**: PowerMon hardware info (serial, firmware, 1:1 with trucks)
+- **DeviceCredentials**: Encrypted WifiAccessKey for remote connection
+- **DeviceSnapshots**: Latest readings for fast dashboard queries
+- **DeviceMeasurements**: Time-series data with monthly partitioning
+- **DeviceSyncStatus**: Tracks log file offset for backfill when devices reconnect
+- **Alerts**: OFFLINE and Low Voltage notifications (V1)
+- **PollingSettings**: Configurable polling frequency per organization
+- **AuditLogs**: SOC2 compliance tracking
+- **Sessions**: User session storage
+
+**Multi-tenancy**: All business tables include `organization_id` for row-level security. Middleware enforces tenant scoping on all queries.
 
 ### Design System
 

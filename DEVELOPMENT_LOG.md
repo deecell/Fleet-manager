@@ -125,11 +125,17 @@ After schema is implemented:
 - Time-series indexes for measurements (e.g., `measurement_org_device_time_idx`)
 - Unique constraints for business rules (e.g., `fleet_org_name_idx`)
 
+**Multi-tenancy Verification**:
+- All business tables have `organization_id` column for tenant scoping
+- Row-level security can operate without indirect joins
+- Fixed: Added `organization_id` to `device_credentials` and `device_sync_status` (caught in review)
+
 **Key File**: `shared/schema.ts`
 - All Drizzle ORM table definitions
 - Zod insert schemas for validation
 - TypeScript types for both insert and select operations
 - Legacy schemas preserved for backward compatibility with existing dashboard
+- Constants for alert types, device status, truck status
 
 ---
 
