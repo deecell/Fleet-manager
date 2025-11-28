@@ -23,7 +23,7 @@
 | Step 1 | Database Schema | ✅ Complete |
 | Step 2 | Storage Layer | ✅ Complete |
 | Step 3 | API Routes | ✅ Complete |
-| Step 4 | Test Data Hydration | ⏳ Pending |
+| Step 4 | Test Data Hydration | ✅ Complete |
 | Step 5 | Connect Dashboard | ⏳ Pending |
 | Step 6 | Device Manager Simulation | ⏳ Pending |
 | Step 7 | Alerts System | ⏳ Pending |
@@ -301,6 +301,83 @@ Zod Validation: ✓
 - `server/middleware/tenant.ts` - Tenant extraction middleware
 - `server/api/fleet-routes.ts` - All API route handlers
 - `server/routes.ts` - Route registration
+
+---
+
+## Step 4: Test Data Hydration (Completed)
+
+### Implementation Date
+November 28, 2025
+
+### What Was Built
+
+**Seed Script** (`server/seed-data.ts`):
+- Creates realistic demo data for dashboard testing
+- Run with: `npx tsx server/seed-data.ts`
+
+### Demo Data Created
+
+**Organization**: Acme Transport (ID: 6)
+- Contact: fleet@acmetransport.com
+- Timezone: America/Los_Angeles
+
+**Fleets**: 2
+- Flatbed Fleet (8 trucks) - Heavy haul for construction/industrial
+- Van-Trailer Fleet (7 trucks) - Enclosed for freight/deliveries
+
+**Trucks**: 15 with realistic US locations
+| Fleet | Truck | Driver | Location |
+|-------|-------|--------|----------|
+| Flatbed | FLT-001 | John Martinez | Los Angeles, CA |
+| Flatbed | FLT-002 | Mike Johnson | Phoenix, AZ |
+| Flatbed | FLT-003 | Carlos Rivera | Houston, TX |
+| Flatbed | FLT-004 | James Wilson | San Diego, CA |
+| Flatbed | FLT-005 | Robert Brown | Las Vegas, NV |
+| Flatbed | FLT-006 | David Lee | San Francisco, CA |
+| Flatbed | FLT-007 | William Chen | Dallas, TX |
+| Flatbed | FLT-008 | Thomas Garcia | Atlanta, GA |
+| Van-Trailer | VAN-001 | Sarah Thompson | Santa Monica, CA |
+| Van-Trailer | VAN-002 | Jennifer Adams | San Jose, CA |
+| Van-Trailer | VAN-003 | Emily Davis | Denver, CO |
+| Van-Trailer | VAN-004 | Amanda White | Seattle, WA |
+| Van-Trailer | VAN-005 | Michelle Taylor | Portland, OR |
+| Van-Trailer | VAN-006 | Lisa Anderson | Salt Lake City, UT |
+| Van-Trailer | VAN-007 | Karen Martin | Oklahoma City, OK |
+
+**PowerMon Devices**: 15 (1:1 with trucks)
+- Serial format: PWM-1000 to PWM-1007 (Flatbed), PWM-2000 to PWM-2006 (Van-Trailer)
+- Firmware: 1.10.2, Model: PowerMon Pro
+
+**Device Snapshots**: 15 with varied readings
+- SOC: 65-98%
+- Voltage: 12.0-14.4V
+- Current: 5-30A
+- Temperature: 20-45°C
+
+**Measurements**: 960 records (48 hours for first 5 trucks)
+- 15-minute intervals
+- Simulates day/night SOC patterns (discharge during day, charge at night)
+
+**Alerts**: 4
+| Type | Truck | Status | Severity |
+|------|-------|--------|----------|
+| Low Voltage | FLT-005 | Active | Warning |
+| Device Offline | FLT-003 | Active | Critical |
+| Low Voltage | FLT-001 | Resolved | Warning |
+| Low Voltage | FLT-008 | Acknowledged | Warning |
+
+### API Verification
+
+```
+GET /api/v1/trucks → 15 trucks ✓
+GET /api/v1/fleets → 2 fleets ✓
+GET /api/v1/alerts → 4 alerts ✓
+GET /api/v1/dashboard/stats → Aggregated stats ✓
+GET /api/v1/devices/5/measurements → Historical data ✓
+```
+
+### Key Files
+- `server/seed-data.ts` - Seed script
 
 ---
 
