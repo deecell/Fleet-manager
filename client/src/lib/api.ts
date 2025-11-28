@@ -41,33 +41,40 @@ interface MeasurementsResponse {
   endTime: string;
 }
 
+const POLL_INTERVAL = 10000;
+
 export function useTrucks(options?: { fleetId?: number; status?: string }) {
   return useQuery<TrucksResponse>({
     queryKey: ["/api/v1/trucks" + buildQueryString(options)],
+    refetchInterval: POLL_INTERVAL,
   });
 }
 
 export function useDashboardStats() {
   return useQuery<DashboardStatsResponse>({
     queryKey: ["/api/v1/dashboard/stats"],
+    refetchInterval: POLL_INTERVAL,
   });
 }
 
 export function useDevices() {
   return useQuery<DevicesResponse>({
     queryKey: ["/api/v1/devices"],
+    refetchInterval: POLL_INTERVAL,
   });
 }
 
 export function useSnapshots() {
   return useQuery<SnapshotsResponse>({
     queryKey: ["/api/v1/snapshots"],
+    refetchInterval: POLL_INTERVAL,
   });
 }
 
 export function useAlerts() {
   return useQuery<AlertsResponse>({
     queryKey: ["/api/v1/alerts"],
+    refetchInterval: POLL_INTERVAL,
   });
 }
 
