@@ -72,9 +72,9 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
               <tr
                 key={truck.id}
                 onClick={() => onTruckSelect(truck.id)}
-                className={`cursor-pointer h-[62px] ${
+                className={`cursor-pointer h-[62px] hover:bg-[#EEF1FB] ${
                   index % 2 === 1 ? "bg-[#fafbfc]" : "bg-white"
-                } ${selectedTruckId === truck.id ? "bg-blue-50" : ""}`}
+                } ${selectedTruckId === truck.id ? "bg-[#EEF1FB]" : ""}`}
                 data-testid={`truck-row-${truck.id}`}
               >
                 <td className="py-3 pl-[18px] pr-[18px]">
@@ -122,9 +122,9 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
               <tr
                 key={truck.id}
                 onClick={() => onTruckSelect(truck.id)}
-                className={`cursor-pointer h-[62px] ${
+                className={`cursor-pointer h-[62px] hover:bg-[#EEF1FB] ${
                   index % 2 === 1 ? "bg-[#fafbfc]" : "bg-white"
-                } ${selectedTruckId === truck.id ? "bg-blue-50" : ""}`}
+                } ${selectedTruckId === truck.id ? "bg-[#EEF1FB]" : ""}`}
               >
                 <td className="px-3 py-3 text-[13px] 2xl:text-sm text-[#4a5565] text-center whitespace-nowrap tabular-nums">{truck.v1.toFixed(2)}</td>
               </tr>
@@ -171,9 +171,9 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
               <tr
                 key={truck.id}
                 onClick={() => onTruckSelect(truck.id)}
-                className={`cursor-pointer h-[62px] ${
+                className={`cursor-pointer h-[62px] hover:bg-[#EEF1FB] ${
                   index % 2 === 1 ? "bg-[#fafbfc]" : "bg-white"
-                } ${selectedTruckId === truck.id ? "bg-blue-50" : ""}`}
+                } ${selectedTruckId === truck.id ? "bg-[#EEF1FB]" : ""}`}
               >
                 <td className="px-3 py-3 whitespace-nowrap pl-[18px] pr-[18px] text-center">
                   <span className={`text-[13px] 2xl:text-sm font-semibold tabular-nums ${
@@ -215,9 +215,9 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
               <tr
                 key={truck.id}
                 onClick={() => onTruckSelect(truck.id)}
-                className={`cursor-pointer h-[62px] ${
+                className={`cursor-pointer h-[62px] hover:bg-[#EEF1FB] ${
                   index % 2 === 1 ? "bg-[#fafbfc]" : "bg-white"
-                } ${selectedTruckId === truck.id ? "bg-blue-50" : ""}`}
+                } ${selectedTruckId === truck.id ? "bg-[#EEF1FB]" : ""}`}
               >
                 <td className="px-3 py-3 text-[13px] 2xl:text-sm text-[#4a5565] whitespace-nowrap pl-[14px] pr-[14px]">{truck.model}</td>
                 <td className="px-3 py-3 text-[13px] 2xl:text-sm text-[#4a5565] text-right whitespace-nowrap">{truck.serial}</td>
