@@ -207,3 +207,38 @@ export function useTruckHistory(deviceId: number | undefined) {
     refetch: measurementsQuery.refetch,
   };
 }
+
+export interface TruckEvent {
+  id: string;
+  type: "alert" | "maintenance" | "route" | "status";
+  category: string;
+  title: string;
+  description: string;
+  severity?: string;
+  status?: string;
+  timestamp: Date | string;
+  resolvedAt?: Date | string | null;
+  acknowledgedAt?: Date | string | null;
+}
+
+interface TruckEventsResponse {
+  events: TruckEvent[];
+  total: number;
+}
+
+export function useTruckEvents(truckId: number | undefined, options?: { limit?: number }) {
+  const params = options ? `?limit=${options.limit || 50}` : "";
+  return useQuery<TruckEventsResponse>({
+    queryKey: ["/api/v1/trucks", truckId, "events"],
+    queryFn: async () => {
+      const res = await fetch(`/api/v1/trucks/${truckId}/events${params}`, {
+        headers: {
+          "X-Organization-Id": "6",
+        },
+      });
+      if (!res.ok) throw new Error("Failed to fetch truck events");
+      return res.json();
+    },
+    enabled: !!truckId,
+  });
+}

@@ -538,9 +538,10 @@ export class DbStorage {
     return alert;
   }
 
-  async listAlerts(organizationId: number, status?: string, limit: number = 100): Promise<Alert[]> {
+  async listAlerts(organizationId: number, status?: string, limit: number = 100, truckId?: number): Promise<Alert[]> {
     const conditions = [eq(alerts.organizationId, organizationId)];
     if (status !== undefined) conditions.push(eq(alerts.status, status));
+    if (truckId !== undefined) conditions.push(eq(alerts.truckId, truckId));
     
     return db.select().from(alerts)
       .where(and(...conditions))

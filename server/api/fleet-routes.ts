@@ -496,12 +496,40 @@ router.get("/snapshots", tenantMiddleware, async (req: Request, res: Response) =
 router.get("/alerts", tenantMiddleware, async (req: Request, res: Response) => {
   try {
     const status = req.query.status as string | undefined;
+    const truckId = req.query.truckId ? parseInt(req.query.truckId as string, 10) : undefined;
     const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 100;
-    const alerts = await storage.listAlerts(req.organizationId!, status, limit);
+    const alerts = await storage.listAlerts(req.organizationId!, status, limit, truckId);
     res.json({ alerts });
   } catch (error) {
     console.error("Error listing alerts:", error);
     res.status(500).json({ error: "Failed to list alerts" });
+  }
+});
+
+router.get("/trucks/:id/events", tenantMiddleware, async (req: Request, res: Response) => {
+  try {
+    const truckId = parseInt(req.params.id, 10);
+    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 50;
+    
+    const alerts = await storage.listAlerts(req.organizationId!, undefined, limit, truckId);
+    
+    const events = alerts.map(alert => ({
+      id: `alert-${alert.id}`,
+      type: "alert" as const,
+      category: alert.alertType === "device_offline" ? "status" : "alert",
+      title: alert.title,
+      description: alert.message || "",
+      severity: alert.severity,
+      status: alert.status,
+      timestamp: alert.createdAt,
+      resolvedAt: alert.resolvedAt,
+      acknowledgedAt: alert.acknowledgedAt,
+    }));
+    
+    res.json({ events, total: events.length });
+  } catch (error) {
+    console.error("Error getting truck events:", error);
+    res.status(500).json({ error: "Failed to get truck events" });
   }
 });
 

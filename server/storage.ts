@@ -99,7 +99,7 @@ export interface IStorage {
   // Alerts (tenant-scoped)
   createAlert(data: InsertAlert): Promise<Alert>;
   getAlert(organizationId: number, id: number): Promise<Alert | undefined>;
-  listAlerts(organizationId: number, status?: string, limit?: number): Promise<Alert[]>;
+  listAlerts(organizationId: number, status?: string, limit?: number, truckId?: number): Promise<Alert[]>;
   listAlertsByTruck(organizationId: number, truckId: number, limit?: number): Promise<Alert[]>;
   countActiveAlerts(organizationId: number): Promise<number>;
   acknowledgeAlert(organizationId: number, id: number, userId: number): Promise<Alert | undefined>;
