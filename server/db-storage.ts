@@ -564,6 +564,19 @@ export class DbStorage {
     return result?.count ?? 0;
   }
 
+  async hasActiveAlertForDevice(organizationId: number, deviceId: number, alertType: string): Promise<boolean> {
+    const [result] = await db.select({
+      count: sql<number>`count(*)::int`
+    }).from(alerts)
+      .where(and(
+        eq(alerts.organizationId, organizationId),
+        eq(alerts.deviceId, deviceId),
+        eq(alerts.alertType, alertType),
+        eq(alerts.status, 'active')
+      ));
+    return (result?.count ?? 0) > 0;
+  }
+
   async acknowledgeAlert(organizationId: number, id: number, userId: number): Promise<Alert | undefined> {
     const [alert] = await db.update(alerts)
       .set({

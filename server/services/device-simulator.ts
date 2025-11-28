@@ -137,8 +137,7 @@ async function pollDevices(): Promise<void> {
       await storage.insertMeasurement(measurementData);
 
       if (state.voltage1 < 11.5) {
-        const existingAlerts = await storage.listAlerts(ORGANIZATION_ID, "active", 10, device.truckId ?? undefined);
-        const hasLowVoltageAlert = existingAlerts.some(a => a.alertType === "low_voltage" && a.deviceId === device.id);
+        const hasLowVoltageAlert = await storage.hasActiveAlertForDevice(ORGANIZATION_ID, device.id, "low_voltage");
         
         if (!hasLowVoltageAlert) {
           await storage.createAlert({
@@ -147,8 +146,8 @@ async function pollDevices(): Promise<void> {
             truckId: device.truckId,
             fleetId: fleetId,
             alertType: "low_voltage",
-            severity: "warning",
-            title: "Low Voltage Warning",
+            severity: "critical",
+            title: "Critical: Low Voltage",
             message: `Voltage dropped to ${state.voltage1.toFixed(2)}V on device ${device.serialNumber}`,
             threshold: 11.5,
             actualValue: state.voltage1,
@@ -156,6 +155,8 @@ async function pollDevices(): Promise<void> {
           });
           console.log(`[Device Simulator] Created low voltage alert for device ${device.serialNumber}`);
         }
+      } else {
+        await storage.resolveAlertsByDevice(ORGANIZATION_ID, device.id, "low_voltage");
       }
     }
 
