@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { TruckWithHistory, Notification } from "@shared/schema";
+import { LegacyNotification } from "@shared/schema";
 import FleetStats from "@/components/FleetStats";
 import FleetTable from "@/components/FleetTable";
 import TruckDetail from "@/components/TruckDetail";
 import { Notifications } from "@/components/Notifications";
 import { AlertBanner } from "@/components/AlertBanner";
-import { generateMockTrucks, generateMockNotifications } from "@/lib/mockData";
-import { User, LogOut, ChevronDown, Search } from "lucide-react";
+import { useLegacyTrucks, useLegacyNotifications, LegacyTruckWithDevice } from "@/lib/api";
+import { User, LogOut, ChevronDown, Search, Loader2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,36 +17,53 @@ import {
 import logoSvg from "@assets/logo.svg";
 import allIcon from "@assets/all.svg";
 
-const mockTrucks = generateMockTrucks();
-const mockNotifications = generateMockNotifications();
-
 type FilterStatus = "all" | "in-service" | "not-in-service";
 
 export default function Dashboard() {
   const [selectedTruckId, setSelectedTruckId] = useState<string | undefined>();
-  const [trucks] = useState<TruckWithHistory[]>(mockTrucks);
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
   const [alertBannerDismissed, setAlertBannerDismissed] = useState(false);
+  const [readNotifications, setReadNotifications] = useState<Set<string>>(new Set());
+  const [dismissedNotifications, setDismissedNotifications] = useState<Set<string>>(new Set());
+
+  const { data: trucks, isLoading: trucksLoading } = useLegacyTrucks();
+  const { data: apiNotifications, isLoading: notificationsLoading } = useLegacyNotifications();
+
+  const notifications = (apiNotifications || [])
+    .filter(n => !dismissedNotifications.has(n.id))
+    .map(n => ({
+      ...n,
+      read: n.read || readNotifications.has(n.id),
+    }));
 
   const handleMarkAsRead = (id: string) => {
-    setNotifications(prev => 
-      prev.map(n => n.id === id ? { ...n, read: true } : n)
-    );
+    setReadNotifications(prev => new Set(prev).add(id));
   };
 
   const handleMarkAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(n => ({ ...n, read: true }))
-    );
+    const allIds = notifications.map(n => n.id);
+    setReadNotifications(new Set(allIds));
   };
 
   const handleDismiss = (id: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
+    setDismissedNotifications(prev => new Set(prev).add(id));
   };
 
-  const filteredTrucks = trucks.filter(truck => {
+  if (trucksLoading || notificationsLoading) {
+    return (
+      <div className="min-h-screen bg-[#fafbfc] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-[#6a7fbc]" />
+          <p className="text-sm text-[#4a5565]">Loading fleet data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const truckList = trucks || [];
+  
+  const filteredTrucks = truckList.filter(truck => {
     const matchesStatus = filterStatus === "all" || truck.status === filterStatus;
     const matchesSearch = searchQuery === "" || 
       truck.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -56,9 +73,9 @@ export default function Dashboard() {
     return matchesStatus && matchesSearch;
   });
 
-  const selectedTruck = trucks.find(t => t.id === selectedTruckId);
-  const activeTrucksCount = trucks.filter(t => t.status === "in-service").length;
-  const totalTrucks = trucks.length;
+  const selectedTruck = truckList.find(t => t.id === selectedTruckId) as LegacyTruckWithDevice | undefined;
+  const activeTrucksCount = truckList.filter(t => t.status === "in-service").length;
+  const totalTrucks = truckList.length;
   
   const latestNotification = alertBannerDismissed ? undefined : notifications
     .filter(n => !n.read)
@@ -139,7 +156,7 @@ export default function Dashboard() {
           />
         )}
         
-        <FleetStats trucks={trucks} />
+        <FleetStats trucks={truckList} />
         
         <div className="!mt-[74px]">
           <div className="flex items-center mb-4 gap-4">

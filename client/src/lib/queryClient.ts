@@ -1,10 +1,22 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
+const ORGANIZATION_ID = "6";
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
     throw new Error(`${res.status}: ${text}`);
   }
+}
+
+function getApiHeaders(includeContentType: boolean = false): HeadersInit {
+  const headers: HeadersInit = {
+    "X-Organization-Id": ORGANIZATION_ID,
+  };
+  if (includeContentType) {
+    headers["Content-Type"] = "application/json";
+  }
+  return headers;
 }
 
 export async function apiRequest(
@@ -14,7 +26,7 @@ export async function apiRequest(
 ): Promise<Response> {
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers: getApiHeaders(!!data),
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
@@ -29,7 +41,8 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
+    const res = await fetch(queryKey[0] as string, {
+      headers: getApiHeaders(),
       credentials: "include",
     });
 

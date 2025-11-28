@@ -476,6 +476,20 @@ router.get("/dashboard/stats", tenantMiddleware, async (req: Request, res: Respo
 });
 
 // ===========================================================================
+// SNAPSHOTS (Tenant-scoped)
+// ===========================================================================
+
+router.get("/snapshots", tenantMiddleware, async (req: Request, res: Response) => {
+  try {
+    const snapshots = await storage.listSnapshots(req.organizationId!);
+    res.json({ snapshots });
+  } catch (error) {
+    console.error("Error listing snapshots:", error);
+    res.status(500).json({ error: "Failed to list snapshots" });
+  }
+});
+
+// ===========================================================================
 // ALERTS (Tenant-scoped)
 // ===========================================================================
 

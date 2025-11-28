@@ -469,3 +469,10 @@ export const TRUCK_STATUS = {
   IN_SERVICE: "in-service",
   NOT_IN_SERVICE: "not-in-service",
 } as const;
+
+// =============================================================================
+// BACKWARD COMPATIBILITY ALIASES
+// =============================================================================
+export type TruckWithHistory = LegacyTruckWithHistory;
+export type HistoricalDataPoint = LegacyHistoricalDataPoint;
+export type Notification = LegacyNotification;
