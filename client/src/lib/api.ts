@@ -107,6 +107,13 @@ function mapMeasurementsToHistory(measurements: DeviceMeasurement[]): LegacyHist
   }));
 }
 
+function formatLocation(lat: number | null, lng: number | null): string {
+  if (!lat || !lng) return "Location unavailable";
+  const latDir = lat >= 0 ? "N" : "S";
+  const lngDir = lng >= 0 ? "E" : "W";
+  return `${Math.abs(lat).toFixed(4)}° ${latDir}, ${Math.abs(lng).toFixed(4)}° ${lngDir}`;
+}
+
 export interface LegacyTruckWithDevice extends LegacyTruckWithHistory {
   deviceId?: number;
 }
@@ -143,7 +150,8 @@ export function useLegacyTrucks() {
       soc: snapshot?.soc ?? 0,
       runtime: snapshot?.runtime ?? 0,
       ps: truck.status === "in-service" ? "Active" : "Standby",
-      address: truck.driverName || "Unknown Driver",
+      driver: truck.driverName || "Unknown Driver",
+      address: formatLocation(truck.latitude, truck.longitude),
       x: "0",
       rssi: snapshot?.rssi ?? -50,
       status: truck.status as "in-service" | "not-in-service",

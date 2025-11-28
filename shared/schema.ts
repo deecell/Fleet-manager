@@ -406,6 +406,7 @@ export const legacyTruckSchema = z.object({
   soc: z.number(),
   runtime: z.number(),
   ps: z.string(),
+  driver: z.string(),
   address: z.string(),
   x: z.string(),
   rssi: z.number(),

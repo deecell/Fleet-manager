@@ -1,26 +1,26 @@
-import { Truck } from "@shared/schema";
+import { LegacyTruck } from "@shared/schema";
 import { ArrowUpDown, Globe, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 
 interface FleetTableProps {
-  trucks: Truck[];
+  trucks: LegacyTruck[];
   selectedTruckId?: string;
   onTruckSelect: (truckId: string) => void;
   alertTruckIds?: string[];
 }
 
-type SortField = keyof Truck | null;
+type SortField = keyof LegacyTruck | null;
 
 export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, alertTruckIds = [] }: FleetTableProps) {
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [hoveredRowIndex, setHoveredRowIndex] = useState<number | null>(null);
 
-  const handleSort = (field: keyof Truck) => {
+  const handleSort = (field: keyof LegacyTruck) => {
     if (sortField === field) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
-      setSortField(field);
+      setSortField(field as SortField);
       setSortDirection("asc");
     }
   };
@@ -65,6 +65,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                   Truck <ArrowUpDown className="h-3.5 w-3.5 text-[#838383]" />
                 </button>
               </th>
+              <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Driver</th>
               <th className="px-3 pr-6 py-3 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Location</th>
             </tr>
           </thead>
@@ -80,7 +81,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                 } ${selectedTruckId === truck.id ? "bg-[#EEF1FB]" : ""}`}
                 data-testid={`truck-row-${truck.id}`}
               >
-                <td className="py-3 pl-[18px] pr-[18px]">
+                <td className="py-3 pl-[18px] pr-[10px]">
                   <div className="flex items-center gap-2.5">
                     <div 
                       className={`w-2 h-2 rounded-full shrink-0 ${
@@ -96,10 +97,13 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                     )}
                   </div>
                 </td>
-                <td className="px-3 py-3 pl-[18px] pr-[18px]">
-                  <div className="flex items-center gap-1.5 justify-end">
-                    <Globe className="w-4 h-4 text-[#4a5565] shrink-0" />
-                    <span className="text-[13px] 2xl:text-sm text-[#4a5565] whitespace-nowrap">{truck.address}</span>
+                <td className="px-3 py-2 max-w-[120px]">
+                  <span className="text-[13px] 2xl:text-sm text-[#4a5565] line-clamp-2">{truck.driver}</span>
+                </td>
+                <td className="px-3 py-2 pl-[10px] pr-[18px] max-w-[160px]">
+                  <div className="flex items-start gap-1.5 justify-end">
+                    <Globe className="w-4 h-4 text-[#4a5565] shrink-0 mt-0.5" />
+                    <span className="text-[13px] 2xl:text-sm text-[#4a5565] text-right line-clamp-2">{truck.address}</span>
                   </div>
                 </td>
               </tr>
