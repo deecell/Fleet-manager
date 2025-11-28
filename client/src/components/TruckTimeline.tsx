@@ -45,12 +45,12 @@ function getEventBadgeVariant(event: TruckEvent): "default" | "secondary" | "des
   return "outline";
 }
 
-function TimelineEvent({ event }: { event: TruckEvent }) {
+function TimelineEvent({ event, isLast }: { event: TruckEvent; isLast: boolean }) {
   const timestamp = typeof event.timestamp === "string" ? new Date(event.timestamp) : event.timestamp;
   const isResolved = event.status === "resolved";
   
   return (
-    <div className="flex gap-3 pb-6 last:pb-0 relative" data-testid={`timeline-event-${event.id}`}>
+    <div className={cn("flex gap-3 relative", !isLast && "pb-6")} data-testid={`timeline-event-${event.id}`}>
       <div className="flex flex-col items-center">
         <div className={cn(
           "w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0",
@@ -59,7 +59,7 @@ function TimelineEvent({ event }: { event: TruckEvent }) {
         )}>
           {isResolved ? <CheckCircle2 className="w-4 h-4" /> : getEventIcon(event)}
         </div>
-        <div className="w-0.5 bg-border flex-1 mt-2 last:hidden" />
+        {!isLast && <div className="w-0.5 bg-border flex-1 mt-2" />}
       </div>
       
       <div className={cn("flex-1 pb-2", isResolved && "opacity-70")}>
@@ -151,8 +151,12 @@ export function TruckTimeline({ truckId }: TruckTimelineProps) {
           <EmptyTimeline />
         ) : (
           <div className="relative">
-            {data.events.map((event) => (
-              <TimelineEvent key={event.id} event={event} />
+            {data.events.map((event, index) => (
+              <TimelineEvent 
+                key={event.id} 
+                event={event} 
+                isLast={index === data.events.length - 1} 
+              />
             ))}
           </div>
         )}

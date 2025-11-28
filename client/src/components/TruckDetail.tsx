@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useState } from "react";
 import { useTruckHistory, LegacyTruckWithDevice } from "@/lib/api";
+import { TruckTimeline } from "./TruckTimeline";
 
 interface TruckDetailProps {
   truck: LegacyTruckWithDevice;
@@ -266,6 +267,11 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
               </CardContent>
             </Card>
           </div>
+        </div>
+
+        {/* Event Timeline */}
+        <div className="pt-4">
+          <TruckTimeline truckId={parseInt(truck.id)} />
         </div>
 
         {/* Historical Data - moved below Figma content */}
