@@ -126,10 +126,12 @@ export function useLegacyTrucks() {
     const tempCelsius = snapshot?.temperature ?? 25;
     const tempFahrenheit = (tempCelsius * 9/5) + 32;
     
+    const truckModel = [truck.make, truck.model, truck.year].filter(Boolean).join(" ") || "Unknown Model";
+    
     return {
       id: String(truck.id),
       name: truck.truckNumber || `Truck-${truck.id}`,
-      model: device?.deviceName || "PowerMon Pro",
+      model: truckModel,
       serial: device?.serialNumber || `SN-${truck.id}`,
       fw: device?.firmwareVersion || "1.0.0",
       v1: snapshot?.voltage1 ?? 0,
