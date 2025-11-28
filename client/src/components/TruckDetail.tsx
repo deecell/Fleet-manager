@@ -1,12 +1,13 @@
-import { TruckWithHistory, Notification } from "@shared/schema";
-import { X, Battery, Zap, Activity, Thermometer, Check, ChevronDown, AlertTriangle } from "lucide-react";
+import { TruckWithHistory, Notification, HistoricalDataPoint } from "@shared/schema";
+import { X, Battery, Zap, Activity, Thermometer, Check, ChevronDown, AlertTriangle, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useState } from "react";
+import { useTruckHistory, LegacyTruckWithDevice } from "@/lib/api";
 
 interface TruckDetailProps {
-  truck: TruckWithHistory;
+  truck: LegacyTruckWithDevice;
   onClose: () => void;
   alert?: Notification;
 }
@@ -84,15 +85,18 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
   const [mfTerminalFunction, setMfTerminalFunction] = useState("Push button input");
   const [dataLoggingMode, setDataLoggingMode] = useState("Every 10 seconds");
 
+  const { data: history, isLoading: historyLoading } = useTruckHistory(truck.deviceId);
+
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const socData = truck.history.map(d => ({ time: formatTime(d.timestamp), value: d.soc }));
-  const voltageData = truck.history.map(d => ({ time: formatTime(d.timestamp), value: d.voltage }));
-  const currentData = truck.history.map(d => ({ time: formatTime(d.timestamp), value: d.current }));
-  const wattsData = truck.history.map(d => ({ time: formatTime(d.timestamp), value: d.watts }));
+  const historyData = history || [];
+  const socData = historyData.map((d: HistoricalDataPoint) => ({ time: formatTime(d.timestamp), value: d.soc }));
+  const voltageData = historyData.map((d: HistoricalDataPoint) => ({ time: formatTime(d.timestamp), value: d.voltage }));
+  const currentData = historyData.map((d: HistoricalDataPoint) => ({ time: formatTime(d.timestamp), value: d.current }));
+  const wattsData = historyData.map((d: HistoricalDataPoint) => ({ time: formatTime(d.timestamp), value: d.watts }));
 
   return (
     <div className="fixed inset-y-0 right-0 w-full md:w-[610px] bg-white shadow-[-1px_0px_22px_-6px_rgba(0,0,0,0.17)] overflow-y-auto z-50">

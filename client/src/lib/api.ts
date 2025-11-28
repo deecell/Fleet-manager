@@ -116,6 +116,9 @@ export function useLegacyTrucks() {
     const device = devicesQuery.data?.devices?.find(d => d.truckId === truck.id);
     const snapshot = device ? snapshotsQuery.data?.snapshots?.find(s => s.deviceId === device.id) : undefined;
     
+    const tempCelsius = snapshot?.temperature ?? 25;
+    const tempFahrenheit = (tempCelsius * 9/5) + 32;
+    
     return {
       id: String(truck.id),
       name: truck.truckNumber || `Truck-${truck.id}`,
@@ -124,14 +127,14 @@ export function useLegacyTrucks() {
       fw: device?.firmwareVersion || "1.0.0",
       v1: snapshot?.voltage1 ?? 0,
       v2: snapshot?.voltage2 ?? 0,
-      p: snapshot?.power ? snapshot.power / 1000 : 0,
+      p: (snapshot?.power ?? 0) / 1000,
       wh: snapshot?.energy ?? 0,
       ah: snapshot?.charge ?? 0,
-      temp: snapshot?.temperature ? (snapshot.temperature * 9/5) + 32 : 0,
+      temp: tempFahrenheit,
       soc: snapshot?.soc ?? 0,
       runtime: snapshot?.runtime ?? 0,
       ps: truck.status === "in-service" ? "Active" : "Standby",
-      address: truck.driverName || "Unknown Location",
+      address: truck.driverName || "Unknown Driver",
       x: "0",
       rssi: snapshot?.rssi ?? -50,
       status: truck.status as "in-service" | "not-in-service",
@@ -162,7 +165,7 @@ export function useLegacyNotifications() {
   const isError = alertsQuery.isError || trucksQuery.isError;
 
   const notifications: LegacyNotification[] = (alertsQuery.data?.alerts || [])
-    .filter(alert => alert.status === "active" || alert.status === "acknowledged")
+    .filter(alert => alert.status !== "resolved")
     .map(alert => {
       const truck = trucksQuery.data?.trucks?.find(t => t.id === alert.truckId);
       return {

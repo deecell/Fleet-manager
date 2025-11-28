@@ -42,7 +42,12 @@ Preferred communication style: Simple, everyday language.
 
 **Development Mode**: Vite middleware integration for HMR (Hot Module Replacement) during development with custom error handling and logging.
 
-**Storage Layer**: Abstracted storage interface (`IStorage`) currently implemented with in-memory storage (`MemStorage`). Designed to be swapped with database implementation without changing business logic.
+**Storage Layer**: Abstracted storage interface (`IStorage`) implemented with PostgreSQL database storage (`DbStorage`). Multi-tenant queries with organization scoping.
+
+**API Hooks** (client/src/lib/api.ts): React Query hooks for data fetching with organization ID header injection. Includes mapping layer to transform database types to legacy frontend types:
+- `useLegacyTrucks()`: Fetches trucks, devices, and snapshots, maps to `LegacyTruckWithDevice`
+- `useLegacyNotifications()`: Fetches alerts and maps to `LegacyNotification`
+- `useTruckHistory()`: Fetches device measurements for historical charts
 
 ### Data Storage
 
