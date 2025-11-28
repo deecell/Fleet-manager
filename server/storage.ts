@@ -50,7 +50,8 @@ export interface IStorage {
   // Power Mon Devices (tenant-scoped)
   createDevice(data: InsertPowerMonDevice): Promise<PowerMonDevice>;
   getDevice(organizationId: number, id: number): Promise<PowerMonDevice | undefined>;
-  getDeviceBySerial(serialNumber: string): Promise<PowerMonDevice | undefined>;
+  getDeviceBySerial(organizationId: number, serialNumber: string): Promise<PowerMonDevice | undefined>;
+  checkSerialExists(serialNumber: string): Promise<boolean>;
   getDeviceByTruck(organizationId: number, truckId: number): Promise<PowerMonDevice | undefined>;
   listDevices(organizationId: number, status?: string): Promise<PowerMonDevice[]>;
   countDevicesByStatus(organizationId: number): Promise<{ status: string; count: number }[]>;

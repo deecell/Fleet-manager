@@ -139,6 +139,61 @@ After schema is implemented:
 
 ---
 
+## Step 2: Storage Layer (Completed)
+
+### Implementation Date
+November 28, 2025
+
+### What Was Built
+
+**Database Connection Module** (`server/db.ts`):
+- Drizzle ORM client with connection pooling (max 20 connections)
+- Environment-based configuration via DATABASE_URL
+
+**DbStorage Class** (`server/db-storage.ts`):
+- Complete tenant-scoped CRUD for all 13 tables
+- Every query filters by `organizationId` for multi-tenancy isolation
+- Optimized dashboard queries with batch loading
+
+### Key Functions
+
+| Entity | Functions |
+|--------|-----------|
+| Organizations | create, get, getBySlug, list, update |
+| Users | create, get, getByEmail, list, update, updateLastLogin |
+| Fleets | create, get, getByName, list, update, delete |
+| Trucks | create, get, getByNumber, list, countByStatus, update, updateLocation, delete |
+| Devices | create, get, getBySerial, getByTruck, list, countByStatus, update, assign, unassign, updateStatus |
+| Credentials | create, get, update, delete |
+| Snapshots | upsert, get, getByTruck, list, getFleetStats |
+| Measurements | insert, insertBatch, getMeasurements, getMeasurementsByTruck, getLatest |
+| Sync Status | upsert, get, updateProgress, updateError, updateLastPoll |
+| Alerts | create, get, list, listByTruck, countActive, acknowledge, resolve, resolveByDevice |
+| Audit Logs | create, list |
+| Polling Settings | getOrCreate, update |
+| Dashboard | getDashboardData (optimized aggregation) |
+
+### Security Fixes
+
+**Issue Found**: `getDeviceBySerial` initially didn't filter by organization
+**Fix Applied**: Added `organizationId` parameter, created separate `checkSerialExists` for provisioning
+
+### Test Results
+
+```
+Multi-tenancy Isolation Test:
+  Org2 trucks (should be 0): 0
+  Cross-org truck access (should be undefined): undefined
+```
+
+### Key Files
+- `server/db.ts` - Database connection
+- `server/db-storage.ts` - Full storage implementation
+- `server/storage.ts` - Interface definition
+- `server/test-storage.ts` - Integration tests
+
+---
+
 ## Architecture Notes
 
 ### Remote Device Connection

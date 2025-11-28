@@ -213,10 +213,17 @@ export class DbStorage {
     return device;
   }
 
-  async getDeviceBySerial(serialNumber: string): Promise<PowerMonDevice | undefined> {
+  async getDeviceBySerial(organizationId: number, serialNumber: string): Promise<PowerMonDevice | undefined> {
     const [device] = await db.select().from(powerMonDevices)
-      .where(eq(powerMonDevices.serialNumber, serialNumber));
+      .where(and(eq(powerMonDevices.organizationId, organizationId), eq(powerMonDevices.serialNumber, serialNumber)));
     return device;
+  }
+
+  async checkSerialExists(serialNumber: string): Promise<boolean> {
+    const [device] = await db.select({ id: powerMonDevices.id }).from(powerMonDevices)
+      .where(eq(powerMonDevices.serialNumber, serialNumber))
+      .limit(1);
+    return device !== undefined;
   }
 
   async getDeviceByTruck(organizationId: number, truckId: number): Promise<PowerMonDevice | undefined> {
