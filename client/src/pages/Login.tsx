@@ -95,7 +95,7 @@ export default function Login() {
             </div>
             <Button 
               type="submit" 
-              className="w-full" 
+              className="w-full bg-[#FA4B1E]" 
               disabled={login.isPending}
               data-testid="button-login-submit"
             >
