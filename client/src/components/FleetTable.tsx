@@ -177,10 +177,10 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
               <th className="px-3 py-3 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap text-center">P (kW)</th>
               <th className="px-3 py-3 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap text-center">Wh</th>
               <th className="px-3 py-3 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap text-center">Ah</th>
-              <th className="px-3 pr-6 py-3 text-right">
+              <th className="px-3 py-3 text-center">
                 <button 
                   onClick={() => handleSort("temp")}
-                  className="flex items-center gap-1.5 text-white text-[13px] 2xl:text-sm font-medium ml-auto whitespace-nowrap"
+                  className="flex items-center justify-center gap-1.5 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap mx-auto"
                   data-testid="sort-temp"
                 >
                   Temp (°F) <ArrowUpDown className="h-3.5 w-3.5 text-[#838383]" />
