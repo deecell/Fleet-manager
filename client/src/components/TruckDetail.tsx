@@ -267,7 +267,21 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
 
         {/* Historical Data - moved below Figma content */}
         <div className="pt-4">
-          <h3 className="text-lg font-semibold mb-4">Historical Data</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold">Historical Data</h3>
+            <span className="text-sm text-muted-foreground">
+              {historyLoading ? "Loading..." : `${historyData.length} data points`}
+            </span>
+          </div>
+          {historyLoading ? (
+            <div className="flex items-center justify-center h-[200px] text-muted-foreground">
+              Loading historical data...
+            </div>
+          ) : historyData.length === 0 ? (
+            <div className="flex items-center justify-center h-[200px] text-muted-foreground">
+              No historical data available
+            </div>
+          ) : (
           <div className="space-y-6">
             <Card>
               <CardHeader>
@@ -361,6 +375,7 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
               </CardContent>
             </Card>
           </div>
+          )}
         </div>
       </div>
     </div>
