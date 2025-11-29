@@ -1,6 +1,9 @@
 import { Link, useLocation } from "wouter";
-import { Building2, Truck, Cpu, Users, LayoutDashboard, Layers } from "lucide-react";
+import { Building2, Truck, Cpu, Users, LayoutDashboard, Layers, LogOut, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { useAdminSession, useAdminLogout } from "@/lib/admin-api";
+import { useEffect } from "react";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -16,7 +19,32 @@ const navItems = [
 ];
 
 export function AdminLayout({ children }: AdminLayoutProps) {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
+  const { data: session, isLoading } = useAdminSession();
+  const logout = useAdminLogout();
+
+  useEffect(() => {
+    if (!isLoading && !session?.isAdmin) {
+      setLocation("/admin/login");
+    }
+  }, [session, isLoading, setLocation]);
+
+  const handleLogout = async () => {
+    await logout.mutateAsync();
+    setLocation("/admin/login");
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (!session?.isAdmin) {
+    return null;
+  }
 
   return (
     <div className="flex h-screen bg-background">
@@ -51,7 +79,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             );
           })}
         </nav>
-        <div className="p-4 border-t border-border">
+        <div className="p-4 border-t border-border space-y-2">
           <Link href="/">
             <div 
               className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer transition-colors"
@@ -61,6 +89,15 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               Fleet Dashboard
             </div>
           </Link>
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start text-muted-foreground"
+            onClick={handleLogout}
+            data-testid="button-admin-logout"
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Sign out
+          </Button>
         </div>
       </aside>
       <main className="flex-1 overflow-auto">

@@ -11,9 +11,61 @@ import { z } from "zod";
 
 const router = Router();
 
+declare module "express-session" {
+  interface SessionData {
+    isAdmin?: boolean;
+    adminEmail?: string;
+  }
+}
+
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "admin";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
+if (!ADMIN_PASSWORD) {
+  console.warn("[Admin] WARNING: ADMIN_PASSWORD not set. Admin login disabled for security.");
+}
+
 const adminMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.session?.isAdmin) {
+    return res.status(401).json({ 
+      error: "Unauthorized", 
+      message: "Admin authentication required. Please login at /admin/login" 
+    });
+  }
   next();
 };
+
+router.post("/login", async (req: Request, res: Response) => {
+  const { username, password } = req.body;
+  
+  if (!ADMIN_PASSWORD) {
+    return res.status(503).json({ 
+      error: "Service unavailable", 
+      message: "Admin authentication not configured. Set ADMIN_PASSWORD environment variable." 
+    });
+  }
+  
+  if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+    req.session.isAdmin = true;
+    req.session.adminEmail = username;
+    return res.json({ success: true, message: "Admin login successful" });
+  }
+  
+  return res.status(401).json({ error: "Invalid credentials" });
+});
+
+router.post("/logout", (req: Request, res: Response) => {
+  req.session.isAdmin = false;
+  req.session.adminEmail = undefined;
+  res.json({ success: true, message: "Logged out" });
+});
+
+router.get("/session", (req: Request, res: Response) => {
+  res.json({ 
+    isAdmin: !!req.session?.isAdmin,
+    email: req.session?.adminEmail 
+  });
+});
 
 router.get("/organizations", adminMiddleware, async (req: Request, res: Response) => {
   try {

@@ -63,6 +63,7 @@ interface UserResponse {
 async function adminFetch<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, {
     ...options,
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...options?.headers,
@@ -70,9 +71,66 @@ async function adminFetch<T>(url: string, options?: RequestInit): Promise<T> {
   });
   if (!res.ok) {
     const error = await res.json().catch(() => ({ error: "Request failed" }));
-    throw new Error(error.error || "Request failed");
+    if (res.status === 401) {
+      window.location.href = "/admin/login";
+      throw new Error("Session expired. Redirecting to login...");
+    }
+    throw new Error(error.error || error.message || "Request failed");
   }
   return res.json();
+}
+
+interface AdminSession {
+  isAdmin: boolean;
+  email?: string;
+}
+
+export function useAdminSession() {
+  return useQuery<AdminSession>({
+    queryKey: ["/api/v1/admin/session"],
+    queryFn: async () => {
+      const res = await fetch("/api/v1/admin/session", { credentials: "include" });
+      return res.json();
+    },
+    staleTime: 60000,
+  });
+}
+
+export function useAdminLogin() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ username, password }: { username: string; password: string }) => {
+      const res = await fetch("/api/v1/admin/login", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || error.message || "Login failed");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/session"] });
+    },
+  });
+}
+
+export function useAdminLogout() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      await fetch("/api/v1/admin/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/session"] });
+    },
+  });
 }
 
 export function useAdminStats() {
