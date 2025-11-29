@@ -30,8 +30,9 @@
 | Step 8 | Device Manager Docs | ⏳ Pending |
 | Step 9 | Admin Dashboard | ✅ Complete |
 | Step 10 | Customer Authentication | ✅ Complete |
-| Step 11 | Device Manager (libpowermon) | 🔄 In Progress |
+| Step 11 | Device Manager (libpowermon) | ⏳ Awaiting Thornwave |
 | Step 12 | In-App Notifications | ✅ Complete |
+| Step 13 | SIMPro Integration | 🔄 In Progress |
 
 ---
 
@@ -1023,6 +1024,102 @@ Alerts are automatically resolved when conditions return to normal (e.g., device
 
 1. **Login React Hooks Error**: Fixed by moving `setLocation` redirect into `useEffect` hook
 2. **API Hook Imports**: Added `useMutation` import for alert acknowledge/resolve hooks
+
+---
+
+## Step 13: SIMPro Integration (In Progress)
+
+### Implementation Date
+November 29, 2025
+
+### What Was Built
+
+**SIMPro API Integration** - Connects to Wireless Logic's SIMPro platform for SIM management and truck location tracking:
+
+| Component | Description |
+|-----------|-------------|
+| Database Schema | `sims`, `sim_location_history`, `sim_usage_history`, `sim_sync_settings` tables |
+| SIMPro Client | TypeScript API client with authentication and key endpoints |
+| Sync Service | Fetches SIMs, matches to devices by name, updates truck locations |
+| Admin API | Endpoints for SIM sync, location sync, usage sync, and status check |
+
+### Data Model
+
+**SIM ↔ Device Linking:**
+```
+SIMPro Router (SIM)              PowerMon Device
+      ↓                                ↓
+custom_field1 = "DCL-Moeck"     device_name = "DCL-Moeck"
+      ↓                                ↓
+   Location                    Voltage/Current/SOC
+      ↓                                ↓
+         → Unified Truck View ←
+```
+
+### Database Tables
+
+| Table | Purpose |
+|-------|---------|
+| `sims` | SIM cards with ICCID, MSISDN, status, location, linked device/truck |
+| `sim_location_history` | Historical location data for tracking movement |
+| `sim_usage_history` | Data consumption records for alerting |
+| `sim_sync_settings` | Per-organization sync intervals and thresholds |
+
+### SIMPro API Client
+
+**Key Endpoints Used:**
+- `GET /api/v3/sims` - List all SIMs
+- `GET /api/v3/sim/{msisdn}/details` - Detailed SIM info including custom fields
+- `GET /api/v3/sim/{msisdn}/location` - SIM location via cell tower triangulation
+- `GET /api/v3/sim/{msisdn}/usage` - Current data usage
+
+**Authentication:**
+```typescript
+headers: {
+  'x-api-client': process.env.SIMPRO_API_CLIENT,
+  'x-api-key': process.env.SIMPRO_API_KEY
+}
+```
+
+### Admin API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/admin/simpro/status` | GET | Check SIMPro connection status |
+| `/api/v1/admin/organizations/:orgId/sims` | GET | List SIMs for organization |
+| `/api/v1/admin/organizations/:orgId/sims/sync` | POST | Sync SIMs from SIMPro |
+| `/api/v1/admin/organizations/:orgId/sims/sync-locations` | POST | Update truck locations from SIM |
+| `/api/v1/admin/organizations/:orgId/sims/sync-usage` | POST | Sync data usage and generate alerts |
+| `/api/v1/admin/sims/:simId/location-history` | GET | Get location history for a SIM |
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `shared/schema.ts` | SIM database tables and types |
+| `server/services/simpro-client.ts` | SIMPro API client |
+| `server/services/sim-sync-service.ts` | Sync service for SIMs, locations, usage |
+| `server/api/admin-routes.ts` | Admin API endpoints for SIM management |
+
+### Configuration Required
+
+**Environment Variables:**
+- `SIMPRO_API_CLIENT` - API client ID from SIMPro
+- `SIMPRO_API_KEY` - API key from SIMPro
+
+### Data Flow
+
+1. **Initial Sync:** Fetch all SIMs from SIMPro, match to PowerMon devices by name (custom_field1)
+2. **Location Polling:** Every 5 minutes, get location for each SIM and update truck position
+3. **Usage Tracking:** Hourly usage sync, generate alerts if data threshold exceeded
+
+### Status
+
+- ✅ Database schema created and pushed
+- ✅ SIMPro API client with full TypeScript types
+- ✅ Sync service for SIMs, locations, and usage
+- ✅ Admin API endpoints
+- ⏳ Awaiting SIMPro API credentials to test
 
 ---
 

@@ -9,6 +9,7 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import bcrypt from "bcrypt";
+import { getSimSyncService } from "../services/sim-sync-service";
 
 const SALT_ROUNDS = 10;
 
@@ -505,6 +506,118 @@ router.get("/stats", adminMiddleware, async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error getting admin stats:", error);
     res.status(500).json({ error: "Failed to get admin stats" });
+  }
+});
+
+// =============================================================================
+// SIM MANAGEMENT ENDPOINTS
+// =============================================================================
+
+router.get("/simpro/status", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const simService = getSimSyncService();
+    const isConfigured = simService.isConfigured();
+    let isConnected = false;
+    
+    if (isConfigured) {
+      isConnected = await simService.testConnection();
+    }
+    
+    res.json({
+      configured: isConfigured,
+      connected: isConnected,
+      message: isConfigured 
+        ? (isConnected ? "SIMPro API connected successfully" : "SIMPro API connection failed")
+        : "SIMPro API credentials not configured. Set SIMPRO_API_CLIENT and SIMPRO_API_KEY environment variables."
+    });
+  } catch (error) {
+    console.error("Error checking SIMPro status:", error);
+    res.status(500).json({ error: "Failed to check SIMPro status" });
+  }
+});
+
+router.post("/organizations/:orgId/sims/sync", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const orgId = parseInt(req.params.orgId, 10);
+    const simService = getSimSyncService();
+    
+    if (!simService.isConfigured()) {
+      return res.status(503).json({
+        error: "SIMPro not configured",
+        message: "Set SIMPRO_API_CLIENT and SIMPRO_API_KEY environment variables."
+      });
+    }
+    
+    const result = await simService.syncSims(orgId);
+    res.json({ success: true, result });
+  } catch (error) {
+    console.error("Error syncing SIMs:", error);
+    res.status(500).json({ error: "Failed to sync SIMs" });
+  }
+});
+
+router.post("/organizations/:orgId/sims/sync-locations", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const orgId = parseInt(req.params.orgId, 10);
+    const simService = getSimSyncService();
+    
+    if (!simService.isConfigured()) {
+      return res.status(503).json({
+        error: "SIMPro not configured",
+        message: "Set SIMPRO_API_CLIENT and SIMPRO_API_KEY environment variables."
+      });
+    }
+    
+    const result = await simService.syncLocations(orgId);
+    res.json({ success: true, result });
+  } catch (error) {
+    console.error("Error syncing SIM locations:", error);
+    res.status(500).json({ error: "Failed to sync SIM locations" });
+  }
+});
+
+router.post("/organizations/:orgId/sims/sync-usage", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const orgId = parseInt(req.params.orgId, 10);
+    const simService = getSimSyncService();
+    
+    if (!simService.isConfigured()) {
+      return res.status(503).json({
+        error: "SIMPro not configured",
+        message: "Set SIMPRO_API_CLIENT and SIMPRO_API_KEY environment variables."
+      });
+    }
+    
+    const result = await simService.syncUsage(orgId);
+    res.json({ success: true, result });
+  } catch (error) {
+    console.error("Error syncing SIM usage:", error);
+    res.status(500).json({ error: "Failed to sync SIM usage" });
+  }
+});
+
+router.get("/organizations/:orgId/sims", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const orgId = parseInt(req.params.orgId, 10);
+    const simService = getSimSyncService();
+    const sims = await simService.getSimsForOrganization(orgId);
+    res.json({ sims });
+  } catch (error) {
+    console.error("Error listing SIMs:", error);
+    res.status(500).json({ error: "Failed to list SIMs" });
+  }
+});
+
+router.get("/sims/:simId/location-history", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const simId = parseInt(req.params.simId, 10);
+    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 100;
+    const simService = getSimSyncService();
+    const history = await simService.getLocationHistory(simId, limit);
+    res.json({ history });
+  } catch (error) {
+    console.error("Error getting location history:", error);
+    res.status(500).json({ error: "Failed to get location history" });
   }
 });
 

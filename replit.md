@@ -59,9 +59,25 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
 - **Library**: `libpowermon_bin` v1.16 - Thornwave's PIC-compiled library for shared object linking.
 - **Location**: `device-manager/` directory.
 - **Build**: `cd device-manager && npx node-gyp rebuild`
-- **Status**: Native addon built successfully. Works on ANY server (BLE errors handled gracefully).
+- **Status**: Native addon built successfully. Awaiting Thornwave update for WiFi-only createInstance().
 - **BLE Handling**: Addon catches Bluetooth init errors gracefully. Check `device.isBleAvailable()` before connecting.
 - **Fallback**: Subprocess bridge (`powermon-bridge`) available if native addon issues arise.
+
+### SIMPro Integration (Truck Location Tracking)
+- **Purpose**: Track truck locations via SIM card cell tower triangulation; monitor data usage.
+- **Provider**: Wireless Logic SIMPro platform.
+- **API**: REST API v3 at `https://simpro4.wirelesslogic.com/api/v3`.
+- **Authentication**: `x-api-client` and `x-api-key` headers.
+- **Linking**: SIMs matched to PowerMon devices via device_name (SIMPro custom_field1).
+- **Data Flow**: SIM location → truck.latitude/longitude → map display.
+- **Secrets Required**: `SIMPRO_API_CLIENT`, `SIMPRO_API_KEY`.
+- **Status**: Integration built, awaiting API credentials.
+
+### SIMPro Database Tables
+- `sims` - SIM cards with ICCID, MSISDN, location, linked device/truck.
+- `sim_location_history` - Historical location data.
+- `sim_usage_history` - Data consumption for alerting.
+- `sim_sync_settings` - Sync intervals and thresholds per organization.
 
 ## External Dependencies
 

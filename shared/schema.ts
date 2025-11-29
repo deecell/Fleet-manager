@@ -299,6 +299,115 @@ export const sessions = pgTable("sessions", {
 }));
 
 // =============================================================================
+// SIM CARDS (from SIMPro - linked to PowerMon devices by name)
+// =============================================================================
+export const sims = pgTable("sims", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  deviceId: integer("device_id")
+    .references(() => powerMonDevices.id, { onDelete: "set null" }),
+  truckId: integer("truck_id")
+    .references(() => trucks.id, { onDelete: "set null" }),
+  simproId: integer("simpro_id"),
+  iccid: text("iccid").notNull().unique(),
+  msisdn: text("msisdn"),
+  imsi: text("imsi"),
+  eid: text("eid"),
+  deviceName: text("device_name"),
+  status: text("status").default("unknown"),
+  workflowStatus: text("workflow_status"),
+  ipAddress: text("ip_address"),
+  latitude: real("latitude"),
+  longitude: real("longitude"),
+  locationAccuracy: real("location_accuracy"),
+  lastLocationUpdate: timestamp("last_location_update"),
+  dataUsedMb: real("data_used_mb").default(0),
+  dataLimitMb: real("data_limit_mb"),
+  lastUsageUpdate: timestamp("last_usage_update"),
+  lastSyncAt: timestamp("last_sync_at"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  orgIdx: index("sim_org_idx").on(table.organizationId),
+  deviceIdx: index("sim_device_idx").on(table.deviceId),
+  truckIdx: index("sim_truck_idx").on(table.truckId),
+  iccidIdx: index("sim_iccid_idx").on(table.iccid),
+  msisdnIdx: index("sim_msisdn_idx").on(table.msisdn),
+  deviceNameIdx: index("sim_device_name_idx").on(table.deviceName),
+}));
+
+// =============================================================================
+// SIM LOCATION HISTORY (for tracking movement patterns)
+// =============================================================================
+export const simLocationHistory = pgTable("sim_location_history", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  simId: integer("sim_id")
+    .notNull()
+    .references(() => sims.id, { onDelete: "cascade" }),
+  truckId: integer("truck_id")
+    .references(() => trucks.id, { onDelete: "set null" }),
+  latitude: real("latitude").notNull(),
+  longitude: real("longitude").notNull(),
+  accuracy: real("accuracy"),
+  source: text("source").default("cell_tower"),
+  recordedAt: timestamp("recorded_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  orgIdx: index("sim_location_org_idx").on(table.organizationId),
+  simIdx: index("sim_location_sim_idx").on(table.simId),
+  timeIdx: index("sim_location_time_idx").on(table.recordedAt),
+  simTimeIdx: index("sim_location_sim_time_idx").on(table.simId, table.recordedAt),
+}));
+
+// =============================================================================
+// SIM USAGE HISTORY (for data consumption tracking and alerts)
+// =============================================================================
+export const simUsageHistory = pgTable("sim_usage_history", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  simId: integer("sim_id")
+    .notNull()
+    .references(() => sims.id, { onDelete: "cascade" }),
+  dataUsedMb: real("data_used_mb").notNull(),
+  smsCount: integer("sms_count").default(0),
+  period: text("period"),
+  recordedAt: timestamp("recorded_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  orgIdx: index("sim_usage_org_idx").on(table.organizationId),
+  simIdx: index("sim_usage_sim_idx").on(table.simId),
+  timeIdx: index("sim_usage_time_idx").on(table.recordedAt),
+}));
+
+// =============================================================================
+// SIM SYNC SETTINGS (SIMPro API configuration per organization)
+// =============================================================================
+export const simSyncSettings = pgTable("sim_sync_settings", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  locationSyncIntervalMinutes: integer("location_sync_interval_minutes").default(5),
+  usageSyncIntervalMinutes: integer("usage_sync_interval_minutes").default(60),
+  dataUsageAlertThresholdPercent: integer("data_usage_alert_threshold_percent").default(80),
+  isEnabled: boolean("is_enabled").default(true),
+  lastSimSyncAt: timestamp("last_sim_sync_at"),
+  lastLocationSyncAt: timestamp("last_location_sync_at"),
+  lastUsageSyncAt: timestamp("last_usage_sync_at"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  orgIdx: uniqueIndex("sim_sync_settings_org_idx").on(table.organizationId),
+}));
+
+// =============================================================================
 // POLLING SETTINGS (configurable per organization)
 // =============================================================================
 export const pollingSettings = pgTable("polling_settings", {
@@ -355,6 +464,18 @@ export const insertAuditLogSchema = createInsertSchema(auditLogs)
 export const insertPollingSettingsSchema = createInsertSchema(pollingSettings)
   .omit({ id: true, updatedAt: true });
 
+export const insertSimSchema = createInsertSchema(sims)
+  .omit({ id: true, createdAt: true, updatedAt: true, lastSyncAt: true, lastLocationUpdate: true, lastUsageUpdate: true });
+
+export const insertSimLocationHistorySchema = createInsertSchema(simLocationHistory)
+  .omit({ id: true, createdAt: true });
+
+export const insertSimUsageHistorySchema = createInsertSchema(simUsageHistory)
+  .omit({ id: true, createdAt: true });
+
+export const insertSimSyncSettingsSchema = createInsertSchema(simSyncSettings)
+  .omit({ id: true, updatedAt: true, lastSimSyncAt: true, lastLocationSyncAt: true, lastUsageSyncAt: true });
+
 // =============================================================================
 // SELECT TYPES (for query results)
 // =============================================================================
@@ -370,6 +491,10 @@ export type DeviceSyncStatus = typeof deviceSyncStatus.$inferSelect;
 export type Alert = typeof alerts.$inferSelect;
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type PollingSetting = typeof pollingSettings.$inferSelect;
+export type Sim = typeof sims.$inferSelect;
+export type SimLocationHistory = typeof simLocationHistory.$inferSelect;
+export type SimUsageHistory = typeof simUsageHistory.$inferSelect;
+export type SimSyncSetting = typeof simSyncSettings.$inferSelect;
 
 // =============================================================================
 // INSERT TYPES (for creating new records)
@@ -386,6 +511,10 @@ export type InsertDeviceSyncStatus = z.infer<typeof insertDeviceSyncStatusSchema
 export type InsertAlert = z.infer<typeof insertAlertSchema>;
 export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
 export type InsertPollingSetting = z.infer<typeof insertPollingSettingsSchema>;
+export type InsertSim = z.infer<typeof insertSimSchema>;
+export type InsertSimLocationHistory = z.infer<typeof insertSimLocationHistorySchema>;
+export type InsertSimUsageHistory = z.infer<typeof insertSimUsageHistorySchema>;
+export type InsertSimSyncSetting = z.infer<typeof insertSimSyncSettingsSchema>;
 
 // =============================================================================
 // LEGACY SCHEMAS (for backward compatibility with existing dashboard)
