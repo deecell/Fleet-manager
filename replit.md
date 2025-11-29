@@ -4,7 +4,9 @@
 The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managing a fleet of clean energy trucks. It offers comprehensive visibility into truck locations, battery states, performance metrics, and system health. The system supports tracking individual vehicles, viewing historical data, and receiving notifications. Designed as a data-heavy enterprise application, it prioritizes clarity, scanability, and operational efficiency with a clean, minimalistic design for fleet management.
 
 ## User Preferences
-Preferred communication style: Simple, everyday language.
+- Preferred communication style: Simple, everyday language.
+- **Always update DEVELOPMENT_LOG.md** with progress on every task (user reads this regularly).
+- Update replit.md and other documentation alongside DEVELOPMENT_LOG.md.
 
 ## System Architecture
 
