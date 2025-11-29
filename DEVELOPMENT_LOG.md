@@ -889,9 +889,17 @@ Library Version: { major: 1, minor: 16, string: '1.16' }
 
 ### Next Steps
 
-1. **Deploy to Bluetooth-capable environment** for full integration testing
-2. **Connect to test device** using provided access URL
-3. **Implement Device Manager service** that:
+**Awaiting Thornwave Update (ETA: Monday)**
+
+Thornwave (Raz) is updating `createInstance()` to work without Bluetooth hardware for WiFi-only connections. Once pushed:
+1. Pull updated library from `git.thornwave.com`
+2. Rebuild native addon
+3. Connect to live test device (DCL-Moeck in Southern California)
+4. Test real-time data retrieval
+
+**After Thornwave Update:**
+1. **Connect to test device** using provided access URL
+2. **Implement Device Manager service** that:
    - Polls devices based on polling settings
    - Stores snapshots and measurements in database
    - Syncs log files for historical data
