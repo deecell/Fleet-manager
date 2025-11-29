@@ -29,6 +29,7 @@
 | Step 7 | Alerts System | ⏳ Pending |
 | Step 8 | Device Manager Docs | ⏳ Pending |
 | Step 9 | Admin Dashboard | ✅ Complete |
+| Step 10 | Customer Authentication | ✅ Complete |
 
 ---
 
@@ -540,6 +541,117 @@ November 28-29, 2025
 | Variable | Purpose |
 |----------|---------|
 | `ADMIN_PASSWORD` | Admin login password (stored as secret) |
+
+---
+
+## Step 10: Customer Authentication (Completed)
+
+### Implementation Date
+November 29, 2025
+
+### What Was Built
+
+**Customer Login System** - Secure session-based authentication for fleet customers:
+
+| Component | Description |
+|-----------|-------------|
+| Login Page | Email/password form at `/login` route |
+| Session Management | Secure cookie-based sessions with regeneration |
+| Protected Routes | All fleet API routes require authentication |
+| Logout | Proper session destruction with cache clearing |
+
+### Backend Implementation
+
+**Customer Auth API Routes** (`server/api/auth-routes.ts`):
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/auth/login` | POST | Authenticate customer with email/password |
+| `/api/v1/auth/logout` | POST | Destroy session and clear cookie |
+| `/api/v1/auth/session` | GET | Check authentication status |
+
+**Tenant Middleware Updates** (`server/middleware/tenant.ts`):
+- Session-based authentication only (no header bypass)
+- Validates user exists and is active
+- Validates organization exists and is active
+- Auto-destroys session if user/org becomes inactive
+
+### Security Implementation
+
+| Control | Implementation |
+|---------|----------------|
+| **Password Hashing** | bcrypt with 10 salt rounds |
+| **Session Fixation Prevention** | `session.regenerate()` on login |
+| **Secure Cookies** | HttpOnly, Secure (prod), SameSite=Lax |
+| **Session Destruction** | `session.destroy()` + cookie clear on logout |
+| **Account Status Checks** | Verify user and org are active on every request |
+| **Cache Clearing** | React Query cache cleared on logout |
+| **Password Validation** | 6 character minimum (server-side) |
+
+### Authentication Flow
+
+1. User navigates to `/login`
+2. Enters email and password
+3. Server validates credentials with bcrypt
+4. Server checks user and organization are active
+5. Session regenerated to prevent fixation attacks
+6. User redirected to dashboard
+7. All fleet API calls use session cookie for tenant context
+8. Logout destroys session and clears browser cache
+
+### Frontend Components
+
+**Login Page** (`client/src/pages/Login.tsx`):
+- Email/password form with validation
+- Error message display
+- Redirect to dashboard on success
+- Deecell branding
+
+**Auth Hooks** (`client/src/lib/auth-api.ts`):
+- `useAuthSession()` - Check authentication status
+- `useLogin()` - Login mutation
+- `useLogout()` - Logout mutation with cache clear
+
+**Dashboard Updates** (`client/src/pages/Dashboard.tsx`):
+- Auth check on mount
+- Redirect to `/login` if unauthenticated
+- Logout button in header
+
+### SOC2 Compliance Status
+
+**Currently Implemented** (Ready for basic compliance):
+- ✅ Password hashing (bcrypt)
+- ✅ Session fixation prevention
+- ✅ Secure cookie configuration
+- ✅ Account status verification
+- ✅ Multi-tenant isolation
+
+**Future SOC2 Enhancements** (Not yet implemented):
+- ❌ Rate limiting on login endpoints
+- ❌ Audit logging for auth events
+- ❌ Account lockout after failed attempts
+- ❌ Password complexity requirements
+- ❌ Multi-factor authentication (MFA)
+- ❌ Session idle timeout
+- ❌ Password expiration policy
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `server/api/auth-routes.ts` | Customer auth API with session management |
+| `server/middleware/tenant.ts` | Session-based tenant isolation |
+| `client/src/pages/Login.tsx` | Customer login page |
+| `client/src/lib/auth-api.ts` | Auth hooks and utilities |
+| `client/src/pages/Dashboard.tsx` | Protected dashboard with auth checks |
+
+### Security Fixes Applied
+
+1. **Removed header-based org bypass**: `tenantMiddleware` now only accepts session-based authentication
+2. **Session regeneration**: Both admin and customer login regenerate sessions to prevent fixation
+3. **Proper logout**: Both systems use `session.destroy()` with cookie clearing
+4. **Active status checks**: Login and middleware verify user/org are active
+5. **Cache clearing**: Frontend clears React Query cache on logout to prevent cross-tenant data leakage
 
 ---
 
