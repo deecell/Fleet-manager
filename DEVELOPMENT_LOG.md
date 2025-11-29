@@ -24,10 +24,11 @@
 | Step 2 | Storage Layer | ✅ Complete |
 | Step 3 | API Routes | ✅ Complete |
 | Step 4 | Test Data Hydration | ✅ Complete |
-| Step 5 | Connect Dashboard | ⏳ Pending |
-| Step 6 | Device Manager Simulation | ⏳ Pending |
+| Step 5 | Connect Dashboard | ✅ Complete |
+| Step 6 | Device Manager Simulation | ✅ Complete |
 | Step 7 | Alerts System | ⏳ Pending |
 | Step 8 | Device Manager Docs | ⏳ Pending |
+| Step 9 | Admin Dashboard | ✅ Complete |
 
 ---
 
@@ -403,6 +404,142 @@ Device Manager will use Node.js native addon (node-addon-api) to wrap the C++ li
 - Pre-built binaries for AWS Linux deployment
 - N-API for ABI stability across Node.js versions
 - Async workers for non-blocking device communication
+
+---
+
+## Step 9: Admin Dashboard (Completed)
+
+### Implementation Date
+November 28-29, 2025
+
+### What Was Built
+
+**Admin Dashboard UI** - 6 fully functional admin pages for Deecell Operations:
+
+| Page | Route | Purpose |
+|------|-------|---------|
+| Dashboard | `/admin` | System-wide statistics (orgs, fleets, trucks, devices, users) |
+| Organizations | `/admin/organizations` | CRUD for customer organizations |
+| Fleets | `/admin/fleets` | Fleet management across all organizations |
+| Trucks | `/admin/trucks` | Truck provisioning and management |
+| Devices | `/admin/devices` | PowerMon device management and assignment |
+| Users | `/admin/users` | User account management with role assignment |
+
+### Backend Implementation
+
+**Admin API Routes** (`server/api/admin-routes.ts`):
+- Complete CRUD endpoints at `/api/v1/admin/*`
+- Cross-organizational access (bypasses tenant middleware)
+- Session-based authentication with middleware
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/admin/login` | POST | Admin login with password |
+| `/api/v1/admin/logout` | POST | Session logout |
+| `/api/v1/admin/session` | GET | Check authentication status |
+| `/api/v1/admin/stats` | GET | System-wide statistics |
+| `/api/v1/admin/organizations` | GET/POST | List/create organizations |
+| `/api/v1/admin/organizations/:id` | GET/PATCH/DELETE | Manage organization |
+| `/api/v1/admin/fleets` | GET/POST | List/create fleets |
+| `/api/v1/admin/fleets/:id` | GET/PATCH/DELETE | Manage fleet |
+| `/api/v1/admin/trucks` | GET/POST | List/create trucks |
+| `/api/v1/admin/trucks/:id` | GET/PATCH/DELETE | Manage truck |
+| `/api/v1/admin/devices` | GET/POST | List/create devices |
+| `/api/v1/admin/devices/:id` | GET/PATCH/DELETE | Manage device |
+| `/api/v1/admin/users` | GET/POST | List/create users |
+| `/api/v1/admin/users/:id` | GET/PATCH/DELETE | Manage user |
+
+**New Storage Methods** (`server/db-storage.ts`):
+- `deleteOrganization(id)` - Remove organization
+- `listAllDevices()` - Get all devices across orgs
+- `listAllUsers()` - Get all users across orgs
+- `deleteUser(id)` - Remove user
+- `getAdminStats()` - Aggregate counts for dashboard
+
+### Authentication Implementation
+
+**Session Middleware** (`server/routes.ts`):
+- Express session with MemoryStore
+- 24-hour session expiry
+- Secure cookies in production
+
+**Authentication Flow**:
+1. User navigates to `/admin/*`
+2. `AdminLayout` checks session via `/api/v1/admin/session`
+3. If not authenticated, redirects to `/admin/login`
+4. User enters credentials (username: "admin", password: from ADMIN_PASSWORD secret)
+5. On success, session cookie is set and user is redirected to `/admin`
+6. All subsequent admin API calls include session cookie for authentication
+
+**Security**:
+- Password stored as environment secret (`ADMIN_PASSWORD`)
+- Server-side session storage (never exposed to frontend)
+- Automatic redirect on session expiry
+
+### Frontend Components
+
+**AdminLayout** (`client/src/components/AdminLayout.tsx`):
+- Sidebar navigation with 6 menu items
+- Session check on mount with loading state
+- Logout functionality
+- Orange branding color (#FA4B1E) for active/hover states
+
+**AdminLogin** (`client/src/pages/admin/AdminLogin.tsx`):
+- Login form with username/password fields
+- Deecell logo branding
+- Orange submit button (#FA4B1E)
+- Clean input styling (no focus rings)
+
+**Admin API Hooks** (`client/src/lib/admin-api.ts`):
+- `useAdminSession()` - Check authentication status
+- `useAdminLogin()` - Login mutation
+- `useAdminLogout()` - Logout mutation
+- `useAdminStats()` - Dashboard statistics
+- CRUD hooks for all entities (organizations, fleets, trucks, devices, users)
+
+### UI Styling
+
+**Admin Branding**:
+- Orange accent color: `#FA4B1E`
+- Used for buttons, active nav items, hover states
+- Custom CSS class `.admin-nav-item` in `index.css`
+
+**Custom Styles** (`client/src/index.css`):
+```css
+.admin-nav-item:hover {
+  background-color: rgba(250, 75, 30, 0.1) !important;
+  color: #FA4B1E !important;
+}
+
+.admin-nav-item.active {
+  background-color: rgba(250, 75, 30, 0.1);
+  color: #FA4B1E;
+  border-left: 4px solid #FA4B1E;
+}
+```
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `server/api/admin-routes.ts` | Admin API routes with session auth |
+| `server/routes.ts` | Session middleware setup |
+| `client/src/pages/admin/AdminLogin.tsx` | Login page with logo |
+| `client/src/pages/admin/AdminDashboard.tsx` | Stats dashboard |
+| `client/src/pages/admin/OrganizationsPage.tsx` | Organization management |
+| `client/src/pages/admin/FleetsPage.tsx` | Fleet management |
+| `client/src/pages/admin/TrucksPage.tsx` | Truck management |
+| `client/src/pages/admin/DevicesPage.tsx` | Device management |
+| `client/src/pages/admin/UsersPage.tsx` | User management |
+| `client/src/components/AdminLayout.tsx` | Admin layout with sidebar |
+| `client/src/lib/admin-api.ts` | Admin API hooks and utilities |
+| `client/src/index.css` | Custom admin navigation styles |
+
+### Environment Variables
+
+| Variable | Purpose |
+|----------|---------|
+| `ADMIN_PASSWORD` | Admin login password (stored as secret) |
 
 ---
 
