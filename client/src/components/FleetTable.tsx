@@ -139,7 +139,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
         </table>
       </div>
       {/* Section 3: Sleeper */}
-      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[46]">
+      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[30]">
         <table className="w-full">
           <thead>
             <tr className="h-[21px]">
