@@ -116,6 +116,7 @@ function formatLocation(lat: number | null, lng: number | null): string {
 
 export interface LegacyTruckWithDevice extends LegacyTruckWithHistory {
   deviceId?: number;
+  lastUpdated?: string;
 }
 
 export function useLegacyTrucks() {
@@ -159,6 +160,7 @@ export function useLegacyTrucks() {
       longitude: truck.longitude ?? 0,
       history: [],
       deviceId: device?.id,
+      lastUpdated: snapshot?.updatedAt ? String(snapshot.updatedAt) : snapshot?.recordedAt ? String(snapshot.recordedAt) : undefined,
     };
   });
 

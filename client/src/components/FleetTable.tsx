@@ -1,22 +1,34 @@
-import { LegacyTruck } from "@shared/schema";
+import { LegacyTruckWithDevice } from "@/lib/api";
 import { ArrowUpDown, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 
 interface FleetTableProps {
-  trucks: LegacyTruck[];
+  trucks: LegacyTruckWithDevice[];
   selectedTruckId?: string;
   onTruckSelect: (truckId: string) => void;
   alertTruckIds?: string[];
 }
 
-type SortField = keyof LegacyTruck | null;
+type SortField = keyof LegacyTruckWithDevice | null;
+
+function formatDateTime(dateStr?: string): string {
+  if (!dateStr) return "—";
+  const date = new Date(dateStr);
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
 
 export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, alertTruckIds = [] }: FleetTableProps) {
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [hoveredRowIndex, setHoveredRowIndex] = useState<number | null>(null);
 
-  const handleSort = (field: keyof LegacyTruck) => {
+  const handleSort = (field: keyof LegacyTruckWithDevice) => {
     if (sortField === field) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
@@ -66,7 +78,8 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                 </button>
               </th>
               <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Driver</th>
-              <th className="px-3 pr-6 py-3 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Location</th>
+              <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Location</th>
+              <th className="px-3 pr-6 py-3 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Last Updated</th>
             </tr>
           </thead>
           <tbody>
@@ -100,8 +113,11 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                 <td className="px-3 py-2 max-w-[120px]">
                   <span className="text-[13px] 2xl:text-sm text-[#4a5565] line-clamp-2">{truck.driver}</span>
                 </td>
-                <td className="px-3 py-2 pl-[10px] pr-[18px] max-w-[160px]">
-                  <span className="text-[13px] 2xl:text-sm text-[#4a5565] text-right line-clamp-2 block">{truck.address}</span>
+                <td className="px-3 py-2 max-w-[160px]">
+                  <span className="text-[13px] 2xl:text-sm text-[#4a5565] line-clamp-2">{truck.address}</span>
+                </td>
+                <td className="px-3 py-2 pl-[10px] pr-[18px] max-w-[120px]">
+                  <span className="text-[13px] 2xl:text-sm text-[#4a5565] text-right block whitespace-nowrap">{formatDateTime(truck.lastUpdated)}</span>
                 </td>
               </tr>
             ))}
