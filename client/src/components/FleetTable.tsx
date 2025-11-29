@@ -216,43 +216,6 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
           </tbody>
         </table>
       </div>
-      {/* Section 4: Model, FW */}
-      <div className="bg-white rounded-b-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[18] mt-[21px]">
-        <table className="w-full">
-          <thead>
-            <tr className="bg-[#303030] h-[41px]">
-              <th className="px-3 pl-6 py-3 text-left">
-                <button 
-                  onClick={() => handleSort("model")}
-                  className="flex items-center gap-1.5 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap"
-                  data-testid="sort-model"
-                >
-                  Model <ArrowUpDown className="h-3.5 w-3.5 text-[#838383]" />
-                </button>
-              </th>
-              <th className="pr-6 pl-3 py-3 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap rounded-tr-lg">FW</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedTrucks.map((truck, index) => (
-              <tr
-                key={truck.id}
-                onClick={() => onTruckSelect(truck.id)}
-                onMouseEnter={() => setHoveredRowIndex(index)}
-                onMouseLeave={() => setHoveredRowIndex(null)}
-                className={`cursor-pointer h-[62px] ${
-                  hoveredRowIndex === index ? "bg-[#EEF1FB]" : index % 2 === 1 ? "bg-[#fafbfc]" : "bg-white"
-                } ${selectedTruckId === truck.id ? "bg-[#EEF1FB]" : ""}`}
-              >
-                <td className="px-3 py-2 text-[13px] 2xl:text-sm text-[#4a5565] pl-[14px] pr-[14px] max-w-[140px]">
-                  <span className="line-clamp-2">{truck.model}</span>
-                </td>
-                <td className="py-3 text-[13px] 2xl:text-sm text-[#4a5565] text-right whitespace-nowrap pl-[14px] pr-[14px]">{truck.fw}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
     </div>
   );
 }

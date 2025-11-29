@@ -134,10 +134,12 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
             <X className="h-5 w-5" />
           </button>
         </div>
-        <div className="flex items-center gap-2 mt-2">
+        <div className="flex items-center gap-2 mt-2 flex-wrap">
           <p className="text-base text-[#4a5565]">{truck.model}</p>
           <div className="w-1 h-1 bg-[#4a5565] rounded-full" />
           <p className="text-base text-[#4a5565]">Serial: {truck.serial}</p>
+          <div className="w-1 h-1 bg-[#4a5565] rounded-full" />
+          <p className="text-base text-[#4a5565]">FW: {truck.fw}</p>
         </div>
         {alert && (
           <div className="bg-[#fff1d4] border border-[#ffd6a7] rounded-[10px] p-4 mt-4" data-testid="truck-detail-alert">
