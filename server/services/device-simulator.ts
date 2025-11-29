@@ -6,6 +6,16 @@ const ORGANIZATION_ID = 6;
 const MAX_CONCURRENT_POLLS = 5;
 const BUCKET_COUNT = 6;
 
+// Alert thresholds
+const ALERT_THRESHOLDS = {
+  LOW_VOLTAGE: 11.5,      // V - critical
+  LOW_SOC: 20,            // % - warning
+  HIGH_TEMP: 50,          // °C - warning
+  LOW_TEMP: 5,            // °C - warning
+  OFFLINE_CHANCE: 0.08,   // 8% chance per poll cycle to go offline (for demo visibility)
+  RECOVERY_CHANCE: 0.4,   // 40% chance per poll cycle to come back online
+};
+
 interface DeviceState {
   deviceId: number;
   truckId: number | null;
@@ -20,6 +30,8 @@ interface DeviceState {
   runtime: number;
   lastUpdate: Date;
   bucket: number;
+  isOffline: boolean;
+  offlineSince: Date | null;
 }
 
 interface SchedulerStats {
@@ -67,18 +79,66 @@ function initializeDeviceState(device: PowerMonDevice, bucketIndex: number): Dev
     runtime: Math.floor(Math.random() * 86400),
     lastUpdate: new Date(),
     bucket: bucketIndex,
+    isOffline: false,
+    offlineSince: null,
   };
 }
 
 function simulateReading(state: DeviceState): DeviceState {
+  // Simulate device going offline or coming back online
+  let isOffline = state.isOffline;
+  let offlineSince = state.offlineSince;
+  
+  if (isOffline) {
+    // Device is currently offline - check if it recovers
+    if (Math.random() < ALERT_THRESHOLDS.RECOVERY_CHANCE) {
+      isOffline = false;
+      offlineSince = null;
+      console.log(`[Simulator] Device ${state.deviceId} came back ONLINE`);
+    }
+  } else {
+    // Device is online - small chance it goes offline
+    if (Math.random() < ALERT_THRESHOLDS.OFFLINE_CHANCE) {
+      isOffline = true;
+      offlineSince = new Date();
+      console.log(`[Simulator] Device ${state.deviceId} went OFFLINE`);
+    }
+  }
+  
+  // If offline, don't update readings (they stay stale)
+  if (isOffline) {
+    return {
+      ...state,
+      isOffline,
+      offlineSince,
+    };
+  }
+  
   const isCharging = Math.random() > 0.3;
   const currentFlow = isCharging ? Math.abs(state.current) : -Math.abs(state.current) * 0.5;
   
-  const socDelta = isCharging ? 0.1 + Math.random() * 0.3 : -(0.05 + Math.random() * 0.2);
+  // Simulate more dramatic SoC changes to trigger alerts occasionally
+  let socDelta = isCharging ? 0.1 + Math.random() * 0.3 : -(0.05 + Math.random() * 0.2);
+  
+  // Occasionally simulate a rapid discharge scenario (10% chance for demo visibility)
+  if (!isCharging && Math.random() < 0.10) {
+    socDelta = -(3 + Math.random() * 7); // Rapid 3-10% drop
+  }
+  
   const newSoc = clamp(state.soc + socDelta, 5, 100);
   
   const voltageBase = 11.5 + (newSoc / 100) * 2.5;
   const chargeAdjustment = isCharging ? 0.3 : -0.1;
+  
+  // Simulate temperature with occasional extremes
+  let tempDelta = (Math.random() - 0.5) * 2; // Normal ±1°C variation
+  
+  // Occasionally simulate temperature spikes (8% chance for demo visibility)
+  if (Math.random() < 0.08) {
+    tempDelta = (Math.random() > 0.5 ? 1 : -1) * (8 + Math.random() * 15); // ±8-23°C spike
+  }
+  
+  const newTemp = clamp(state.temperature + tempDelta, -10, 65);
   
   return {
     ...state,
@@ -86,11 +146,13 @@ function simulateReading(state: DeviceState): DeviceState {
     voltage2: clamp(randomVariation(voltageBase + chargeAdjustment - 0.1, 0.1), 10.4, 14.7),
     current: clamp(randomVariation(currentFlow, 2), -50, 100),
     soc: newSoc,
-    temperature: clamp(randomVariation(state.temperature, 1), 15, 55),
+    temperature: newTemp,
     energy: state.energy + (isCharging ? Math.random() * 10 : 0),
     charge: state.charge + (isCharging ? Math.random() * 0.5 : -Math.random() * 0.1),
     runtime: state.runtime + 30,
     lastUpdate: new Date(),
+    isOffline,
+    offlineSince,
   };
 }
 
@@ -110,6 +172,43 @@ async function pollSingleDevice(device: PowerMonDevice): Promise<void> {
 
   const truck = device.truckId ? await storage.getTruck(ORGANIZATION_ID, device.truckId) : null;
   const fleetId = truck?.fleetId ?? null;
+  const truckNumber = truck?.truckNumber ?? device.serialNumber;
+
+  // Handle device offline status
+  if (state.isOffline) {
+    // Update device status to offline
+    await storage.updateDeviceStatus(ORGANIZATION_ID, device.id, "offline");
+    
+    // Create offline alert if not already exists
+    const hasOfflineAlert = await storage.hasActiveAlertForDevice(ORGANIZATION_ID, device.id, "offline");
+    if (!hasOfflineAlert) {
+      await storage.createAlert({
+        organizationId: ORGANIZATION_ID,
+        deviceId: device.id,
+        truckId: device.truckId,
+        fleetId: fleetId,
+        alertType: "offline",
+        severity: "critical",
+        title: "Device Offline",
+        message: `Device ${device.serialNumber} on ${truckNumber} is offline`,
+        threshold: null,
+        actualValue: null,
+        status: "active",
+      });
+      console.log(`[Simulator] Alert: Device ${device.serialNumber} went OFFLINE`);
+    }
+    
+    // Don't update readings when offline - skip to stats
+    const duration = Date.now() - startTime;
+    schedulerStats.totalPolls++;
+    schedulerStats.averagePollDuration = 
+      (schedulerStats.averagePollDuration * (schedulerStats.totalPolls - 1) + duration) / schedulerStats.totalPolls;
+    return;
+  }
+  
+  // Device is online - update status and resolve offline alerts
+  await storage.updateDeviceStatus(ORGANIZATION_ID, device.id, "online");
+  await storage.resolveAlertsByDevice(ORGANIZATION_ID, device.id, "offline");
 
   const snapshotData: InsertDeviceSnapshot = {
     organizationId: ORGANIZATION_ID,
@@ -149,7 +248,8 @@ async function pollSingleDevice(device: PowerMonDevice): Promise<void> {
 
   await storage.insertMeasurement(measurementData);
 
-  if (state.voltage1 < 11.5) {
+  // Check for LOW VOLTAGE alert
+  if (state.voltage1 < ALERT_THRESHOLDS.LOW_VOLTAGE) {
     const hasLowVoltageAlert = await storage.hasActiveAlertForDevice(ORGANIZATION_ID, device.id, "low_voltage");
     
     if (!hasLowVoltageAlert) {
@@ -161,15 +261,87 @@ async function pollSingleDevice(device: PowerMonDevice): Promise<void> {
         alertType: "low_voltage",
         severity: "critical",
         title: "Critical: Low Voltage",
-        message: `Voltage dropped to ${state.voltage1.toFixed(2)}V on device ${device.serialNumber}`,
-        threshold: 11.5,
+        message: `Voltage dropped to ${state.voltage1.toFixed(2)}V on ${truckNumber}`,
+        threshold: ALERT_THRESHOLDS.LOW_VOLTAGE,
         actualValue: state.voltage1,
         status: "active",
       });
-      console.log(`[Simulator] Alert: Low voltage on ${device.serialNumber}`);
+      console.log(`[Simulator] Alert: Low voltage (${state.voltage1.toFixed(2)}V) on ${device.serialNumber}`);
     }
   } else {
     await storage.resolveAlertsByDevice(ORGANIZATION_ID, device.id, "low_voltage");
+  }
+
+  // Check for LOW SOC alert
+  if (state.soc < ALERT_THRESHOLDS.LOW_SOC) {
+    const hasLowSocAlert = await storage.hasActiveAlertForDevice(ORGANIZATION_ID, device.id, "low_soc");
+    
+    if (!hasLowSocAlert) {
+      await storage.createAlert({
+        organizationId: ORGANIZATION_ID,
+        deviceId: device.id,
+        truckId: device.truckId,
+        fleetId: fleetId,
+        alertType: "low_soc",
+        severity: "warning",
+        title: "Low Battery",
+        message: `Battery at ${state.soc.toFixed(0)}% on ${truckNumber}`,
+        threshold: ALERT_THRESHOLDS.LOW_SOC,
+        actualValue: state.soc,
+        status: "active",
+      });
+      console.log(`[Simulator] Alert: Low SoC (${state.soc.toFixed(0)}%) on ${device.serialNumber}`);
+    }
+  } else {
+    await storage.resolveAlertsByDevice(ORGANIZATION_ID, device.id, "low_soc");
+  }
+
+  // Check for HIGH TEMPERATURE alert
+  if (state.temperature > ALERT_THRESHOLDS.HIGH_TEMP) {
+    const hasHighTempAlert = await storage.hasActiveAlertForDevice(ORGANIZATION_ID, device.id, "high_temp");
+    
+    if (!hasHighTempAlert) {
+      await storage.createAlert({
+        organizationId: ORGANIZATION_ID,
+        deviceId: device.id,
+        truckId: device.truckId,
+        fleetId: fleetId,
+        alertType: "high_temp",
+        severity: "warning",
+        title: "High Temperature",
+        message: `Temperature at ${state.temperature.toFixed(1)}°C on ${truckNumber}`,
+        threshold: ALERT_THRESHOLDS.HIGH_TEMP,
+        actualValue: state.temperature,
+        status: "active",
+      });
+      console.log(`[Simulator] Alert: High temp (${state.temperature.toFixed(1)}°C) on ${device.serialNumber}`);
+    }
+  } else {
+    await storage.resolveAlertsByDevice(ORGANIZATION_ID, device.id, "high_temp");
+  }
+
+  // Check for LOW TEMPERATURE alert
+  if (state.temperature < ALERT_THRESHOLDS.LOW_TEMP) {
+    const hasLowTempAlert = await storage.hasActiveAlertForDevice(ORGANIZATION_ID, device.id, "low_temp");
+    
+    if (!hasLowTempAlert) {
+      await storage.createAlert({
+        organizationId: ORGANIZATION_ID,
+        deviceId: device.id,
+        truckId: device.truckId,
+        fleetId: fleetId,
+        alertType: "low_temp",
+        severity: "warning",
+        title: "Low Temperature",
+        message: `Temperature at ${state.temperature.toFixed(1)}°C on ${truckNumber}`,
+        threshold: ALERT_THRESHOLDS.LOW_TEMP,
+        actualValue: state.temperature,
+        status: "active",
+      });
+      console.log(`[Simulator] Alert: Low temp (${state.temperature.toFixed(1)}°C) on ${device.serialNumber}`);
+    }
+  } else {
+    await storage.resolveAlertsByDevice(ORGANIZATION_ID, device.id, "low_temp");
   }
 
   const duration = Date.now() - startTime;

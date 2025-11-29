@@ -907,6 +907,28 @@ Sample alerts created for testing:
 - "Battery at 22% on FLT-003" (Low SoC - Warning)
 - "High temperature: 58°C on FLT-005" (Temperature - Warning)
 
+### Simulator Alert Generation
+
+The Device Manager simulator (`server/services/device-simulator.ts`) automatically generates alerts based on simulated conditions:
+
+| Alert Type | Trigger Condition | Severity | Probability |
+|------------|-------------------|----------|-------------|
+| `offline` | Device goes offline | Critical | 8% per cycle |
+| `low_voltage` | Voltage < 11.5V | Critical | Based on SoC |
+| `low_soc` | SoC < 20% | Warning | 10% rapid discharge |
+| `high_temp` | Temperature > 50°C | Warning | 8% spike chance |
+| `low_temp` | Temperature < 5°C | Warning | 8% spike chance |
+
+**Thresholds** (`ALERT_THRESHOLDS` constant):
+- `LOW_VOLTAGE`: 11.5V
+- `LOW_SOC`: 20%
+- `HIGH_TEMP`: 50°C
+- `LOW_TEMP`: 5°C
+- `OFFLINE_CHANCE`: 8% per poll cycle
+- `RECOVERY_CHANCE`: 40% per poll cycle
+
+Alerts are automatically resolved when conditions return to normal (e.g., device comes back online, temperature drops below threshold).
+
 ### Bug Fixes Applied
 
 1. **Login React Hooks Error**: Fixed by moving `setLocation` redirect into `useEffect` hook
