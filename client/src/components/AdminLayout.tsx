@@ -67,9 +67,14 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                   className={cn(
                     "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium cursor-pointer transition-colors",
                     isActive
-                      ? "bg-primary/10 text-primary border-l-4 border-primary -ml-1 pl-4"
+                      ? "-ml-1 pl-4"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   )}
+                  style={isActive ? { 
+                    backgroundColor: "rgba(250, 75, 30, 0.1)", 
+                    color: "#FA4B1E",
+                    borderLeft: "4px solid #FA4B1E"
+                  } : undefined}
                   data-testid={`link-admin-${item.label.toLowerCase()}`}
                 >
                   <Icon className="h-4 w-4" />
