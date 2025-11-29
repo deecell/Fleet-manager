@@ -796,14 +796,31 @@ cd device-manager && make
 
 ### Next Steps
 
-1. **Deploy to Bluetooth-capable environment** for integration testing
-2. **Connect to test device** using provided URL
-3. **Implement Device Manager service** that:
+**Awaiting Thornwave Update (ETA: Tomorrow morning PT)**
+
+Thornwave will provide a new version of `powermon_lib.a` compiled with `-fPIC` flag. This will enable:
+- Building a proper Node.js native addon (node-addon-api)
+- Eliminating the subprocess bridge overhead
+- Simpler lifecycle management
+- Direct function calls instead of IPC
+
+**Once PIC Library is Available:**
+1. Replace `powermon_lib.a` with new PIC-compiled version from Thornwave GitHub
+2. Convert `powermon-bridge` approach to native addon (`binding.gyp` + node-addon-api)
+3. Update BridgeClient to use native addon instead of subprocess
+4. Deploy to Bluetooth-capable environment for integration testing
+5. Connect to test device using provided URL
+6. **Implement Device Manager service** that:
    - Polls devices based on polling settings
    - Stores snapshots and measurements in database
    - Syncs log files for historical data
    - Generates alerts for offline/low voltage conditions
-4. **Create WebSocket integration** for real-time dashboard updates
+7. **Create WebSocket integration** for real-time dashboard updates
+
+**Current Implementation Status:**
+- Subprocess bridge approach is functional and can serve as fallback
+- Command ID protocol is robust and production-ready
+- TypeScript types are complete for all PowerMon data structures
 
 ---
 
