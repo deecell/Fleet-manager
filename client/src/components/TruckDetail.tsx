@@ -141,17 +141,6 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
           <div className="w-1 h-1 bg-[#4a5565] rounded-full" />
           <p className="text-base text-[#4a5565]">FW: {truck.fw}</p>
         </div>
-        {alert && (
-          <div className="bg-[#fff1d4] border border-[#ffd6a7] rounded-[10px] p-4 mt-4" data-testid="truck-detail-alert">
-            <div className="flex gap-3">
-              <AlertTriangle className="h-4 w-4 text-[#f55200] mt-0.5 flex-shrink-0" />
-              <div className="space-y-1 flex-1">
-                <p className="text-sm font-medium text-[#f55200]">{alert.title}</p>
-                <p className="text-sm text-[#d54700]">{alert.message}</p>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
       {/* Settings Content */}
       <div className="px-[68px] py-8 space-y-6 pl-[58px] pr-[58px]">
