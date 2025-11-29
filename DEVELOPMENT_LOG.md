@@ -853,21 +853,38 @@ device.getMonitorData((response) => { console.log(response.data); });
 device.disconnect();
 ```
 
-### Bluetooth Requirement
+### Bluetooth Error Handling (Fixed)
 
-**Known Limitation:** The `PowermonDevice` constructor initializes Bluetooth hardware. On servers without Bluetooth, instance creation fails but static methods still work.
+**Problem Solved:** The library's `Powermon::createInstance()` threw an exception when no Bluetooth hardware was available, causing the Node.js process to crash.
 
-**Workaround:** The TypeScript wrapper handles this gracefully:
-```typescript
-constructor() {
-  try {
-    this.device = new addon.PowermonDevice();
-    this.initialized = true;
-  } catch (error) {
-    console.warn('BLE init failed (expected on servers):', error.message);
-    this.initialized = false;
-  }
+**Solution Applied:** Modified the C++ wrapper to catch the BLE initialization exception gracefully:
+```cpp
+PowermonWrapper::PowermonWrapper(const Napi::CallbackInfo& info) {
+    try {
+        powermon_ = Powermon::createInstance();
+        if (powermon_ != nullptr) {
+            ble_available_ = true;
+            SetupCallbacks();
+        }
+    } catch (const std::exception& e) {
+        // BLE init failed - expected on servers without Bluetooth
+        powermon_ = nullptr;
+        ble_available_ = false;
+    }
 }
+```
+
+**Result:** The addon now works on ANY server:
+- Instance creation succeeds (no crash)
+- `device.isBleAvailable()` returns `false` when no BLE hardware
+- Static methods work perfectly (`getLibraryVersion`, `parseAccessURL`, etc.)
+- Attempting to connect gives a clear error message instead of crashing
+
+**Test Output:**
+```
+Device initialized: true
+BLE available: false
+Library Version: { major: 1, minor: 16, string: '1.16' }
 ```
 
 ### Next Steps

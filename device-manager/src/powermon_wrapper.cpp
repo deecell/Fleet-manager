@@ -14,6 +14,7 @@ Napi::Object PowermonWrapper::Init(Napi::Env env, Napi::Object exports) {
         InstanceMethod("connect", &PowermonWrapper::Connect),
         InstanceMethod("disconnect", &PowermonWrapper::Disconnect),
         InstanceMethod("isConnected", &PowermonWrapper::IsConnected),
+        InstanceMethod("isBleAvailable", &PowermonWrapper::IsBleAvailable),
         InstanceMethod("getInfo", &PowermonWrapper::GetInfo),
         InstanceMethod("getMonitorData", &PowermonWrapper::GetMonitorData),
         InstanceMethod("getStatistics", &PowermonWrapper::GetStatistics),
@@ -34,16 +35,25 @@ PowermonWrapper::PowermonWrapper(const Napi::CallbackInfo& info)
     : Napi::ObjectWrap<PowermonWrapper>(info)
     , powermon_(nullptr)
     , connected_(false)
-    , connecting_(false) {
+    , connecting_(false)
+    , ble_available_(false) {
     
-    powermon_ = Powermon::createInstance();
-    if (powermon_ == nullptr) {
-        Napi::TypeError::New(info.Env(), "Failed to create Powermon instance")
-            .ThrowAsJavaScriptException();
-        return;
+    try {
+        powermon_ = Powermon::createInstance();
+        if (powermon_ != nullptr) {
+            ble_available_ = true;
+            SetupCallbacks();
+        }
+    } catch (const std::exception& e) {
+        // BLE initialization failed (expected on servers without Bluetooth)
+        // Static methods will still work, instance methods will return errors
+        powermon_ = nullptr;
+        ble_available_ = false;
+    } catch (...) {
+        // Catch any other exceptions
+        powermon_ = nullptr;
+        ble_available_ = false;
     }
-    
-    SetupCallbacks();
 }
 
 PowermonWrapper::~PowermonWrapper() {
@@ -156,6 +166,12 @@ Napi::Value PowermonWrapper::ParseAccessURL(const Napi::CallbackInfo& info) {
 Napi::Value PowermonWrapper::Connect(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env();
     
+    if (!ble_available_ || powermon_ == nullptr) {
+        Napi::TypeError::New(env, "Bluetooth not available - cannot connect to devices")
+            .ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    
     if (connected_ || connecting_) {
         Napi::TypeError::New(env, "Already connected or connecting")
             .ThrowAsJavaScriptException();
@@ -238,6 +254,10 @@ Napi::Value PowermonWrapper::Disconnect(const Napi::CallbackInfo& info) {
 
 Napi::Value PowermonWrapper::IsConnected(const Napi::CallbackInfo& info) {
     return Napi::Boolean::New(info.Env(), connected_.load());
+}
+
+Napi::Value PowermonWrapper::IsBleAvailable(const Napi::CallbackInfo& info) {
+    return Napi::Boolean::New(info.Env(), ble_available_.load());
 }
 
 Napi::Object PowermonWrapper::DeviceInfoToObject(Napi::Env env, const Powermon::DeviceInfo& info) {

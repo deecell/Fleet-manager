@@ -15,22 +15,24 @@ const addon = require('../build/Release/powermon_addon.node');
 class PowermonDevice {
     constructor() {
         this.initialized = false;
-        try {
-            this.device = new addon.PowermonDevice();
-            this.initialized = true;
-        }
-        catch (error) {
-            // BLE initialization may fail on servers without Bluetooth hardware
-            // Static methods will still work
-            console.warn('PowermonDevice instance creation failed (expected on servers):', error.message);
-            this.initialized = false;
-        }
+        this.device = new addon.PowermonDevice();
+        this.initialized = true;
+        // Note: BLE may not be available, check with isBleAvailable()
+        // Static methods always work regardless of BLE status
     }
     /**
      * Check if the device instance was successfully initialized
      */
     isInitialized() {
         return this.initialized;
+    }
+    /**
+     * Check if Bluetooth is available for device connections
+     */
+    isBleAvailable() {
+        if (!this.initialized)
+            return false;
+        return this.device.isBleAvailable();
     }
     /**
      * Get the library version

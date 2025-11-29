@@ -113,6 +113,10 @@ export declare class PowermonDevice {
      */
     isInitialized(): boolean;
     /**
+     * Check if Bluetooth is available for device connections
+     */
+    isBleAvailable(): boolean;
+    /**
      * Get the library version
      */
     static getLibraryVersion(): LibraryVersion;

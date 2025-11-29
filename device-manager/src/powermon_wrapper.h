@@ -22,6 +22,7 @@ public:
     Napi::Value Connect(const Napi::CallbackInfo& info);
     Napi::Value Disconnect(const Napi::CallbackInfo& info);
     Napi::Value IsConnected(const Napi::CallbackInfo& info);
+    Napi::Value IsBleAvailable(const Napi::CallbackInfo& info);
     
     Napi::Value GetInfo(const Napi::CallbackInfo& info);
     Napi::Value GetMonitorData(const Napi::CallbackInfo& info);
@@ -39,6 +40,7 @@ private:
     Powermon* powermon_;
     std::atomic<bool> connected_;
     std::atomic<bool> connecting_;
+    std::atomic<bool> ble_available_;
     Powermon::WifiAccessKey access_key_;
     
     Napi::ThreadSafeFunction on_connect_tsfn_;

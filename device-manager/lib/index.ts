@@ -125,15 +125,10 @@ export class PowermonDevice {
   private initialized: boolean = false;
 
   constructor() {
-    try {
-      this.device = new addon.PowermonDevice();
-      this.initialized = true;
-    } catch (error: any) {
-      // BLE initialization may fail on servers without Bluetooth hardware
-      // Static methods will still work
-      console.warn('PowermonDevice instance creation failed (expected on servers):', error.message);
-      this.initialized = false;
-    }
+    this.device = new addon.PowermonDevice();
+    this.initialized = true;
+    // Note: BLE may not be available, check with isBleAvailable()
+    // Static methods always work regardless of BLE status
   }
 
   /**
@@ -141,6 +136,14 @@ export class PowermonDevice {
    */
   isInitialized(): boolean {
     return this.initialized;
+  }
+
+  /**
+   * Check if Bluetooth is available for device connections
+   */
+  isBleAvailable(): boolean {
+    if (!this.initialized) return false;
+    return this.device.isBleAvailable();
   }
 
   /**

@@ -59,7 +59,8 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
 - **Library**: `libpowermon_bin` v1.16 - Thornwave's PIC-compiled library for shared object linking.
 - **Location**: `device-manager/` directory.
 - **Build**: `cd device-manager && npx node-gyp rebuild`
-- **Status**: Native addon built successfully. Static methods work without Bluetooth. Instance methods require Bluetooth hardware for device communication.
+- **Status**: Native addon built successfully. Works on ANY server (BLE errors handled gracefully).
+- **BLE Handling**: Addon catches Bluetooth init errors gracefully. Check `device.isBleAvailable()` before connecting.
 - **Fallback**: Subprocess bridge (`powermon-bridge`) available if native addon issues arise.
 
 ## External Dependencies
