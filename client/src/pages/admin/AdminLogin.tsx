@@ -49,8 +49,8 @@ export default function AdminLogin() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-            <Shield className="h-6 w-6 text-primary" />
+          <div className="mx-auto mb-4 h-12 w-12 rounded-full flex items-center justify-center" style={{ backgroundColor: "rgba(250, 75, 30, 0.1)" }}>
+            <Shield className="h-6 w-6" style={{ color: "#FA4B1E" }} />
           </div>
           <CardTitle className="text-2xl">Admin Login</CardTitle>
           <CardDescription>
@@ -85,7 +85,8 @@ export default function AdminLogin() {
             </div>
             <Button 
               type="submit" 
-              className="w-full" 
+              className="w-full text-white hover:opacity-90" 
+              style={{ backgroundColor: "#FA4B1E", borderColor: "#FA4B1E" }}
               disabled={login.isPending}
               data-testid="button-admin-login"
             >
