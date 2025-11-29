@@ -30,6 +30,7 @@
 | Step 8 | Device Manager Docs | ⏳ Pending |
 | Step 9 | Admin Dashboard | ✅ Complete |
 | Step 10 | Customer Authentication | ✅ Complete |
+| Step 11 | Device Manager (libpowermon) | 🔄 In Progress |
 
 ---
 
@@ -652,6 +653,157 @@ November 29, 2025
 3. **Proper logout**: Both systems use `session.destroy()` with cookie clearing
 4. **Active status checks**: Login and middleware verify user/org are active
 5. **Cache clearing**: Frontend clears React Query cache on logout to prevent cross-tenant data leakage
+
+---
+
+## Step 11: Device Manager - libpowermon Integration (In Progress)
+
+### Implementation Date
+November 29, 2025
+
+### What's Being Built
+
+**Device Manager** - Node.js service that communicates with PowerMon devices:
+
+| Component | Description |
+|-----------|-------------|
+| libpowermon | Thornwave's C++ library for PowerMon communication |
+| powermon-bridge | C++ executable that wraps libpowermon |
+| BridgeClient | Node.js module that spawns and manages the bridge |
+| TypeScript Types | Full type definitions for all PowerMon data structures |
+
+### Architecture Decision
+
+**Problem**: libpowermon C++ static library (`powermon_lib.a`) wasn't compiled with `-fPIC`, which is required for Node.js native addons (shared libraries) on Linux x64.
+
+**Solution**: Bridge executable architecture:
+1. Build `powermon-bridge` as standalone executable (static linking works)
+2. Node.js spawns bridge as subprocess
+3. Communication via stdin/stdout with NDJSON protocol
+4. This approach works with the unmodified library
+
+### Repository Cloned
+
+```bash
+git clone https://git.thornwave.com/git/thornwave/libpowermon_bin.git
+```
+
+**Contents**:
+- `powermon_lib.a` - Linux x64 static library
+- `powermon_lib_rpi64.a` - Raspberry Pi 64-bit version
+- `inc/` - Header files (powermon.h, powermon_log.h, etc.)
+- `examples/` - Connect and scan examples
+
+### libpowermon API Summary
+
+| Function | Purpose |
+|----------|---------|
+| `DeviceIdentifier::fromURL(url)` | Parse access URL to extract encryption keys |
+| `connectWifi(WifiAccessKey)` | Connect to remote device via cloud relay |
+| `requestGetInfo()` | Device name, firmware, serial number |
+| `requestGetMonitorData()` | Real-time V1, V2, current, power, temp, SOC |
+| `requestGetStatistics()` | Power meter statistics |
+| `requestGetFgStatistics()` | Fuelgauge/battery statistics |
+| `requestGetLogFileList()` | List available log files |
+| `requestReadLogFile()` | Download log file data |
+| `PowermonLogFile::decode()` | Parse log data into samples |
+
+### MonitorData Fields
+
+From real-time polling:
+- `voltage1`, `voltage2` - Battery voltages (V)
+- `current` - Current draw (A)
+- `power` - Power consumption (W)
+- `temperature` - Device temperature (°C)
+- `coulombMeter` - Charge consumed (Ah)
+- `energyMeter` - Energy consumed (Wh)
+- `powerStatus` - PS_OFF, PS_ON, PS_LVD, PS_OCD, etc.
+- `soc` - State of Charge (%)
+- `runtime` - Estimated runtime (minutes)
+- `rssi` - WiFi signal strength (dBm)
+
+### Bridge Commands
+
+The `powermon-bridge` executable accepts these commands on stdin:
+
+| Command | Parameters | Response |
+|---------|------------|----------|
+| `version` | - | Library version info |
+| `parse <url>` | Access URL | Parsed device identifier |
+| `connect <url>` | Access URL | Connection status |
+| `disconnect` | - | Disconnection acknowledgment |
+| `status` | - | Connected/connecting state |
+| `info` | - | Device information |
+| `monitor` | - | Current monitor data |
+| `statistics` | - | Power meter statistics |
+| `fgstatistics` | - | Battery statistics |
+| `logfiles` | - | List of log files |
+| `readlog <id> <offset> <size>` | File params | Log data (hex) |
+| `stream <interval_ms> [count]` | Polling params | Continuous monitor events |
+| `quit` | - | Exit the bridge |
+
+### Known Limitation
+
+**Bluetooth Hardware Requirement**: The libpowermon library initializes Bluetooth subsystem on startup, even for WiFi-only connections. This requires Bluetooth hardware (HCI socket) to be available.
+
+**Impact**:
+- Development/testing environments without Bluetooth will fail to start the bridge
+- AWS deployment must include Bluetooth support (or use a Bluetooth-capable AMI)
+- WiFi remote connections work once bridge starts successfully
+
+### Test Device Provided
+
+Access URL for testing:
+```
+https://applinks.thornwave.com/?n=DCL-Moeck&s=a3a5b30ea9b3ff98&h=41&c=c1HOvvGTYe4HcxZ1AWUUVg%3D%3D&k=qN19gp1NyTIjTcKXIFUagek74WSxnF9446mW1lX0Ca4%3D
+```
+
+### Files Created
+
+| File | Purpose |
+|------|---------|
+| `device-manager/src/powermon_bridge.cpp` | C++ bridge executable source |
+| `device-manager/Makefile` | Build configuration |
+| `device-manager/lib/bridge-client.js` | Node.js bridge manager |
+| `device-manager/lib/bridge-client.d.ts` | TypeScript type definitions |
+| `device-manager/lib/index.js` | Package entry point |
+| `device-manager/lib/index.d.ts` | Package type definitions |
+| `device-manager/package.json` | Package configuration |
+
+### Build Status
+
+✅ Bridge executable compiles successfully:
+```bash
+cd device-manager && make
+# Output: powermon-bridge (264KB executable)
+```
+
+### Protocol Robustness (Fixed)
+
+**Issue Identified**: Original protocol used FIFO queue for command/response matching, which broke when async events arrived before results.
+
+**Fix Applied**: Command ID tagging system:
+- Commands sent as: `<cmd_id> <command> [args]`
+- Results include ID: `{"type":"result","id":"cmd_xxx","success":true,...}`
+- Errors include ID: `{"type":"error","id":"cmd_xxx","message":"..."}`
+- Fatal startup errors: `{"type":"fatal","message":"..."}`
+- Events remain untagged (not responses to commands)
+
+**Node.js Client Changes**:
+- Changed from FIFO `pendingCallbacks` array to Map-based tracking by command ID
+- Added proper cleanup of `connecting` state on connect failures
+- Added immediate failure detection for fatal bridge startup errors
+
+### Next Steps
+
+1. **Deploy to Bluetooth-capable environment** for integration testing
+2. **Connect to test device** using provided URL
+3. **Implement Device Manager service** that:
+   - Polls devices based on polling settings
+   - Stores snapshots and measurements in database
+   - Syncs log files for historical data
+   - Generates alerts for offline/low voltage conditions
+4. **Create WebSocket integration** for real-time dashboard updates
 
 ---
 
