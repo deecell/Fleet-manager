@@ -6,7 +6,7 @@ import FleetTable from "@/components/FleetTable";
 import TruckDetail from "@/components/TruckDetail";
 import { Notifications } from "@/components/Notifications";
 import { AlertBanner } from "@/components/AlertBanner";
-import { useLegacyTrucks, useLegacyNotifications, LegacyTruckWithDevice } from "@/lib/api";
+import { useLegacyTrucks, useLegacyNotifications, useAcknowledgeAlert, useResolveAlert, LegacyTruckWithDevice } from "@/lib/api";
 import { useSession, useLogout } from "@/lib/auth-api";
 import { useToast } from "@/hooks/use-toast";
 import { User, LogOut, ChevronDown, Search, Loader2 } from "lucide-react";
@@ -37,6 +37,8 @@ export default function Dashboard() {
 
   const { data: trucks, isLoading: trucksLoading } = useLegacyTrucks();
   const { data: apiNotifications, isLoading: notificationsLoading } = useLegacyNotifications();
+  const acknowledgeAlert = useAcknowledgeAlert();
+  const resolveAlert = useResolveAlert();
 
   useEffect(() => {
     if (!sessionLoading && !session?.authenticated) {
@@ -83,15 +85,33 @@ export default function Dashboard() {
     }));
 
   const handleMarkAsRead = (id: string) => {
+    const alertId = parseInt(id, 10);
+    const userId = session?.user?.id;
+    if (alertId && userId) {
+      acknowledgeAlert.mutate({ alertId, userId });
+    }
     setReadNotifications(prev => new Set(prev).add(id));
   };
 
   const handleMarkAllAsRead = () => {
+    const userId = session?.user?.id;
+    if (userId) {
+      notifications.filter(n => !n.read).forEach(n => {
+        const alertId = parseInt(n.id, 10);
+        if (alertId) {
+          acknowledgeAlert.mutate({ alertId, userId });
+        }
+      });
+    }
     const allIds = notifications.map(n => n.id);
     setReadNotifications(new Set(allIds));
   };
 
   const handleDismiss = (id: string) => {
+    const alertId = parseInt(id, 10);
+    if (alertId) {
+      resolveAlert.mutate(alertId);
+    }
     setDismissedNotifications(prev => new Set(prev).add(id));
   };
 

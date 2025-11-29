@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient, apiRequest } from "./queryClient";
 import type { 
   Truck, PowerMonDevice, DeviceSnapshot, DeviceMeasurement, Alert,
   LegacyTruckWithHistory, LegacyHistoricalDataPoint, LegacyNotification
@@ -272,5 +273,35 @@ export function useTruckEvents(truckId: number | undefined, options?: { limit?: 
       return res.json();
     },
     enabled: !!truckId,
+  });
+}
+
+export function useAcknowledgeAlert() {
+  return useMutation({
+    mutationFn: async ({ alertId, userId }: { alertId: number; userId: number }) => {
+      const response = await apiRequest("POST", `/api/v1/alerts/${alertId}/acknowledge`, { userId });
+      if (!response.ok) {
+        throw new Error("Failed to acknowledge alert");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/alerts"] });
+    },
+  });
+}
+
+export function useResolveAlert() {
+  return useMutation({
+    mutationFn: async (alertId: number) => {
+      const response = await apiRequest("POST", `/api/v1/alerts/${alertId}/resolve`, {});
+      if (!response.ok) {
+        throw new Error("Failed to resolve alert");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/alerts"] });
+    },
   });
 }

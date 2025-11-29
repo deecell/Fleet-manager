@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,12 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  useEffect(() => {
+    if (!sessionLoading && session?.authenticated) {
+      setLocation("/");
+    }
+  }, [session, sessionLoading, setLocation]);
+
   if (sessionLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -27,7 +33,6 @@ export default function Login() {
   }
 
   if (session?.authenticated) {
-    setLocation("/");
     return null;
   }
 
