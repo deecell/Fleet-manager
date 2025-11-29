@@ -212,8 +212,21 @@ export function useLegacyNotifications() {
 }
 
 export function useTruckHistory(deviceId: number | undefined) {
-  const startDate = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
-  const measurementsQuery = useDeviceMeasurements(deviceId, { limit: 500, startDate });
+  const measurementsQuery = useQuery<MeasurementsResponse>({
+    queryKey: ["/api/v1/devices", deviceId, "measurements", "history"],
+    queryFn: async () => {
+      const startDate = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+      const res = await fetch(`/api/v1/devices/${deviceId}/measurements?limit=500&startDate=${startDate}`, {
+        headers: {
+          "X-Organization-Id": "6",
+        },
+      });
+      if (!res.ok) throw new Error("Failed to fetch measurements");
+      return res.json();
+    },
+    enabled: !!deviceId,
+    staleTime: 30000,
+  });
   
   const history: LegacyHistoricalDataPoint[] = measurementsQuery.data?.measurements 
     ? mapMeasurementsToHistory(measurementsQuery.data.measurements)
