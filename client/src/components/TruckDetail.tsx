@@ -153,6 +153,11 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
       </div>
       {/* Settings Content */}
       <div className="px-[68px] py-8 space-y-6 pl-[58px] pr-[58px]">
+        {/* Event Timeline */}
+        <div>
+          <TruckTimeline truckId={parseInt(truck.id)} />
+        </div>
+
         {/* Power Meter Voltage Source */}
         <div className="space-y-4">
           <p className="text-lg font-medium text-neutral-950">Power Meter Voltage Source</p>
@@ -267,11 +272,6 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
               </CardContent>
             </Card>
           </div>
-        </div>
-
-        {/* Event Timeline */}
-        <div className="pt-4">
-          <TruckTimeline truckId={parseInt(truck.id)} />
         </div>
 
         {/* Historical Data - moved below Figma content */}
