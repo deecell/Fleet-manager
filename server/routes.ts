@@ -1,10 +1,14 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
+import session from "express-session";
 import { storage } from "./storage";
 import { getFileUrl, listFiles, getUploadPresignedUrl } from "./aws/s3";
 import { query, testConnection, initializeTables } from "./aws/rds";
 import fleetRoutes from "./api/fleet-routes";
 import adminRoutes from "./api/admin-routes";
+import MemoryStore from "memorystore";
+
+const MemoryStoreSession = MemoryStore(session);
 
 const requireApiKey = (req: Request, res: Response, next: NextFunction) => {
   const apiKeyHeader = req.headers["x-api-key"];
@@ -35,6 +39,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } else {
     console.warn("AWS RDS connection failed - using in-memory storage");
   }
+
+  // Setup session middleware for admin authentication
+  const sessionSecret = process.env.SESSION_SECRET || process.env.ADMIN_PASSWORD || "deecell-session-secret-2024";
+  app.use(session({
+    secret: sessionSecret,
+    resave: false,
+    saveUninitialized: false,
+    store: new MemoryStoreSession({
+      checkPeriod: 86400000 // prune expired entries every 24h
+    }),
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      sameSite: "lax"
+    }
+  }));
 
   // Register Fleet Management API routes
   app.use("/api/v1", fleetRoutes);
