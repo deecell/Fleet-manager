@@ -1,7 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { Building2, Truck, Cpu, Users, LayoutDashboard, Layers, LogOut, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import { useAdminSession, useAdminLogout } from "@/lib/admin-api";
 import { useEffect } from "react";
 
@@ -65,16 +64,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               <Link key={item.href} href={item.href}>
                 <div
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium cursor-pointer transition-colors",
-                    isActive
-                      ? "-ml-1 pl-4"
-                      : "text-muted-foreground hover:text-[#FA4B1E] hover:bg-[rgba(250,75,30,0.1)]"
+                    "admin-nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium cursor-pointer",
+                    isActive ? "active" : "text-muted-foreground"
                   )}
-                  style={isActive ? { 
-                    backgroundColor: "rgba(250, 75, 30, 0.1)", 
-                    color: "#FA4B1E",
-                    borderLeft: "4px solid #FA4B1E"
-                  } : undefined}
                   data-testid={`link-admin-${item.label.toLowerCase()}`}
                 >
                   <Icon className="h-4 w-4" />
@@ -87,22 +79,21 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         <div className="p-4 border-t border-border space-y-2">
           <Link href="/">
             <div 
-              className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-[#FA4B1E] hover:bg-[rgba(250,75,30,0.1)] cursor-pointer transition-colors"
+              className="admin-nav-item flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground cursor-pointer"
               data-testid="link-fleet-dashboard"
             >
               <LayoutDashboard className="h-4 w-4" />
               Fleet Dashboard
             </div>
           </Link>
-          <Button 
-            variant="ghost" 
-            className="w-full justify-start text-muted-foreground hover:text-[#FA4B1E] hover:bg-[rgba(250,75,30,0.1)]"
+          <div 
+            className="admin-nav-item flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground cursor-pointer"
             onClick={handleLogout}
             data-testid="button-admin-logout"
           >
-            <LogOut className="h-4 w-4 mr-2" />
+            <LogOut className="h-4 w-4" />
             Sign out
-          </Button>
+          </div>
         </div>
       </aside>
       <main className="flex-1 overflow-auto">

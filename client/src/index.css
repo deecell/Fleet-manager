@@ -286,3 +286,21 @@
     inset: -1px;
   }
 }
+
+/* Admin sidebar navigation styles */
+.admin-nav-item {
+  transition: all 0.15s ease;
+}
+
+.admin-nav-item:hover {
+  background-color: rgba(250, 75, 30, 0.1) !important;
+  color: #FA4B1E !important;
+}
+
+.admin-nav-item.active {
+  background-color: rgba(250, 75, 30, 0.1);
+  color: #FA4B1E;
+  border-left: 4px solid #FA4B1E;
+  margin-left: -4px;
+  padding-left: 1rem;
+}
