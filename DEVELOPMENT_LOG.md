@@ -26,11 +26,12 @@
 | Step 4 | Test Data Hydration | ✅ Complete |
 | Step 5 | Connect Dashboard | ✅ Complete |
 | Step 6 | Device Manager Simulation | ✅ Complete |
-| Step 7 | Alerts System | ⏳ Pending |
+| Step 7 | Alerts System | ✅ Complete |
 | Step 8 | Device Manager Docs | ⏳ Pending |
 | Step 9 | Admin Dashboard | ✅ Complete |
 | Step 10 | Customer Authentication | ✅ Complete |
 | Step 11 | Device Manager (libpowermon) | 🔄 In Progress |
+| Step 12 | In-App Notifications | ✅ Complete |
 
 ---
 
@@ -821,6 +822,95 @@ Thornwave will provide a new version of `powermon_lib.a` compiled with `-fPIC` f
 - Subprocess bridge approach is functional and can serve as fallback
 - Command ID protocol is robust and production-ready
 - TypeScript types are complete for all PowerMon data structures
+
+---
+
+## Step 12: In-App Notification System (Completed)
+
+### Implementation Date
+November 29, 2025
+
+### What Was Built
+
+**In-App Notification System** - Real-time alerts displayed via bell icon in dashboard header:
+
+| Component | Description |
+|-----------|-------------|
+| Notification UI | Bell icon with badge count, dropdown panel with alert list |
+| Alert Types | Offline (critical), SoC (warning), Temperature (warning) |
+| Alert Actions | Mark as read (acknowledge), Dismiss (resolve), Mark all as read |
+| API Integration | Real-time polling every 10s with cache invalidation |
+
+### Alert Priority Order
+
+Alerts are displayed by priority (most important first):
+1. **Offline** - Device unreachable (critical severity)
+2. **SoC** - State of Charge below threshold (warning severity)
+3. **Temperature** - Device temperature above threshold (warning severity)
+
+### Backend Implementation
+
+**Alert API Endpoints** (`server/api/fleet-routes.ts`):
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/alerts` | GET | List active alerts for organization |
+| `/api/v1/alerts/:id/acknowledge` | POST | Mark alert as acknowledged (requires userId) |
+| `/api/v1/alerts/:id/resolve` | POST | Resolve/dismiss alert |
+
+**Storage Methods** (`server/db-storage.ts`):
+- `listAlerts(organizationId)` - Get all active alerts
+- `acknowledgeAlert(alertId, userId)` - Record who acknowledged and when
+- `resolveAlert(alertId)` - Mark alert as resolved with timestamp
+
+### Frontend Implementation
+
+**Notification Component** (`client/src/components/Notifications.tsx`):
+- Bell icon with unread count badge (gray when no notifications, green when unread)
+- Dropdown panel with notification list
+- Each notification shows: severity icon, message, truck name, timestamp
+- Action buttons: Mark as read, Dismiss
+- "Mark all as read" button in header
+
+**API Hooks** (`client/src/lib/api.ts`):
+- `useLegacyNotifications()` - Polls alerts every 10s
+- `useAcknowledgeAlert()` - Mutation to acknowledge alert
+- `useResolveAlert()` - Mutation to resolve/dismiss alert
+
+**Dashboard Integration** (`client/src/pages/Dashboard.tsx`):
+- Notifications passed session user ID for acknowledgement
+- Optimistic UI update with local state
+- Cache invalidation after mutations
+
+### Notification Display Mapping
+
+| Alert Type | Icon | Color | Example Message |
+|------------|------|-------|-----------------|
+| Offline | AlertTriangle | Red | "Device PWM-1003 offline for 2+ hours" |
+| SoC | Battery | Orange | "Battery at 22% on FLT-003" |
+| Temperature | ThermometerSun | Yellow | "High temperature: 58°C on FLT-005" |
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `client/src/components/Notifications.tsx` | Notification UI with bell icon and dropdown |
+| `client/src/lib/api.ts` | Alert hooks (fetch, acknowledge, resolve) |
+| `client/src/pages/Dashboard.tsx` | Dashboard integration with mutation calls |
+| `server/api/fleet-routes.ts` | Alert API endpoints |
+| `server/db-storage.ts` | Alert storage methods |
+
+### Testing
+
+Sample alerts created for testing:
+- "Device PWM-1003 offline for 2+ hours" (Offline - Critical)
+- "Battery at 22% on FLT-003" (Low SoC - Warning)
+- "High temperature: 58°C on FLT-005" (Temperature - Warning)
+
+### Bug Fixes Applied
+
+1. **Login React Hooks Error**: Fixed by moving `setLocation` redirect into `useEffect` hook
+2. **API Hook Imports**: Added `useMutation` import for alert acknowledge/resolve hooks
 
 ---
 
