@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { getFileUrl, listFiles, getUploadPresignedUrl } from "./aws/s3";
 import { query, testConnection, initializeTables } from "./aws/rds";
 import fleetRoutes from "./api/fleet-routes";
+import adminRoutes from "./api/admin-routes";
 
 const requireApiKey = (req: Request, res: Response, next: NextFunction) => {
   const apiKeyHeader = req.headers["x-api-key"];
@@ -37,6 +38,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register Fleet Management API routes
   app.use("/api/v1", fleetRoutes);
+
+  // Register Admin API routes
+  app.use("/api/v1/admin", adminRoutes);
 
   // Health check endpoint
   app.get("/api/health", async (req: Request, res: Response) => {

@@ -129,6 +129,23 @@ export interface IStorage {
     };
     alerts: Alert[];
   }>;
+
+  // Admin Operations (cross-tenant)
+  deleteOrganization(id: number): Promise<boolean>;
+  listAllDevices(): Promise<PowerMonDevice[]>;
+  listAllUsers(): Promise<User[]>;
+  deleteUser(organizationId: number, id: number): Promise<boolean>;
+  hasActiveAlertForDevice(organizationId: number, deviceId: number, alertType: string): Promise<boolean>;
+  getAdminStats(): Promise<{
+    totalOrganizations: number;
+    totalFleets: number;
+    totalTrucks: number;
+    totalDevices: number;
+    totalUsers: number;
+    onlineDevices: number;
+    offlineDevices: number;
+    activeAlerts: number;
+  }>;
 }
 
 export { dbStorage as storage } from "./db-storage";

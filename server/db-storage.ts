@@ -737,6 +737,77 @@ export class DbStorage {
       alerts: alertList,
     };
   }
+
+  // ===========================================================================
+  // ADMIN OPERATIONS (cross-tenant queries)
+  // ===========================================================================
+
+  async deleteOrganization(id: number): Promise<boolean> {
+    const result = await db.delete(organizations).where(eq(organizations.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async listAllDevices(): Promise<PowerMonDevice[]> {
+    return db.select().from(powerMonDevices).orderBy(asc(powerMonDevices.serialNumber));
+  }
+
+  async listAllUsers(): Promise<User[]> {
+    return db.select().from(users).orderBy(asc(users.email));
+  }
+
+  async deleteUser(organizationId: number, id: number): Promise<boolean> {
+    const result = await db.delete(users)
+      .where(and(eq(users.organizationId, organizationId), eq(users.id, id)));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async getAdminStats(): Promise<{
+    totalOrganizations: number;
+    totalFleets: number;
+    totalTrucks: number;
+    totalDevices: number;
+    totalUsers: number;
+    onlineDevices: number;
+    offlineDevices: number;
+    activeAlerts: number;
+  }> {
+    const [orgCount] = await db.select({
+      count: sql<number>`count(*)::int`
+    }).from(organizations);
+
+    const [fleetCount] = await db.select({
+      count: sql<number>`count(*)::int`
+    }).from(fleets);
+
+    const [truckCount] = await db.select({
+      count: sql<number>`count(*)::int`
+    }).from(trucks);
+
+    const [deviceStats] = await db.select({
+      total: sql<number>`count(*)::int`,
+      online: sql<number>`count(*) filter (where ${powerMonDevices.status} = 'online')::int`,
+      offline: sql<number>`count(*) filter (where ${powerMonDevices.status} = 'offline')::int`,
+    }).from(powerMonDevices);
+
+    const [userCount] = await db.select({
+      count: sql<number>`count(*)::int`
+    }).from(users);
+
+    const [alertCount] = await db.select({
+      count: sql<number>`count(*)::int`
+    }).from(alerts).where(eq(alerts.status, 'active'));
+
+    return {
+      totalOrganizations: orgCount?.count ?? 0,
+      totalFleets: fleetCount?.count ?? 0,
+      totalTrucks: truckCount?.count ?? 0,
+      totalDevices: deviceStats?.total ?? 0,
+      totalUsers: userCount?.count ?? 0,
+      onlineDevices: deviceStats?.online ?? 0,
+      offlineDevices: deviceStats?.offline ?? 0,
+      activeAlerts: alertCount?.count ?? 0,
+    };
+  }
 }
 
 export const dbStorage = new DbStorage();

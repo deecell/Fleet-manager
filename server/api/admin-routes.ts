@@ -1,0 +1,406 @@
+import { Router, Request, Response, NextFunction } from "express";
+import { storage } from "../storage";
+import {
+  insertOrganizationSchema,
+  insertFleetSchema,
+  insertTruckSchema,
+  insertPowerMonDeviceSchema,
+  insertUserSchema,
+} from "@shared/schema";
+import { z } from "zod";
+
+const router = Router();
+
+const adminMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  next();
+};
+
+router.get("/organizations", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const organizations = await storage.listOrganizations();
+    res.json({ organizations });
+  } catch (error) {
+    console.error("Error listing organizations:", error);
+    res.status(500).json({ error: "Failed to list organizations" });
+  }
+});
+
+router.get("/organizations/:id", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const organization = await storage.getOrganization(id);
+    if (!organization) {
+      return res.status(404).json({ error: "Organization not found" });
+    }
+    res.json({ organization });
+  } catch (error) {
+    console.error("Error getting organization:", error);
+    res.status(500).json({ error: "Failed to get organization" });
+  }
+});
+
+router.post("/organizations", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const data = insertOrganizationSchema.parse(req.body);
+    const organization = await storage.createOrganization(data);
+    res.status(201).json({ organization });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: "Validation failed", details: error.errors });
+    }
+    console.error("Error creating organization:", error);
+    res.status(500).json({ error: "Failed to create organization" });
+  }
+});
+
+router.patch("/organizations/:id", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const data = insertOrganizationSchema.partial().parse(req.body);
+    const organization = await storage.updateOrganization(id, data);
+    if (!organization) {
+      return res.status(404).json({ error: "Organization not found" });
+    }
+    res.json({ organization });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: "Validation failed", details: error.errors });
+    }
+    console.error("Error updating organization:", error);
+    res.status(500).json({ error: "Failed to update organization" });
+  }
+});
+
+router.delete("/organizations/:id", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const deleted = await storage.deleteOrganization(id);
+    if (!deleted) {
+      return res.status(404).json({ error: "Organization not found" });
+    }
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting organization:", error);
+    res.status(500).json({ error: "Failed to delete organization" });
+  }
+});
+
+router.get("/organizations/:orgId/fleets", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const orgId = parseInt(req.params.orgId, 10);
+    const fleets = await storage.listFleets(orgId);
+    res.json({ fleets });
+  } catch (error) {
+    console.error("Error listing fleets:", error);
+    res.status(500).json({ error: "Failed to list fleets" });
+  }
+});
+
+router.post("/organizations/:orgId/fleets", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const orgId = parseInt(req.params.orgId, 10);
+    const data = insertFleetSchema.omit({ organizationId: true }).parse(req.body);
+    const fleet = await storage.createFleet({ ...data, organizationId: orgId });
+    res.status(201).json({ fleet });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: "Validation failed", details: error.errors });
+    }
+    console.error("Error creating fleet:", error);
+    res.status(500).json({ error: "Failed to create fleet" });
+  }
+});
+
+router.patch("/fleets/:id", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const orgId = req.query.orgId ? parseInt(req.query.orgId as string, 10) : undefined;
+    if (!orgId) {
+      return res.status(400).json({ error: "Organization ID required" });
+    }
+    const data = insertFleetSchema.omit({ organizationId: true }).partial().parse(req.body);
+    const fleet = await storage.updateFleet(orgId, id, data);
+    if (!fleet) {
+      return res.status(404).json({ error: "Fleet not found" });
+    }
+    res.json({ fleet });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: "Validation failed", details: error.errors });
+    }
+    console.error("Error updating fleet:", error);
+    res.status(500).json({ error: "Failed to update fleet" });
+  }
+});
+
+router.delete("/fleets/:id", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const orgId = req.query.orgId ? parseInt(req.query.orgId as string, 10) : undefined;
+    if (!orgId) {
+      return res.status(400).json({ error: "Organization ID required" });
+    }
+    const deleted = await storage.deleteFleet(orgId, id);
+    if (!deleted) {
+      return res.status(404).json({ error: "Fleet not found" });
+    }
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting fleet:", error);
+    res.status(500).json({ error: "Failed to delete fleet" });
+  }
+});
+
+router.get("/organizations/:orgId/trucks", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const orgId = parseInt(req.params.orgId, 10);
+    const fleetId = req.query.fleetId ? parseInt(req.query.fleetId as string, 10) : undefined;
+    const trucks = await storage.listTrucks(orgId, fleetId);
+    res.json({ trucks });
+  } catch (error) {
+    console.error("Error listing trucks:", error);
+    res.status(500).json({ error: "Failed to list trucks" });
+  }
+});
+
+router.post("/organizations/:orgId/trucks", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const orgId = parseInt(req.params.orgId, 10);
+    const data = insertTruckSchema.omit({ organizationId: true }).parse(req.body);
+    const truck = await storage.createTruck({ ...data, organizationId: orgId });
+    res.status(201).json({ truck });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: "Validation failed", details: error.errors });
+    }
+    console.error("Error creating truck:", error);
+    res.status(500).json({ error: "Failed to create truck" });
+  }
+});
+
+router.patch("/trucks/:id", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const orgId = req.query.orgId ? parseInt(req.query.orgId as string, 10) : undefined;
+    if (!orgId) {
+      return res.status(400).json({ error: "Organization ID required" });
+    }
+    const data = insertTruckSchema.omit({ organizationId: true }).partial().parse(req.body);
+    const truck = await storage.updateTruck(orgId, id, data);
+    if (!truck) {
+      return res.status(404).json({ error: "Truck not found" });
+    }
+    res.json({ truck });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: "Validation failed", details: error.errors });
+    }
+    console.error("Error updating truck:", error);
+    res.status(500).json({ error: "Failed to update truck" });
+  }
+});
+
+router.delete("/trucks/:id", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const orgId = req.query.orgId ? parseInt(req.query.orgId as string, 10) : undefined;
+    if (!orgId) {
+      return res.status(400).json({ error: "Organization ID required" });
+    }
+    const deleted = await storage.deleteTruck(orgId, id);
+    if (!deleted) {
+      return res.status(404).json({ error: "Truck not found" });
+    }
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting truck:", error);
+    res.status(500).json({ error: "Failed to delete truck" });
+  }
+});
+
+router.get("/organizations/:orgId/devices", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const orgId = parseInt(req.params.orgId, 10);
+    const devices = await storage.listDevices(orgId);
+    res.json({ devices });
+  } catch (error) {
+    console.error("Error listing devices:", error);
+    res.status(500).json({ error: "Failed to list devices" });
+  }
+});
+
+router.get("/devices", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const devices = await storage.listAllDevices();
+    res.json({ devices });
+  } catch (error) {
+    console.error("Error listing all devices:", error);
+    res.status(500).json({ error: "Failed to list devices" });
+  }
+});
+
+router.post("/organizations/:orgId/devices", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const orgId = parseInt(req.params.orgId, 10);
+    const data = insertPowerMonDeviceSchema.omit({ organizationId: true }).parse(req.body);
+    
+    if (await storage.checkSerialExists(data.serialNumber)) {
+      return res.status(409).json({ error: "Device with this serial number already exists" });
+    }
+    
+    const device = await storage.createDevice({ ...data, organizationId: orgId });
+    res.status(201).json({ device });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: "Validation failed", details: error.errors });
+    }
+    console.error("Error creating device:", error);
+    res.status(500).json({ error: "Failed to create device" });
+  }
+});
+
+router.patch("/devices/:id", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const orgId = req.query.orgId ? parseInt(req.query.orgId as string, 10) : undefined;
+    if (!orgId) {
+      return res.status(400).json({ error: "Organization ID required" });
+    }
+    const data = insertPowerMonDeviceSchema.omit({ organizationId: true, serialNumber: true }).partial().parse(req.body);
+    const device = await storage.updateDevice(orgId, id, data);
+    if (!device) {
+      return res.status(404).json({ error: "Device not found" });
+    }
+    res.json({ device });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: "Validation failed", details: error.errors });
+    }
+    console.error("Error updating device:", error);
+    res.status(500).json({ error: "Failed to update device" });
+  }
+});
+
+router.post("/devices/:id/assign", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const { truckId, organizationId } = req.body;
+    if (!organizationId) {
+      return res.status(400).json({ error: "Organization ID required" });
+    }
+    const device = await storage.assignDeviceToTruck(organizationId, id, truckId);
+    if (!device) {
+      return res.status(404).json({ error: "Device not found" });
+    }
+    res.json({ device });
+  } catch (error) {
+    console.error("Error assigning device:", error);
+    res.status(500).json({ error: "Failed to assign device" });
+  }
+});
+
+router.post("/devices/:id/unassign", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const { organizationId } = req.body;
+    if (!organizationId) {
+      return res.status(400).json({ error: "Organization ID required" });
+    }
+    const device = await storage.unassignDevice(organizationId, id);
+    if (!device) {
+      return res.status(404).json({ error: "Device not found" });
+    }
+    res.json({ device });
+  } catch (error) {
+    console.error("Error unassigning device:", error);
+    res.status(500).json({ error: "Failed to unassign device" });
+  }
+});
+
+router.get("/organizations/:orgId/users", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const orgId = parseInt(req.params.orgId, 10);
+    const users = await storage.listUsers(orgId);
+    res.json({ users });
+  } catch (error) {
+    console.error("Error listing users:", error);
+    res.status(500).json({ error: "Failed to list users" });
+  }
+});
+
+router.get("/users", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const users = await storage.listAllUsers();
+    res.json({ users });
+  } catch (error) {
+    console.error("Error listing all users:", error);
+    res.status(500).json({ error: "Failed to list users" });
+  }
+});
+
+router.post("/organizations/:orgId/users", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const orgId = parseInt(req.params.orgId, 10);
+    const data = insertUserSchema.omit({ organizationId: true }).parse(req.body);
+    const user = await storage.createUser({ ...data, organizationId: orgId });
+    res.status(201).json({ user });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: "Validation failed", details: error.errors });
+    }
+    console.error("Error creating user:", error);
+    res.status(500).json({ error: "Failed to create user" });
+  }
+});
+
+router.patch("/users/:id", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const orgId = req.query.orgId ? parseInt(req.query.orgId as string, 10) : undefined;
+    if (!orgId) {
+      return res.status(400).json({ error: "Organization ID required" });
+    }
+    const data = insertUserSchema.omit({ organizationId: true }).partial().parse(req.body);
+    const user = await storage.updateUser(orgId, id, data);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.json({ user });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: "Validation failed", details: error.errors });
+    }
+    console.error("Error updating user:", error);
+    res.status(500).json({ error: "Failed to update user" });
+  }
+});
+
+router.delete("/users/:id", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const orgId = req.query.orgId ? parseInt(req.query.orgId as string, 10) : undefined;
+    if (!orgId) {
+      return res.status(400).json({ error: "Organization ID required" });
+    }
+    const deleted = await storage.deleteUser(orgId, id);
+    if (!deleted) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({ error: "Failed to delete user" });
+  }
+});
+
+router.get("/stats", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const stats = await storage.getAdminStats();
+    res.json({ stats });
+  } catch (error) {
+    console.error("Error getting admin stats:", error);
+    res.status(500).json({ error: "Failed to get admin stats" });
+  }
+});
+
+export default router;
