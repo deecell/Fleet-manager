@@ -229,7 +229,9 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                   hoveredRowIndex === index ? "bg-[#EEF1FB]" : index % 2 === 1 ? "bg-[#fafbfc]" : "bg-white"
                 } ${selectedTruckId === truck.id ? "bg-[#EEF1FB]" : ""}`}
               >
-                <td className="px-3 py-3 text-[13px] 2xl:text-sm text-[#4a5565] whitespace-nowrap pl-[14px] pr-[14px]">{truck.model}</td>
+                <td className="px-3 py-2 text-[13px] 2xl:text-sm text-[#4a5565] pl-[14px] pr-[14px] max-w-[140px]">
+                  <span className="line-clamp-2">{truck.model}</span>
+                </td>
                 <td className="px-3 py-3 text-[13px] 2xl:text-sm text-[#4a5565] text-right whitespace-nowrap">{truck.serial}</td>
                 <td className="py-3 text-[13px] 2xl:text-sm text-[#4a5565] text-right whitespace-nowrap pl-[14px] pr-[14px]">{truck.fw}</td>
               </tr>
