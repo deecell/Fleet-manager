@@ -1,0 +1,19 @@
+{
+  "name": "@deecell/powermon-addon",
+  "version": "1.0.0",
+  "description": "Node.js Native Addon for libpowermon - PowerMon battery monitor integration",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "install": "node-gyp rebuild",
+    "build": "node-gyp rebuild",
+    "clean": "node-gyp clean"
+  },
+  "gypfile": true,
+  "dependencies": {
+    "node-addon-api": "^7.0.0"
+  },
+  "devDependencies": {
+    "node-gyp": "^10.0.0"
+  }
+}
