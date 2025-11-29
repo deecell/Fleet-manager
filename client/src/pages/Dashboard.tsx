@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { LegacyNotification } from "@shared/schema";
 import FleetStats from "@/components/FleetStats";
 import FleetTable from "@/components/FleetTable";
@@ -6,6 +7,8 @@ import TruckDetail from "@/components/TruckDetail";
 import { Notifications } from "@/components/Notifications";
 import { AlertBanner } from "@/components/AlertBanner";
 import { useLegacyTrucks, useLegacyNotifications, LegacyTruckWithDevice } from "@/lib/api";
+import { useSession, useLogout } from "@/lib/auth-api";
+import { useToast } from "@/hooks/use-toast";
 import { User, LogOut, ChevronDown, Search, Loader2 } from "lucide-react";
 import {
   DropdownMenu,
@@ -20,6 +23,11 @@ import allIcon from "@assets/all.svg";
 type FilterStatus = "all" | "in-service" | "not-in-service";
 
 export default function Dashboard() {
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const { data: session, isLoading: sessionLoading } = useSession();
+  const logout = useLogout();
+  
   const [selectedTruckId, setSelectedTruckId] = useState<string | undefined>();
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -29,6 +37,43 @@ export default function Dashboard() {
 
   const { data: trucks, isLoading: trucksLoading } = useLegacyTrucks();
   const { data: apiNotifications, isLoading: notificationsLoading } = useLegacyNotifications();
+
+  useEffect(() => {
+    if (!sessionLoading && !session?.authenticated) {
+      setLocation("/login");
+    }
+  }, [session, sessionLoading, setLocation]);
+
+  const handleLogout = async () => {
+    try {
+      await logout.mutateAsync();
+      toast({ title: "Logged out successfully" });
+      setLocation("/login");
+    } catch (error) {
+      toast({ 
+        title: "Logout failed", 
+        variant: "destructive" 
+      });
+    }
+  };
+
+  if (sessionLoading) {
+    return (
+      <div className="min-h-screen bg-[#fafbfc] flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (!session?.authenticated) {
+    return null;
+  }
+
+  const userName = session.user?.firstName 
+    ? `${session.user.firstName}${session.user.lastName ? ' ' + session.user.lastName : ''}`
+    : session.user?.email || "User";
+  const userEmail = session.user?.email || "";
+  const organizationName = session.user?.organizationName || "Fleet Dashboard";
 
   const notifications = (apiNotifications || [])
     .filter(n => !dismissedNotifications.has(n.id))
@@ -52,10 +97,23 @@ export default function Dashboard() {
 
   if (trucksLoading || notificationsLoading) {
     return (
-      <div className="min-h-screen bg-[#fafbfc] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-8 h-8 animate-spin text-[#6a7fbc]" />
-          <p className="text-sm text-[#4a5565]">Loading fleet data...</p>
+      <div className="min-h-screen bg-[#fafbfc] flex flex-col">
+        <header className="border-b border-gray-200 bg-white h-[75px]">
+          <div className="h-full px-6 lg:px-[144px] flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <img src={logoSvg} alt="Deecell" className="w-[42px] h-[42px]" />
+              <div>
+                <h1 className="text-base font-medium text-neutral-950">Fleet Manager</h1>
+                <p className="text-xs text-[#717182]">{organizationName}</p>
+              </div>
+            </div>
+          </div>
+        </header>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="w-8 h-8 animate-spin text-[#6a7fbc]" />
+            <p className="text-sm text-[#4a5565]">Loading fleet data...</p>
+          </div>
         </div>
       </div>
     );
@@ -98,7 +156,7 @@ export default function Dashboard() {
             />
             <div>
               <h1 className="text-base font-medium text-neutral-950" data-testid="header-title">Fleet Manager</h1>
-              <p className="text-xs text-[#717182]">Deecell Power Systems</p>
+              <p className="text-xs text-[#717182]">{organizationName}</p>
             </div>
           </div>
           
@@ -119,18 +177,19 @@ export default function Dashboard() {
                   <div className="w-8 h-8 rounded-full bg-[#e2e8f8] flex items-center justify-center">
                     <User className="w-4 h-4 text-[#6a7fbc]" />
                   </div>
-                  <span className="text-sm font-medium text-neutral-950">John Doe</span>
+                  <span className="text-sm font-medium text-neutral-950">{userName}</span>
                   <ChevronDown className="w-4 h-4 text-[#4a5565]" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 bg-white">
                 <div className="px-3 py-2">
-                  <p className="text-sm font-medium text-neutral-950">John Doe</p>
-                  <p className="text-xs text-[#4a5565]">john.doe@deecell.com</p>
+                  <p className="text-sm font-medium text-neutral-950">{userName}</p>
+                  <p className="text-xs text-[#4a5565]">{userEmail}</p>
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
                   className="cursor-pointer text-[#ff0900] focus:text-[#ff0900]"
+                  onClick={handleLogout}
                   data-testid="button-logout"
                 >
                   <LogOut className="w-4 h-4 mr-2" />

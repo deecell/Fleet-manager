@@ -2,7 +2,6 @@ import { Router, Request, Response } from "express";
 import { storage } from "../storage";
 import { tenantMiddleware } from "../middleware/tenant";
 import {
-  insertOrganizationSchema,
   insertFleetSchema,
   insertTruckSchema,
   insertPowerMonDeviceSchema,
@@ -31,67 +30,7 @@ const acknowledgeAlertSchema = z.object({
 const router = Router();
 
 // ===========================================================================
-// ORGANIZATIONS (Admin endpoints - no tenant middleware)
-// ===========================================================================
-
-router.get("/organizations", async (req: Request, res: Response) => {
-  try {
-    const organizations = await storage.listOrganizations();
-    res.json({ organizations });
-  } catch (error) {
-    console.error("Error listing organizations:", error);
-    res.status(500).json({ error: "Failed to list organizations" });
-  }
-});
-
-router.get("/organizations/:id", async (req: Request, res: Response) => {
-  try {
-    const id = parseInt(req.params.id, 10);
-    const organization = await storage.getOrganization(id);
-    if (!organization) {
-      return res.status(404).json({ error: "Organization not found" });
-    }
-    res.json({ organization });
-  } catch (error) {
-    console.error("Error getting organization:", error);
-    res.status(500).json({ error: "Failed to get organization" });
-  }
-});
-
-router.post("/organizations", async (req: Request, res: Response) => {
-  try {
-    const data = insertOrganizationSchema.parse(req.body);
-    const organization = await storage.createOrganization(data);
-    res.status(201).json({ organization });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: "Validation failed", details: error.errors });
-    }
-    console.error("Error creating organization:", error);
-    res.status(500).json({ error: "Failed to create organization" });
-  }
-});
-
-router.patch("/organizations/:id", async (req: Request, res: Response) => {
-  try {
-    const id = parseInt(req.params.id, 10);
-    const data = insertOrganizationSchema.partial().parse(req.body);
-    const organization = await storage.updateOrganization(id, data);
-    if (!organization) {
-      return res.status(404).json({ error: "Organization not found" });
-    }
-    res.json({ organization });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: "Validation failed", details: error.errors });
-    }
-    console.error("Error updating organization:", error);
-    res.status(500).json({ error: "Failed to update organization" });
-  }
-});
-
-// ===========================================================================
-// FLEETS (Tenant-scoped)
+// FLEETS (Tenant-scoped - requires authenticated session)
 // ===========================================================================
 
 router.get("/fleets", tenantMiddleware, async (req: Request, res: Response) => {

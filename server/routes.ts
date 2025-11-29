@@ -6,6 +6,7 @@ import { getFileUrl, listFiles, getUploadPresignedUrl } from "./aws/s3";
 import { query, testConnection, initializeTables } from "./aws/rds";
 import fleetRoutes from "./api/fleet-routes";
 import adminRoutes from "./api/admin-routes";
+import authRoutes from "./api/auth-routes";
 import MemoryStore from "memorystore";
 
 const MemoryStoreSession = MemoryStore(session);
@@ -59,6 +60,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register Fleet Management API routes
   app.use("/api/v1", fleetRoutes);
+
+  // Register Customer Auth API routes
+  app.use("/api/auth", authRoutes);
 
   // Register Admin API routes
   app.use("/api/v1/admin", adminRoutes);

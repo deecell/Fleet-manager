@@ -6,11 +6,44 @@ declare global {
     interface Request {
       organizationId?: number;
       organizationSlug?: string;
+      userId?: number;
     }
   }
 }
 
 export async function tenantMiddleware(req: Request, res: Response, next: NextFunction) {
+  if (!req.session?.organizationId || !req.session?.userId) {
+    return res.status(401).json({ 
+      error: "Authentication required",
+      message: "Please login to continue"
+    });
+  }
+
+  const user = await storage.getUser(req.session.organizationId, req.session.userId);
+  if (!user || !user.isActive) {
+    req.session.destroy(() => {});
+    return res.status(401).json({ 
+      error: "Account inactive",
+      message: "Your account has been deactivated. Please contact your administrator."
+    });
+  }
+
+  const org = await storage.getOrganization(req.session.organizationId);
+  if (!org || !org.isActive) {
+    req.session.destroy(() => {});
+    return res.status(401).json({ 
+      error: "Organization inactive",
+      message: "Your organization is no longer active. Please contact support."
+    });
+  }
+
+  req.organizationId = org.id;
+  req.organizationSlug = org.slug;
+  req.userId = user.id;
+  next();
+}
+
+export async function adminTenantMiddleware(req: Request, res: Response, next: NextFunction) {
   const orgIdHeader = req.headers["x-organization-id"];
   const orgSlugHeader = req.headers["x-organization-slug"];
   
@@ -21,7 +54,7 @@ export async function tenantMiddleware(req: Request, res: Response, next: NextFu
     const id = parseInt(Array.isArray(orgIdHeader) ? orgIdHeader[0] : orgIdHeader, 10);
     if (!isNaN(id)) {
       const org = await storage.getOrganization(id);
-      if (org && org.isActive) {
+      if (org) {
         organizationId = org.id;
         organizationSlug = org.slug;
       }
@@ -29,7 +62,7 @@ export async function tenantMiddleware(req: Request, res: Response, next: NextFu
   } else if (orgSlugHeader) {
     const slug = Array.isArray(orgSlugHeader) ? orgSlugHeader[0] : orgSlugHeader;
     const org = await storage.getOrganizationBySlug(slug);
-    if (org && org.isActive) {
+    if (org) {
       organizationId = org.id;
       organizationSlug = org.slug;
     }
@@ -38,7 +71,7 @@ export async function tenantMiddleware(req: Request, res: Response, next: NextFu
   if (!organizationId) {
     return res.status(401).json({ 
       error: "Organization context required",
-      hint: "Provide X-Organization-Id or X-Organization-Slug header"
+      hint: "Please provide X-Organization-Id header"
     });
   }
 

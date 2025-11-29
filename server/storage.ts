@@ -135,6 +135,7 @@ export interface IStorage {
   listAllDevices(): Promise<PowerMonDevice[]>;
   listAllUsers(): Promise<User[]>;
   deleteUser(organizationId: number, id: number): Promise<boolean>;
+  getUserByEmailGlobal(email: string): Promise<User | undefined>;
   hasActiveAlertForDevice(organizationId: number, deviceId: number, alertType: string): Promise<boolean>;
   getAdminStats(): Promise<{
     totalOrganizations: number;

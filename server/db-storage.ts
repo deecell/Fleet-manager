@@ -755,6 +755,12 @@ export class DbStorage {
     return db.select().from(users).orderBy(asc(users.email));
   }
 
+  async getUserByEmailGlobal(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users)
+      .where(and(eq(users.email, email), eq(users.isActive, true)));
+    return user;
+  }
+
   async deleteUser(organizationId: number, id: number): Promise<boolean> {
     const result = await db.delete(users)
       .where(and(eq(users.organizationId, organizationId), eq(users.id, id)));

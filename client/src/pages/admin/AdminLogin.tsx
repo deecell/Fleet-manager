@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,12 @@ export default function AdminLogin() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
+  useEffect(() => {
+    if (session?.isAdmin) {
+      setLocation("/admin");
+    }
+  }, [session?.isAdmin, setLocation]);
+
   if (sessionLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -27,8 +33,11 @@ export default function AdminLogin() {
   }
 
   if (session?.isAdmin) {
-    setLocation("/admin");
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

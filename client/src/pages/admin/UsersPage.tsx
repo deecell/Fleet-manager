@@ -59,6 +59,7 @@ export default function UsersPage() {
     lastName: "",
     role: "user",
     isActive: true,
+    password: "",
   });
 
   const resetForm = () => {
@@ -68,6 +69,7 @@ export default function UsersPage() {
       lastName: "",
       role: "user",
       isActive: true,
+      password: "",
     });
   };
 
@@ -115,6 +117,7 @@ export default function UsersPage() {
       lastName: user.lastName || "",
       role: user.role || "user",
       isActive: user.isActive ?? true,
+      password: "",
     });
     setEditingUser(user);
   };
@@ -346,12 +349,30 @@ export default function UsersPage() {
                   </SelectContent>
                 </Select>
               </div>
+              <div>
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  placeholder="Minimum 6 characters"
+                  data-testid="input-password"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Required for customer login access
+                </p>
+              </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleCreate} disabled={createUser.isPending || !createOrgId || !formData.email} data-testid="button-submit-create">
+              <Button 
+                onClick={handleCreate} 
+                disabled={createUser.isPending || !createOrgId || !formData.email || formData.password.length < 6} 
+                data-testid="button-submit-create"
+              >
                 {createUser.isPending ? "Creating..." : "Create"}
               </Button>
             </DialogFooter>
@@ -427,12 +448,30 @@ export default function UsersPage() {
                   </SelectContent>
                 </Select>
               </div>
+              <div>
+                <Label htmlFor="edit-password">New Password (optional)</Label>
+                <Input
+                  id="edit-password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  placeholder="Leave empty to keep current password"
+                  data-testid="input-edit-password"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Minimum 6 characters if changing
+                </p>
+              </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setEditingUser(null)}>
                 Cancel
               </Button>
-              <Button onClick={handleUpdate} disabled={updateUser.isPending} data-testid="button-submit-update">
+              <Button 
+                onClick={handleUpdate} 
+                disabled={updateUser.isPending || (formData.password.length > 0 && formData.password.length < 6)} 
+                data-testid="button-submit-update"
+              >
                 {updateUser.isPending ? "Saving..." : "Save Changes"}
               </Button>
             </DialogFooter>

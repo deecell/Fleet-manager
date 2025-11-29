@@ -8,6 +8,9 @@ import {
   insertUserSchema,
 } from "@shared/schema";
 import { z } from "zod";
+import bcrypt from "bcrypt";
+
+const SALT_ROUNDS = 10;
 
 const router = Router();
 
@@ -46,18 +49,38 @@ router.post("/login", async (req: Request, res: Response) => {
   }
   
   if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-    req.session.isAdmin = true;
-    req.session.adminEmail = username;
-    return res.json({ success: true, message: "Admin login successful" });
+    req.session.regenerate((err) => {
+      if (err) {
+        console.error("Session regeneration error:", err);
+        return res.status(500).json({ error: "Login failed" });
+      }
+      
+      req.session.isAdmin = true;
+      req.session.adminEmail = username;
+      
+      req.session.save((saveErr) => {
+        if (saveErr) {
+          console.error("Session save error:", saveErr);
+          return res.status(500).json({ error: "Login failed" });
+        }
+        return res.json({ success: true, message: "Admin login successful" });
+      });
+    });
+    return;
   }
   
   return res.status(401).json({ error: "Invalid credentials" });
 });
 
 router.post("/logout", (req: Request, res: Response) => {
-  req.session.isAdmin = false;
-  req.session.adminEmail = undefined;
-  res.json({ success: true, message: "Logged out" });
+  req.session.destroy((err) => {
+    if (err) {
+      console.error("Session destroy error:", err);
+      return res.status(500).json({ error: "Logout failed" });
+    }
+    res.clearCookie("connect.sid");
+    res.json({ success: true, message: "Logged out" });
+  });
 });
 
 router.get("/session", (req: Request, res: Response) => {
@@ -393,8 +416,23 @@ router.get("/users", adminMiddleware, async (req: Request, res: Response) => {
 router.post("/organizations/:orgId/users", adminMiddleware, async (req: Request, res: Response) => {
   try {
     const orgId = parseInt(req.params.orgId, 10);
-    const data = insertUserSchema.omit({ organizationId: true }).parse(req.body);
-    const user = await storage.createUser({ ...data, organizationId: orgId });
+    const { password, ...restBody } = req.body;
+    const data = insertUserSchema.omit({ organizationId: true }).parse(restBody);
+    
+    if (!password || typeof password !== "string" || password.length < 6) {
+      return res.status(400).json({ 
+        error: "Validation failed", 
+        details: [{ field: "password", message: "Password is required and must be at least 6 characters" }] 
+      });
+    }
+    
+    const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+    
+    const user = await storage.createUser({ 
+      ...data, 
+      organizationId: orgId,
+      passwordHash 
+    });
     res.status(201).json({ user });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -412,8 +450,23 @@ router.patch("/users/:id", adminMiddleware, async (req: Request, res: Response) 
     if (!orgId) {
       return res.status(400).json({ error: "Organization ID required" });
     }
-    const data = insertUserSchema.omit({ organizationId: true }).partial().parse(req.body);
-    const user = await storage.updateUser(orgId, id, data);
+    const { password, ...restBody } = req.body;
+    const data = insertUserSchema.omit({ organizationId: true }).partial().parse(restBody);
+    
+    let updateData = { ...data };
+    
+    if (password && typeof password === "string" && password.trim().length > 0) {
+      if (password.length < 6) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: [{ field: "password", message: "Password must be at least 6 characters" }] 
+        });
+      }
+      const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+      updateData = { ...updateData, passwordHash };
+    }
+    
+    const user = await storage.updateUser(orgId, id, updateData);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }

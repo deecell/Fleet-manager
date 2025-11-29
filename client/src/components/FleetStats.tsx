@@ -1,9 +1,12 @@
-import { Truck } from "@shared/schema";
 import { Battery, Clock, Wrench, TrendingUp, TrendingDown } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 
+interface TruckWithSoc {
+  soc: number;
+}
+
 interface FleetStatsProps {
-  trucks: Truck[];
+  trucks: TruckWithSoc[];
 }
 
 interface StatCardProps {
