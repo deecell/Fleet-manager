@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useLogin, useSession } from "@/lib/auth-api";
-import { Loader2, Truck } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import logoSvg from "@assets/logo.svg";
 
 export default function Login() {
@@ -110,10 +110,7 @@ export default function Login() {
                   Signing in...
                 </>
               ) : (
-                <>
-                  <Truck className="h-4 w-4 mr-2" />
-                  Sign in
-                </>
+                "Sign in"
               )}
             </Button>
           </form>
