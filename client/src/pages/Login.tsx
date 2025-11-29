@@ -57,7 +57,7 @@ export default function Login() {
             <img src={logoSvg} alt="Deecell Logo" className="h-14 w-auto" />
           </div>
           <div>
-            <CardTitle className="text-2xl font-bold">Fleet Dashboard</CardTitle>
+            <CardTitle className="text-2xl font-bold">Deecell Fleet Dashboard</CardTitle>
             <CardDescription className="mt-2">
               Sign in to monitor your fleet in real-time
             </CardDescription>
