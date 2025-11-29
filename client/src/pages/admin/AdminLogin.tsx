@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminLogin, useAdminSession } from "@/lib/admin-api";
-import { Shield, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import logoSvg from "@assets/logo.svg";
 
 export default function AdminLogin() {
   const [, setLocation] = useLocation();
@@ -49,8 +50,8 @@ export default function AdminLogin() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 h-12 w-12 rounded-full flex items-center justify-center" style={{ backgroundColor: "rgba(250, 75, 30, 0.1)" }}>
-            <Shield className="h-6 w-6" style={{ color: "#FA4B1E" }} />
+          <div className="mx-auto mb-4">
+            <img src={logoSvg} alt="Deecell Logo" className="h-12 w-auto" />
           </div>
           <CardTitle className="text-2xl">Admin Login</CardTitle>
           <CardDescription>
