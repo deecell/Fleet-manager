@@ -68,7 +68,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                     "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium cursor-pointer transition-colors",
                     isActive
                       ? "-ml-1 pl-4"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      : "text-muted-foreground hover:text-[#FA4B1E] hover:bg-[rgba(250,75,30,0.1)]"
                   )}
                   style={isActive ? { 
                     backgroundColor: "rgba(250, 75, 30, 0.1)", 
@@ -87,7 +87,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         <div className="p-4 border-t border-border space-y-2">
           <Link href="/">
             <div 
-              className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer transition-colors"
+              className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-[#FA4B1E] hover:bg-[rgba(250,75,30,0.1)] cursor-pointer transition-colors"
               data-testid="link-fleet-dashboard"
             >
               <LayoutDashboard className="h-4 w-4" />
@@ -96,7 +96,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           </Link>
           <Button 
             variant="ghost" 
-            className="w-full justify-start text-muted-foreground"
+            className="w-full justify-start text-muted-foreground hover:text-[#FA4B1E] hover:bg-[rgba(250,75,30,0.1)]"
             onClick={handleLogout}
             data-testid="button-admin-logout"
           >
