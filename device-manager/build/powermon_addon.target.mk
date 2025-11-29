@@ -133,7 +133,7 @@ LDFLAGS_Release := \
 	-m64
 
 LIBS := \
-	/home/runner/workspace/device-manager/../libpowermon_bin/powermon_lib.a \
+	/home/runner/workspace/device-manager/../libpowermon_bin/powermon_lib_pic.a \
 	-lstdc++ \
 	-lbluetooth \
 	-ldbus-1 \

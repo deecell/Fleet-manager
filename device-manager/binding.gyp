@@ -11,7 +11,7 @@
         "../libpowermon_bin/inc"
       ],
       "libraries": [
-        "<(module_root_dir)/../libpowermon_bin/powermon_lib.a",
+        "<(module_root_dir)/../libpowermon_bin/powermon_lib_pic.a",
         "-lstdc++",
         "-lbluetooth",
         "-ldbus-1",
