@@ -68,6 +68,7 @@ export default function AdminLogin() {
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="admin"
                 required
+                className="focus-visible:ring-[#FA4B1E] focus-visible:border-[#FA4B1E]"
                 data-testid="input-admin-username"
               />
             </div>
@@ -80,6 +81,7 @@ export default function AdminLogin() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter admin password"
                 required
+                className="focus-visible:ring-[#FA4B1E] focus-visible:border-[#FA4B1E]"
                 data-testid="input-admin-password"
               />
             </div>
