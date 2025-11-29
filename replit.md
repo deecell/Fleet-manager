@@ -53,13 +53,14 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
 - **API**: `POST /api/v1/auth/login`, `POST /api/v1/auth/logout`, `GET /api/v1/auth/session`.
 - **Protected Routes**: All fleet API routes require authenticated sessions; dashboard redirects to `/login` if unauthenticated.
 
-### Device Manager (In Progress)
+### Device Manager (Native Addon Complete)
 - **Purpose**: Communicates with PowerMon devices on trucks via Thornwave's libpowermon C++ library.
-- **Architecture**: C++ bridge executable (`powermon-bridge`) with Node.js client (`BridgeClient`).
-- **Protocol**: NDJSON over stdin/stdout with command ID tagging for robust async handling.
-- **Library**: `libpowermon_bin` - Thornwave's pre-compiled library (awaiting PIC-compiled version for native addon).
+- **Architecture**: Node.js native addon (`powermon_addon.node`) built with node-addon-api (N-API).
+- **Library**: `libpowermon_bin` v1.16 - Thornwave's PIC-compiled library for shared object linking.
 - **Location**: `device-manager/` directory.
-- **Status**: Bridge implementation complete; awaiting Thornwave's PIC-compiled library update (ETA: Tomorrow morning PT).
+- **Build**: `cd device-manager && npx node-gyp rebuild`
+- **Status**: Native addon built successfully. Static methods work without Bluetooth. Instance methods require Bluetooth hardware for device communication.
+- **Fallback**: Subprocess bridge (`powermon-bridge`) available if native addon issues arise.
 
 ## External Dependencies
 

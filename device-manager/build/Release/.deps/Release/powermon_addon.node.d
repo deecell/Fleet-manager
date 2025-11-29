@@ -1,0 +1,1 @@
+cmd_Release/powermon_addon.node := ln -f "Release/obj.target/powermon_addon.node" "Release/powermon_addon.node" 2>/dev/null || (rm -rf "Release/powermon_addon.node" && cp -af "Release/obj.target/powermon_addon.node" "Release/powermon_addon.node")

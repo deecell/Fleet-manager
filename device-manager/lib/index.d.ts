@@ -1,183 +1,177 @@
+/**
+ * PowerMon Native Addon - TypeScript Wrapper
+ *
+ * This module provides a TypeScript interface to the libpowermon C++ library
+ * for communicating with Thornwave PowerMon battery monitoring devices.
+ */
 export interface LibraryVersion {
-  major: number;
-  minor: number;
-  string: string;
+    major: number;
+    minor: number;
+    string: string;
 }
-
 export interface AccessKey {
-  channelId: Uint8Array;
-  encryptionKey: Uint8Array;
+    channelId: Uint8Array;
+    encryptionKey: Uint8Array;
 }
-
-export interface DeviceIdentifier {
-  name: string;
-  serial: string;
-  hardwareRevision: number;
-  hardwareString: string;
-  channelId: string;
-  encryptionKey: string;
-  accessKey: AccessKey;
+export interface ParsedAccessURL {
+    name: string;
+    serial: string;
+    hardwareRevision: number;
+    hardwareString: string;
+    channelId: string;
+    encryptionKey: string;
+    accessKey: AccessKey;
 }
-
 export interface DeviceInfo {
-  name: string;
-  firmwareVersion: string;
-  firmwareVersionBcd: number;
-  hardwareRevision: number;
-  hardwareString: string;
-  serial: string;
-  timezone: number;
-  isUserLocked: boolean;
-  isMasterLocked: boolean;
-  isWifiConnected: boolean;
+    name: string;
+    firmwareVersion: string;
+    firmwareVersionBcd: number;
+    hardwareRevision: number;
+    hardwareString: string;
+    serial: string;
+    timezone: number;
+    isUserLocked: boolean;
+    isMasterLocked: boolean;
+    isWifiConnected: boolean;
 }
-
 export interface MonitorData {
-  time: number;
-  voltage1: number;
-  voltage2: number;
-  current: number;
-  power: number;
-  temperature: number;
-  coulombMeter: number;
-  energyMeter: number;
-  powerStatus: number;
-  powerStatusString: string;
-  soc: number;
-  runtime: number;
-  rssi: number;
-  isTemperatureExternal: boolean;
+    time: number;
+    voltage1: number;
+    voltage2: number;
+    current: number;
+    power: number;
+    temperature: number;
+    coulombMeter: number;
+    energyMeter: number;
+    powerStatus: number;
+    powerStatusString: string;
+    soc: number;
+    runtime: number;
+    rssi: number;
+    isTemperatureExternal: boolean;
 }
-
 export interface MonitorStatistics {
-  secondsSinceOn: number;
-  voltage1Min: number;
-  voltage1Max: number;
-  voltage2Min: number;
-  voltage2Max: number;
-  peakChargeCurrent: number;
-  peakDischargeCurrent: number;
-  temperatureMin: number;
-  temperatureMax: number;
+    secondsSinceOn: number;
+    voltage1Min: number;
+    voltage1Max: number;
+    voltage2Min: number;
+    voltage2Max: number;
+    peakChargeCurrent: number;
+    peakDischargeCurrent: number;
+    temperatureMin: number;
+    temperatureMax: number;
 }
-
 export interface FuelgaugeStatistics {
-  timeSinceLastFullCharge: number;
-  fullChargeCapacity: number;
-  totalDischarge: number;
-  totalDischargeEnergy: number;
-  totalCharge: number;
-  totalChargeEnergy: number;
-  minVoltage: number;
-  maxVoltage: number;
-  maxDischargeCurrent: number;
-  maxChargeCurrent: number;
-  deepestDischarge: number;
-  lastDischarge: number;
-  soc: number;
+    timeSinceLastFullCharge: number;
+    fullChargeCapacity: number;
+    totalDischarge: number;
+    totalDischargeEnergy: number;
+    totalCharge: number;
+    totalChargeEnergy: number;
+    minVoltage: number;
+    maxVoltage: number;
+    maxDischargeCurrent: number;
+    maxChargeCurrent: number;
+    deepestDischarge: number;
+    lastDischarge: number;
+    soc: number;
 }
-
 export interface LogFileDescriptor {
-  id: number;
-  size: number;
+    id: number;
+    size: number;
 }
-
 export interface LogSample {
-  time: number;
-  voltage1: number;
-  voltage2: number;
-  current: number;
-  power: number;
-  temperature: number;
-  soc: number;
-  powerStatus: number;
+    time: number;
+    voltage1: number;
+    voltage2: number;
+    current: number;
+    power: number;
+    temperature: number;
+    soc: number;
+    powerStatus: number;
 }
-
 export interface Response<T> {
-  success: boolean;
-  code: number;
-  data?: T;
+    success: boolean;
+    code: number;
+    data?: T;
 }
-
-export interface LogReadResponse {
-  success: boolean;
-  code: number;
-  data?: Uint8Array;
-}
-
-export interface DecodeLogResult {
-  success: boolean;
-  code: number;
-  samples: LogSample[];
-}
-
 export interface ConnectOptions {
-  url?: string;
-  accessKey?: AccessKey;
-  onConnect?: () => void;
-  onDisconnect?: (reason: number) => void;
+    url?: string;
+    accessKey?: AccessKey;
+    onConnect?: () => void;
+    onDisconnect?: (reason: number) => void;
 }
-
-export enum DisconnectReason {
-  CLOSED = 0,
-  NO_ROUTE = 1,
-  FAILED = 2,
-  UNEXPECTED_ERROR = 3,
-  UNEXPECTED_RESPONSE = 4,
-  WRITE_ERROR = 5,
-  READ_ERROR = 6,
-}
-
-export enum ResponseCode {
-  RSP_SUCCESS = 0x0000,
-  RSP_SUCCESS_MORE = 0x0100,
-  RSP_INVALID_REQ = 0x0001,
-  RSP_INVALID_PARAM = 0x0002,
-  RSP_ERROR = 0x0003,
-  RSP_LOCKED_USER = 0x0004,
-  RSP_LOCKED_MASTER = 0x0005,
-  RSP_CANNOT_UNLOCK = 0x0006,
-  RSP_NOT_FOUND = 0x0007,
-  RSP_TIMEOUT = 0x0008,
-  RSP_INVALID = 0x0009,
-  RSP_CANCELLED = 0x000A,
-}
-
-export enum PowerStatus {
-  PS_OFF = 0,
-  PS_ON = 1,
-  PS_LVD = 2,
-  PS_OCD = 3,
-  PS_HVD = 4,
-  PS_FGD = 5,
-  PS_NCH = 6,
-  PS_LTD = 7,
-  PS_HTD = 8,
-}
-
+/**
+ * PowerMon Device class for communicating with PowerMon battery monitors
+ */
 export declare class PowermonDevice {
-  constructor();
-  
-  static getLibraryVersion(): LibraryVersion;
-  static parseAccessURL(url: string): DeviceIdentifier | null;
-  static decodeLogData(data: Uint8Array | ArrayBuffer): DecodeLogResult;
-  static getHardwareString(hardwareRevision: number): string;
-  static getPowerStatusString(powerStatus: number): string;
-  
-  connect(options: ConnectOptions): void;
-  disconnect(): void;
-  isConnected(): boolean;
-  
-  getInfo(callback: (result: Response<DeviceInfo>) => void): void;
-  getMonitorData(callback: (result: Response<MonitorData>) => void): void;
-  getStatistics(callback: (result: Response<MonitorStatistics>) => void): void;
-  getFuelgaugeStatistics(callback: (result: Response<FuelgaugeStatistics>) => void): void;
-  
-  getLogFileList(callback: (result: Response<LogFileDescriptor[]>) => void): void;
-  readLogFile(fileId: number, offset: number, size: number, callback: (result: LogReadResponse) => void): void;
+    private device;
+    private initialized;
+    constructor();
+    /**
+     * Check if the device instance was successfully initialized
+     */
+    isInitialized(): boolean;
+    /**
+     * Get the library version
+     */
+    static getLibraryVersion(): LibraryVersion;
+    /**
+     * Parse a PowerMon access URL
+     */
+    static parseAccessURL(url: string): ParsedAccessURL | null;
+    /**
+     * Get hardware revision string
+     */
+    static getHardwareString(revision: number): string;
+    /**
+     * Get power status string
+     */
+    static getPowerStatusString(status: number): string;
+    /**
+     * Decode log file data
+     */
+    static decodeLogData(data: Uint8Array): LogSample[];
+    /**
+     * Connect to a PowerMon device via WiFi
+     */
+    connect(options: ConnectOptions): void;
+    /**
+     * Disconnect from the device
+     */
+    disconnect(): void;
+    /**
+     * Check if connected
+     */
+    isConnected(): boolean;
+    /**
+     * Get device info
+     */
+    getInfo(callback: (response: Response<DeviceInfo>) => void): void;
+    /**
+     * Get current monitor data
+     */
+    getMonitorData(callback: (response: Response<MonitorData>) => void): void;
+    /**
+     * Get monitor statistics
+     */
+    getStatistics(callback: (response: Response<MonitorStatistics>) => void): void;
+    /**
+     * Get fuelgauge statistics
+     */
+    getFuelgaugeStatistics(callback: (response: Response<FuelgaugeStatistics>) => void): void;
+    /**
+     * Get list of log files
+     */
+    getLogFileList(callback: (response: Response<LogFileDescriptor[]>) => void): void;
+    /**
+     * Read log file data
+     */
+    readLogFile(fileId: number, offset: number, size: number, callback: (response: Response<Uint8Array>) => void): void;
 }
-
-export function createDevice(): PowermonDevice;
-export function getLibraryVersion(): LibraryVersion;
-export function parseAccessURL(url: string): DeviceIdentifier | null;
-export function decodeLogData(data: Uint8Array | ArrayBuffer): DecodeLogResult;
+export declare const getLibraryVersion: typeof PowermonDevice.getLibraryVersion;
+export declare const parseAccessURL: typeof PowermonDevice.parseAccessURL;
+export declare const getHardwareString: typeof PowermonDevice.getHardwareString;
+export declare const getPowerStatusString: typeof PowermonDevice.getPowerStatusString;
+export declare const decodeLogData: typeof PowermonDevice.decodeLogData;
+export default PowermonDevice;

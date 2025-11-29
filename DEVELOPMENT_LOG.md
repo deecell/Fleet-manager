@@ -795,33 +795,98 @@ cd device-manager && make
 - Added proper cleanup of `connecting` state on connect failures
 - Added immediate failure detection for fatal bridge startup errors
 
+### Native Addon Build Success (November 29, 2025)
+
+**Thornwave PIC Library Update Completed!**
+
+Thornwave fixed their library with the commit "Fixed PIC library" - all object files now compiled with `-fPIC` flag.
+
+**Build Success:**
+```bash
+cd device-manager && npx node-gyp rebuild
+# Result: gyp info ok
+# Created: build/Release/powermon_addon.node (413KB)
+```
+
+**Library Version:** 1.16 (upgraded from v1.10)
+
+**Native Addon Test Results:**
+```javascript
+const addon = require('./build/Release/powermon_addon.node');
+
+// Static methods work without Bluetooth:
+addon.PowermonDevice.getLibraryVersion()  // { major: 1, minor: 16, string: '1.16' }
+addon.PowermonDevice.getPowerStatusString(0) // 'OFF'
+addon.PowermonDevice.getPowerStatusString(1) // 'ON'
+addon.PowermonDevice.getPowerStatusString(2) // 'LVD'
+addon.PowermonDevice.getPowerStatusString(3) // 'OCD'
+addon.PowermonDevice.getPowerStatusString(4) // 'HVD'
+addon.PowermonDevice.getPowerStatusString(5) // 'FGD'
+```
+
+**Files Created:**
+
+| File | Purpose |
+|------|---------|
+| `device-manager/binding.gyp` | Node-gyp build configuration |
+| `device-manager/src/addon.cpp` | N-API addon entry point |
+| `device-manager/src/powermon_wrapper.cpp` | PowerMon C++ wrapper |
+| `device-manager/src/powermon_wrapper.h` | Wrapper header file |
+| `device-manager/lib/index.ts` | TypeScript wrapper with types |
+| `device-manager/lib/index.js` | Compiled JavaScript |
+| `device-manager/build/Release/powermon_addon.node` | Compiled native addon |
+
+**TypeScript Interface:**
+```typescript
+import { PowermonDevice, getLibraryVersion } from './device-manager/lib/index';
+
+// Static methods (work without Bluetooth)
+const version = getLibraryVersion();
+const parsed = PowermonDevice.parseAccessURL(url);
+const hwString = PowermonDevice.getHardwareString(0x0100);
+const psString = PowermonDevice.getPowerStatusString(1);
+
+// Instance methods (require Bluetooth for initialization)
+const device = new PowermonDevice();
+device.connect({ url: accessUrl, onConnect: () => {}, onDisconnect: () => {} });
+device.getMonitorData((response) => { console.log(response.data); });
+device.disconnect();
+```
+
+### Bluetooth Requirement
+
+**Known Limitation:** The `PowermonDevice` constructor initializes Bluetooth hardware. On servers without Bluetooth, instance creation fails but static methods still work.
+
+**Workaround:** The TypeScript wrapper handles this gracefully:
+```typescript
+constructor() {
+  try {
+    this.device = new addon.PowermonDevice();
+    this.initialized = true;
+  } catch (error) {
+    console.warn('BLE init failed (expected on servers):', error.message);
+    this.initialized = false;
+  }
+}
+```
+
 ### Next Steps
 
-**Awaiting Thornwave Update (ETA: Tomorrow morning PT)**
-
-Thornwave will provide a new version of `powermon_lib.a` compiled with `-fPIC` flag. This will enable:
-- Building a proper Node.js native addon (node-addon-api)
-- Eliminating the subprocess bridge overhead
-- Simpler lifecycle management
-- Direct function calls instead of IPC
-
-**Once PIC Library is Available:**
-1. Replace `powermon_lib.a` with new PIC-compiled version from Thornwave GitHub
-2. Convert `powermon-bridge` approach to native addon (`binding.gyp` + node-addon-api)
-3. Update BridgeClient to use native addon instead of subprocess
-4. Deploy to Bluetooth-capable environment for integration testing
-5. Connect to test device using provided URL
-6. **Implement Device Manager service** that:
+1. **Deploy to Bluetooth-capable environment** for full integration testing
+2. **Connect to test device** using provided access URL
+3. **Implement Device Manager service** that:
    - Polls devices based on polling settings
    - Stores snapshots and measurements in database
    - Syncs log files for historical data
    - Generates alerts for offline/low voltage conditions
-7. **Create WebSocket integration** for real-time dashboard updates
+4. **Create WebSocket integration** for real-time dashboard updates
 
 **Current Implementation Status:**
-- Subprocess bridge approach is functional and can serve as fallback
-- Command ID protocol is robust and production-ready
-- TypeScript types are complete for all PowerMon data structures
+- ✅ Native addon built and working (libpowermon v1.16)
+- ✅ TypeScript wrapper with full type definitions
+- ✅ Static methods operational (version, URL parsing, status strings)
+- ✅ Subprocess bridge available as fallback
+- ⏳ Instance methods require Bluetooth for testing
 
 ---
 
