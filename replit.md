@@ -53,6 +53,14 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
 - **API**: `POST /api/v1/auth/login`, `POST /api/v1/auth/logout`, `GET /api/v1/auth/session`.
 - **Protected Routes**: All fleet API routes require authenticated sessions; dashboard redirects to `/login` if unauthenticated.
 
+### Device Manager (In Progress)
+- **Purpose**: Communicates with PowerMon devices on trucks via Thornwave's libpowermon C++ library.
+- **Architecture**: C++ bridge executable (`powermon-bridge`) with Node.js client (`BridgeClient`).
+- **Protocol**: NDJSON over stdin/stdout with command ID tagging for robust async handling.
+- **Library**: `libpowermon_bin` - Thornwave's pre-compiled library (awaiting PIC-compiled version for native addon).
+- **Location**: `device-manager/` directory.
+- **Status**: Bridge implementation complete; awaiting Thornwave's PIC-compiled library update (ETA: Tomorrow morning PT).
+
 ## External Dependencies
 
 ### Core Infrastructure
