@@ -15,7 +15,7 @@
 - **API endpoint**: `GET /api/v1/savings` returns today's savings, 7-day average, trend percentage
 - **FleetStats component**: Now fetches real calculated savings data instead of hardcoded values
 - **Trend display**: Shows dollar amount and percentage compared to 7-day average
-- **Requires**: `EIA_API_KEY` secret for live diesel price updates (falls back to $3.50/gallon default)
+- **EIA_API_KEY**: Configured and active - fetches live weekly diesel prices from EIA
 
 ### Font Consistency Update
 - Changed application font from Inter to DM Sans for consistent typography
