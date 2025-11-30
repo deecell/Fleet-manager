@@ -106,7 +106,7 @@ function StatCard({ title, trend, icon, iconBgColor, valueColor = "text-neutral-
 
   return (
     <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.05)] p-6 h-[185px] flex flex-col">
-      <div className="flex items-start justify-between">
+      <div className="flex items-center justify-between">
         <div className={`w-[49px] h-[49px] rounded-[9px] flex items-center justify-center ${iconBgColor}`}>
           {icon}
         </div>
@@ -145,7 +145,7 @@ function TimeStatCard({ title, trend, icon, iconBgColor, valueColor = "text-neut
 
   return (
     <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.05)] p-6 h-[185px] flex flex-col">
-      <div className="flex items-start justify-between">
+      <div className="flex items-center justify-between">
         <div className={`w-[49px] h-[49px] rounded-[9px] flex items-center justify-center ${iconBgColor}`}>
           {icon}
         </div>
