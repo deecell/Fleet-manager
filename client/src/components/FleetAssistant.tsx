@@ -219,7 +219,7 @@ export function FleetAssistant() {
                 onClick={sendMessage}
                 disabled={!input.trim() || isLoading}
                 size="icon"
-                className="rounded-full h-10 w-10 shrink-0"
+                className="rounded-full h-10 w-10 shrink-0 bg-[#303030]"
                 data-testid="button-send-message"
               >
                 <Send className="h-4 w-4" />
