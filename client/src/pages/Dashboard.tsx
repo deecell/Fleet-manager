@@ -9,7 +9,7 @@ import { AlertBanner } from "@/components/AlertBanner";
 import { useLegacyTrucks, useLegacyNotifications, useAcknowledgeAlert, useResolveAlert, LegacyTruckWithDevice } from "@/lib/api";
 import { useSession, useLogout } from "@/lib/auth-api";
 import { useToast } from "@/hooks/use-toast";
-import { User, LogOut, ChevronDown, Search, Loader2, Download } from "lucide-react";
+import { User, LogOut, Search, Loader2, Download } from "lucide-react";
 import { FleetAssistant } from "@/components/FleetAssistant";
 import { Button } from "@/components/ui/button";
 import {
@@ -205,20 +205,20 @@ export default function Dashboard() {
             </div>
           </div>
           
-          <div className="flex items-center gap-4">
-            <div className="relative w-[240px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9c9ca7]" />
+          <div className="flex items-center gap-3">
+            <FleetAssistant />
+            
+            <div className="relative w-[293px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-[#9c9ca7]" />
               <input
                 type="text"
                 placeholder="Search for something"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-9 pl-9 pr-4 bg-[#f5f6f8] border border-[#ebeef2] rounded-lg text-sm text-neutral-950 placeholder:text-[#9c9ca7] focus:outline-none focus:ring-1 focus:ring-[#ebeef2]"
+                className="w-full h-10 pl-10 pr-4 bg-white border border-[#ebeef2] rounded-lg text-sm text-neutral-950 placeholder:text-[#9c9ca7] focus:outline-none focus:ring-1 focus:ring-[#ebeef2]"
                 data-testid="input-search"
               />
             </div>
-            
-            <FleetAssistant />
             
             <Notifications 
               notifications={notifications}
@@ -230,14 +230,10 @@ export default function Dashboard() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button 
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg"
+                  className="w-5 h-5 flex items-center justify-center"
                   data-testid="button-user-menu"
                 >
-                  <div className="w-8 h-8 rounded-full bg-[#e2e8f8] flex items-center justify-center">
-                    <User className="w-4 h-4 text-[#6a7fbc]" />
-                  </div>
-                  <span className="text-sm font-medium text-neutral-950">{userName}</span>
-                  <ChevronDown className="w-4 h-4 text-[#4a5565]" />
+                  <User className="w-5 h-5 text-[#717182]" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 bg-white">

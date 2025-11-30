@@ -43,12 +43,12 @@ export function Notifications({ notifications, onMarkAsRead, onMarkAllAsRead, on
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button 
-          className="relative w-[46px] h-[41px] rounded-full flex items-center justify-center"
+          className="relative w-5 h-5 flex items-center justify-center"
           data-testid="button-notifications"
         >
-          <Bell className="h-5 w-5 text-gray-600" />
+          <Bell className="w-5 h-5 text-[#717182]" />
           {unreadCount > 0 && (
-            <div className="absolute top-1 right-2 w-2.5 h-2.5 bg-[#fb2c36] rounded-full" />
+            <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-[#fb2c36] rounded-full" />
           )}
         </button>
       </PopoverTrigger>
