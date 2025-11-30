@@ -234,11 +234,7 @@ export function FleetAssistant() {
         className="fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center z-50 bg-[#ebeffa]"
         data-testid="button-open-assistant"
       >
-        {open ? (
-          <X className="h-6 w-6 text-[#FA4B1E]" />
-        ) : (
-          <img src={sunIcon} alt="AI Assistant" className="h-8 w-8" />
-        )}
+        <img src={sunIcon} alt="AI Assistant" className="h-8 w-8" />
       </button>
     </>
   );
