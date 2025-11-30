@@ -139,8 +139,8 @@ export function FleetAssistant() {
                   data-testid={`message-${message.role}-${index}`}
                 >
                   {message.role === "assistant" && (
-                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Bot className="h-3 w-3 text-primary" />
+                    <div className="w-6 h-6 rounded-full bg-[#FFD7C0] flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Bot className="h-3 w-3 text-[#FA4B1E]" />
                     </div>
                   )}
                   <div
@@ -167,8 +167,8 @@ export function FleetAssistant() {
 
               {isLoading && (
                 <div className="flex gap-2 justify-start" data-testid="message-loading">
-                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Bot className="h-3 w-3 text-primary" />
+                  <div className="w-6 h-6 rounded-full bg-[#FFD7C0] flex items-center justify-center flex-shrink-0">
+                    <Bot className="h-3 w-3 text-[#FA4B1E]" />
                   </div>
                   <div className="bg-gray-100 rounded-2xl rounded-bl-md px-3 py-2">
                     <div className="flex gap-1">
