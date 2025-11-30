@@ -155,24 +155,25 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
             <h2 className="text-[26px] font-medium text-black leading-6 tracking-tight" data-testid="truck-detail-name">
               {truck.name}
             </h2>
-            <div 
-              className={`h-[27px] px-3 rounded-md flex items-center gap-2 ${
-                truck.status === "in-service" 
-                  ? "bg-[rgba(0,201,80,0.14)] border border-[#00c950]" 
-                  : "bg-[rgba(255,9,0,0.14)] border border-[#ff0900]"
-              }`}
-              data-testid="truck-detail-status"
-            >
-              <div className={`w-2 h-2 rounded-full ${
-                truck.status === "in-service" ? "bg-[#00c950]" : "bg-[#ff0900]"
-              }`} />
-              <span className={`text-sm ${
-                truck.status === "in-service" ? "text-[#00953b]" : "text-[#ff0900]"
-              }`}>
-                {truck.status === "in-service" ? "In Service" : "Not in Service"}
-              </span>
-            </div>
-            <Popover open={showExportPopover} onOpenChange={setShowExportPopover}>
+            <div className="flex items-center gap-1">
+              <div 
+                className={`h-[27px] px-3 rounded-md flex items-center gap-2 ${
+                  truck.status === "in-service" 
+                    ? "bg-[rgba(0,201,80,0.14)] border border-[#00c950]" 
+                    : "bg-[rgba(255,9,0,0.14)] border border-[#ff0900]"
+                }`}
+                data-testid="truck-detail-status"
+              >
+                <div className={`w-2 h-2 rounded-full ${
+                  truck.status === "in-service" ? "bg-[#00c950]" : "bg-[#ff0900]"
+                }`} />
+                <span className={`text-sm ${
+                  truck.status === "in-service" ? "text-[#00953b]" : "text-[#ff0900]"
+                }`}>
+                  {truck.status === "in-service" ? "In Service" : "Not in Service"}
+                </span>
+              </div>
+              <Popover open={showExportPopover} onOpenChange={setShowExportPopover}>
               <PopoverTrigger asChild>
                 <button 
                   className="h-[27px] px-3 rounded-md flex items-center gap-2 border border-[#ebeef2] bg-white text-sm text-[#4a5565] hover-elevate"
@@ -260,6 +261,7 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
                 </div>
               </PopoverContent>
             </Popover>
+            </div>
           </div>
           <button
             onClick={onClose}
