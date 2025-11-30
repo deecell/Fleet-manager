@@ -4,6 +4,19 @@
 
 ---
 
+## Latest Updates (November 30, 2025)
+
+### Font Consistency Update
+- Changed application font from Inter to DM Sans for consistent typography
+- Updated Google Fonts import in `client/index.html`
+- Updated CSS variable `--font-sans` in `client/src/index.css`
+
+### Export Button Positioning
+- Finalized Export button position: 2px gap from status badge
+- Button height: 27px (matches status badge)
+
+---
+
 ## Project Overview
 
 **Goal**: Build a multi-tenant Fleet Management Dashboard for Deecell Power Systems displaying truck fleet data with real-time PowerMon metrics, status tracking, and historical information.

@@ -15,7 +15,7 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
 - **Routing**: Wouter for client-side routing.
 - **State Management**: TanStack React Query for server state; React hooks for component state.
 - **UI Component Library**: Radix UI primitives with shadcn/ui patterns, following a "new-york" style inspired by Material Design and Carbon Design System.
-- **Styling**: Tailwind CSS with custom design tokens, CSS variables for theming (light/dark modes), and Inter font family.
+- **Styling**: Tailwind CSS with custom design tokens, CSS variables for theming (light/dark modes), and DM Sans font family.
 - **Data Visualization**: Recharts for historical performance charts.
 - **Map Integration**: Static map image with SVG overlays for truck location.
 - **Form Validation**: React Hook Form with Zod resolvers.
