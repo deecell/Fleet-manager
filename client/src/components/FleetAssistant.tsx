@@ -234,9 +234,9 @@ export function FleetAssistant() {
         data-testid="button-open-assistant"
       >
         {open ? (
-          <X className="h-6 w-6 text-white" />
+          <X className="h-6 w-6 text-[#FA4B1E]" />
         ) : (
-          <MessageCircle className="h-6 w-6 text-white" />
+          <MessageCircle className="h-6 w-6 text-[#FA4B1E]" />
         )}
       </button>
     </>
