@@ -227,7 +227,7 @@ export default function Dashboard() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button 
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg hover-elevate active-elevate-2"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg"
                   data-testid="button-user-menu"
                 >
                   <div className="w-8 h-8 rounded-full bg-[#e2e8f8] flex items-center justify-center">
