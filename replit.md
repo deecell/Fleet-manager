@@ -84,10 +84,12 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
 - **Formula**: `(solar_Wh / 1000 / diesel_kWh_per_gallon) × fuel_price_per_gallon`
 - **Default Values**: diesel_kWh_per_gallon = 9.0, default fuel price = $3.50/gallon
 - **EIA Integration**: Fetches weekly diesel prices from U.S. Energy Information Administration API.
+- **Regional Pricing**: Uses truck location to determine PADD region for accurate local diesel prices.
+- **PADD Regions**: 1A (New England), 1B (Central Atlantic), 1C (Lower Atlantic), 2 (Midwest), 3 (Gulf Coast), 4 (Rocky Mountain), 5 (West Coast).
 - **Secrets Required**: `EIA_API_KEY` (optional - falls back to default price if not set)
-- **Database Tables**: `fuel_prices` (cached EIA prices), `savings_config` (per-org settings)
+- **Database Tables**: `fuel_prices` (cached EIA prices by region), `savings_config` (per-org settings)
 - **API Endpoint**: `GET /api/v1/savings` returns today's savings, 7-day average, trend percentage
-- **Files**: `server/services/eia-client.ts`, `server/services/savings-calculator.ts`
+- **Files**: `server/services/eia-client.ts`, `server/services/savings-calculator.ts`, `server/services/padd-regions.ts`
 
 ### AI Fleet Assistant
 - **Purpose**: Natural language chat interface for fleet management queries and insights.

@@ -6,6 +6,30 @@
 
 ## Latest Updates (November 30, 2025)
 
+### Regional Diesel Pricing by Truck Location (November 30, 2025)
+- **Feature**: Diesel prices now vary by truck location using EIA PADD regions
+- **PADD Regions**: Petroleum Administration for Defense Districts
+  - PADD 1A: New England
+  - PADD 1B: Central Atlantic
+  - PADD 1C: Lower Atlantic
+  - PADD 2: Midwest
+  - PADD 3: Gulf Coast (Texas, Louisiana)
+  - PADD 4: Rocky Mountain
+  - PADD 5: West Coast (California, Oregon, Washington)
+- **Implementation Files**:
+  - `server/services/padd-regions.ts` - State-to-PADD mapping + coordinate lookup
+  - `server/services/eia-client.ts` - Updated to fetch regional prices by PADD code
+  - `server/services/savings-calculator.ts` - Uses truck coordinates for local pricing
+- **EIA API facets**: Uses `duoarea` parameter (R1X, R1Y, R1Z, R20, R30, R40, R50, R00)
+- **Fallback behavior**: Uses US national average if truck has no coordinates
+- **Benefit**: More accurate savings calculations - e.g., California diesel ($5.20) vs Gulf Coast ($3.40)
+
+### AI Assistant Visual Updates (November 30, 2025)
+- Changed all Bot/MessageCircle icons to sun.png with #EBEFFA background
+- Updated: header icon, message avatars, loading state, floating button
+- User bubble background: #92a6b3
+- Send button: #303030
+
 ### AI Fleet Assistant (November 30, 2025)
 - **Feature**: Natural language chat assistant for fleet management queries
 - **Backend**: `server/services/fleet-assistant.ts` - OpenAI GPT-4o-mini with function calling
