@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { processChat, ChatMessage } from "../services/fleet-assistant";
+import { tenantMiddleware } from "../middleware/tenant";
 import { z } from "zod";
 
 const router = Router();
@@ -11,7 +12,7 @@ const chatRequestSchema = z.object({
   }))
 });
 
-router.post("/chat", async (req: Request, res: Response) => {
+router.post("/chat", tenantMiddleware, async (req: Request, res: Response) => {
   try {
     const organizationId = req.organizationId;
     if (!organizationId) {
