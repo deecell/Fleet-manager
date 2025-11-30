@@ -15,7 +15,7 @@ export function FleetAssistant() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "Hello! I'm your Fleet AI Assistant. I can help you with questions about your trucks, battery status, savings, alerts, and more. What would you like to know?",
+      content: "Hello 👋\nI'm Ray Ray your Fleet AI Assistant. I can help you with questions about your trucks, battery status, savings, alerts, and more. What would you like to know?",
       timestamp: new Date()
     }
   ]);
