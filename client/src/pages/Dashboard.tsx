@@ -275,7 +275,7 @@ export default function Dashboard() {
         
         <div className="!mt-[74px]">
           <div className="flex items-end mb-4 gap-4">
-            <h2 className="text-[18px] font-semibold text-neutral-950 shrink-0">Fleet Overview</h2>
+            <h2 className="text-[18px] font-semibold text-neutral-950 shrink-0 leading-none pb-0 mb-0">Fleet Overview</h2>
             
             <Button
               variant="outline"
