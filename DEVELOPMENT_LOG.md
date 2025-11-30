@@ -24,6 +24,14 @@
   - `deviceCount7Day = sevenDayData.avgDeviceCount` (average across 7 days)
 - **Result**: Accurate fleet-level metrics that reflect only active reporting devices
 
+### Fleet Overview Filter Update (November 30, 2025)
+- **Updated**: Filter buttons now show truck counts like Figma design
+  - "All (09)" - total truck count
+  - "In Service (07)" - with green dot indicator
+  - "Not In Service (3)" - with red dot indicator
+- **Removed**: "Active Trucks XX / XX" text next to Fleet Overview title
+- **Matches**: Figma node 2580-9784 design specification
+
 ### Savings Calculation Feature
 - **Database tables added**: `fuel_prices` (stores EIA diesel prices), `savings_config` (per-org calculation settings)
 - **EIA API client**: `server/services/eia-client.ts` fetches weekly diesel prices from U.S. Energy Information Administration

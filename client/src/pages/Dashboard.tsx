@@ -277,14 +277,6 @@ export default function Dashboard() {
           <div className="flex items-center mb-4 gap-4">
             <h2 className="text-[18px] font-semibold text-neutral-950 shrink-0">Fleet Overview</h2>
             
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-neutral-950">Active Trucks</span>
-              <span>
-                <span className="font-semibold text-[#39c900]">{activeTrucksCount.toString().padStart(2, '0')}</span>
-                <span className="text-neutral-950"> / {totalTrucks.toString().padStart(2, '0')}</span>
-              </span>
-            </div>
-            
             <Button
               variant="outline"
               onClick={handleExportAllTrucks}
@@ -299,7 +291,7 @@ export default function Dashboard() {
               <div className="flex items-center h-full">
                 <button
                   onClick={() => setFilterStatus("all")}
-                  className={`px-2 h-[28px] text-sm rounded-md flex items-center gap-2.5 ${
+                  className={`px-2 h-[28px] text-sm rounded-md flex items-center gap-2.5 tracking-[-0.3px] ${
                     filterStatus === "all" 
                       ? "bg-white border border-[#ebeef2] font-semibold text-neutral-950" 
                       : "text-[#4a5565]"
@@ -307,11 +299,11 @@ export default function Dashboard() {
                   data-testid="filter-all"
                 >
                   <img src={allIcon} alt="" className="w-2.5 h-2.5" />
-                  All
+                  All ({totalTrucks.toString().padStart(2, '0')})
                 </button>
                 <button
                   onClick={() => setFilterStatus("in-service")}
-                  className={`px-3 h-[28px] text-sm rounded-md flex items-center gap-2 ${
+                  className={`px-3 h-[28px] text-sm rounded-md flex items-center gap-2 tracking-[-0.3px] ${
                     filterStatus === "in-service" 
                       ? "bg-white border border-[#ebeef2] font-semibold text-neutral-950" 
                       : "text-[#4a5565]"
@@ -319,11 +311,11 @@ export default function Dashboard() {
                   data-testid="filter-in-service"
                 >
                   <div className="w-2 h-2 rounded-full bg-[#39c900]" />
-                  In Service
+                  In Service ({activeTrucksCount.toString().padStart(2, '0')})
                 </button>
                 <button
                   onClick={() => setFilterStatus("not-in-service")}
-                  className={`px-3 h-[28px] text-sm rounded-md flex items-center gap-2 ${
+                  className={`px-3 h-[28px] text-sm rounded-md flex items-center gap-2 tracking-[-0.3px] ${
                     filterStatus === "not-in-service" 
                       ? "bg-white border border-[#ebeef2] font-semibold text-neutral-950" 
                       : "text-[#4a5565]"
@@ -331,7 +323,7 @@ export default function Dashboard() {
                   data-testid="filter-not-in-service"
                 >
                   <div className="w-2 h-2 rounded-full bg-[#ff0900]" />
-                  Not In Service
+                  Not In Service ({(totalTrucks - activeTrucksCount).toString().padStart(2, '0')})
                 </button>
               </div>
             </div>
