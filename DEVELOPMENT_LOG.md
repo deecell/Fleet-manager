@@ -32,6 +32,15 @@
 - **Removed**: "Active Trucks XX / XX" text next to Fleet Overview title
 - **Matches**: Figma node 2580-9784 design specification
 
+### UI Polish (November 30, 2025)
+- **FleetStats cards**: Trend indicators now vertically centered with stat icons
+- **Fleet Overview title**: Bottom-aligned with buttons, no bottom padding
+- **Export CSV button**: Simplified to plain text + icon (no border/hover), 4px right margin
+- **Historical Data cards**: Background changed to #FAFBFC
+- **Table headers**: Chassis and Sleeper headers updated to orange theme
+  - Background: #FFD7C0
+  - Text: #FA4B1E
+
 ### Savings Calculation Feature
 - **Database tables added**: `fuel_prices` (stores EIA diesel prices), `savings_config` (per-org calculation settings)
 - **EIA API client**: `server/services/eia-client.ts` fetches weekly diesel prices from U.S. Energy Information Administration
