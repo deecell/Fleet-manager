@@ -254,8 +254,8 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
           value: formatSocTrend(), 
           isPositive: socTrendIsPositive 
         }}
-        icon={<Battery className="h-6 w-6 text-[#fa671e]" />}
-        iconBgColor="bg-[#fef4e8]"
+        icon={<Battery className="h-6 w-6 text-[#778AC2]" />}
+        iconBgColor="bg-[#EBEFFA]"
       />
       <StatCard
         title="Tractor maintenance interval increase"
@@ -267,8 +267,8 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
           value: formatMaintenanceTrend(), 
           isPositive: maintenanceTrendIsPositive 
         }}
-        icon={<Wrench className="h-6 w-6 text-[#6b6164]" />}
-        iconBgColor="bg-[#ece8e4]"
+        icon={<Wrench className="h-6 w-6 text-[#778AC2]" />}
+        iconBgColor="bg-[#EBEFFA]"
       />
       <TimeStatCard
         title="Tractor hours offset"
@@ -278,8 +278,8 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
           value: formatHoursTrend(), 
           isPositive: hoursTrendIsPositive 
         }}
-        icon={<Clock className="h-6 w-6 text-[#6a7fbc]" />}
-        iconBgColor="bg-[#e2e8f8]"
+        icon={<Clock className="h-6 w-6 text-[#778AC2]" />}
+        iconBgColor="bg-[#EBEFFA]"
       />
     </div>
   );
