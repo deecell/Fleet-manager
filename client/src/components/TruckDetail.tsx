@@ -172,20 +172,17 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
                 {truck.status === "in-service" ? "In Service" : "Not in Service"}
               </span>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
             <Popover open={showExportPopover} onOpenChange={setShowExportPopover}>
               <PopoverTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="sm"
+                <button 
+                  className="h-[27px] px-3 rounded-md flex items-center gap-2 border border-[#ebeef2] bg-white text-sm text-[#4a5565] hover-elevate"
                   data-testid="button-export-truck-history"
                 >
-                  <Download className="w-4 h-4 mr-2" />
+                  <Download className="w-3.5 h-3.5" />
                   Export
-                </Button>
+                </button>
               </PopoverTrigger>
-              <PopoverContent className="w-80 bg-white" align="end">
+              <PopoverContent className="w-80 bg-white" align="start">
                 <div className="space-y-4">
                   <h4 className="font-medium text-sm">Export History</h4>
                   <p className="text-xs text-muted-foreground">Select a date range to export truck measurement data.</p>
@@ -263,15 +260,14 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
                 </div>
               </PopoverContent>
             </Popover>
-            
-            <button
-              onClick={onClose}
-              className="hover-elevate active-elevate-2 p-2 rounded-md"
-              data-testid="button-close-detail"
-            >
-              <X className="h-5 w-5" />
-            </button>
           </div>
+          <button
+            onClick={onClose}
+            className="hover-elevate active-elevate-2 p-2 rounded-md"
+            data-testid="button-close-detail"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
         <div className="flex items-center gap-2 mt-2 flex-wrap">
           <p className="text-base text-[#4a5565]">{truck.model}</p>
