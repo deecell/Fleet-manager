@@ -159,7 +159,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
         <table className="w-full">
           <thead>
             <tr className="h-[21px]">
-              <th colSpan={6} className="bg-[#e2e8f8] text-[10px] font-medium text-[#6a7fbc] uppercase tracking-[0.7px] text-center rounded-t-lg">
+              <th colSpan={6} className="bg-[#FFD7C0] text-[10px] font-medium text-[#FA4B1E] uppercase tracking-[0.7px] text-center rounded-t-lg">
                 Sleeper
               </th>
             </tr>
