@@ -111,8 +111,8 @@ export function FleetAssistant() {
         >
           <div className="flex items-center justify-between p-4 border-b from-primary/10 to-primary/5 bg-[#ffffff]">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#FFD7C0] flex items-center justify-center">
-                <Bot className="h-5 w-5 text-[#FA4B1E]" />
+              <div className="w-10 h-10 rounded-full bg-[#EBEFFA] flex items-center justify-center">
+                <img src={sunIcon} alt="Ray Ray" className="h-6 w-6" />
               </div>
               <div>
                 <h3 className="font-semibold text-sm text-neutral-950">Ray Ray</h3>
