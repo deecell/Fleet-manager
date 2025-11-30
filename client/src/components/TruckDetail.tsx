@@ -99,7 +99,6 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
   const [showExportPopover, setShowExportPopover] = useState(false);
   
   const [powerMeterOpen, setPowerMeterOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [metricsOpen, setMetricsOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
 
@@ -297,7 +296,7 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
               {powerMeterOpen ? <Minus className="w-5 h-5 text-[#2d2826]" /> : <Plus className="w-5 h-5 text-[#2d2826]" />}
             </CollapsibleTrigger>
           </div>
-          <CollapsibleContent className="pt-4">
+          <CollapsibleContent className="pt-4 space-y-4">
             <div className="bg-[#fafbfc] border border-[#ebeef2] rounded-lg h-[48px] p-[6px] shadow-[0px_1px_3px_0px_rgba(96,108,128,0.05)] flex">
               <button
                 onClick={() => setVoltageSource("V1")}
@@ -324,18 +323,7 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
                 V2
               </button>
             </div>
-          </CollapsibleContent>
-        </Collapsible>
-
-        {/* Device Settings */}
-        <Collapsible open={settingsOpen} onOpenChange={setSettingsOpen}>
-          <div className="border-b border-[#ebeef2] pb-4">
-            <CollapsibleTrigger className="flex items-center justify-between w-full" data-testid="toggle-settings">
-              <p className="text-lg font-medium text-neutral-950">Device Settings</p>
-              {settingsOpen ? <Minus className="w-5 h-5 text-[#2d2826]" /> : <Plus className="w-5 h-5 text-[#2d2826]" />}
-            </CollapsibleTrigger>
-          </div>
-          <CollapsibleContent className="pt-4 space-y-4">
+            
             <div className="flex items-center justify-between">
               <p className="text-base text-[#4a5565]">Flip Current Sign</p>
               <Toggle enabled={flipCurrentSign} onToggle={() => setFlipCurrentSign(!flipCurrentSign)} />
