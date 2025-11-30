@@ -1,5 +1,5 @@
 import { TruckWithHistory, Notification, HistoricalDataPoint } from "@shared/schema";
-import { X, Battery, Zap, Activity, Thermometer, Check, ChevronDown, AlertTriangle, Loader2, Download, Calendar } from "lucide-react";
+import { X, Battery, Zap, Activity, Thermometer, Check, ChevronDown, AlertTriangle, Loader2, Download, Calendar, Plus, Minus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format, subDays } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface TruckDetailProps {
   truck: LegacyTruckWithDevice;
@@ -96,6 +97,11 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
   const [exportEndDate, setExportEndDate] = useState<Date>(new Date());
   const [isExporting, setIsExporting] = useState(false);
   const [showExportPopover, setShowExportPopover] = useState(false);
+  
+  const [powerMeterOpen, setPowerMeterOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [metricsOpen, setMetricsOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const { data: history, isLoading: historyLoading } = useTruckHistory(truck.deviceId);
 
@@ -284,233 +290,256 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
         </div>
 
         {/* Power Meter Voltage Source */}
-        <div className="space-y-4">
-          <p className="text-lg font-medium text-neutral-950">Power Meter Voltage Source</p>
-          <div className="bg-[#fafbfc] border border-[#ebeef2] rounded-lg h-[48px] p-[6px] shadow-[0px_1px_3px_0px_rgba(96,108,128,0.05)] flex">
-            <button
-              onClick={() => setVoltageSource("V1")}
-              className={`flex-1 h-[36px] rounded-md flex items-center justify-center gap-1.5 text-base ${
-                voltageSource === "V1" 
-                  ? "bg-[#303030] text-white font-semibold border border-[#ebeef2]" 
-                  : "text-[#4a5565]"
-              }`}
-              data-testid="button-voltage-v1"
-            >
-              {voltageSource === "V1" && <Check className="w-3.5 h-3.5" />}
-              V1
-            </button>
-            <button
-              onClick={() => setVoltageSource("V2")}
-              className={`flex-1 h-[36px] rounded-md flex items-center justify-center gap-1.5 text-base ${
-                voltageSource === "V2" 
-                  ? "bg-[#303030] text-white font-semibold border border-[#ebeef2]" 
-                  : "text-[#4a5565]"
-              }`}
-              data-testid="button-voltage-v2"
-            >
-              {voltageSource === "V2" && <Check className="w-3.5 h-3.5" />}
-              V2
-            </button>
+        <Collapsible open={powerMeterOpen} onOpenChange={setPowerMeterOpen}>
+          <div className="border-b border-[#ebeef2] pb-4">
+            <CollapsibleTrigger className="flex items-center justify-between w-full" data-testid="toggle-power-meter">
+              <p className="text-lg font-medium text-neutral-950">Power Meter Voltage Source</p>
+              {powerMeterOpen ? <Minus className="w-5 h-5 text-[#2d2826]" /> : <Plus className="w-5 h-5 text-[#2d2826]" />}
+            </CollapsibleTrigger>
           </div>
-        </div>
-
-        {/* Toggle Options */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <p className="text-base text-[#4a5565]">Flip Current Sign</p>
-            <Toggle enabled={flipCurrentSign} onToggle={() => setFlipCurrentSign(!flipCurrentSign)} />
-          </div>
-          <div className="flex items-center justify-between">
-            <p className="text-base text-[#4a5565]">Turn On at Startup</p>
-            <Toggle enabled={turnOnAtStartup} onToggle={() => setTurnOnAtStartup(!turnOnAtStartup)} />
-          </div>
-          <div className="flex items-center justify-between">
-            <p className="text-base text-[#4a5565]">Latch Relay On</p>
-            <Toggle enabled={latchRelayOn} onToggle={() => setLatchRelayOn(!latchRelayOn)} />
-          </div>
-          <div className="flex items-center justify-between">
-            <p className="text-base text-[#4a5565]">Invert Relay Logic</p>
-            <Toggle enabled={invertRelayLogic} onToggle={() => setInvertRelayLogic(!invertRelayLogic)} />
-          </div>
-        </div>
-
-        {/* Input Fields */}
-        <div className="space-y-4 pt-4">
-          <InputField label="Connect Filter (milliseconds)" value="1000" />
-          <DropdownField 
-            label="MF Terminal Function" 
-            value={mfTerminalFunction}
-            options={["Push button input", "Toggle switch input", "Momentary switch", "Disabled"]}
-            onValueChange={setMfTerminalFunction}
-            testId="dropdown-mf-terminal"
-          />
-          <DropdownField 
-            label="Data Logging mode" 
-            value={dataLoggingMode}
-            options={["Every 10 seconds", "Every 30 seconds", "Every minute", "Every 5 minutes", "Disabled"]}
-            onValueChange={setDataLoggingMode}
-            testId="dropdown-data-logging"
-          />
-        </div>
-
-        {/* Current Metrics - moved below Figma content */}
-        <div className="pt-8">
-          <h3 className="text-lg font-semibold mb-4">Current Metrics</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">State of Charge</CardTitle>
-                <Battery className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold" data-testid="metric-soc">{truck.soc.toFixed(0)}%</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Voltage</CardTitle>
-                <Zap className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold" data-testid="metric-voltage">{truck.v1.toFixed(2)}V</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Current</CardTitle>
-                <Activity className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold" data-testid="metric-current">{truck.ah.toFixed(1)}Ah</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Power</CardTitle>
-                <Thermometer className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold" data-testid="metric-power">{truck.p.toFixed(1)}kW</div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* Historical Data - moved below Figma content */}
-        <div className="pt-4">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Historical Data</h3>
-            <span className="text-sm text-muted-foreground">
-              {historyLoading ? "Loading..." : `${historyData.length} data points`}
-            </span>
-          </div>
-          {historyLoading ? (
-            <div className="flex items-center justify-center h-[200px] text-muted-foreground">
-              Loading historical data...
+          <CollapsibleContent className="pt-4">
+            <div className="bg-[#fafbfc] border border-[#ebeef2] rounded-lg h-[48px] p-[6px] shadow-[0px_1px_3px_0px_rgba(96,108,128,0.05)] flex">
+              <button
+                onClick={() => setVoltageSource("V1")}
+                className={`flex-1 h-[36px] rounded-md flex items-center justify-center gap-1.5 text-base ${
+                  voltageSource === "V1" 
+                    ? "bg-[#303030] text-white font-semibold border border-[#ebeef2]" 
+                    : "text-[#4a5565]"
+                }`}
+                data-testid="button-voltage-v1"
+              >
+                {voltageSource === "V1" && <Check className="w-3.5 h-3.5" />}
+                V1
+              </button>
+              <button
+                onClick={() => setVoltageSource("V2")}
+                className={`flex-1 h-[36px] rounded-md flex items-center justify-center gap-1.5 text-base ${
+                  voltageSource === "V2" 
+                    ? "bg-[#303030] text-white font-semibold border border-[#ebeef2]" 
+                    : "text-[#4a5565]"
+                }`}
+                data-testid="button-voltage-v2"
+              >
+                {voltageSource === "V2" && <Check className="w-3.5 h-3.5" />}
+                V2
+              </button>
             </div>
-          ) : historyData.length === 0 ? (
-            <div className="flex items-center justify-center h-[200px] text-muted-foreground">
-              No historical data available
-            </div>
-          ) : (
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm font-medium">State of Charge (%)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={200}>
-                  <LineChart data={socData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="time" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-                    <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'hsl(var(--background))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '6px'
-                      }}
-                    />
-                    <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+          </CollapsibleContent>
+        </Collapsible>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm font-medium">Voltage (V)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={200}>
-                  <LineChart data={voltageData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="time" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-                    <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'hsl(var(--background))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '6px'
-                      }}
-                    />
-                    <Line type="monotone" dataKey="value" stroke="hsl(var(--chart-2))" strokeWidth={2} dot={false} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm font-medium">Current (A)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={200}>
-                  <LineChart data={currentData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="time" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-                    <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'hsl(var(--background))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '6px'
-                      }}
-                    />
-                    <Line type="monotone" dataKey="value" stroke="hsl(var(--chart-3))" strokeWidth={2} dot={false} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm font-medium">Power (W)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={200}>
-                  <LineChart data={wattsData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="time" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-                    <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'hsl(var(--background))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '6px'
-                      }}
-                    />
-                    <Line type="monotone" dataKey="value" stroke="hsl(var(--chart-4))" strokeWidth={2} dot={false} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+        {/* Device Settings */}
+        <Collapsible open={settingsOpen} onOpenChange={setSettingsOpen}>
+          <div className="border-b border-[#ebeef2] pb-4">
+            <CollapsibleTrigger className="flex items-center justify-between w-full" data-testid="toggle-settings">
+              <p className="text-lg font-medium text-neutral-950">Device Settings</p>
+              {settingsOpen ? <Minus className="w-5 h-5 text-[#2d2826]" /> : <Plus className="w-5 h-5 text-[#2d2826]" />}
+            </CollapsibleTrigger>
           </div>
-          )}
-        </div>
+          <CollapsibleContent className="pt-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-base text-[#4a5565]">Flip Current Sign</p>
+              <Toggle enabled={flipCurrentSign} onToggle={() => setFlipCurrentSign(!flipCurrentSign)} />
+            </div>
+            <div className="flex items-center justify-between">
+              <p className="text-base text-[#4a5565]">Turn On at Startup</p>
+              <Toggle enabled={turnOnAtStartup} onToggle={() => setTurnOnAtStartup(!turnOnAtStartup)} />
+            </div>
+            <div className="flex items-center justify-between">
+              <p className="text-base text-[#4a5565]">Latch Relay On</p>
+              <Toggle enabled={latchRelayOn} onToggle={() => setLatchRelayOn(!latchRelayOn)} />
+            </div>
+            <div className="flex items-center justify-between">
+              <p className="text-base text-[#4a5565]">Invert Relay Logic</p>
+              <Toggle enabled={invertRelayLogic} onToggle={() => setInvertRelayLogic(!invertRelayLogic)} />
+            </div>
+            
+            <div className="pt-4 space-y-4">
+              <InputField label="Connect Filter (milliseconds)" value="1000" />
+              <DropdownField 
+                label="MF Terminal Function" 
+                value={mfTerminalFunction}
+                options={["Push button input", "Toggle switch input", "Momentary switch", "Disabled"]}
+                onValueChange={setMfTerminalFunction}
+                testId="dropdown-mf-terminal"
+              />
+              <DropdownField 
+                label="Data Logging mode" 
+                value={dataLoggingMode}
+                options={["Every 10 seconds", "Every 30 seconds", "Every minute", "Every 5 minutes", "Disabled"]}
+                onValueChange={setDataLoggingMode}
+                testId="dropdown-data-logging"
+              />
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+
+        {/* Current Metrics */}
+        <Collapsible open={metricsOpen} onOpenChange={setMetricsOpen}>
+          <div className="border-b border-[#ebeef2] pb-4">
+            <CollapsibleTrigger className="flex items-center justify-between w-full" data-testid="toggle-metrics">
+              <p className="text-lg font-medium text-neutral-950">Current Metrics</p>
+              {metricsOpen ? <Minus className="w-5 h-5 text-[#2d2826]" /> : <Plus className="w-5 h-5 text-[#2d2826]" />}
+            </CollapsibleTrigger>
+          </div>
+          <CollapsibleContent className="pt-4">
+            <div className="grid grid-cols-2 gap-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">State of Charge</CardTitle>
+                  <Battery className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold" data-testid="metric-soc">{truck.soc.toFixed(0)}%</div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Voltage</CardTitle>
+                  <Zap className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold" data-testid="metric-voltage">{truck.v1.toFixed(2)}V</div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Current</CardTitle>
+                  <Activity className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold" data-testid="metric-current">{truck.ah.toFixed(1)}Ah</div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Power</CardTitle>
+                  <Thermometer className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold" data-testid="metric-power">{truck.p.toFixed(1)}kW</div>
+                </CardContent>
+              </Card>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+
+        {/* Historical Data */}
+        <Collapsible open={historyOpen} onOpenChange={setHistoryOpen}>
+          <div className="border-b border-[#ebeef2] pb-4">
+            <CollapsibleTrigger className="flex items-center justify-between w-full" data-testid="toggle-history">
+              <p className="text-lg font-medium text-neutral-950">Historical Data</p>
+              {historyOpen ? <Minus className="w-5 h-5 text-[#2d2826]" /> : <Plus className="w-5 h-5 text-[#2d2826]" />}
+            </CollapsibleTrigger>
+          </div>
+          <CollapsibleContent className="pt-4">
+            {historyLoading ? (
+              <div className="flex items-center justify-center h-[200px] text-muted-foreground">
+                Loading historical data...
+              </div>
+            ) : historyData.length === 0 ? (
+              <div className="flex items-center justify-center h-[200px] text-muted-foreground">
+                No historical data available
+              </div>
+            ) : (
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm font-medium">State of Charge (%)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <LineChart data={socData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="time" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+                      <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--background))',
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '6px'
+                        }}
+                      />
+                      <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm font-medium">Voltage (V)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <LineChart data={voltageData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="time" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+                      <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--background))',
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '6px'
+                        }}
+                      />
+                      <Line type="monotone" dataKey="value" stroke="hsl(var(--chart-2))" strokeWidth={2} dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm font-medium">Current (A)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <LineChart data={currentData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="time" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+                      <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--background))',
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '6px'
+                        }}
+                      />
+                      <Line type="monotone" dataKey="value" stroke="hsl(var(--chart-3))" strokeWidth={2} dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm font-medium">Power (W)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <LineChart data={wattsData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="time" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+                      <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--background))',
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '6px'
+                        }}
+                      />
+                      <Line type="monotone" dataKey="value" stroke="hsl(var(--chart-4))" strokeWidth={2} dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
+            )}
+          </CollapsibleContent>
+        </Collapsible>
       </div>
     </div>
   );
