@@ -238,7 +238,7 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
                   </div>
                   
                   <Button 
-                    className="w-full" 
+                    className="w-full bg-[#FA4B1E] hover:bg-[#e0431a] text-white" 
                     onClick={handleExportHistory}
                     disabled={isExporting}
                     data-testid="button-confirm-export"
