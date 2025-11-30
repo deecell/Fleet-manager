@@ -204,7 +204,19 @@ export default function Dashboard() {
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
+            <div className="relative w-[240px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9c9ca7]" />
+              <input
+                type="text"
+                placeholder="Search for something"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full h-9 pl-9 pr-4 bg-[#f5f6f8] border border-[#ebeef2] rounded-lg text-sm text-neutral-950 placeholder:text-[#9c9ca7] focus:outline-none focus:ring-1 focus:ring-[#ebeef2]"
+                data-testid="input-search"
+              />
+            </div>
+            
             <Notifications 
               notifications={notifications}
               onMarkAsRead={handleMarkAsRead}
@@ -283,18 +295,6 @@ export default function Dashboard() {
               <Download className="w-4 h-4 mr-2" />
               Export CSV
             </Button>
-
-            <div className="relative w-[289px]">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-[17px] h-[17px] text-[#9c9ca7]" />
-              <input
-                type="text"
-                placeholder="Search for something"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-10 pl-11 pr-4 bg-white border border-[#ebeef2] rounded-lg text-sm text-neutral-950 placeholder:text-[#9c9ca7] focus:outline-none focus:ring-1 focus:ring-[#ebeef2]"
-                data-testid="input-search"
-              />
-            </div>
             
             <div className="bg-[#fafbfc] border border-[#ebeef2] rounded-lg h-[40px] p-[6px] shadow-[0px_1px_3px_0px_rgba(96,108,128,0.05)]">
               <div className="flex items-center h-full">
