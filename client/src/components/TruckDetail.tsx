@@ -424,7 +424,7 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
               </div>
             ) : (
             <div className="space-y-6">
-              <Card>
+              <Card className="bg-[#FAFBFC]">
                 <CardHeader>
                   <CardTitle className="text-sm font-medium">State of Charge (%)</CardTitle>
                 </CardHeader>
@@ -447,7 +447,7 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="bg-[#FAFBFC]">
                 <CardHeader>
                   <CardTitle className="text-sm font-medium">Voltage (V)</CardTitle>
                 </CardHeader>
@@ -470,7 +470,7 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="bg-[#FAFBFC]">
                 <CardHeader>
                   <CardTitle className="text-sm font-medium">Current (A)</CardTitle>
                 </CardHeader>
@@ -493,7 +493,7 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="bg-[#FAFBFC]">
                 <CardHeader>
                   <CardTitle className="text-sm font-medium">Power (W)</CardTitle>
                 </CardHeader>
