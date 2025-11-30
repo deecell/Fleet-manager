@@ -6,6 +6,29 @@
 
 ## Latest Updates (November 30, 2025)
 
+### 🎉 MILESTONE: First Live PowerMon Connection from Cloud! (November 30, 2025)
+- **Achievement**: Successfully connected to live PowerMon device "DCL-Moeck" via WiFi from cloud server
+- **Connection URL**: `https://applinks.thornwave.com/?n=DCL-Moeck&s=a3a5b30ea9b3ff98&h=41&c=...`
+- **Device Details**:
+  - Name: DCL-Moeck
+  - Hardware: PowerMon-W (WiFi)
+  - Firmware: v1.32
+  - Serial: A3A5B30EA9B3FF98
+- **Live Data Retrieved**:
+  - Voltage: 28.75 V
+  - Current: -0.36 A (discharging)
+  - Power: -10.4 W
+  - Temperature: 22.9 °C
+  - SOC: 98%
+  - Runtime: 63,238 minutes (~44 days)
+- **Lifetime Statistics**:
+  - Total Charge: 7,990 Ah (222.7 kWh)
+  - Total Discharge: 8,468 Ah (234.6 kWh)
+  - Voltage Range: 23.26V - 30.95V
+  - Max Current: 1,092 A
+- **Bug Fix**: Removed BLE check from `Connect()` method - WiFi connections don't require BLE
+- **Validation**: End-to-end data pipeline confirmed working!
+
 ### Thornwave libpowermon v1.17 Update - BLE Dependency Removed! (November 30, 2025)
 - **Breakthrough**: Thornwave updated the library to separate BLE initialization from object creation
 - **Key Change**: New `initBle()` method - BLE is now optional, called separately after `createInstance()`
