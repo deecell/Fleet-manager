@@ -114,7 +114,7 @@ export function FleetAssistant() {
                 <Bot className="h-5 w-5 text-[#FA4B1E]" />
               </div>
               <div>
-                <h3 className="font-semibold text-sm text-neutral-950">Fleet AI Assistant</h3>
+                <h3 className="font-semibold text-sm text-neutral-950">Ray Ray, AI Assistant</h3>
                 <p className="text-xs text-muted-foreground">Ask me anything about your fleet</p>
               </div>
             </div>
