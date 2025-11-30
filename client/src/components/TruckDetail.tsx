@@ -1,5 +1,6 @@
 import { TruckWithHistory, Notification, HistoricalDataPoint } from "@shared/schema";
-import { X, Battery, Zap, Activity, Thermometer, Check, ChevronDown, AlertTriangle, Loader2, Download, Calendar, Plus, Minus } from "lucide-react";
+import { X, Battery, Zap, Activity, Thermometer, Check, ChevronDown, AlertTriangle, Loader2, Download, Plus, Minus } from "lucide-react";
+import calendarIcon from "@assets/calendar.svg";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
@@ -196,10 +197,10 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
                           <Button
                             variant="outline"
                             size="sm"
-                            className="w-full justify-start text-left font-normal"
+                            className="w-full justify-start text-left font-normal no-default-hover-elevate no-default-active-elevate"
                             data-testid="button-export-start-date"
                           >
-                            <Calendar className="mr-2 h-4 w-4" />
+                            <img src={calendarIcon} alt="" className="mr-2 h-4 w-4" />
                             {format(exportStartDate, "MMM d, yyyy")}
                           </Button>
                         </PopoverTrigger>
@@ -221,10 +222,10 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
                           <Button
                             variant="outline"
                             size="sm"
-                            className="w-full justify-start text-left font-normal"
+                            className="w-full justify-start text-left font-normal no-default-hover-elevate no-default-active-elevate"
                             data-testid="button-export-end-date"
                           >
-                            <Calendar className="mr-2 h-4 w-4" />
+                            <img src={calendarIcon} alt="" className="mr-2 h-4 w-4" />
                             {format(exportEndDate, "MMM d, yyyy")}
                           </Button>
                         </PopoverTrigger>
