@@ -619,11 +619,13 @@ Napi::Value PowermonWrapper::DecodeLogData(const Napi::CallbackInfo& info) {
     }
     
     std::vector<PowermonLogFile::Sample> samples;
-    uint32_t result_code = PowermonLogFile::decode(data, samples);
+    uint32_t start_time = PowermonLogFile::decode(data, samples);
     
     Napi::Object result = Napi::Object::New(env);
-    result.Set("success", Napi::Boolean::New(env, result_code == 0));
-    result.Set("code", Napi::Number::New(env, result_code));
+    // decode() returns the file start timestamp on success, 0 on failure
+    bool success = (start_time != 0 && !samples.empty());
+    result.Set("success", Napi::Boolean::New(env, success));
+    result.Set("startTime", Napi::Number::New(env, start_time));
     
     Napi::Array arr = Napi::Array::New(env, samples.size());
     for (size_t i = 0; i < samples.size(); i++) {

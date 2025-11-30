@@ -62,6 +62,11 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
 - **Build**: `cd device-manager && npx node-gyp rebuild`
 - **Status**: ✅ MILESTONE ACHIEVED - Live connection to "DCL-Moeck" PowerMon-W device successful!
 - **Verified Data**: Voltage (28.75V), Current (-0.36A), SOC (98%), Temperature (22.9°C), lifetime stats.
+- **Log Sync Service (Nov 30)**: `device-manager/lib/log-sync.js` - Incremental historical data sync
+  - Lists log files on device (tested: 41 files, 14MB, June-Nov 2025)
+  - Reads/decodes binary log data (10-second sample interval)
+  - Tracks sync state per device for incremental updates
+  - Functions: `syncDeviceLogs()`, `syncSince()`, `getLogFileList()`, `decodeLogData()`
 - **Key Update (Nov 30)**: Thornwave separated BLE from `createInstance()` - WiFi works on servers without Bluetooth.
 - **BLE Handling**: `device.isBleAvailable()` returns true only if `initBle()` succeeded.
 - **Fallback**: Subprocess bridge (`powermon-bridge`) available if native addon issues arise.

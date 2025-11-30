@@ -235,21 +235,119 @@ device.getLogFileList((result) => {
 });
 ```
 
-#### `device.readLogFile(fileId, callback)`
-Reads samples from a specific log file.
+#### `device.readLogFile(fileId, offset, size, callback)`
+Reads raw binary data from a specific log file. Use `decodeLogData` to parse the samples.
 
 ```javascript
-device.readLogFile(fileId, (result) => {
-    if (result.success) {
-        result.data.samples.forEach(sample => {
-            console.log('Time:', sample.time);
-            console.log('Voltage:', sample.voltage1);
-            console.log('Current:', sample.current);
-            console.log('SOC:', sample.soc);
-        });
+device.readLogFile(fileId, 0, fileSize, (result) => {
+    if (result.success && result.data) {
+        // result.data is a Uint8Array of raw bytes
+        const decoded = addon.PowermonDevice.decodeLogData(result.data);
+        
+        if (decoded.success) {
+            console.log('Start time:', new Date(decoded.startTime * 1000));
+            console.log('Samples:', decoded.samples.length);
+            
+            decoded.samples.forEach(sample => {
+                console.log('Time:', new Date(sample.time * 1000));
+                console.log('Voltage:', sample.voltage1, 'V');
+                console.log('Current:', sample.current, 'A');
+                console.log('SOC:', sample.soc, '%');
+            });
+        }
     }
 });
 ```
+
+#### `PowermonDevice.decodeLogData(buffer)`
+Decodes raw log file data into samples. Static method.
+
+```javascript
+const decoded = addon.PowermonDevice.decodeLogData(rawBytes);
+// {
+//   success: true,
+//   startTime: 1764378120,  // File start timestamp
+//   samples: [...]          // Array of LogSample objects
+// }
+```
+
+## Log Sync Service
+
+The Log Sync Service (`lib/log-sync.js`) provides incremental syncing of historical data:
+
+### Features
+- **Incremental sync**: Only reads new data since last sync
+- **State tracking**: Persists sync state per device
+- **Progress callbacks**: Reports sync progress in real-time
+- **Error resilience**: Continues syncing if individual files fail
+
+### Usage
+
+```javascript
+const addon = require('./build/Release/powermon_addon.node');
+const logSync = require('./lib/log-sync.js');
+
+// After connecting to device...
+device.connect({
+    accessKey: parsed.accessKey,
+    onConnect: async () => {
+        // Get log file overview
+        const files = await logSync.getLogFileList(device);
+        const range = logSync.estimateLogTimeRange(files);
+        console.log('Files:', files.length);
+        console.log('Oldest:', range.oldestTime);
+        console.log('Newest:', range.newestTime);
+        console.log('Total size:', range.totalBytes, 'bytes');
+        
+        // First sync (no previous state)
+        const result = await logSync.syncDeviceLogs(
+            device,
+            'DEVICE_SERIAL',
+            null,  // No previous state
+            (progress) => {
+                console.log(`[${progress.phase}] ${progress.message}`);
+            }
+        );
+        
+        console.log('Synced:', result.samplesRetrieved, 'samples');
+        console.log('State:', result.newState);
+        
+        // Save newState to database for next sync...
+        
+        // Later: Incremental sync
+        const result2 = await logSync.syncDeviceLogs(
+            device,
+            'DEVICE_SERIAL',
+            previousState,  // Loaded from database
+            null
+        );
+        // Only new samples since last sync
+    }
+});
+```
+
+### API
+
+#### `logSync.getLogFileList(device)`
+Returns Promise of log files array.
+
+#### `logSync.estimateLogTimeRange(files)`
+Returns `{ oldestTime, newestTime, totalBytes, estimatedSamples }`.
+
+#### `logSync.syncDeviceLogs(device, serial, state, progressCallback)`
+Main sync function. Returns:
+```javascript
+{
+  success: true,
+  filesProcessed: 2,
+  samplesRetrieved: 18467,
+  samples: [...],
+  newState: { deviceSerial, lastSyncTime, lastFileId, lastFileOffset, totalSamplesSynced }
+}
+```
+
+#### `logSync.syncSince(device, serial, timestamp, progressCallback)`
+Sync all data since a specific Unix timestamp.
 
 ## Data Structures
 
@@ -359,6 +457,7 @@ device-manager/
 │   ├── powermon_wrapper.cpp  # C++ wrapper implementation
 │   └── powermon_wrapper.h    # C++ wrapper header
 ├── lib/
+│   ├── log-sync.js        # Log file sync service
 │   ├── index.ts           # TypeScript entry (alternative)
 │   └── bridge-client.ts   # Subprocess bridge (fallback)
 └── build/

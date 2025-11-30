@@ -6,6 +6,39 @@
 
 ## Latest Updates (November 30, 2025)
 
+### Log Sync Service - Incremental Historical Data Sync (November 30, 2025)
+- **New Feature**: `device-manager/lib/log-sync.js` - Service for syncing historical log data from PowerMon
+- **Capabilities**:
+  - List log files on device with metadata (ID, size, date)
+  - Read raw log file data with offset/size control
+  - Decode binary log data into structured samples
+  - Incremental sync - tracks last sync state per device
+  - Progress callbacks for UI feedback
+- **Live Test Results** (DCL-Moeck device):
+  - 41 log files on device (14 MB total, ~2M samples)
+  - Date range: June 27 - November 30, 2025
+  - Sample interval: 10 seconds
+  - Successfully synced 18,467 samples from last 2 files
+  - Incremental sync correctly detects "already up to date"
+- **API Functions**:
+  - `getLogFileList(device)` - Get list of log files
+  - `estimateLogTimeRange(files)` - Get oldest/newest dates, total size
+  - `syncDeviceLogs(device, serial, state, progressCb)` - Full incremental sync
+  - `syncSince(device, serial, timestamp, progressCb)` - Sync from timestamp
+  - `decodeLogData(buffer)` - Decode raw bytes to samples
+- **Sync State Structure**:
+  ```javascript
+  {
+    deviceSerial: "A3A5B30EA9B3FF98",
+    lastSyncTime: 1764546714405,
+    lastFileId: 1764378120,
+    lastFileOffset: 123920,
+    totalSamplesSynced: 18467
+  }
+  ```
+- **Wrapper Fix**: `decodeLogData()` now returns `startTime` (file start timestamp) instead of error code
+- **Documentation**: Updated `device-manager/README.md` with Log Sync Service section
+
 ### Step 8 Complete: Device Manager Documentation (November 30, 2025)
 - **Created**: `device-manager/README.md` - comprehensive documentation
 - **Contents**:
