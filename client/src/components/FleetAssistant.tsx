@@ -228,14 +228,9 @@ export function FleetAssistant() {
           </div>
         </div>
       )}
-
       <button
         onClick={() => setOpen(!open)}
-        className={`fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all z-50 ${
-          open 
-            ? "bg-gray-600 hover:bg-gray-700" 
-            : "bg-[#FA4B1E] hover:bg-[#e54419]"
-        }`}
+        className="fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all z-50 hover:bg-[#e54419] bg-[#FFD7C0]"
         data-testid="button-open-assistant"
       >
         {open ? (
