@@ -155,7 +155,7 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
             <h2 className="text-[26px] font-medium text-black leading-6 tracking-tight" data-testid="truck-detail-name">
               {truck.name}
             </h2>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-[2px]">
               <div 
                 className={`h-[27px] px-3 rounded-md flex items-center gap-2 ${
                   truck.status === "in-service" 
