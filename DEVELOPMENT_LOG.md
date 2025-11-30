@@ -6,6 +6,20 @@
 
 ## Latest Updates (November 30, 2025)
 
+### Database Schema Update - Device Statistics Table (November 30, 2025)
+- **New Table**: `device_statistics` - stores lifetime fuelgauge statistics from PowerMon
+- **Fields Added**:
+  - Lifetime energy: `totalCharge`, `totalChargeEnergy`, `totalDischarge`, `totalDischargeEnergy` (Ah/Wh)
+  - Voltage range: `minVoltage`, `maxVoltage`
+  - Current peaks: `maxChargeCurrent`, `maxDischargeCurrent`
+  - Fuel gauge: `timeSinceLastFullCharge`, `fullChargeCapacity`, `deepestDischarge`, `lastDischarge`, `soc`
+  - Session stats: `secondsSinceOn`, `voltage1Min/Max`, `voltage2Min/Max`, `peakChargeCurrent`, `peakDischargeCurrent`, `temperatureMin/Max`
+- **Updated Tables**:
+  - `device_snapshots` - added `powerStatus` (integer) and `powerStatusString` (text)
+  - `device_measurements` - added `powerStatus` (integer) and `powerStatusString` (text)
+- **Schema Types**: Added `DeviceStatistics`, `InsertDeviceStatistics`, `insertDeviceStatisticsSchema`
+- **Impact**: Full PowerMon data storage capability now available
+
 ### 🎉 MILESTONE: First Live PowerMon Connection from Cloud! (November 30, 2025)
 - **Achievement**: Successfully connected to live PowerMon device "DCL-Moeck" via WiFi from cloud server
 - **Connection URL**: `https://applinks.thornwave.com/?n=DCL-Moeck&s=a3a5b30ea9b3ff98&h=41&c=...`

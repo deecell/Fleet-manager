@@ -33,7 +33,8 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
 - **Database**: PostgreSQL with Drizzle ORM, using Neon serverless driver.
 - **Schema Management**: Drizzle Kit (`npm run db:push`), schema in `./shared/schema.ts`.
 - **Session Storage**: PostgreSQL-backed sessions using `connect-pg-simple`.
-- **Data Models**: 13 tables including Organizations, Users, Fleets, Trucks, Devices, Snapshots, Measurements, Alerts, etc.
+- **Data Models**: 14 tables including Organizations, Users, Fleets, Trucks, Devices, Snapshots, Measurements, Statistics, Alerts, etc.
+- **New Table (Nov 30)**: `device_statistics` - stores lifetime fuelgauge stats (totalCharge, totalDischarge, voltage range, current peaks, etc.)
 - **Multi-tenancy**: `organization_id` on all business tables, row-level security enforced by middleware.
 
 ### Design System

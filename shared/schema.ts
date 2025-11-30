@@ -167,6 +167,8 @@ export const deviceSnapshots = pgTable("device_snapshots", {
   charge: real("charge"),
   runtime: integer("runtime"),
   rssi: integer("rssi"),
+  powerStatus: integer("power_status"),
+  powerStatusString: text("power_status_string"),
   recordedAt: timestamp("recorded_at").notNull(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => ({
@@ -198,6 +200,8 @@ export const deviceMeasurements = pgTable("device_measurements", {
   charge: real("charge"),
   runtime: integer("runtime"),
   rssi: integer("rssi"),
+  powerStatus: integer("power_status"),
+  powerStatusString: text("power_status_string"),
   source: text("source").default("poll"),
   recordedAt: timestamp("recorded_at").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
@@ -205,6 +209,48 @@ export const deviceMeasurements = pgTable("device_measurements", {
   orgDeviceTimeIdx: index("measurement_org_device_time_idx").on(table.organizationId, table.deviceId, table.recordedAt),
   recordedAtIdx: index("measurement_recorded_at_idx").on(table.recordedAt),
   deviceTimeIdx: index("measurement_device_time_idx").on(table.deviceId, table.recordedAt),
+}));
+
+// =============================================================================
+// DEVICE STATISTICS (lifetime fuelgauge statistics from PowerMon)
+// =============================================================================
+export const deviceStatistics = pgTable("device_statistics", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  deviceId: integer("device_id")
+    .notNull()
+    .references(() => powerMonDevices.id, { onDelete: "cascade" }),
+  truckId: integer("truck_id")
+    .references(() => trucks.id, { onDelete: "set null" }),
+  totalCharge: real("total_charge"),
+  totalChargeEnergy: real("total_charge_energy"),
+  totalDischarge: real("total_discharge"),
+  totalDischargeEnergy: real("total_discharge_energy"),
+  minVoltage: real("min_voltage"),
+  maxVoltage: real("max_voltage"),
+  maxChargeCurrent: real("max_charge_current"),
+  maxDischargeCurrent: real("max_discharge_current"),
+  timeSinceLastFullCharge: integer("time_since_last_full_charge"),
+  fullChargeCapacity: real("full_charge_capacity"),
+  deepestDischarge: real("deepest_discharge"),
+  lastDischarge: real("last_discharge"),
+  soc: real("soc"),
+  secondsSinceOn: integer("seconds_since_on"),
+  voltage1Min: real("voltage1_min"),
+  voltage1Max: real("voltage1_max"),
+  voltage2Min: real("voltage2_min"),
+  voltage2Max: real("voltage2_max"),
+  peakChargeCurrent: real("peak_charge_current"),
+  peakDischargeCurrent: real("peak_discharge_current"),
+  temperatureMin: real("temperature_min"),
+  temperatureMax: real("temperature_max"),
+  recordedAt: timestamp("recorded_at").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  deviceIdx: uniqueIndex("statistics_device_idx").on(table.deviceId),
+  orgIdx: index("statistics_org_idx").on(table.organizationId),
 }));
 
 // =============================================================================
@@ -486,6 +532,9 @@ export const insertDeviceMeasurementSchema = createInsertSchema(deviceMeasuremen
 export const insertDeviceSyncStatusSchema = createInsertSchema(deviceSyncStatus)
   .omit({ id: true, updatedAt: true });
 
+export const insertDeviceStatisticsSchema = createInsertSchema(deviceStatistics)
+  .omit({ id: true, updatedAt: true });
+
 export const insertAlertSchema = createInsertSchema(alerts)
   .omit({ id: true, createdAt: true, updatedAt: true });
 
@@ -524,6 +573,7 @@ export type PowerMonDevice = typeof powerMonDevices.$inferSelect;
 export type DeviceCredential = typeof deviceCredentials.$inferSelect;
 export type DeviceSnapshot = typeof deviceSnapshots.$inferSelect;
 export type DeviceMeasurement = typeof deviceMeasurements.$inferSelect;
+export type DeviceStatistics = typeof deviceStatistics.$inferSelect;
 export type DeviceSyncStatus = typeof deviceSyncStatus.$inferSelect;
 export type Alert = typeof alerts.$inferSelect;
 export type AuditLog = typeof auditLogs.$inferSelect;
@@ -546,6 +596,7 @@ export type InsertPowerMonDevice = z.infer<typeof insertPowerMonDeviceSchema>;
 export type InsertDeviceCredential = z.infer<typeof insertDeviceCredentialSchema>;
 export type InsertDeviceSnapshot = z.infer<typeof insertDeviceSnapshotSchema>;
 export type InsertDeviceMeasurement = z.infer<typeof insertDeviceMeasurementSchema>;
+export type InsertDeviceStatistics = z.infer<typeof insertDeviceStatisticsSchema>;
 export type InsertDeviceSyncStatus = z.infer<typeof insertDeviceSyncStatusSchema>;
 export type InsertAlert = z.infer<typeof insertAlertSchema>;
 export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
