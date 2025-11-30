@@ -176,7 +176,7 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
               <Popover open={showExportPopover} onOpenChange={setShowExportPopover}>
               <PopoverTrigger asChild>
                 <button 
-                  className="h-[27px] px-3 rounded-md flex items-center gap-2 border border-[#ebeef2] bg-white text-sm text-[#4a5565] hover-elevate"
+                  className="h-[27px] px-3 rounded-md flex items-center gap-2 border border-[#ebeef2] bg-white text-sm text-[#4a5565] hover-elevate ml-[6px] mr-[6px]"
                   data-testid="button-export-truck-history"
                 >
                   <Download className="w-3.5 h-3.5" />
