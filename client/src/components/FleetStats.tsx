@@ -21,6 +21,29 @@ interface SavingsData {
   currentFuelPrice: number;
 }
 
+interface FleetStatsData {
+  avgSoc: {
+    value: number;
+    trend7Day: number;
+    trendPercentage: number;
+    trendIsPositive: boolean;
+  };
+  tractorHoursOffset: {
+    hours: number;
+    minutes: number;
+    trend7DayHours: number;
+    trend7DayMinutes: number;
+    trendPercentage: number;
+    trendIsPositive: boolean;
+  };
+  maintenanceIntervalIncrease: {
+    value: number;
+    trend7Day: number;
+    trendPercentage: number;
+    trendIsPositive: boolean;
+  };
+}
+
 interface StatCardProps {
   title: string;
   value: string;
@@ -148,10 +171,13 @@ function TimeStatCard({ title, trend, icon, iconBgColor, valueColor = "text-neut
 }
 
 export default function FleetStats({ trucks }: FleetStatsProps) {
-  const avgSoc = trucks.length > 0 ? trucks.reduce((sum, t) => sum + t.soc, 0) / trucks.length : 0;
-
   const { data: savingsData } = useQuery<SavingsData>({
     queryKey: ["/api/v1/savings"],
+    refetchInterval: 60000,
+  });
+
+  const { data: fleetStats } = useQuery<FleetStatsData>({
+    queryKey: ["/api/v1/fleet-stats"],
     refetchInterval: 60000,
   });
 
@@ -160,10 +186,46 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
   const trendPercent = savingsData?.trendPercentage ?? 0;
   const trendIsPositive = savingsData?.trendIsPositive ?? true;
 
-  const formatTrendValue = () => {
+  const formatSavingsTrend = () => {
     const dollarStr = `$ ${Math.abs(trendDollar).toFixed(0)}`;
     const percentStr = `(${Math.abs(trendPercent)}%)`;
-    return `${trendIsPositive ? '' : '-'}${dollarStr} ${percentStr}`;
+    return `${trendIsPositive ? '+' : '-'}${dollarStr} ${percentStr} vs 7d`;
+  };
+
+  const avgSoc = fleetStats?.avgSoc.value ?? (trucks.length > 0 ? trucks.reduce((sum, t) => sum + t.soc, 0) / trucks.length : 0);
+  const socTrendPercent = fleetStats?.avgSoc.trendPercentage ?? 0;
+  const socTrendIsPositive = fleetStats?.avgSoc.trendIsPositive ?? true;
+  const soc7DayAvg = fleetStats?.avgSoc.trend7Day ?? 0;
+
+  const formatSocTrend = () => {
+    const diff = avgSoc - soc7DayAvg;
+    return `${socTrendIsPositive ? '+' : '-'}${Math.abs(diff).toFixed(0)}% (${socTrendPercent}%) vs 7d`;
+  };
+
+  const maintenanceValue = fleetStats?.maintenanceIntervalIncrease.value ?? 0;
+  const maintenanceTrendPercent = fleetStats?.maintenanceIntervalIncrease.trendPercentage ?? 0;
+  const maintenanceTrendIsPositive = fleetStats?.maintenanceIntervalIncrease.trendIsPositive ?? true;
+  const maintenance7DayAvg = fleetStats?.maintenanceIntervalIncrease.trend7Day ?? 0;
+
+  const formatMaintenanceTrend = () => {
+    const diff = maintenanceValue - maintenance7DayAvg;
+    return `${maintenanceTrendIsPositive ? '+' : '-'}${Math.abs(diff)}% (${maintenanceTrendPercent}%) vs 7d`;
+  };
+
+  const hoursOffset = fleetStats?.tractorHoursOffset.hours ?? 0;
+  const minutesOffset = fleetStats?.tractorHoursOffset.minutes ?? 0;
+  const hoursTrendPercent = fleetStats?.tractorHoursOffset.trendPercentage ?? 0;
+  const hoursTrendIsPositive = fleetStats?.tractorHoursOffset.trendIsPositive ?? true;
+  const hours7DayAvg = fleetStats?.tractorHoursOffset.trend7DayHours ?? 0;
+  const minutes7DayAvg = fleetStats?.tractorHoursOffset.trend7DayMinutes ?? 0;
+
+  const formatHoursTrend = () => {
+    const todayTotal = hoursOffset + minutesOffset / 60;
+    const avgTotal = hours7DayAvg + minutes7DayAvg / 60;
+    const diffHours = Math.abs(todayTotal - avgTotal);
+    const diffH = Math.floor(diffHours);
+    const diffM = Math.round((diffHours - diffH) * 60);
+    return `${hoursTrendIsPositive ? '+' : '-'}${diffH}:${diffM.toString().padStart(2, '0')} (${hoursTrendPercent}%) vs 7d`;
   };
 
   return (
@@ -175,7 +237,7 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
         prefix="$ "
         decimals={2}
         trend={{ 
-          value: formatTrendValue(), 
+          value: formatSavingsTrend(), 
           isPositive: trendIsPositive 
         }}
         icon={<TrendingUp className="h-6 w-6 text-[#008236]" />}
@@ -188,25 +250,34 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
         targetNumber={avgSoc}
         suffix="%"
         decimals={0}
-        trend={{ value: "2 131kW (14%)", isPositive: true }}
+        trend={{ 
+          value: formatSocTrend(), 
+          isPositive: socTrendIsPositive 
+        }}
         icon={<Battery className="h-6 w-6 text-[#fa671e]" />}
         iconBgColor="bg-[#fef4e8]"
       />
       <StatCard
         title="Tractor maintenance interval increase"
-        value="24%"
-        targetNumber={24}
+        value={`${maintenanceValue}%`}
+        targetNumber={maintenanceValue}
         suffix="%"
         decimals={0}
-        trend={{ value: "2 131kW (14%)", isPositive: true }}
+        trend={{ 
+          value: formatMaintenanceTrend(), 
+          isPositive: maintenanceTrendIsPositive 
+        }}
         icon={<Wrench className="h-6 w-6 text-[#6b6164]" />}
         iconBgColor="bg-[#ece8e4]"
       />
       <TimeStatCard
         title="Tractor hours offset"
-        hours={7}
-        minutes={39}
-        trend={{ value: "-2:37 (10%)", isPositive: false }}
+        hours={hoursOffset}
+        minutes={minutesOffset}
+        trend={{ 
+          value: formatHoursTrend(), 
+          isPositive: hoursTrendIsPositive 
+        }}
         icon={<Clock className="h-6 w-6 text-[#6a7fbc]" />}
         iconBgColor="bg-[#e2e8f8]"
       />

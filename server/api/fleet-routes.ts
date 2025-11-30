@@ -817,4 +817,19 @@ router.get("/savings", tenantMiddleware, async (req: Request, res: Response) => 
   }
 });
 
+// ===========================================================================
+// FLEET STATS (calculates SOC, runtime, maintenance metrics with 7-day trends)
+// ===========================================================================
+import { fleetStatsCalculator } from "../services/fleet-stats-calculator";
+
+router.get("/fleet-stats", tenantMiddleware, async (req: Request, res: Response) => {
+  try {
+    const stats = await fleetStatsCalculator.calculateFleetStats(req.organizationId!);
+    res.json(stats);
+  } catch (error) {
+    console.error("Error calculating fleet stats:", error);
+    res.status(500).json({ error: "Failed to calculate fleet stats" });
+  }
+});
+
 export default router;

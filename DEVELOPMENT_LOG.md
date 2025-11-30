@@ -6,16 +6,20 @@
 
 ## Latest Updates (November 30, 2025)
 
+### Fleet Stats with 7-Day Trends (All 4 Cards)
+- **Fleet stats calculator**: `server/services/fleet-stats-calculator.ts` calculates all metrics
+- **API endpoint**: `GET /api/v1/fleet-stats` returns SOC, maintenance, runtime metrics with 7-day trends
+- **Today's Savings**: Real calculation from solar energy (solar_Wh / 1000 / 9 kWh/gal × fuel price)
+- **Avg SOC**: Current average from snapshots, compared to 7-day historical average
+- **Tractor maintenance interval**: Derived from runtime reduction (less engine use = extended intervals)
+- **Tractor hours offset**: Runtime hours saved, calculated from max-min per device per day
+- **Trend labels**: All cards now show "vs 7d" to indicate 7-day comparison
+- **EIA_API_KEY**: Configured and active - fetches live weekly diesel prices
+
 ### Savings Calculation Feature
 - **Database tables added**: `fuel_prices` (stores EIA diesel prices), `savings_config` (per-org calculation settings)
 - **EIA API client**: `server/services/eia-client.ts` fetches weekly diesel prices from U.S. Energy Information Administration
 - **Savings calculator**: `server/services/savings-calculator.ts` computes fuel savings from solar energy
-  - Formula: `(solar_Wh / 1000 / diesel_kWh_per_gallon) × fuel_price_per_gallon`
-  - Default diesel energy: ~9 kWh/gallon
-- **API endpoint**: `GET /api/v1/savings` returns today's savings, 7-day average, trend percentage
-- **FleetStats component**: Now fetches real calculated savings data instead of hardcoded values
-- **Trend display**: Shows dollar amount and percentage compared to 7-day average
-- **EIA_API_KEY**: Configured and active - fetches live weekly diesel prices from EIA
 
 ### Font Consistency Update
 - Changed application font from Inter to DM Sans for consistent typography
