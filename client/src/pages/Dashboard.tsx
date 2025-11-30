@@ -9,7 +9,8 @@ import { AlertBanner } from "@/components/AlertBanner";
 import { useLegacyTrucks, useLegacyNotifications, useAcknowledgeAlert, useResolveAlert, LegacyTruckWithDevice } from "@/lib/api";
 import { useSession, useLogout } from "@/lib/auth-api";
 import { useToast } from "@/hooks/use-toast";
-import { User, LogOut, ChevronDown, Search, Loader2 } from "lucide-react";
+import { User, LogOut, ChevronDown, Search, Loader2, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,6 +57,29 @@ export default function Dashboard() {
         title: "Logout failed", 
         variant: "destructive" 
       });
+    }
+  };
+
+  const handleExportAllTrucks = async () => {
+    try {
+      const response = await fetch("/api/v1/export/trucks", {
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Export failed");
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `fleet_trucks_${new Date().toISOString().split("T")[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      toast({ title: "Export complete", description: "Fleet data downloaded successfully" });
+    } catch (error) {
+      toast({ title: "Export failed", variant: "destructive" });
     }
   };
 
@@ -249,7 +273,18 @@ export default function Dashboard() {
               </span>
             </div>
             
-            <div className="relative w-[289px] ml-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportAllTrucks}
+              className="ml-auto shrink-0"
+              data-testid="button-export-all-trucks"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export CSV
+            </Button>
+
+            <div className="relative w-[289px]">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-[17px] h-[17px] text-[#9c9ca7]" />
               <input
                 type="text"

@@ -33,6 +33,7 @@
 | Step 11 | Device Manager (libpowermon) | ⏳ Awaiting Thornwave |
 | Step 12 | In-App Notifications | ✅ Complete |
 | Step 13 | SIMPro Integration | 🔄 In Progress |
+| Step 14 | CSV Export Feature | ✅ Complete |
 
 ---
 
@@ -1024,6 +1025,67 @@ Alerts are automatically resolved when conditions return to normal (e.g., device
 
 1. **Login React Hooks Error**: Fixed by moving `setLocation` redirect into `useEffect` hook
 2. **API Hook Imports**: Added `useMutation` import for alert acknowledge/resolve hooks
+
+---
+
+## Step 14: CSV Export Feature
+
+### Implementation Date
+November 30, 2025
+
+### What Was Built
+
+**CSV Export Functionality** - Allows users to export fleet and truck data to CSV files:
+
+| Feature | Description |
+|---------|-------------|
+| Export All Trucks | Downloads a summary of all trucks with current status, battery, location |
+| Export Truck History | Downloads detailed measurement history for a single truck with date range selection |
+
+### API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/export/trucks` | GET | Export all trucks summary to CSV |
+| `/api/v1/export/trucks/:id` | GET | Export single truck history (params: startTime, endTime) |
+
+### CSV Data Fields
+
+**All Trucks Export:**
+- Truck Number, Fleet, Status, Voltage 1/2, Current, SOC, Power, Temperature, Latitude, Longitude, Last Updated
+
+**Single Truck History:**
+- Timestamp, Truck Number, Fleet, Voltage 1/2, Current, SOC, Power, Temperature, Energy, Charge, Runtime
+
+### Frontend Components
+
+| Location | Feature |
+|----------|---------|
+| Dashboard.tsx | "Export CSV" button in Fleet Overview section |
+| TruckDetail.tsx | "Export" button with date range picker popover |
+
+### Key Files
+
+| File | Changes |
+|------|---------|
+| `server/api/fleet-routes.ts` | Added export endpoints with CSV generation |
+| `client/src/pages/Dashboard.tsx` | Added export all trucks button |
+| `client/src/components/TruckDetail.tsx` | Added export history with date range picker |
+
+### Features
+
+- Proper CSV escaping for special characters (commas, quotes, newlines)
+- Date range validation (start must be before end)
+- File naming with dates for easy identification
+- Loading states and toast notifications for user feedback
+- Up to 10,000 measurement records per export
+
+### Status
+
+- ✅ Backend export endpoints
+- ✅ Frontend export buttons with date picker
+- ✅ Date range validation
+- ✅ Proper CSV formatting
 
 ---
 
