@@ -2,7 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Bot, Send, User, Loader2, X, MessageCircle } from "lucide-react";
+import { Bot, Send, User, Loader2, X } from "lucide-react";
+import sunIcon from "@assets/sun.png";
 
 interface Message {
   role: "user" | "assistant";
@@ -230,13 +231,13 @@ export function FleetAssistant() {
       )}
       <button
         onClick={() => setOpen(!open)}
-        className="fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center z-50 bg-[#FFD7C0]"
+        className="fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center z-50 bg-[#ebeffa]"
         data-testid="button-open-assistant"
       >
         {open ? (
           <X className="h-6 w-6 text-[#FA4B1E]" />
         ) : (
-          <MessageCircle className="h-6 w-6 text-[#FA4B1E]" />
+          <img src={sunIcon} alt="AI Assistant" className="h-8 w-8" />
         )}
       </button>
     </>
