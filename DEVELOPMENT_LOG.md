@@ -12,9 +12,17 @@
 - **Today's Savings**: Real calculation from solar energy (solar_Wh / 1000 / 9 kWh/gal × fuel price)
 - **Avg SOC**: Current average from snapshots, compared to 7-day historical average
 - **Tractor maintenance interval**: Derived from runtime reduction (less engine use = extended intervals)
-- **Tractor hours offset**: Runtime hours saved, calculated from max-min per device per day
+- **Tractor hours offset**: Fleet-level total hours saved (baseline × device count - actual runtime)
 - **Trend labels**: All cards now show "vs 7d" to indicate 7-day comparison
 - **EIA_API_KEY**: Configured and active - fetches live weekly diesel prices
+
+### Fleet Stats Calculation Fix (November 30, 2025)
+- **Issue**: Hours offset was inflated when some devices were offline or not reporting
+- **Root cause**: Used total registered device count instead of devices that actually reported data
+- **Fix applied**: Baseline now calculated only from devices with measurements
+  - `deviceCountToday = todayData.deviceCount` (from actual measurements)
+  - `deviceCount7Day = sevenDayData.avgDeviceCount` (average across 7 days)
+- **Result**: Accurate fleet-level metrics that reflect only active reporting devices
 
 ### Savings Calculation Feature
 - **Database tables added**: `fuel_prices` (stores EIA diesel prices), `savings_config` (per-org calculation settings)
