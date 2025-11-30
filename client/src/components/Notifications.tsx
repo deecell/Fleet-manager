@@ -43,7 +43,7 @@ export function Notifications({ notifications, onMarkAsRead, onMarkAllAsRead, on
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button 
-          className="relative w-[46px] h-[41px] rounded-full flex items-center justify-center hover-elevate active-elevate-2"
+          className="relative w-[46px] h-[41px] rounded-full flex items-center justify-center"
           data-testid="button-notifications"
         >
           <Bell className="h-5 w-5 text-gray-600" />
