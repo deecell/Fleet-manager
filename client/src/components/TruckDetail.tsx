@@ -371,45 +371,37 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
           </div>
           <CollapsibleContent className="pt-4">
             <div className="grid grid-cols-2 gap-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">State of Charge</CardTitle>
+              <div className="rounded-lg bg-white border border-[#EBEEF2] shadow-[0_1px_3px_0_rgba(96,108,128,0.05)] p-4">
+                <div className="flex items-center justify-between gap-2 pb-2">
+                  <span className="text-sm font-medium text-muted-foreground">State of Charge</span>
                   <Battery className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold" data-testid="metric-soc">{truck.soc.toFixed(0)}%</div>
-                </CardContent>
-              </Card>
+                </div>
+                <div className="text-3xl font-bold" data-testid="metric-soc">{truck.soc.toFixed(0)}%</div>
+              </div>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Voltage</CardTitle>
+              <div className="rounded-lg bg-white border border-[#EBEEF2] shadow-[0_1px_3px_0_rgba(96,108,128,0.05)] p-4">
+                <div className="flex items-center justify-between gap-2 pb-2">
+                  <span className="text-sm font-medium text-muted-foreground">Voltage</span>
                   <Zap className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold" data-testid="metric-voltage">{truck.v1.toFixed(2)}V</div>
-                </CardContent>
-              </Card>
+                </div>
+                <div className="text-3xl font-bold" data-testid="metric-voltage">{truck.v1.toFixed(2)}V</div>
+              </div>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Current</CardTitle>
+              <div className="rounded-lg bg-white border border-[#EBEEF2] shadow-[0_1px_3px_0_rgba(96,108,128,0.05)] p-4">
+                <div className="flex items-center justify-between gap-2 pb-2">
+                  <span className="text-sm font-medium text-muted-foreground">Current</span>
                   <Activity className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold" data-testid="metric-current">{truck.ah.toFixed(1)}Ah</div>
-                </CardContent>
-              </Card>
+                </div>
+                <div className="text-3xl font-bold" data-testid="metric-current">{truck.ah.toFixed(1)}Ah</div>
+              </div>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Power</CardTitle>
+              <div className="rounded-lg bg-white border border-[#EBEEF2] shadow-[0_1px_3px_0_rgba(96,108,128,0.05)] p-4">
+                <div className="flex items-center justify-between gap-2 pb-2">
+                  <span className="text-sm font-medium text-muted-foreground">Power</span>
                   <Thermometer className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold" data-testid="metric-power">{truck.p.toFixed(1)}kW</div>
-                </CardContent>
-              </Card>
+                </div>
+                <div className="text-3xl font-bold" data-testid="metric-power">{truck.p.toFixed(1)}kW</div>
+              </div>
             </div>
           </CollapsibleContent>
         </Collapsible>
