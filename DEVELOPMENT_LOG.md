@@ -6,6 +6,22 @@
 
 ## Latest Updates (November 30, 2025)
 
+### Thornwave libpowermon v1.17 Update - BLE Dependency Removed! (November 30, 2025)
+- **Breakthrough**: Thornwave updated the library to separate BLE initialization from object creation
+- **Key Change**: New `initBle()` method - BLE is now optional, called separately after `createInstance()`
+- **Before (v1.16)**: `createInstance()` required Bluetooth adapter, failed on servers without BLE
+- **After (v1.17)**: `createInstance()` works on any system, WiFi connections work without BLE
+- **Updated Files**:
+  - `libpowermon_bin/` - Pulled latest from `git.thornwave.com`
+  - `device-manager/src/powermon_wrapper.cpp` - Updated constructor to use new pattern
+- **Test Results**:
+  - Library version: 1.17 ✅
+  - Device instance creation: Success ✅
+  - BLE available: false (expected on server without Bluetooth)
+  - WiFi connections: Ready to use!
+- **Build Command**: `cd device-manager && npx node-gyp rebuild`
+- **Impact**: Device Manager can now connect to PowerMon devices via WiFi on cloud servers
+
 ### Regional Diesel Pricing by Truck Location (November 30, 2025)
 - **Feature**: Diesel prices now vary by truck location using EIA PADD regions
 - **PADD Regions**: Petroleum Administration for Defense Districts

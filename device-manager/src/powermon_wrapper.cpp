@@ -38,21 +38,21 @@ PowermonWrapper::PowermonWrapper(const Napi::CallbackInfo& info)
     , connecting_(false)
     , ble_available_(false) {
     
-    try {
-        powermon_ = Powermon::createInstance();
-        if (powermon_ != nullptr) {
-            ble_available_ = true;
-            SetupCallbacks();
+    // With libpowermon v1.11+, createInstance() no longer requires BLE
+    // BLE is now initialized separately via initBle()
+    powermon_ = Powermon::createInstance();
+    
+    if (powermon_ != nullptr) {
+        SetupCallbacks();
+        
+        // Try to initialize BLE (optional - WiFi works without it)
+        try {
+            ble_available_ = powermon_->initBle();
+        } catch (...) {
+            // BLE init failed (expected on servers without Bluetooth)
+            // WiFi connections will still work
+            ble_available_ = false;
         }
-    } catch (const std::exception& e) {
-        // BLE initialization failed (expected on servers without Bluetooth)
-        // Static methods will still work, instance methods will return errors
-        powermon_ = nullptr;
-        ble_available_ = false;
-    } catch (...) {
-        // Catch any other exceptions
-        powermon_ = nullptr;
-        ble_available_ = false;
     }
 }
 

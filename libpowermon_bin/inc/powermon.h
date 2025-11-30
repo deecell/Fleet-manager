@@ -378,6 +378,13 @@ public:
 	 */
 	static uint16_t getVersion(void);
 
+
+	/**
+	 * \brief Initialized the BLE sub-system. This should be called once after creating the Powermon object.
+	 * \return True if the initialization was successful. If the initialization fails or the BLE adapter is turned off it will return false.
+	 */
+	virtual bool initBle(void) = 0;
+
 	
 	/**
 	 * \brief Connects to a remote WiFi PowerMon

@@ -53,14 +53,15 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
 - **API**: `POST /api/v1/auth/login`, `POST /api/v1/auth/logout`, `GET /api/v1/auth/session`.
 - **Protected Routes**: All fleet API routes require authenticated sessions; dashboard redirects to `/login` if unauthenticated.
 
-### Device Manager (Native Addon Complete)
+### Device Manager (Native Addon Complete - WiFi Ready!)
 - **Purpose**: Communicates with PowerMon devices on trucks via Thornwave's libpowermon C++ library.
 - **Architecture**: Node.js native addon (`powermon_addon.node`) built with node-addon-api (N-API).
-- **Library**: `libpowermon_bin` v1.16 - Thornwave's PIC-compiled library for shared object linking.
+- **Library**: `libpowermon_bin` v1.17 - Thornwave's PIC-compiled library with separated BLE init.
 - **Location**: `device-manager/` directory.
 - **Build**: `cd device-manager && npx node-gyp rebuild`
-- **Status**: Native addon built successfully. Awaiting Thornwave update for WiFi-only createInstance().
-- **BLE Handling**: Addon catches Bluetooth init errors gracefully. Check `device.isBleAvailable()` before connecting.
+- **Status**: ✅ WiFi connections fully operational! BLE optional via `initBle()` method.
+- **Key Update (Nov 30)**: Thornwave separated BLE from `createInstance()` - WiFi works on servers without Bluetooth.
+- **BLE Handling**: `device.isBleAvailable()` returns true only if `initBle()` succeeded.
 - **Fallback**: Subprocess bridge (`powermon-bridge`) available if native addon issues arise.
 
 ### SIMPro Integration (Truck Location Tracking)
