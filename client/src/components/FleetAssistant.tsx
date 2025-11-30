@@ -108,7 +108,7 @@ export function FleetAssistant() {
           className="fixed bottom-24 right-6 w-[380px] h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col z-50 overflow-hidden"
           data-testid="chat-window"
         >
-          <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-primary/10 to-primary/5">
+          <div className="flex items-center justify-between p-4 border-b from-primary/10 to-primary/5 bg-[#ffffff]">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
                 <Bot className="h-5 w-5 text-primary" />
