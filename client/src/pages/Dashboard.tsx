@@ -41,12 +41,11 @@ export default function Dashboard() {
   const acknowledgeAlert = useAcknowledgeAlert();
   const resolveAlert = useResolveAlert();
 
-  // TODO: Re-enable login after design work is complete
-  // useEffect(() => {
-  //   if (!sessionLoading && !session?.authenticated) {
-  //     setLocation("/login");
-  //   }
-  // }, [session, sessionLoading, setLocation]);
+  useEffect(() => {
+    if (!sessionLoading && !session?.authenticated) {
+      setLocation("/login");
+    }
+  }, [session, sessionLoading, setLocation]);
 
   const handleLogout = async () => {
     try {
@@ -92,16 +91,15 @@ export default function Dashboard() {
     );
   }
 
-  // TODO: Re-enable login after design work is complete
-  // if (!session?.authenticated) {
-  //   return null;
-  // }
+  if (!session?.authenticated) {
+    return null;
+  }
 
-  const userName = session?.user?.firstName 
+  const userName = session.user?.firstName 
     ? `${session.user.firstName}${session.user.lastName ? ' ' + session.user.lastName : ''}`
-    : session?.user?.email || "Demo User";
-  const userEmail = session?.user?.email || "demo@deecell.com";
-  const organizationName = session?.user?.organizationName || "Fleet Dashboard";
+    : session.user?.email || "User";
+  const userEmail = session.user?.email || "";
+  const organizationName = session.user?.organizationName || "Fleet Dashboard";
 
   const notifications = (apiNotifications || [])
     .filter(n => !dismissedNotifications.has(n.id))

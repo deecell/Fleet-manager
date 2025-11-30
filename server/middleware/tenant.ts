@@ -12,16 +12,7 @@ declare global {
 }
 
 export async function tenantMiddleware(req: Request, res: Response, next: NextFunction) {
-  // TODO: Re-enable authentication after design work is complete
-  // Demo mode: use organization ID 4 (Test Fleet Company) for unauthenticated requests
   if (!req.session?.organizationId || !req.session?.userId) {
-    const demoOrg = await storage.getOrganization(4);
-    if (demoOrg) {
-      req.organizationId = demoOrg.id;
-      req.organizationSlug = demoOrg.slug;
-      req.userId = 1; // Demo user ID
-      return next();
-    }
     return res.status(401).json({ 
       error: "Authentication required",
       message: "Please login to continue"
