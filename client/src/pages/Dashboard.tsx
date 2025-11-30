@@ -287,9 +287,8 @@ export default function Dashboard() {
             
             <Button
               variant="outline"
-              size="sm"
               onClick={handleExportAllTrucks}
-              className="ml-auto shrink-0"
+              className="ml-auto shrink-0 h-[40px]"
               data-testid="button-export-all-trucks"
             >
               <Download className="w-4 h-4 mr-2" />
