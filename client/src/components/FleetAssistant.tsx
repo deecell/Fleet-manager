@@ -212,7 +212,7 @@ export function FleetAssistant() {
                 onKeyDown={handleKeyDown}
                 placeholder="Ask about your fleet..."
                 disabled={isLoading}
-                className="flex-1 bg-white border-gray-200 rounded-full px-4 h-10"
+                className="flex-1 bg-white border-gray-200 rounded-full px-4 h-10 focus-visible:ring-0 focus-visible:ring-offset-0"
                 data-testid="input-chat-message"
               />
               <Button
