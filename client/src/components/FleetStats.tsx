@@ -1,5 +1,6 @@
 import { Battery, Clock, Wrench, TrendingUp, TrendingDown } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 interface TruckWithSoc {
   soc: number;
@@ -7,6 +8,17 @@ interface TruckWithSoc {
 
 interface FleetStatsProps {
   trucks: TruckWithSoc[];
+}
+
+interface SavingsData {
+  todaySavings: number;
+  todayWhSolar: number;
+  todayGallonsSaved: number;
+  last7DaysAverage: number;
+  trendPercentage: number;
+  trendIsPositive: boolean;
+  trendDollarAmount: number;
+  currentFuelPrice: number;
 }
 
 interface StatCardProps {
@@ -138,15 +150,34 @@ function TimeStatCard({ title, trend, icon, iconBgColor, valueColor = "text-neut
 export default function FleetStats({ trucks }: FleetStatsProps) {
   const avgSoc = trucks.length > 0 ? trucks.reduce((sum, t) => sum + t.soc, 0) / trucks.length : 0;
 
+  const { data: savingsData } = useQuery<SavingsData>({
+    queryKey: ["/api/v1/savings"],
+    refetchInterval: 60000,
+  });
+
+  const todaySavings = savingsData?.todaySavings ?? 0;
+  const trendDollar = savingsData?.trendDollarAmount ?? 0;
+  const trendPercent = savingsData?.trendPercentage ?? 0;
+  const trendIsPositive = savingsData?.trendIsPositive ?? true;
+
+  const formatTrendValue = () => {
+    const dollarStr = `$ ${Math.abs(trendDollar).toFixed(0)}`;
+    const percentStr = `(${Math.abs(trendPercent)}%)`;
+    return `${trendIsPositive ? '' : '-'}${dollarStr} ${percentStr}`;
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <StatCard
         title="Today's Savings"
-        value="$ 12,249.05"
-        targetNumber={12249.05}
+        value={`$ ${todaySavings.toFixed(2)}`}
+        targetNumber={todaySavings}
         prefix="$ "
         decimals={2}
-        trend={{ value: "$ 582 (14%)", isPositive: true }}
+        trend={{ 
+          value: formatTrendValue(), 
+          isPositive: trendIsPositive 
+        }}
         icon={<TrendingUp className="h-6 w-6 text-[#008236]" />}
         iconBgColor="bg-[#effcdc]"
         valueColor="text-[#008236]"

@@ -802,4 +802,19 @@ router.get("/export/trucks/:id", tenantMiddleware, async (req: Request, res: Res
   }
 });
 
+// ===========================================================================
+// SAVINGS CALCULATOR (calculates fuel savings from solar energy)
+// ===========================================================================
+import { savingsCalculator } from "../services/savings-calculator";
+
+router.get("/savings", tenantMiddleware, async (req: Request, res: Response) => {
+  try {
+    const savings = await savingsCalculator.calculateSavings(req.organizationId!);
+    res.json(savings);
+  } catch (error) {
+    console.error("Error calculating savings:", error);
+    res.status(500).json({ error: "Failed to calculate savings" });
+  }
+});
+
 export default router;

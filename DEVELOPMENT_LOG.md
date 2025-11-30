@@ -6,6 +6,17 @@
 
 ## Latest Updates (November 30, 2025)
 
+### Savings Calculation Feature
+- **Database tables added**: `fuel_prices` (stores EIA diesel prices), `savings_config` (per-org calculation settings)
+- **EIA API client**: `server/services/eia-client.ts` fetches weekly diesel prices from U.S. Energy Information Administration
+- **Savings calculator**: `server/services/savings-calculator.ts` computes fuel savings from solar energy
+  - Formula: `(solar_Wh / 1000 / diesel_kWh_per_gallon) × fuel_price_per_gallon`
+  - Default diesel energy: ~9 kWh/gallon
+- **API endpoint**: `GET /api/v1/savings` returns today's savings, 7-day average, trend percentage
+- **FleetStats component**: Now fetches real calculated savings data instead of hardcoded values
+- **Trend display**: Shows dollar amount and percentage compared to 7-day average
+- **Requires**: `EIA_API_KEY` secret for live diesel price updates (falls back to $3.50/gallon default)
+
 ### Font Consistency Update
 - Changed application font from Inter to DM Sans for consistent typography
 - Updated Google Fonts import in `client/index.html`
@@ -47,6 +58,7 @@
 | Step 12 | In-App Notifications | ✅ Complete |
 | Step 13 | SIMPro Integration | 🔄 In Progress |
 | Step 14 | CSV Export Feature | ✅ Complete |
+| Step 15 | Savings Calculation | ✅ Complete |
 
 ---
 

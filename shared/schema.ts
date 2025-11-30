@@ -426,6 +426,37 @@ export const pollingSettings = pgTable("polling_settings", {
 }));
 
 // =============================================================================
+// FUEL PRICES (historical diesel prices from EIA API)
+// =============================================================================
+export const fuelPrices = pgTable("fuel_prices", {
+  id: serial("id").primaryKey(),
+  priceDate: timestamp("price_date").notNull(),
+  pricePerGallon: real("price_per_gallon").notNull(),
+  region: text("region").default("US"),
+  source: text("source").default("EIA"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  dateRegionIdx: uniqueIndex("fuel_price_date_region_idx").on(table.priceDate, table.region),
+  dateIdx: index("fuel_price_date_idx").on(table.priceDate),
+}));
+
+// =============================================================================
+// SAVINGS CONFIG (organization-specific savings calculation settings)
+// =============================================================================
+export const savingsConfig = pgTable("savings_config", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  dieselKwhPerGallon: real("diesel_kwh_per_gallon").default(9.0),
+  defaultFuelPricePerGallon: real("default_fuel_price_per_gallon").default(3.50),
+  useLiveFuelPrices: boolean("use_live_fuel_prices").default(true),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  orgIdx: uniqueIndex("savings_config_org_idx").on(table.organizationId),
+}));
+
+// =============================================================================
 // INSERT SCHEMAS (Zod validation for API inputs)
 // =============================================================================
 export const insertOrganizationSchema = createInsertSchema(organizations)
@@ -476,6 +507,12 @@ export const insertSimUsageHistorySchema = createInsertSchema(simUsageHistory)
 export const insertSimSyncSettingsSchema = createInsertSchema(simSyncSettings)
   .omit({ id: true, updatedAt: true, lastSimSyncAt: true, lastLocationSyncAt: true, lastUsageSyncAt: true });
 
+export const insertFuelPriceSchema = createInsertSchema(fuelPrices)
+  .omit({ id: true, createdAt: true });
+
+export const insertSavingsConfigSchema = createInsertSchema(savingsConfig)
+  .omit({ id: true, updatedAt: true });
+
 // =============================================================================
 // SELECT TYPES (for query results)
 // =============================================================================
@@ -495,6 +532,8 @@ export type Sim = typeof sims.$inferSelect;
 export type SimLocationHistory = typeof simLocationHistory.$inferSelect;
 export type SimUsageHistory = typeof simUsageHistory.$inferSelect;
 export type SimSyncSetting = typeof simSyncSettings.$inferSelect;
+export type FuelPrice = typeof fuelPrices.$inferSelect;
+export type SavingsConfig = typeof savingsConfig.$inferSelect;
 
 // =============================================================================
 // INSERT TYPES (for creating new records)
@@ -515,6 +554,8 @@ export type InsertSim = z.infer<typeof insertSimSchema>;
 export type InsertSimLocationHistory = z.infer<typeof insertSimLocationHistorySchema>;
 export type InsertSimUsageHistory = z.infer<typeof insertSimUsageHistorySchema>;
 export type InsertSimSyncSetting = z.infer<typeof insertSimSyncSettingsSchema>;
+export type InsertFuelPrice = z.infer<typeof insertFuelPriceSchema>;
+export type InsertSavingsConfig = z.infer<typeof insertSavingsConfigSchema>;
 
 // =============================================================================
 // LEGACY SCHEMAS (for backward compatibility with existing dashboard)
