@@ -206,8 +206,6 @@ export default function Dashboard() {
           </div>
           
           <div className="flex items-center gap-3">
-            <FleetAssistant />
-            
             <div className="relative w-[293px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-[#9c9ca7]" />
               <input
@@ -342,6 +340,8 @@ export default function Dashboard() {
           alert={notifications.find(n => n.truckId === selectedTruck.id)}
         />
       )}
+      
+      <FleetAssistant />
     </div>
   );
 }

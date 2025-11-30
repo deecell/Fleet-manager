@@ -2,14 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { 
-  Sheet, 
-  SheetContent, 
-  SheetHeader, 
-  SheetTitle, 
-  SheetTrigger 
-} from "@/components/ui/sheet";
-import { Bot, Send, User, Loader2, Sparkles } from "lucide-react";
+import { Bot, Send, User, Loader2, X, MessageCircle } from "lucide-react";
 
 interface Message {
   role: "user" | "assistant";
@@ -109,131 +102,148 @@ export function FleetAssistant() {
   ];
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <Button 
-          variant="default"
-          size="default"
-          className="gap-2"
-          data-testid="button-open-assistant"
+    <>
+      {open && (
+        <div 
+          className="fixed bottom-24 right-6 w-[380px] h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col z-50 overflow-hidden"
+          data-testid="chat-window"
         >
-          <Sparkles className="h-4 w-4" />
-          <span className="hidden sm:inline">AI Assistant</span>
-        </Button>
-      </SheetTrigger>
-      <SheetContent 
-        side="right" 
-        className="w-full sm:w-[440px] p-0 flex flex-col"
-      >
-        <SheetHeader className="p-4 border-b bg-primary/5">
-          <SheetTitle className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-              <Bot className="h-4 w-4 text-primary" />
+          <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-primary/10 to-primary/5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                <Bot className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-sm text-neutral-950">Fleet AI Assistant</h3>
+                <p className="text-xs text-muted-foreground">Ask me anything about your fleet</p>
+              </div>
             </div>
-            Fleet AI Assistant
-          </SheetTitle>
-        </SheetHeader>
-
-        <ScrollArea 
-          className="flex-1 p-4" 
-          ref={scrollRef}
-        >
-          <div className="space-y-4">
-            {messages.map((message, index) => (
-              <div
-                key={index}
-                className={`flex gap-3 ${message.role === "user" ? "justify-end" : "justify-start"}`}
-                data-testid={`message-${message.role}-${index}`}
-              >
-                {message.role === "assistant" && (
-                  <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Bot className="h-3.5 w-3.5 text-primary" />
-                  </div>
-                )}
-                <div
-                  className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
-                    message.role === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted"
-                  }`}
-                >
-                  <div className="whitespace-pre-wrap">{message.content}</div>
-                  <div className={`text-[10px] mt-1 ${
-                    message.role === "user" ? "text-primary-foreground/60" : "text-muted-foreground"
-                  }`}>
-                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </div>
-                </div>
-                {message.role === "user" && (
-                  <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <User className="h-3.5 w-3.5" />
-                  </div>
-                )}
-              </div>
-            ))}
-
-            {isLoading && (
-              <div className="flex gap-3 justify-start" data-testid="message-loading">
-                <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Bot className="h-3.5 w-3.5 text-primary" />
-                </div>
-                <div className="bg-muted rounded-lg px-3 py-2">
-                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                </div>
-              </div>
-            )}
-
-            {messages.length === 1 && messages[0].role === "assistant" && !isLoading && (
-              <div className="space-y-2 mt-4">
-                <p className="text-xs text-muted-foreground">Try asking:</p>
-                <div className="flex flex-wrap gap-2">
-                  {suggestedQuestions.map((question, index) => (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      size="sm"
-                      className="text-xs h-auto py-1.5 px-2"
-                      onClick={() => {
-                        setInput(question);
-                        inputRef.current?.focus();
-                      }}
-                      data-testid={`button-suggestion-${index}`}
-                    >
-                      {question}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </ScrollArea>
-
-        <div className="p-4 border-t bg-background">
-          <div className="flex gap-2">
-            <Input
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask about your fleet..."
-              disabled={isLoading}
-              className="flex-1"
-              data-testid="input-chat-message"
-            />
-            <Button
-              onClick={sendMessage}
-              disabled={!input.trim() || isLoading}
-              size="icon"
-              data-testid="button-send-message"
+            <button 
+              onClick={() => setOpen(false)}
+              className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors"
+              data-testid="button-close-chat"
             >
-              <Send className="h-4 w-4" />
-            </Button>
+              <X className="h-4 w-4 text-gray-500" />
+            </button>
           </div>
-          <p className="text-[10px] text-muted-foreground text-center mt-2">
-            AI responses are based on real-time fleet data
-          </p>
+
+          <ScrollArea 
+            className="flex-1 p-4" 
+            ref={scrollRef}
+          >
+            <div className="space-y-4">
+              {messages.map((message, index) => (
+                <div
+                  key={index}
+                  className={`flex gap-2 ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                  data-testid={`message-${message.role}-${index}`}
+                >
+                  {message.role === "assistant" && (
+                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Bot className="h-3 w-3 text-primary" />
+                    </div>
+                  )}
+                  <div
+                    className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${
+                      message.role === "user"
+                        ? "bg-primary text-primary-foreground rounded-br-md"
+                        : "bg-gray-100 text-neutral-950 rounded-bl-md"
+                    }`}
+                  >
+                    <div className="whitespace-pre-wrap">{message.content}</div>
+                    <div className={`text-[10px] mt-1 ${
+                      message.role === "user" ? "text-primary-foreground/60" : "text-muted-foreground"
+                    }`}>
+                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+                  {message.role === "user" && (
+                    <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <User className="h-3 w-3 text-gray-600" />
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {isLoading && (
+                <div className="flex gap-2 justify-start" data-testid="message-loading">
+                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Bot className="h-3 w-3 text-primary" />
+                  </div>
+                  <div className="bg-gray-100 rounded-2xl rounded-bl-md px-3 py-2">
+                    <div className="flex gap-1">
+                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {messages.length === 1 && messages[0].role === "assistant" && !isLoading && (
+                <div className="space-y-2 mt-2">
+                  <p className="text-xs text-muted-foreground">Try asking:</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {suggestedQuestions.map((question, index) => (
+                      <button
+                        key={index}
+                        className="text-xs px-2.5 py-1.5 rounded-full border border-gray-200 hover:bg-gray-50 text-gray-700 transition-colors"
+                        onClick={() => {
+                          setInput(question);
+                          inputRef.current?.focus();
+                        }}
+                        data-testid={`button-suggestion-${index}`}
+                      >
+                        {question}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+
+          <div className="p-3 border-t bg-gray-50">
+            <div className="flex gap-2">
+              <Input
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask about your fleet..."
+                disabled={isLoading}
+                className="flex-1 bg-white border-gray-200 rounded-full px-4 h-10"
+                data-testid="input-chat-message"
+              />
+              <Button
+                onClick={sendMessage}
+                disabled={!input.trim() || isLoading}
+                size="icon"
+                className="rounded-full h-10 w-10 shrink-0"
+                data-testid="button-send-message"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         </div>
-      </SheetContent>
-    </Sheet>
+      )}
+
+      <button
+        onClick={() => setOpen(!open)}
+        className={`fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all z-50 ${
+          open 
+            ? "bg-gray-600 hover:bg-gray-700" 
+            : "bg-primary hover:bg-primary/90"
+        }`}
+        data-testid="button-open-assistant"
+      >
+        {open ? (
+          <X className="h-6 w-6 text-white" />
+        ) : (
+          <MessageCircle className="h-6 w-6 text-white" />
+        )}
+      </button>
+    </>
   );
 }
