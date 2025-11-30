@@ -39,11 +39,7 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const result = await login.mutateAsync({ email, password });
-      toast({ 
-        title: "Welcome back!",
-        description: `Signed in as ${result.user?.firstName || result.user?.email}`
-      });
+      await login.mutateAsync({ email, password });
       setLocation("/");
     } catch (error: any) {
       toast({ 
