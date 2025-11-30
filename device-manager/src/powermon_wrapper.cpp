@@ -166,8 +166,10 @@ Napi::Value PowermonWrapper::ParseAccessURL(const Napi::CallbackInfo& info) {
 Napi::Value PowermonWrapper::Connect(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env();
     
-    if (!ble_available_ || powermon_ == nullptr) {
-        Napi::TypeError::New(env, "Bluetooth not available - cannot connect to devices")
+    // With libpowermon v1.17+, powermon_ is always created (BLE is optional)
+    // Only check that powermon_ exists - WiFi works without BLE
+    if (powermon_ == nullptr) {
+        Napi::TypeError::New(env, "PowerMon instance not available")
             .ThrowAsJavaScriptException();
         return env.Undefined();
     }
