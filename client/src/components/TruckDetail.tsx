@@ -290,7 +290,7 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
 
         {/* Power Meter Voltage Source */}
         <Collapsible open={powerMeterOpen} onOpenChange={setPowerMeterOpen}>
-          <div className="border-b border-[#ebeef2] pb-4">
+          <div className={`pb-4 ${!powerMeterOpen ? "border-b border-[#ebeef2]" : ""}`}>
             <CollapsibleTrigger className="flex items-center justify-between w-full" data-testid="toggle-power-meter">
               <p className="text-lg font-medium text-neutral-950">Power Meter Voltage Source</p>
               {powerMeterOpen ? <Minus className="w-5 h-5 text-[#2d2826]" /> : <Plus className="w-5 h-5 text-[#2d2826]" />}
@@ -363,7 +363,7 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
 
         {/* Current Metrics */}
         <Collapsible open={metricsOpen} onOpenChange={setMetricsOpen}>
-          <div className="border-b border-[#ebeef2] pb-4">
+          <div className={`pb-4 ${!metricsOpen ? "border-b border-[#ebeef2]" : ""}`}>
             <CollapsibleTrigger className="flex items-center justify-between w-full" data-testid="toggle-metrics">
               <p className="text-lg font-medium text-neutral-950">Current Metrics</p>
               {metricsOpen ? <Minus className="w-5 h-5 text-[#2d2826]" /> : <Plus className="w-5 h-5 text-[#2d2826]" />}
@@ -416,7 +416,7 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
 
         {/* Historical Data */}
         <Collapsible open={historyOpen} onOpenChange={setHistoryOpen}>
-          <div className="border-b border-[#ebeef2] pb-4">
+          <div className={`pb-4 ${!historyOpen ? "border-b border-[#ebeef2]" : ""}`}>
             <CollapsibleTrigger className="flex items-center justify-between w-full" data-testid="toggle-history">
               <p className="text-lg font-medium text-neutral-950">Historical Data</p>
               {historyOpen ? <Minus className="w-5 h-5 text-[#2d2826]" /> : <Plus className="w-5 h-5 text-[#2d2826]" />}
