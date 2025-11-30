@@ -99,8 +99,8 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
   const [showExportPopover, setShowExportPopover] = useState(false);
   
   const [powerMeterOpen, setPowerMeterOpen] = useState(false);
-  const [metricsOpen, setMetricsOpen] = useState(false);
-  const [historyOpen, setHistoryOpen] = useState(false);
+  const [metricsOpen, setMetricsOpen] = useState(true);
+  const [historyOpen, setHistoryOpen] = useState(true);
 
   const { data: history, isLoading: historyLoading } = useTruckHistory(truck.deviceId);
 
