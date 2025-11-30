@@ -13,9 +13,9 @@ declare global {
 
 export async function tenantMiddleware(req: Request, res: Response, next: NextFunction) {
   // TODO: Re-enable authentication after design work is complete
-  // Demo mode: use organization ID 1 for unauthenticated requests
+  // Demo mode: use organization ID 4 (Test Fleet Company) for unauthenticated requests
   if (!req.session?.organizationId || !req.session?.userId) {
-    const demoOrg = await storage.getOrganization(1);
+    const demoOrg = await storage.getOrganization(4);
     if (demoOrg) {
       req.organizationId = demoOrg.id;
       req.organizationSlug = demoOrg.slug;
