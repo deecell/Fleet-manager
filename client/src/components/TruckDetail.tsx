@@ -382,7 +382,7 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
                   <span className="text-sm font-medium text-muted-foreground">Voltage</span>
                   <Zap className="h-4 w-4 text-muted-foreground" />
                 </div>
-                <div className="text-3xl font-bold" data-testid="metric-voltage">{truck.v1.toFixed(2)}V</div>
+                <div className="text-3xl font-bold text-[#0a0a0a]" data-testid="metric-voltage">{truck.v1.toFixed(2)}V</div>
               </div>
 
               <div className="rounded-lg bg-white border border-[#EBEEF2] shadow-[0_1px_3px_0_rgba(96,108,128,0.05)] p-4">
@@ -390,7 +390,7 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
                   <span className="text-sm font-medium text-muted-foreground">Current</span>
                   <Activity className="h-4 w-4 text-muted-foreground" />
                 </div>
-                <div className="text-3xl font-bold" data-testid="metric-current">{truck.ah.toFixed(1)}Ah</div>
+                <div className="text-3xl font-bold text-[#0a0a0a]" data-testid="metric-current">{truck.ah.toFixed(1)}Ah</div>
               </div>
 
               <div className="rounded-lg bg-white border border-[#EBEEF2] shadow-[0_1px_3px_0_rgba(96,108,128,0.05)] p-4">
