@@ -277,15 +277,14 @@ export default function Dashboard() {
           <div className="flex items-end mb-4 gap-4">
             <h2 className="text-[18px] font-semibold text-neutral-950 shrink-0 leading-none pb-0 mb-0">Fleet Overview</h2>
             
-            <Button
-              variant="outline"
+            <button
               onClick={handleExportAllTrucks}
-              className="ml-auto shrink-0 h-[40px] rounded-lg"
+              className="ml-auto shrink-0 h-[40px] flex items-center gap-2 text-sm font-medium text-neutral-950"
               data-testid="button-export-all-trucks"
             >
-              <Download className="w-4 h-4 mr-2" />
+              <Download className="w-4 h-4" />
               Export CSV
-            </Button>
+            </button>
             
             <div className="bg-[#fafbfc] border border-[#ebeef2] rounded-lg h-[40px] p-[6px] shadow-[0px_1px_3px_0px_rgba(96,108,128,0.05)]">
               <div className="flex items-center h-full">
