@@ -10,6 +10,7 @@ import { useLegacyTrucks, useLegacyNotifications, useAcknowledgeAlert, useResolv
 import { useSession, useLogout } from "@/lib/auth-api";
 import { useToast } from "@/hooks/use-toast";
 import { User, LogOut, ChevronDown, Search, Loader2, Download } from "lucide-react";
+import { FleetAssistant } from "@/components/FleetAssistant";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -216,6 +217,8 @@ export default function Dashboard() {
                 data-testid="input-search"
               />
             </div>
+            
+            <FleetAssistant />
             
             <Notifications 
               notifications={notifications}

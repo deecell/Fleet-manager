@@ -6,6 +6,21 @@
 
 ## Latest Updates (November 30, 2025)
 
+### AI Fleet Assistant (November 30, 2025)
+- **Feature**: Natural language chat assistant for fleet management queries
+- **Backend**: `server/services/fleet-assistant.ts` - OpenAI GPT-4o-mini with function calling
+- **API endpoint**: `POST /api/v1/assistant/chat` - handles conversation with context
+- **Function tools defined**:
+  - `get_all_trucks` - list trucks with optional status filter
+  - `get_truck_details` - detailed info for specific truck by number
+  - `get_fleet_statistics` - savings, SOC, maintenance metrics
+  - `get_active_alerts` - unresolved alerts across fleet
+  - `get_low_battery_trucks` - trucks below SOC threshold
+  - `get_fleet_summary` - quick fleet health overview
+- **Frontend**: `client/src/components/FleetAssistant.tsx` - slide-out chat drawer
+- **UI location**: Header bar next to notifications
+- **Integration**: Uses Replit AI Integrations for OpenAI API key management
+
 ### Fleet Stats with 7-Day Trends (All 4 Cards)
 - **Fleet stats calculator**: `server/services/fleet-stats-calculator.ts` calculates all metrics
 - **API endpoint**: `GET /api/v1/fleet-stats` returns SOC, maintenance, runtime metrics with 7-day trends

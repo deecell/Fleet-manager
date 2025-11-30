@@ -89,6 +89,21 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
 - **API Endpoint**: `GET /api/v1/savings` returns today's savings, 7-day average, trend percentage
 - **Files**: `server/services/eia-client.ts`, `server/services/savings-calculator.ts`
 
+### AI Fleet Assistant
+- **Purpose**: Natural language chat interface for fleet management queries and insights.
+- **Model**: OpenAI GPT-4o-mini via Replit AI Integrations.
+- **Architecture**: Function calling for real-time data access (prevents hallucination).
+- **Backend**: `server/services/fleet-assistant.ts` - processes chat with function calling tools.
+- **API Endpoint**: `POST /api/v1/assistant/chat` - accepts message history, returns AI response.
+- **Frontend**: `client/src/components/FleetAssistant.tsx` - slide-out Sheet drawer in header.
+- **Function Tools**:
+  - `get_all_trucks` - List trucks with optional status filter
+  - `get_truck_details` - Get detailed truck metrics by truck number
+  - `get_fleet_statistics` - Aggregate fleet metrics (savings, SOC, maintenance)
+  - `get_active_alerts` - Unresolved alerts across fleet
+  - `get_low_battery_trucks` - Trucks below SOC threshold
+  - `get_fleet_summary` - Quick fleet health overview
+
 ## External Dependencies
 
 ### Core Infrastructure

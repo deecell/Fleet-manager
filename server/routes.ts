@@ -7,6 +7,7 @@ import { query, testConnection, initializeTables } from "./aws/rds";
 import fleetRoutes from "./api/fleet-routes";
 import adminRoutes from "./api/admin-routes";
 import authRoutes from "./api/auth-routes";
+import assistantRoutes from "./api/assistant-routes";
 import MemoryStore from "memorystore";
 
 const MemoryStoreSession = MemoryStore(session);
@@ -66,6 +67,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register Admin API routes
   app.use("/api/v1/admin", adminRoutes);
+
+  // Register AI Assistant API routes
+  app.use("/api/v1/assistant", assistantRoutes);
 
   // Health check endpoint
   app.get("/api/health", async (req: Request, res: Response) => {
