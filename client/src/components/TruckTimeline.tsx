@@ -133,7 +133,7 @@ export function TruckTimeline({ truckId }: TruckTimelineProps) {
   const { data, isLoading, isError } = useTruckEvents(truckId, { limit: 20 });
   
   return (
-    <Card data-testid="card-truck-timeline">
+    <Card className="bg-[#FAFBFC]" data-testid="card-truck-timeline">
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
           <Clock className="w-4 h-4" />
