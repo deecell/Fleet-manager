@@ -234,7 +234,7 @@ export function FleetAssistant() {
         className={`fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all z-50 ${
           open 
             ? "bg-gray-600 hover:bg-gray-700" 
-            : "bg-primary hover:bg-primary/90"
+            : "bg-[#FA4B1E] hover:bg-[#e54419]"
         }`}
         data-testid="button-open-assistant"
       >
