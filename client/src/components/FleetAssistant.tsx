@@ -146,13 +146,13 @@ export function FleetAssistant() {
                   <div
                     className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${
                       message.role === "user"
-                        ? "bg-primary text-primary-foreground rounded-br-md"
+                        ? "bg-[#92a6b3] text-white rounded-br-md"
                         : "bg-gray-100 text-neutral-950 rounded-bl-md"
                     }`}
                   >
                     <div className="whitespace-pre-wrap">{message.content}</div>
                     <div className={`text-[10px] mt-1 ${
-                      message.role === "user" ? "text-primary-foreground/60" : "text-muted-foreground"
+                      message.role === "user" ? "text-white/60" : "text-muted-foreground"
                     }`}>
                       {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>
