@@ -128,7 +128,7 @@ function StatCard({ title, trend, icon, iconBgColor, valueColor = "text-neutral-
       </div>
       <p className="text-sm text-[#4a5565] mt-[17px]">{title}</p>
       {hasInsufficientData ? (
-        <p className="text-[18px] min-[1440px]:text-[20px] font-medium leading-8 mt-3 tracking-tight text-[#9ca3af]" data-testid={`stat-${title.toLowerCase().replace(/\s+/g, '-')}`}>
+        <p className="text-[18px] min-[1440px]:text-[20px] leading-8 mt-3 tracking-tight text-[#9ca3af] font-light" data-testid={`stat-${title.toLowerCase().replace(/\s+/g, '-')}`}>
           Awaiting data...
         </p>
       ) : (
@@ -174,7 +174,7 @@ function TimeStatCard({ title, trend, icon, iconBgColor, valueColor = "text-neut
       </div>
       <p className="text-sm text-[#4a5565] mt-[17px]">{title}</p>
       {hasInsufficientData ? (
-        <p className="text-[18px] min-[1440px]:text-[20px] font-medium leading-8 mt-3 tracking-tight text-[#9ca3af]" data-testid={`stat-${title.toLowerCase().replace(/\s+/g, '-')}`}>
+        <p className="text-[18px] min-[1440px]:text-[20px] leading-8 mt-3 tracking-tight text-[#9ca3af] font-light" data-testid={`stat-${title.toLowerCase().replace(/\s+/g, '-')}`}>
           Awaiting data...
         </p>
       ) : (
