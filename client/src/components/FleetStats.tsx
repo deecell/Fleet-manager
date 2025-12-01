@@ -234,6 +234,8 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
   const hoursTrendIsPositive = fleetStats?.tractorHoursOffset.trendIsPositive ?? true;
   const hours7DayAvg = fleetStats?.tractorHoursOffset.trend7DayHours ?? 0;
   const minutes7DayAvg = fleetStats?.tractorHoursOffset.trend7DayMinutes ?? 0;
+  const hoursHasInsufficientData = fleetStats?.tractorHoursOffset.hasInsufficientData ?? true;
+  const maintenanceHasInsufficientData = fleetStats?.maintenanceIntervalIncrease.hasInsufficientData ?? true;
 
   const formatHoursTrend = () => {
     const todayTotal = hoursOffset + minutesOffset / 60;
@@ -285,6 +287,7 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
         }}
         icon={<Wrench className="h-6 w-6 text-[#778AC2]" />}
         iconBgColor="bg-[#EBEFFA]"
+        hasInsufficientData={maintenanceHasInsufficientData}
       />
       <TimeStatCard
         title="Tractor hours offset"
@@ -296,6 +299,7 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
         }}
         icon={<Clock className="h-6 w-6 text-[#778AC2]" />}
         iconBgColor="bg-[#EBEFFA]"
+        hasInsufficientData={hoursHasInsufficientData}
       />
     </div>
   );

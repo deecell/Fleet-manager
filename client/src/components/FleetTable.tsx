@@ -164,10 +164,10 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
               </th>
             </tr>
             <tr className="bg-[#303030] h-[41px]">
-              <th className="px-3 py-3 text-center pl-[2px] pr-[2px]">
+              <th className="px-3 py-3 text-center">
                 <button 
                   onClick={() => handleSort("soc")}
-                  className="flex items-center justify-center gap-1.5 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap mx-auto ml-[18px] mr-[18px]"
+                  className="flex items-center justify-center gap-1.5 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap mx-auto"
                   data-testid="sort-soc"
                 >
                   SoC (%) <ArrowUpDown className="h-3.5 w-3.5 text-[#838383]" />
