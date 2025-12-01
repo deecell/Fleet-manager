@@ -155,7 +155,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
         </table>
       </div>
       {/* Section 3: Sleeper */}
-      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[30]">
+      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[24]">
         <table className="w-full">
           <thead>
             <tr className="h-[21px]">
@@ -164,23 +164,23 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
               </th>
             </tr>
             <tr className="bg-[#303030] h-[41px]">
-              <th className="px-3 py-3 text-center">
+              <th className="px-1.5 py-3 text-center">
                 <button 
                   onClick={() => handleSort("soc")}
-                  className="flex items-center justify-center gap-1.5 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap mx-auto"
+                  className="flex items-center justify-center gap-1 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap mx-auto"
                   data-testid="sort-soc"
                 >
                   SoC (%) <ArrowUpDown className="h-3.5 w-3.5 text-[#838383]" />
                 </button>
               </th>
-              <th className="px-3 py-3 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap text-center">V</th>
-              <th className="px-3 py-3 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap text-center">P (kW)</th>
-              <th className="px-3 py-3 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap text-center">Wh</th>
-              <th className="px-3 py-3 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap text-center">Ah</th>
-              <th className="px-3 py-3 text-center pl-[3px] pr-[3px]">
+              <th className="px-1.5 py-3 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap text-center">V</th>
+              <th className="px-1.5 py-3 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap text-center">P (kW)</th>
+              <th className="px-1.5 py-3 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap text-center">Wh</th>
+              <th className="px-1.5 py-3 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap text-center">Ah</th>
+              <th className="px-1.5 py-3 text-center">
                 <button 
                   onClick={() => handleSort("temp")}
-                  className="flex items-center justify-center gap-1.5 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap mx-auto"
+                  className="flex items-center justify-center gap-1 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap mx-auto"
                   data-testid="sort-temp"
                 >
                   Temp (°F) <ArrowUpDown className="h-3.5 w-3.5 text-[#838383]" />
@@ -199,18 +199,18 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                   hoveredRowIndex === index ? "bg-[#EEF1FB]" : index % 2 === 1 ? "bg-[#fafbfc]" : "bg-white"
                 } ${selectedTruckId === truck.id ? "bg-[#EEF1FB]" : ""}`}
               >
-                <td className="px-3 py-3 whitespace-nowrap pl-[18px] pr-[18px] text-center">
+                <td className="px-1.5 py-3 whitespace-nowrap text-center">
                   <span className={`text-[13px] 2xl:text-sm font-semibold tabular-nums ${
                     truck.soc >= 60 ? "text-[#39c900]" : "text-[#ff0900]"
                   }`}>
                     {truck.soc.toFixed(0)}
                   </span>
                 </td>
-                <td className="px-3 py-3 text-[13px] 2xl:text-sm text-[#4a5565] whitespace-nowrap tabular-nums text-center">{truck.v2.toFixed(2)}</td>
-                <td className="px-3 py-3 text-[13px] 2xl:text-sm text-[#4a5565] whitespace-nowrap tabular-nums text-center">{truck.p.toFixed(1)}</td>
-                <td className="px-3 py-3 text-[13px] 2xl:text-sm text-[#4a5565] whitespace-nowrap tabular-nums text-center">{truck.wh.toFixed(0)}</td>
-                <td className="px-3 py-3 text-[13px] 2xl:text-sm text-[#4a5565] whitespace-nowrap tabular-nums text-center">{truck.ah.toFixed(1)}</td>
-                <td className="px-3 py-3 text-[13px] 2xl:text-sm font-medium text-black whitespace-nowrap tabular-nums pr-[18px] text-center">{truck.temp.toFixed(1)}</td>
+                <td className="px-1.5 py-3 text-[13px] 2xl:text-sm text-[#4a5565] whitespace-nowrap tabular-nums text-center">{truck.v2.toFixed(2)}</td>
+                <td className="px-1.5 py-3 text-[13px] 2xl:text-sm text-[#4a5565] whitespace-nowrap tabular-nums text-center">{truck.p.toFixed(1)}</td>
+                <td className="px-1.5 py-3 text-[13px] 2xl:text-sm text-[#4a5565] whitespace-nowrap tabular-nums text-center">{truck.wh.toFixed(0)}</td>
+                <td className="px-1.5 py-3 text-[13px] 2xl:text-sm text-[#4a5565] whitespace-nowrap tabular-nums text-center">{truck.ah.toFixed(1)}</td>
+                <td className="px-1.5 py-3 text-[13px] 2xl:text-sm font-medium text-black whitespace-nowrap tabular-nums text-center">{truck.temp.toFixed(1)}</td>
               </tr>
             ))}
           </tbody>
