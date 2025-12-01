@@ -254,7 +254,8 @@ export const deviceStatistics = pgTable("device_statistics", {
 }));
 
 // =============================================================================
-// DEVICE SYNC STATUS (tracks log file offset for backfill)
+// DEVICE SYNC STATUS (tracks polling state, connection, and log file sync)
+// Used by Device Manager for connection pool and backfill operations
 // =============================================================================
 export const deviceSyncStatus = pgTable("device_sync_status", {
   id: serial("id").primaryKey(),
@@ -264,17 +265,39 @@ export const deviceSyncStatus = pgTable("device_sync_status", {
   deviceId: integer("device_id")
     .notNull()
     .references(() => powerMonDevices.id, { onDelete: "cascade" }),
+  
+  // Connection state (managed by Device Manager)
+  connectionStatus: text("connection_status").default("disconnected"), // disconnected, connecting, connected, reconnecting
+  cohortId: integer("cohort_id").default(0), // Polling cohort for staggered scheduling
+  lastConnectedAt: timestamp("last_connected_at"),
+  lastDisconnectedAt: timestamp("last_disconnected_at"),
+  
+  // Polling state
+  lastPollAt: timestamp("last_poll_at"),
+  lastSuccessfulPollAt: timestamp("last_successful_poll_at"),
+  consecutivePollFailures: integer("consecutive_poll_failures").default(0),
+  
+  // Log file sync state (for backfill)
   lastLogFileId: text("last_log_file_id"),
   lastLogOffset: bigint("last_log_offset", { mode: "number" }).default(0),
-  lastSyncAt: timestamp("last_sync_at"),
-  lastPollAt: timestamp("last_poll_at"),
-  syncStatus: text("sync_status").default("idle"),
+  lastLogSyncAt: timestamp("last_log_sync_at"),
+  totalSamplesSynced: bigint("total_samples_synced", { mode: "number" }).default(0),
+  
+  // Backfill state (gap recovery)
+  backfillStatus: text("backfill_status").default("idle"), // idle, pending, in_progress, completed, failed
+  gapStartAt: timestamp("gap_start_at"), // When offline period started
+  gapEndAt: timestamp("gap_end_at"), // When device came back online
+  
+  // General status
+  syncStatus: text("sync_status").default("idle"), // idle, syncing, error
   errorMessage: text("error_message"),
   consecutiveFailures: integer("consecutive_failures").default(0),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => ({
   orgIdx: index("sync_status_org_idx").on(table.organizationId),
   deviceIdx: uniqueIndex("sync_status_device_idx").on(table.deviceId),
+  connectionStatusIdx: index("sync_status_connection_idx").on(table.connectionStatus),
+  cohortIdx: index("sync_status_cohort_idx").on(table.cohortId),
 }));
 
 // =============================================================================
