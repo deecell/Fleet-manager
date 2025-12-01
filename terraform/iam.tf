@@ -235,38 +235,26 @@ resource "aws_iam_user" "github_actions" {
   tags = local.common_tags
 }
 
-resource "aws_iam_user_policy" "github_actions" {
-  name = "${local.name_prefix}-github-actions-policy"
-  user = aws_iam_user.github_actions.name
+# Use managed policy instead of inline (6,144 char limit vs 2,048 for inline)
+resource "aws_iam_policy" "github_actions" {
+  name        = "${local.name_prefix}-github-actions-policy"
+  description = "Policy for GitHub Actions CI/CD deployments"
 
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Sid    = "ECRAccess"
-        Effect = "Allow"
-        Action = [
-          "ecr:GetAuthorizationToken",
-          "ecr:BatchCheckLayerAvailability",
-          "ecr:GetDownloadUrlForLayer",
-          "ecr:BatchGetImage",
-          "ecr:PutImage",
-          "ecr:InitiateLayerUpload",
-          "ecr:UploadLayerPart",
-          "ecr:CompleteLayerUpload",
-          "ecr:DescribeRepositories",
-          "ecr:ListImages"
-        ]
+        Sid      = "ECR"
+        Effect   = "Allow"
+        Action   = ["ecr:*"]
         Resource = "*"
       },
       {
-        Sid    = "ECSAccess"
+        Sid    = "ECS"
         Effect = "Allow"
         Action = [
-          "ecs:DescribeServices",
-          "ecs:DescribeTaskDefinition",
-          "ecs:DescribeTasks",
-          "ecs:ListTasks",
+          "ecs:Describe*",
+          "ecs:List*",
           "ecs:RegisterTaskDefinition",
           "ecs:UpdateService",
           "ecs:DeregisterTaskDefinition"
@@ -274,49 +262,38 @@ resource "aws_iam_user_policy" "github_actions" {
         Resource = "*"
       },
       {
-        Sid    = "IAMPassRole"
-        Effect = "Allow"
-        Action = [
-          "iam:PassRole"
-        ]
-        Resource = [
-          aws_iam_role.ecs_execution.arn,
-          aws_iam_role.ecs_task.arn
-        ]
+        Sid      = "PassRole"
+        Effect   = "Allow"
+        Action   = ["iam:PassRole"]
+        Resource = [aws_iam_role.ecs_execution.arn, aws_iam_role.ecs_task.arn]
       },
       {
-        Sid    = "ELBAccess"
-        Effect = "Allow"
-        Action = [
-          "elasticloadbalancing:DescribeTargetGroups",
-          "elasticloadbalancing:DescribeLoadBalancers",
-          "elasticloadbalancing:DescribeListeners"
-        ]
+        Sid      = "ELB"
+        Effect   = "Allow"
+        Action   = ["elasticloadbalancing:Describe*"]
         Resource = "*"
       },
       {
-        Sid    = "SecretsManagerRead"
-        Effect = "Allow"
-        Action = [
-          "secretsmanager:GetSecretValue",
-          "secretsmanager:ListSecrets"
-        ]
-        Resource = [
-          aws_secretsmanager_secret.database_url.arn
-        ]
+        Sid      = "Secrets"
+        Effect   = "Allow"
+        Action   = ["secretsmanager:GetSecretValue"]
+        Resource = [aws_secretsmanager_secret.database_url.arn]
       },
       {
-        Sid    = "CloudWatchLogs"
-        Effect = "Allow"
-        Action = [
-          "logs:GetLogEvents",
-          "logs:DescribeLogStreams",
-          "logs:DescribeLogGroups"
-        ]
+        Sid      = "Logs"
+        Effect   = "Allow"
+        Action   = ["logs:Get*", "logs:Describe*"]
         Resource = "*"
       }
     ]
   })
+
+  tags = local.common_tags
+}
+
+resource "aws_iam_user_policy_attachment" "github_actions" {
+  user       = aws_iam_user.github_actions.name
+  policy_arn = aws_iam_policy.github_actions.arn
 }
 
 # Access key for GitHub Actions (store this securely!)
