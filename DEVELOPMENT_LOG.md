@@ -6,6 +6,14 @@
 
 ## Latest Updates (December 1, 2025)
 
+### Bug Fix: Dashboard Voltage Display (December 1, 2025)
+- **Issue**: Sleeper V column showing 0.00 instead of actual voltage (26.54V)
+- **Root Cause**: FleetTable was displaying `voltage2` in Sleeper section, but PowerMon only provides `voltage1`. The `voltage2` value from the device was NaN, which became null in JSON, then 0.00 when displayed.
+- **Fix**: Updated `client/src/components/FleetTable.tsx` to display `voltage1` in both V columns (Chassis and Sleeper sections)
+- **File Changed**: `client/src/components/FleetTable.tsx` line 212: `truck.v2` → `truck.v1`
+
+---
+
 ### Device Manager Deployment Prep (December 1, 2025)
 - **Customer Credentials Updated**: am@gtofast.com / hello123!
 - **Test Script Created**: `device-manager/test-local.js` - verifies all components before deployment

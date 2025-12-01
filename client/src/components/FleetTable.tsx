@@ -206,7 +206,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                     {truck.soc.toFixed(0)}
                   </span>
                 </td>
-                <td className="px-1.5 py-3 text-[13px] 2xl:text-sm text-[#4a5565] whitespace-nowrap tabular-nums text-center">{truck.v2.toFixed(2)}</td>
+                <td className="px-1.5 py-3 text-[13px] 2xl:text-sm text-[#4a5565] whitespace-nowrap tabular-nums text-center">{truck.v1.toFixed(2)}</td>
                 <td className="px-1.5 py-3 text-[13px] 2xl:text-sm text-[#4a5565] whitespace-nowrap tabular-nums text-center">{truck.p.toFixed(1)}</td>
                 <td className="px-1.5 py-3 text-[13px] 2xl:text-sm text-[#4a5565] whitespace-nowrap tabular-nums text-center">{truck.wh.toFixed(0)}</td>
                 <td className="px-1.5 py-3 text-[13px] 2xl:text-sm text-[#4a5565] whitespace-nowrap tabular-nums text-center">{truck.ah.toFixed(1)}</td>
