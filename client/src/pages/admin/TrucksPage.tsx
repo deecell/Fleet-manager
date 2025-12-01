@@ -485,7 +485,12 @@ export default function TrucksPage() {
               <Button variant="outline" onClick={() => setEditingTruck(null)}>
                 Cancel
               </Button>
-              <Button onClick={handleUpdate} disabled={updateTruck.isPending} data-testid="button-submit-update">
+              <Button 
+                onClick={handleUpdate} 
+                disabled={updateTruck.isPending} 
+                data-testid="button-submit-update"
+                style={{ backgroundColor: '#303030' }}
+              >
                 {updateTruck.isPending ? "Saving..." : "Save Changes"}
               </Button>
             </DialogFooter>
