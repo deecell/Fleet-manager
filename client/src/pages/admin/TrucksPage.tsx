@@ -489,7 +489,7 @@ export default function TrucksPage() {
                 onClick={handleUpdate} 
                 disabled={updateTruck.isPending} 
                 data-testid="button-submit-update"
-                style={{ backgroundColor: '#303030' }}
+                style={{ backgroundColor: '#303030', border: 'none' }}
               >
                 {updateTruck.isPending ? "Saving..." : "Save Changes"}
               </Button>
