@@ -1,5 +1,7 @@
 # 🚀 Deploy Your App NOW - Quick Start
 
+> Last updated: December 1, 2025 - v1.0.1
+
 Your AWS infrastructure is **LIVE**! Just 3 steps to see your app running:
 
 ---
