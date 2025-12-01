@@ -271,7 +271,63 @@ export default function Dashboard() {
         <FleetStats trucks={truckList} />
         
         <div className="!mt-[74px] overflow-x-auto">
-          <div className="flex items-end mb-4 gap-4 min-w-[900px]">
+          {/* Mobile layout */}
+          <div className="md:hidden mb-4">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-[18px] font-semibold text-neutral-950 leading-none">Fleet Overview</h2>
+              <button
+                onClick={handleExportAllTrucks}
+                className="shrink-0 h-[40px] flex items-center gap-2 text-sm font-medium text-neutral-950"
+                data-testid="button-export-all-trucks-mobile"
+              >
+                <Download className="w-4 h-4" />
+                Export CSV
+              </button>
+            </div>
+            <div className="bg-[#fafbfc] border border-[#ebeef2] rounded-lg h-[40px] p-[6px] shadow-[0px_1px_3px_0px_rgba(96,108,128,0.05)] w-fit">
+              <div className="flex items-center h-full">
+                <button
+                  onClick={() => setFilterStatus("all")}
+                  className={`px-2 h-[28px] text-sm rounded-md flex items-center gap-2.5 tracking-[-0.3px] ${
+                    filterStatus === "all" 
+                      ? "bg-white border border-[#ebeef2] font-semibold text-neutral-950" 
+                      : "text-[#4a5565]"
+                  }`}
+                  data-testid="filter-all-mobile"
+                >
+                  <img src={allIcon} alt="" className="w-2.5 h-2.5" />
+                  All ({totalTrucks.toString().padStart(2, '0')})
+                </button>
+                <button
+                  onClick={() => setFilterStatus("in-service")}
+                  className={`px-3 h-[28px] text-sm rounded-md flex items-center gap-2 tracking-[-0.3px] ${
+                    filterStatus === "in-service" 
+                      ? "bg-white border border-[#ebeef2] font-semibold text-neutral-950" 
+                      : "text-[#4a5565]"
+                  }`}
+                  data-testid="filter-in-service-mobile"
+                >
+                  <div className="w-2 h-2 rounded-full bg-[#39c900]" />
+                  In Service ({activeTrucksCount.toString().padStart(2, '0')})
+                </button>
+                <button
+                  onClick={() => setFilterStatus("not-in-service")}
+                  className={`px-3 h-[28px] text-sm rounded-md flex items-center gap-2 tracking-[-0.3px] ${
+                    filterStatus === "not-in-service" 
+                      ? "bg-white border border-[#ebeef2] font-semibold text-neutral-950" 
+                      : "text-[#4a5565]"
+                  }`}
+                  data-testid="filter-not-in-service-mobile"
+                >
+                  <div className="w-2 h-2 rounded-full bg-[#ff0900]" />
+                  Not In Service ({(totalTrucks - activeTrucksCount).toString().padStart(2, '0')})
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          {/* Desktop/Tablet layout */}
+          <div className="hidden md:flex items-end mb-4 gap-4 min-w-[900px]">
             <h2 className="text-[18px] font-semibold text-neutral-950 shrink-0 leading-none pb-0 mb-0">Fleet Overview</h2>
             
             <button
