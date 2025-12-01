@@ -6,6 +6,35 @@
 
 ## Latest Updates (December 1, 2025)
 
+### Production Database Setup - Live Device Ready (December 1, 2025)
+- **Organization Created**: Deecell Power Systems (ID: 7)
+- **User Created**: admin@deecell.com / Deecell2024! (bcrypt hashed, role: admin)
+- **Fleet Created**: Test Fleet (ID: 5)
+- **Truck Created**: DCL-001 (ID: 20) - San Francisco coordinates
+- **Device Created**: DCL-Moeck (ID: 20) - Serial A3A5B30EA9B3FF98, PowerMon-W v1.32
+- **Credentials Stored**: Connection key + access key from applink URL
+- **Initial Snapshot**: 98% SOC, 28.75V, 22.9°C
+
+**Login Credentials for Customer Dashboard**:
+```
+Email: admin@deecell.com
+Password: Deecell2024!
+```
+
+**Database Record Chain**:
+```
+Organization (7: Deecell Power Systems)
+    └── User (2: admin@deecell.com)
+    └── Fleet (5: Test Fleet)
+        └── Truck (20: DCL-001)
+            └── Device (20: DCL-Moeck)
+                └── Credentials (applink URL + keys)
+                └── Snapshot (initial readings)
+                └── Sync Status (disconnected)
+```
+
+---
+
 ### Device Manager Application - Production Architecture (December 1, 2025)
 - **Created**: Complete Device Manager application structure in `device-manager/app/`
 - **Purpose**: Standalone application for AWS EC2 deployment, manages PowerMon device connections and data collection
