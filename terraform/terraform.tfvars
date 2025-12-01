@@ -18,7 +18,7 @@
 
 project_name = "deecell-fleet"
 environment  = "production"
-aws_region   = "us-east-1"
+aws_region   = "us-east-2"
 
 # -----------------------------------------------------------------------------
 # ECR Repository URL
@@ -26,14 +26,14 @@ aws_region   = "us-east-1"
 # Replace YOUR_AWS_ACCOUNT_ID with your 12-digit account number
 # Example: 123456789012
 
-ecr_repository_url = "892213647605.dkr.ecr.us-east-1.amazonaws.com/deecell-fleet"
+ecr_repository_url = "892213647605.dkr.ecr.us-east-2.amazonaws.com/deecell-fleet"
 
 # -----------------------------------------------------------------------------
 # Network Settings (defaults are fine)
 # -----------------------------------------------------------------------------
 
 vpc_cidr           = "10.0.0.0/16"
-availability_zones = ["us-east-1a", "us-east-1b"]
+availability_zones = ["us-east-2a", "us-east-2b"]
 single_nat_gateway = true  # Set to false for high availability (costs more)
 
 # -----------------------------------------------------------------------------
