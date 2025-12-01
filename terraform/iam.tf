@@ -171,6 +171,17 @@ resource "aws_iam_role_policy" "device_manager" {
       {
         Effect = "Allow"
         Action = [
+          "s3:GetObject",
+          "s3:ListBucket"
+        ]
+        Resource = [
+          aws_s3_bucket.device_manager_deploy.arn,
+          "${aws_s3_bucket.device_manager_deploy.arn}/*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
           "logs:CreateLogGroup",
           "logs:CreateLogStream",
           "logs:PutLogEvents",

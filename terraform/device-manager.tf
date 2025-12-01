@@ -26,17 +26,47 @@ resource "aws_cloudwatch_log_group" "device_manager" {
   tags = local.common_tags
 }
 
-# Device Manager User Data Script
+# S3 bucket for Device Manager deployment artifacts
+resource "aws_s3_bucket" "device_manager_deploy" {
+  bucket = "${local.name_prefix}-device-manager-deploy-${random_id.suffix.hex}"
+
+  tags = merge(local.common_tags, {
+    Name = "${local.name_prefix}-device-manager-deploy"
+  })
+}
+
+resource "aws_s3_bucket_versioning" "device_manager_deploy" {
+  bucket = aws_s3_bucket.device_manager_deploy.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "device_manager_deploy" {
+  bucket = aws_s3_bucket.device_manager_deploy.id
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+# Device Manager User Data Script - fetches secrets from Secrets Manager at runtime
 locals {
   device_manager_user_data = <<-EOF
     #!/bin/bash
     set -e
 
+    # Log everything
+    exec > >(tee /var/log/user-data.log) 2>&1
+
+    echo "Starting Device Manager setup..."
+
     # Update system
     dnf update -y
 
-    # Install Node.js 20
-    dnf install -y nodejs20 npm git gcc-c++ make
+    # Install Node.js 20, AWS CLI, jq
+    dnf install -y nodejs20 npm git gcc-c++ make jq unzip
 
     # Install CloudWatch Agent
     dnf install -y amazon-cloudwatch-agent
@@ -45,23 +75,33 @@ locals {
     mkdir -p /opt/device-manager
     cd /opt/device-manager
 
-    # Clone the repository (or copy from S3)
-    # For now, we'll create placeholder - in production, pull from ECR or S3
-    cat > /opt/device-manager/package.json << 'PKGJSON'
-    {
-      "name": "deecell-device-manager",
-      "version": "1.0.0",
-      "type": "module",
-      "scripts": {
-        "start": "node app/index.js"
-      },
-      "dependencies": {
-        "pg": "^8.11.3"
-      }
-    }
-    PKGJSON
+    # Create startup script that fetches secrets from Secrets Manager
+    cat > /opt/device-manager/start.sh << 'STARTSCRIPT'
+    #!/bin/bash
+    set -e
+    
+    # Fetch DATABASE_URL from Secrets Manager using IAM role
+    export DATABASE_URL=$(aws secretsmanager get-secret-value \
+      --secret-id "${aws_secretsmanager_secret.database_url.arn}" \
+      --query 'SecretString' \
+      --output text \
+      --region ${var.aws_region})
+    
+    # Set other environment variables
+    export NODE_ENV=production
+    export LOG_LEVEL=info
+    export DM_PORT=3001
+    export POLL_INTERVAL_MS=10000
+    export COHORT_COUNT=10
+    export MAX_BATCH_SIZE=500
+    
+    # Start the application
+    exec node app/index.js
+    STARTSCRIPT
+    
+    chmod +x /opt/device-manager/start.sh
 
-    # Create systemd service
+    # Create systemd service that uses the startup script
     cat > /etc/systemd/system/device-manager.service << 'SYSTEMD'
     [Unit]
     Description=Deecell Device Manager
@@ -71,21 +111,41 @@ locals {
     Type=simple
     User=ec2-user
     WorkingDirectory=/opt/device-manager
-    ExecStart=/usr/bin/node app/index.js
+    ExecStart=/opt/device-manager/start.sh
     Restart=always
     RestartSec=10
     StandardOutput=journal
     StandardError=journal
-    Environment=NODE_ENV=production
-    Environment=LOG_LEVEL=info
-    Environment=DM_PORT=3001
-    Environment=POLL_INTERVAL_MS=10000
-    Environment=COHORT_COUNT=10
-    Environment=MAX_BATCH_SIZE=500
 
     [Install]
     WantedBy=multi-user.target
     SYSTEMD
+
+    # Create deployment script that fetches code from S3
+    cat > /opt/device-manager/deploy.sh << 'DEPLOYSCRIPT'
+    #!/bin/bash
+    set -e
+    
+    BUCKET="${aws_s3_bucket.device_manager_deploy.bucket}"
+    ARTIFACT="device-manager-latest.zip"
+    
+    echo "Fetching deployment artifact from S3..."
+    aws s3 cp "s3://$BUCKET/$ARTIFACT" /tmp/device-manager.zip --region ${var.aws_region}
+    
+    echo "Extracting artifact..."
+    cd /opt/device-manager
+    unzip -o /tmp/device-manager.zip
+    
+    echo "Installing dependencies..."
+    npm ci --only=production
+    
+    echo "Restarting service..."
+    sudo systemctl restart device-manager
+    
+    echo "Deployment complete!"
+    DEPLOYSCRIPT
+    
+    chmod +x /opt/device-manager/deploy.sh
 
     # Configure CloudWatch Agent
     cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json << 'CWAGENT'
@@ -102,6 +162,11 @@ locals {
                 "file_path": "/var/log/messages",
                 "log_group_name": "/ec2/${local.name_prefix}/device-manager",
                 "log_stream_name": "{instance_id}/messages"
+              },
+              {
+                "file_path": "/var/log/user-data.log",
+                "log_group_name": "/ec2/${local.name_prefix}/device-manager",
+                "log_stream_name": "{instance_id}/user-data"
               }
             ]
           }
@@ -134,9 +199,10 @@ locals {
     systemctl enable amazon-cloudwatch-agent
     systemctl start amazon-cloudwatch-agent
 
-    # Note: Device Manager won't start until the code is deployed
-    # Enable the service but don't start yet
+    # Enable the service (will start after code is deployed via deploy.sh)
     systemctl enable device-manager
+    
+    echo "Device Manager setup complete. Run /opt/device-manager/deploy.sh to deploy code."
   EOF
 }
 

@@ -6,6 +6,67 @@
 
 ## Latest Updates (December 1, 2025)
 
+### AWS Deployment Infrastructure Complete (December 1, 2025 - 8:30 PM)
+- **Status**: Full Terraform infrastructure and GitHub Actions CI/CD created
+- **Ready for Team**: Deployment scheduled with Mary & Elliot
+
+**Infrastructure Created** (`terraform/` directory - 12 files):
+| File | Purpose |
+|------|---------|
+| `main.tf` | Provider config, locals, random suffix |
+| `variables.tf` | All configurable variables with defaults |
+| `vpc.tf` | VPC, subnets, NAT gateway, route tables, flow logs |
+| `rds.tf` | PostgreSQL RDS with encryption, backups, monitoring |
+| `ecs.tf` | Fargate cluster, task definition, service, auto-scaling |
+| `alb.tf` | Load balancer, target groups, HTTPS/ACM setup |
+| `security-groups.tf` | ALB, ECS, RDS, Device Manager security groups |
+| `iam.tf` | ECS roles, Device Manager role, GitHub Actions user |
+| `secrets.tf` | Secrets Manager for DB URL, session, admin password |
+| `device-manager.tf` | EC2 launch template, ASG, CloudWatch agent |
+| `monitoring.tf` | CloudWatch dashboard, alarms, CloudTrail, GuardDuty |
+| `outputs.tf` | All important resource IDs and URLs |
+
+**GitHub Actions CI/CD** (`.github/workflows/`):
+| Workflow | Triggers | Purpose |
+|----------|----------|---------|
+| `deploy.yml` | Push to main | Build Docker → ECR → Deploy ECS → Migrate DB |
+| `terraform.yml` | Changes to terraform/ | Plan → Apply infrastructure changes |
+
+**Production Dockerfile**:
+- Multi-stage build (build → production)
+- Node.js 20 Alpine base
+- Non-root user for security
+- Health check built-in
+- Optimized for ~150MB image size
+
+**Deployment Checklist Created**: `DEPLOYMENT_CHECKLIST.md`
+- Step-by-step guide for team deployment
+- AWS account setup instructions
+- GitHub secrets configuration
+- Terraform initialization steps
+- Post-deployment verification
+- Troubleshooting guide
+- Cost estimates (~$153/month)
+
+**GitHub Secrets Required**:
+```
+AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, AWS_ACCOUNT_ID,
+ECR_REPOSITORY, TF_VAR_DB_PASSWORD, TF_VAR_SESSION_SECRET, TF_VAR_ADMIN_PASSWORD
+```
+
+**AWS Resources Created by Terraform**:
+- VPC with public/private/database subnets (Multi-AZ)
+- RDS PostgreSQL 15.4 with encryption, backups
+- ECS Fargate cluster with auto-scaling (1-4 tasks)
+- Application Load Balancer with HTTPS support
+- Device Manager EC2 Auto Scaling Group
+- CloudWatch logs, dashboards, alarms
+- CloudTrail for SOC2 compliance
+- GuardDuty for threat detection
+- Secrets Manager for secure credential storage
+
+---
+
 ### Device Manager Running (December 1, 2025 - 7:12 PM)
 - **Status**: Device Manager polling DCL-Moeck every 10 seconds
 - **Data Flow**: voltage1=28.98V, SOC=99%, current=-1.7A, power=-49.5W, temp=22°C

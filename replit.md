@@ -135,6 +135,37 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
   - `get_low_battery_trucks` - Trucks below SOC threshold
   - `get_fleet_summary` - Quick fleet health overview
 
+### AWS Deployment Infrastructure (December 1, 2025)
+- **Purpose**: Production-ready AWS deployment with Infrastructure as Code and automated CI/CD.
+- **Terraform**: Complete IaC in `terraform/` directory (12 files).
+- **GitHub Actions**: CI/CD workflows in `.github/workflows/` (deploy.yml, terraform.yml).
+- **Compliance**: SOC2/ISO27001 readiness with CloudTrail, GuardDuty, encrypted storage.
+
+**AWS Architecture**:
+| Component | Service | Configuration |
+|-----------|---------|---------------|
+| Web App | ECS Fargate | 2-4 tasks, 512 CPU, 1GB RAM |
+| Database | RDS PostgreSQL 15.4 | db.t3.small, encrypted, Multi-AZ optional |
+| Load Balancer | ALB | HTTPS with ACM certificates |
+| Device Manager | EC2 t3.medium | Auto Scaling Group (1-3 instances) |
+| Networking | VPC | Multi-AZ, public/private/database subnets |
+| Secrets | Secrets Manager | DB URL, session secret, API keys |
+| Monitoring | CloudWatch | Logs, dashboards, alarms |
+| Compliance | CloudTrail + GuardDuty | Audit logging, threat detection |
+
+**Terraform Files** (`terraform/`):
+- `main.tf`, `variables.tf`, `vpc.tf`, `rds.tf`, `ecs.tf`, `alb.tf`
+- `security-groups.tf`, `iam.tf`, `secrets.tf`, `device-manager.tf`
+- `monitoring.tf`, `outputs.tf`, `terraform.tfvars.example`
+
+**GitHub Secrets Required**:
+- `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `AWS_ACCOUNT_ID`
+- `ECR_REPOSITORY`, `TF_VAR_DB_PASSWORD`, `TF_VAR_SESSION_SECRET`, `TF_VAR_ADMIN_PASSWORD`
+
+**Deployment Guide**: See `DEPLOYMENT_CHECKLIST.md` for step-by-step instructions.
+
+**Cost Estimate**: ~$153/month (ECS $35, RDS $30, NAT $33, ALB $20, EC2 $30, misc $5)
+
 ## External Dependencies
 
 ### Core Infrastructure

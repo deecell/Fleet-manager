@@ -191,10 +191,14 @@ variable "session_secret" {
 }
 
 variable "admin_password" {
-  description = "Admin dashboard password"
+  description = "Admin dashboard password (required - no default for security)"
   type        = string
   sensitive   = true
-  default     = ""
+
+  validation {
+    condition     = length(var.admin_password) >= 12
+    error_message = "Admin password must be at least 12 characters long."
+  }
 }
 
 variable "eia_api_key" {

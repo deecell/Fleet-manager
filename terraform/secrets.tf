@@ -27,7 +27,7 @@ resource "aws_secretsmanager_secret" "admin_password" {
 
 resource "aws_secretsmanager_secret_version" "admin_password" {
   secret_id     = aws_secretsmanager_secret.admin_password.id
-  secret_string = var.admin_password != "" ? var.admin_password : "ChangeThisPassword123!"
+  secret_string = var.admin_password
 }
 
 # EIA API Key (optional)

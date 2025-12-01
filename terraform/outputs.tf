@@ -175,6 +175,11 @@ output "cloudtrail_bucket_name" {
   value       = var.enable_cloudtrail ? aws_s3_bucket.cloudtrail[0].id : null
 }
 
+output "device_manager_deploy_bucket_name" {
+  description = "S3 bucket name for Device Manager deployment artifacts"
+  value       = aws_s3_bucket.device_manager_deploy.id
+}
+
 # -----------------------------------------------------------------------------
 # CloudWatch Outputs
 # -----------------------------------------------------------------------------
