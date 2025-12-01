@@ -270,8 +270,8 @@ export default function Dashboard() {
         
         <FleetStats trucks={truckList} />
         
-        <div className="!mt-[74px]">
-          <div className="flex items-end mb-4 gap-4">
+        <div className="!mt-[74px] overflow-x-auto">
+          <div className="flex items-end mb-4 gap-4 min-w-[900px]">
             <h2 className="text-[18px] font-semibold text-neutral-950 shrink-0 leading-none pb-0 mb-0">Fleet Overview</h2>
             
             <button

@@ -62,7 +62,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
   });
 
   return (
-    <div className="flex gap-3 w-full mt-[0px] mb-[0px] pt-[2px] pb-[2px]">
+    <div className="flex gap-3 w-full mt-[0px] mb-[0px] pt-[2px] pb-[2px] min-w-[900px]">
       {/* Section 1: Truck & Location */}
       <div className="bg-white rounded-b-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[23] mt-[21px]">
         <table className="w-full">
