@@ -52,17 +52,17 @@ max_capacity      = 4      # Maximum during high traffic
 # Database (RDS PostgreSQL)
 # -----------------------------------------------------------------------------
 
-db_instance_class       = "db.t3.small"   # ~$25/month
+db_instance_class       = "db.t3.micro"   # Free tier eligible
 db_allocated_storage    = 20              # 20 GB initial
-db_max_allocated_storage = 100            # Auto-scales up to 100 GB
-db_backup_retention     = 7               # Keep backups for 7 days
+db_max_allocated_storage = 20             # Free tier limit
+db_backup_retention     = 1               # Free tier limit (1 day)
 db_multi_az             = false           # Set true for production HA (costs 2x)
 
 # -----------------------------------------------------------------------------
 # Device Manager (EC2)
 # -----------------------------------------------------------------------------
 
-device_manager_instance_type = "t3.medium"  # 2 vCPU, 4 GB RAM
+device_manager_instance_type = "t3.micro"  # Free tier eligible
 device_manager_key_pair      = ""           # Leave empty unless you need SSH
 
 # -----------------------------------------------------------------------------
@@ -76,9 +76,9 @@ health_check_path = "/api/health"
 # Security & Compliance
 # -----------------------------------------------------------------------------
 
-enable_deletion_protection = true   # Prevents accidental deletion
+enable_deletion_protection = false  # Disabled for initial setup
 enable_cloudtrail          = true   # Audit logging (SOC2/ISO27001)
-enable_guardduty           = true   # Threat detection
+enable_guardduty           = false  # Disabled (requires subscription)
 enable_container_insights  = true   # Detailed container metrics
 log_retention_days         = 90     # Keep logs for 90 days
 
