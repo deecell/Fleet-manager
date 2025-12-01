@@ -6,6 +6,41 @@
 
 ## Latest Updates (December 1, 2025)
 
+### Device Manager Deployment Prep (December 1, 2025)
+- **Customer Credentials Updated**: am@gtofast.com / hello123!
+- **Test Script Created**: `device-manager/test-local.js` - verifies all components before deployment
+  - Checks native addon loaded
+  - Validates database connection
+  - Lists active devices and credentials
+  - Tests live device connection
+  - Validates all app modules
+- **Package.json Updated**: Added start/test scripts
+  - `npm start` - runs the Device Manager
+  - `npm test` - runs local verification tests
+  - `npm run build` - rebuilds native addon
+- **EC2 Deployment Guide Created**: `device-manager/DEPLOYMENT.md`
+  - EC2 instance requirements (t3.medium recommended)
+  - Step-by-step deployment instructions
+  - systemd service configuration
+  - CloudWatch monitoring setup
+  - Horizontal scaling guidance
+  - Troubleshooting section
+  - Cost estimates (~$43/month)
+
+**Quick Start Commands**:
+```bash
+# Test locally
+cd device-manager && npm test
+
+# Run Device Manager
+cd device-manager && npm start
+
+# Or with custom settings
+POLL_INTERVAL_MS=5000 LOG_LEVEL=debug npm start
+```
+
+---
+
 ### Production Database Setup - Live Device Ready (December 1, 2025)
 - **Organization Created**: Deecell Power Systems (ID: 7)
 - **User Created**: admin@deecell.com / Deecell2024! (bcrypt hashed, role: admin)
@@ -17,8 +52,8 @@
 
 **Login Credentials for Customer Dashboard**:
 ```
-Email: admin@deecell.com
-Password: Deecell2024!
+Email: am@gtofast.com
+Password: hello123!
 ```
 
 **Database Record Chain**:
