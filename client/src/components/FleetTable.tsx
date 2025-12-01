@@ -79,7 +79,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
               </th>
               <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Driver</th>
               <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Location</th>
-              <th className="px-3 pr-6 py-3 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Last Updated</th>
+              <th className="px-3 py-3 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap pl-[16px] pr-[16px]">Last Updated</th>
             </tr>
           </thead>
           <tbody>
