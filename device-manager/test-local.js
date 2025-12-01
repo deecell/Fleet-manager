@@ -42,12 +42,12 @@ async function testDatabase() {
     const client = await pool.connect();
     console.log('✅ Database connection successful');
     
-    // Check for active devices
+    // Check for active devices (status can be 'online', 'offline', etc.)
     const devicesResult = await client.query(`
-      SELECT d.id, d.serial_number, d.name, d.status, t.truck_number
+      SELECT d.id, d.serial_number, d.device_name, d.status, d.is_active, t.truck_number
       FROM power_mon_devices d
       LEFT JOIN trucks t ON d.truck_id = t.id
-      WHERE d.status = 'active'
+      WHERE d.is_active = true
       ORDER BY d.id
     `);
     
@@ -58,28 +58,28 @@ async function testDatabase() {
       console.log('   Add devices via Admin Dashboard before running Device Manager.');
     } else {
       devicesResult.rows.forEach(device => {
-        console.log(`   - ${device.name} (${device.serial_number}) → Truck: ${device.truck_number || 'Unassigned'}`);
+        console.log(`   - ${device.device_name} (${device.serial_number}) → Truck: ${device.truck_number || 'Unassigned'}`);
       });
     }
     
     // Check for device credentials
     const credsResult = await client.query(`
-      SELECT c.device_id, d.name
+      SELECT c.device_id, d.device_name
       FROM device_credentials c
       JOIN power_mon_devices d ON c.device_id = d.id
     `);
     
     console.log(`\n🔑 Devices with Credentials: ${credsResult.rows.length}`);
     credsResult.rows.forEach(cred => {
-      console.log(`   - ${cred.name}`);
+      console.log(`   - ${cred.device_name}`);
     });
     
     // Check for recent measurements
     const measurementsResult = await client.query(`
       SELECT COUNT(*) as count, 
-             MAX(timestamp) as latest
+             MAX(recorded_at) as latest
       FROM device_measurements
-      WHERE timestamp > NOW() - INTERVAL '24 hours'
+      WHERE recorded_at > NOW() - INTERVAL '24 hours'
     `);
     
     const row = measurementsResult.rows[0];
@@ -111,10 +111,10 @@ async function testDeviceConnection() {
     
     // Get first device with credentials
     const result = await client.query(`
-      SELECT d.id, d.name, d.serial_number, c.applink_url
+      SELECT d.id, d.device_name, d.serial_number, c.applink_url
       FROM power_mon_devices d
       JOIN device_credentials c ON d.id = c.device_id
-      WHERE d.status = 'active'
+      WHERE d.is_active = true
       LIMIT 1
     `);
     
@@ -127,7 +127,7 @@ async function testDeviceConnection() {
     }
     
     const device = result.rows[0];
-    console.log(`   Testing connection to: ${device.name}`);
+    console.log(`   Testing connection to: ${device.device_name}`);
     
     // Parse applink URL
     const parsed = addon.PowermonDevice.parseAccessURL(device.applink_url);
