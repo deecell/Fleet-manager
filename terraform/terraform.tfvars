@@ -26,7 +26,7 @@ aws_region   = "us-east-1"
 # Replace YOUR_AWS_ACCOUNT_ID with your 12-digit account number
 # Example: 123456789012
 
-ecr_repository_url = "YOUR_AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/deecell-fleet"
+ecr_repository_url = "892213647605.dkr.ecr.us-east-1.amazonaws.com/deecell-fleet"
 
 # -----------------------------------------------------------------------------
 # Network Settings (defaults are fine)
