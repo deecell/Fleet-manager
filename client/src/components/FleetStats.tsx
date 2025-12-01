@@ -35,12 +35,14 @@ interface FleetStatsData {
     trend7DayMinutes: number;
     trendPercentage: number;
     trendIsPositive: boolean;
+    hasInsufficientData?: boolean;
   };
   maintenanceIntervalIncrease: {
     value: number;
     trend7Day: number;
     trendPercentage: number;
     trendIsPositive: boolean;
+    hasInsufficientData?: boolean;
   };
 }
 
@@ -58,6 +60,7 @@ interface StatCardProps {
   prefix?: string;
   suffix?: string;
   decimals?: number;
+  hasInsufficientData?: boolean;
 }
 
 function useCountUp(target: number, duration: number = 1500, decimals: number = 0) {
@@ -100,7 +103,7 @@ function formatNumber(num: string): string {
   return parts.join('.');
 }
 
-function StatCard({ title, trend, icon, iconBgColor, valueColor = "text-neutral-950", targetNumber, prefix = "", suffix = "", decimals = 0 }: StatCardProps) {
+function StatCard({ title, trend, icon, iconBgColor, valueColor = "text-neutral-950", targetNumber, prefix = "", suffix = "", decimals = 0, hasInsufficientData = false }: StatCardProps) {
   const animatedValue = useCountUp(targetNumber, 1500, decimals);
   const formattedValue = formatNumber(animatedValue);
 
@@ -110,7 +113,7 @@ function StatCard({ title, trend, icon, iconBgColor, valueColor = "text-neutral-
         <div className={`w-[49px] h-[49px] rounded-[9px] flex items-center justify-center ${iconBgColor}`}>
           {icon}
         </div>
-        {trend && (
+        {!hasInsufficientData && trend && (
           <div className="flex items-center gap-1">
             {trend.isPositive ? (
               <TrendingUp className="h-4 w-4 text-[#39c900]" />
@@ -124,14 +127,20 @@ function StatCard({ title, trend, icon, iconBgColor, valueColor = "text-neutral-
         )}
       </div>
       <p className="text-sm text-[#4a5565] mt-[17px]">{title}</p>
-      <p className={`text-[26px] min-[1440px]:text-[30px] font-medium leading-8 mt-3 tracking-tight ${valueColor}`} data-testid={`stat-${title.toLowerCase().replace(/\s+/g, '-')}`}>
-        {prefix}{formattedValue}{suffix}
-      </p>
+      {hasInsufficientData ? (
+        <p className="text-[18px] min-[1440px]:text-[20px] font-medium leading-8 mt-3 tracking-tight text-[#9ca3af]" data-testid={`stat-${title.toLowerCase().replace(/\s+/g, '-')}`}>
+          Awaiting data...
+        </p>
+      ) : (
+        <p className={`text-[26px] min-[1440px]:text-[30px] font-medium leading-8 mt-3 tracking-tight ${valueColor}`} data-testid={`stat-${title.toLowerCase().replace(/\s+/g, '-')}`}>
+          {prefix}{formattedValue}{suffix}
+        </p>
+      )}
     </div>
   );
 }
 
-function TimeStatCard({ title, trend, icon, iconBgColor, valueColor = "text-neutral-950", hours, minutes }: {
+function TimeStatCard({ title, trend, icon, iconBgColor, valueColor = "text-neutral-950", hours, minutes, hasInsufficientData = false }: {
   title: string;
   trend?: { value: string; isPositive: boolean; };
   icon: JSX.Element;
@@ -139,6 +148,7 @@ function TimeStatCard({ title, trend, icon, iconBgColor, valueColor = "text-neut
   valueColor?: string;
   hours: number;
   minutes: number;
+  hasInsufficientData?: boolean;
 }) {
   const animatedHours = useCountUp(hours, 1500, 0);
   const animatedMinutes = useCountUp(minutes, 1500, 0);
@@ -149,7 +159,7 @@ function TimeStatCard({ title, trend, icon, iconBgColor, valueColor = "text-neut
         <div className={`w-[49px] h-[49px] rounded-[9px] flex items-center justify-center ${iconBgColor}`}>
           {icon}
         </div>
-        {trend && (
+        {!hasInsufficientData && trend && (
           <div className="flex items-center gap-1">
             {trend.isPositive ? (
               <TrendingUp className="h-4 w-4 text-[#39c900]" />
@@ -163,9 +173,15 @@ function TimeStatCard({ title, trend, icon, iconBgColor, valueColor = "text-neut
         )}
       </div>
       <p className="text-sm text-[#4a5565] mt-[17px]">{title}</p>
-      <p className={`text-[26px] min-[1440px]:text-[30px] font-medium leading-8 mt-3 tracking-tight ${valueColor}`} data-testid={`stat-${title.toLowerCase().replace(/\s+/g, '-')}`}>
-        {animatedHours.toString().padStart(2, '0')}:{animatedMinutes.toString().padStart(2, '0')} h
-      </p>
+      {hasInsufficientData ? (
+        <p className="text-[18px] min-[1440px]:text-[20px] font-medium leading-8 mt-3 tracking-tight text-[#9ca3af]" data-testid={`stat-${title.toLowerCase().replace(/\s+/g, '-')}`}>
+          Awaiting data...
+        </p>
+      ) : (
+        <p className={`text-[26px] min-[1440px]:text-[30px] font-medium leading-8 mt-3 tracking-tight ${valueColor}`} data-testid={`stat-${title.toLowerCase().replace(/\s+/g, '-')}`}>
+          {animatedHours.toString().padStart(2, '0')}:{animatedMinutes.toString().padStart(2, '0')} h
+        </p>
+      )}
     </div>
   );
 }

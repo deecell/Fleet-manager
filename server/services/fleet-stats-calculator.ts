@@ -16,16 +16,19 @@ interface FleetStatsResult {
     trend7DayMinutes: number;
     trendPercentage: number;
     trendIsPositive: boolean;
+    hasInsufficientData: boolean;
   };
   maintenanceIntervalIncrease: {
     value: number;
     trend7Day: number;
     trendPercentage: number;
     trendIsPositive: boolean;
+    hasInsufficientData: boolean;
   };
 }
 
 const BASELINE_HOURS_PER_DEVICE_PER_DAY = 10;
+const MIN_MEASUREMENTS_FOR_STATS = 360;
 
 export class FleetStatsCalculator {
   async get7DayAvgSoc(organizationId: number): Promise<number> {
@@ -70,7 +73,7 @@ export class FleetStatsCalculator {
     }
   }
 
-  async getTodayRuntimeData(organizationId: number): Promise<{ totalHours: number; deviceCount: number }> {
+  async getTodayRuntimeData(organizationId: number): Promise<{ totalHours: number; deviceCount: number; measurementCount: number }> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
@@ -81,6 +84,7 @@ export class FleetStatsCalculator {
           deviceId: deviceMeasurements.deviceId,
           maxRuntime: sql<number>`MAX(${deviceMeasurements.runtime})`,
           minRuntime: sql<number>`MIN(${deviceMeasurements.runtime})`,
+          measurementCount: sql<number>`COUNT(*)`,
         })
         .from(deviceMeasurements)
         .where(
@@ -93,19 +97,22 @@ export class FleetStatsCalculator {
         .groupBy(deviceMeasurements.deviceId);
 
       let totalRuntimeSeconds = 0;
+      let totalMeasurements = 0;
       for (const row of result) {
         const maxRuntime = row.maxRuntime || 0;
         const minRuntime = row.minRuntime || 0;
         totalRuntimeSeconds += Math.max(0, maxRuntime - minRuntime);
+        totalMeasurements += row.measurementCount || 0;
       }
 
       return { 
         totalHours: totalRuntimeSeconds / 3600, 
-        deviceCount: result.length 
+        deviceCount: result.length,
+        measurementCount: totalMeasurements
       };
     } catch (error) {
       console.error("[FleetStats] Failed to get today's runtime:", error);
-      return { totalHours: 0, deviceCount: 0 };
+      return { totalHours: 0, deviceCount: 0, measurementCount: 0 };
     }
   }
 
@@ -172,6 +179,8 @@ export class FleetStatsCalculator {
     const todayData = await this.getTodayRuntimeData(organizationId);
     const sevenDayData = await this.get7DayAvgRuntimeData(organizationId);
 
+    const hasInsufficientData = todayData.measurementCount < MIN_MEASUREMENTS_FOR_STATS;
+
     const deviceCountToday = todayData.deviceCount > 0 ? todayData.deviceCount : 1;
     const deviceCount7Day = sevenDayData.avgDeviceCount > 0 ? sevenDayData.avgDeviceCount : 1;
 
@@ -227,12 +236,14 @@ export class FleetStatsCalculator {
         trend7DayMinutes: sevenDayMinutesOffset,
         trendPercentage: Math.abs(offsetTrendPercentage),
         trendIsPositive: offsetDiff >= 0,
+        hasInsufficientData,
       },
       maintenanceIntervalIncrease: {
         value: todayMaintenanceIncrease,
         trend7Day: sevenDayMaintenanceIncrease,
         trendPercentage: Math.abs(maintenanceTrendPercentage),
         trendIsPositive: maintenanceDiff >= 0,
+        hasInsufficientData,
       },
     };
   }
