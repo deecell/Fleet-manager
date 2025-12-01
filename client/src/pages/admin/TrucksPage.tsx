@@ -33,7 +33,6 @@ import {
   useAdminOrganizations,
   useAdminFleets,
   useAdminTrucks,
-  useAdminAllTrucks,
   useCreateTruck,
   useUpdateTruck,
   useDeleteTruck,
@@ -41,26 +40,20 @@ import {
 import { Plus, Pencil, Trash2, Truck } from "lucide-react";
 import type { Truck as TruckType } from "@shared/schema";
 
-type TruckWithMeta = TruckType & { organizationName?: string; fleetName?: string };
-
 export default function TrucksPage() {
   const { toast } = useToast();
   const { data: orgsData } = useAdminOrganizations();
-  const [selectedOrgId, setSelectedOrgId] = useState<number | "all">("all");
+  const [selectedOrgId, setSelectedOrgId] = useState<number | undefined>();
   const [selectedFleetId, setSelectedFleetId] = useState<number | undefined>();
-  const { data: fleetsData } = useAdminFleets(selectedOrgId === "all" ? undefined : selectedOrgId);
-  const { data: allTrucksData, isLoading: allLoading } = useAdminAllTrucks();
-  const { data: orgTrucksData, isLoading: orgLoading } = useAdminTrucks(
-    selectedOrgId === "all" ? undefined : selectedOrgId,
-    selectedFleetId
-  );
+  const { data: fleetsData } = useAdminFleets(selectedOrgId);
+  const { data: trucksData, isLoading } = useAdminTrucks(selectedOrgId, selectedFleetId);
   const createTruck = useCreateTruck();
   const updateTruck = useUpdateTruck();
   const deleteTruck = useDeleteTruck();
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [editingTruck, setEditingTruck] = useState<TruckWithMeta | null>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState<TruckWithMeta | null>(null);
+  const [editingTruck, setEditingTruck] = useState<TruckType | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<TruckType | null>(null);
 
   const [formData, setFormData] = useState({
     fleetId: 0,
@@ -91,7 +84,7 @@ export default function TrucksPage() {
   };
 
   const handleCreate = async () => {
-    if (selectedOrgId === "all" || !formData.fleetId) return;
+    if (!selectedOrgId || !formData.fleetId) return;
     try {
       await createTruck.mutateAsync({ orgId: selectedOrgId, data: formData });
       toast({ title: "Truck created successfully" });
@@ -103,10 +96,9 @@ export default function TrucksPage() {
   };
 
   const handleUpdate = async () => {
-    if (!editingTruck) return;
-    const orgId = editingTruck.organizationId;
+    if (!editingTruck || !selectedOrgId) return;
     try {
-      await updateTruck.mutateAsync({ id: editingTruck.id, orgId, data: formData });
+      await updateTruck.mutateAsync({ id: editingTruck.id, orgId: selectedOrgId, data: formData });
       toast({ title: "Truck updated successfully" });
       setEditingTruck(null);
       resetForm();
@@ -116,10 +108,9 @@ export default function TrucksPage() {
   };
 
   const handleDelete = async () => {
-    if (!deleteConfirm) return;
-    const orgId = deleteConfirm.organizationId;
+    if (!deleteConfirm || !selectedOrgId) return;
     try {
-      await deleteTruck.mutateAsync({ id: deleteConfirm.id, orgId });
+      await deleteTruck.mutateAsync({ id: deleteConfirm.id, orgId: selectedOrgId });
       toast({ title: "Truck deleted successfully" });
       setDeleteConfirm(null);
     } catch (error) {
@@ -127,7 +118,7 @@ export default function TrucksPage() {
     }
   };
 
-  const openEdit = (truck: TruckWithMeta) => {
+  const openEdit = (truck: TruckType) => {
     setFormData({
       fleetId: truck.fleetId,
       truckNumber: truck.truckNumber,
@@ -150,11 +141,7 @@ export default function TrucksPage() {
 
   const organizations = orgsData?.organizations || [];
   const fleets = fleetsData?.fleets || [];
-  const isShowingAll = selectedOrgId === "all";
-  const trucks: TruckWithMeta[] = isShowingAll 
-    ? (allTrucksData?.trucks || [])
-    : (orgTrucksData?.trucks || []);
-  const isLoading = isShowingAll ? allLoading : orgLoading;
+  const trucks = trucksData?.trucks || [];
 
   return (
     <AdminLayout>
@@ -170,7 +157,7 @@ export default function TrucksPage() {
           </div>
           <Button 
             onClick={openCreate} 
-            disabled={isShowingAll || fleets.length === 0}
+            disabled={!selectedOrgId || fleets.length === 0}
             data-testid="button-create-truck"
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -184,17 +171,16 @@ export default function TrucksPage() {
               <div className="flex items-center gap-2">
                 <Label htmlFor="org-select" className="whitespace-nowrap">Organization:</Label>
                 <Select 
-                  value={selectedOrgId.toString()} 
+                  value={selectedOrgId?.toString()} 
                   onValueChange={(v) => {
-                    setSelectedOrgId(v === "all" ? "all" : parseInt(v));
+                    setSelectedOrgId(parseInt(v));
                     setSelectedFleetId(undefined);
                   }}
                 >
                   <SelectTrigger className="w-48" data-testid="select-organization">
-                    <SelectValue placeholder="Show all" />
+                    <SelectValue placeholder="Select org" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Show all</SelectItem>
                     {organizations.map((org) => (
                       <SelectItem key={org.id} value={org.id.toString()}>
                         {org.name}
@@ -203,40 +189,43 @@ export default function TrucksPage() {
                   </SelectContent>
                 </Select>
               </div>
-              {!isShowingAll && (
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="fleet-select" className="whitespace-nowrap">Fleet:</Label>
-                  <Select 
-                    value={selectedFleetId?.toString() || "all"} 
-                    onValueChange={(v) => setSelectedFleetId(v === "all" ? undefined : parseInt(v))}
-                  >
-                    <SelectTrigger className="w-48" data-testid="select-fleet">
-                      <SelectValue placeholder="All fleets" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All fleets</SelectItem>
-                      {fleets.map((fleet) => (
-                        <SelectItem key={fleet.id} value={fleet.id.toString()}>
-                          {fleet.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+              <div className="flex items-center gap-2">
+                <Label htmlFor="fleet-select" className="whitespace-nowrap">Fleet:</Label>
+                <Select 
+                  value={selectedFleetId?.toString() || "all"} 
+                  onValueChange={(v) => setSelectedFleetId(v === "all" ? undefined : parseInt(v))}
+                  disabled={!selectedOrgId}
+                >
+                  <SelectTrigger className="w-48" data-testid="select-fleet">
+                    <SelectValue placeholder="All fleets" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All fleets</SelectItem>
+                    {fleets.map((fleet) => (
+                      <SelectItem key={fleet.id} value={fleet.id.toString()}>
+                        {fleet.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="p-0">
-            {isLoading ? (
+            {!selectedOrgId ? (
+              <div className="p-8 text-center text-muted-foreground">
+                Select an organization to view trucks
+              </div>
+            ) : isLoading ? (
               <div className="p-8 text-center text-muted-foreground">Loading...</div>
             ) : trucks.length === 0 ? (
               <div className="p-8 text-center">
                 <Truck className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <p className="text-muted-foreground">No trucks found</p>
-                {!isShowingAll && fleets.length > 0 && (
+                {fleets.length > 0 && (
                   <Button className="mt-4" onClick={openCreate}>
                     Add your first truck
                   </Button>
@@ -247,8 +236,6 @@ export default function TrucksPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Truck #</TableHead>
-                    {isShowingAll && <TableHead>Organization</TableHead>}
-                    {isShowingAll && <TableHead>Fleet</TableHead>}
                     <TableHead>Driver</TableHead>
                     <TableHead>Make/Model</TableHead>
                     <TableHead>VIN</TableHead>
@@ -260,16 +247,6 @@ export default function TrucksPage() {
                   {trucks.map((truck) => (
                     <TableRow key={truck.id} data-testid={`row-truck-${truck.id}`}>
                       <TableCell className="font-medium">{truck.truckNumber}</TableCell>
-                      {isShowingAll && (
-                        <TableCell className="text-muted-foreground">
-                          {truck.organizationName || "-"}
-                        </TableCell>
-                      )}
-                      {isShowingAll && (
-                        <TableCell className="text-muted-foreground">
-                          {truck.fleetName || "-"}
-                        </TableCell>
-                      )}
                       <TableCell className="text-muted-foreground">{truck.driverName || "-"}</TableCell>
                       <TableCell className="text-muted-foreground">
                         {[truck.make, truck.model, truck.year].filter(Boolean).join(" ") || "-"}
