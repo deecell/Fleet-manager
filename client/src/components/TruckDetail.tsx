@@ -399,7 +399,7 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
                   <span className="text-sm font-medium text-muted-foreground">Power</span>
                   <Thermometer className="h-4 w-4 text-muted-foreground" />
                 </div>
-                <div className="text-3xl font-bold text-[#0a0a0a]" data-testid="metric-power">{truck.p.toFixed(1)}kW</div>
+                <div className="text-3xl font-bold text-[#0a0a0a]" data-testid="metric-power">{truck.p.toFixed(2)}kW</div>
               </div>
             </div>
           </CollapsibleContent>
