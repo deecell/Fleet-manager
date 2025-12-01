@@ -165,8 +165,8 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
 **GitHub Secrets for CI/CD**:
 | Secret | Value |
 |--------|-------|
-| `AWS_ACCESS_KEY_ID` | AKIA47PAT3D267GZVU5P |
-| `AWS_SECRET_ACCESS_KEY` | (see DEVELOPMENT_LOG.md) |
+| `AWS_ACCESS_KEY_ID` | (get from Terraform output) |
+| `AWS_SECRET_ACCESS_KEY` | (get from Terraform output) |
 | `AWS_REGION` | us-east-2 |
 | `ECR_REPOSITORY` | deecell-fleet |
 

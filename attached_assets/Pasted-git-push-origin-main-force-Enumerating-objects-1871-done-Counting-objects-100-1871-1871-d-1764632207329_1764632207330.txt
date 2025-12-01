@@ -1,0 +1,90 @@
+git push origin main --force
+
+Enumerating objects: 1871, done.
+Counting objects: 100% (1871/1871), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (1811/1811), done.
+Writing objects: 100% (1843/1843), 3.51 MiB | 3.66 MiB/s, done.
+Total 1843 (delta 1475), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (1475/1475), completed with 12 local objects.
+remote: error: GH013: Repository rule violations found for refs/heads/main.
+remote: 
+remote: - GITHUB PUSH PROTECTION
+remote:   —————————————————————————————————————————
+remote:     Resolve the following violations before pushing again
+remote: 
+remote:     - Push cannot contain secrets
+remote: 
+remote:     
+remote:      (?) Learn how to resolve a blocked push
+remote:      https://docs.github.com/code-security/secret-scanning/working-with-secret-scanning-and-push-protection/working-with-push-protection-from-the-command-line#resolving-a-blocked-push
+remote:     
+remote:     
+remote:       —— Amazon AWS Access Key ID ——————————————————————————
+remote:        locations:
+remote:          - commit: 4a8932f82d60d59ef442a495258c74dc67779919
+remote:            path: DEPLOY_NOW.md:19
+remote:          - commit: 4c9c2bcb1782cab08cc0f7d67a44119772a774fe
+remote:            path: terraform/terraform.tfstate:113
+remote:          - commit: 4c9c2bcb1782cab08cc0f7d67a44119772a774fe
+remote:            path: terraform/terraform.tfstate:1996
+remote:          - commit: 4c9c2bcb1782cab08cc0f7d67a44119772a774fe
+remote:            path: terraform/terraform.tfstate.1764630679.backup:109
+remote:          - commit: 4c9c2bcb1782cab08cc0f7d67a44119772a774fe
+remote:            path: terraform/terraform.tfstate.1764630679.backup:1551
+remote:     
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.
+remote:        https://github.com/deecell/Fleet-manager/security/secret-scanning/unblock-secret/36GU0O7m3vJyyd0qXj9GFn6jrNX
+remote:     
+remote:     
+remote:       —— Amazon AWS Secret Access Key ——————————————————————
+remote:        locations:
+remote:          - commit: 4a8932f82d60d59ef442a495258c74dc67779919
+remote:            path: DEPLOY_NOW.md:20
+remote:          - commit: 4c9c2bcb1782cab08cc0f7d67a44119772a774fe
+remote:            path: terraform/terraform.tfstate:118
+remote:          - commit: 4c9c2bcb1782cab08cc0f7d67a44119772a774fe
+remote:            path: terraform/terraform.tfstate:1999
+remote:          - commit: 4c9c2bcb1782cab08cc0f7d67a44119772a774fe
+remote:            path: terraform/terraform.tfstate.1764630679.backup:114
+remote:          - commit: 4c9c2bcb1782cab08cc0f7d67a44119772a774fe
+remote:            path: terraform/terraform.tfstate.1764630679.backup:1554
+remote:     
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.
+remote:        https://github.com/deecell/Fleet-manager/security/secret-scanning/unblock-secret/36GU0MI7qdDrNaO4v8qyGXqjLBl
+remote:     
+remote:     
+remote:       —— Amazon AWS Access Key ID ——————————————————————————
+remote:        locations:
+remote:          - commit: e862d0592442a635021aca460aacee835c246baf
+remote:            path: .replit:74
+remote:          - commit: 90ddd966a571b49f828fac1fcc7f7b3e167c8c8f
+remote:            path: .replit:74
+remote:          - commit: aa4153573e760f8a0ed1a95f7caccf107ab0b9ab
+remote:            path: .replit:74
+remote:          - commit: 4a3a1ba7796a13a4e844606a36e28e03e816c89a
+remote:            path: .replit:78
+remote:     
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.
+remote:        https://github.com/deecell/Fleet-manager/security/secret-scanning/unblock-secret/36GU0OlGm63I60yhOdcvWkG5mjZ
+remote:     
+remote:     
+remote:       —— Amazon AWS Secret Access Key ——————————————————————
+remote:        locations:
+remote:          - commit: e862d0592442a635021aca460aacee835c246baf
+remote:            path: .replit:75
+remote:          - commit: 90ddd966a571b49f828fac1fcc7f7b3e167c8c8f
+remote:            path: .replit:75
+remote:          - commit: aa4153573e760f8a0ed1a95f7caccf107ab0b9ab
+remote:            path: .replit:75
+remote:          - commit: 4a3a1ba7796a13a4e844606a36e28e03e816c89a
+remote:            path: .replit:79
+remote:     
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.
+remote:        https://github.com/deecell/Fleet-manager/security/secret-scanning/unblock-secret/36GU0NBYH5HLkLbwKIUGT3ptiKz
+remote:     
+remote: 
+remote: 
+To https://github.com/deecell/Fleet-manager.git
+ ! [remote rejected] main -> main (push declined due to repository rule violations)
+error: failed to push some refs to 'https://github.com/deecell/Fleet-manager.git'

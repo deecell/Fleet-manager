@@ -16,8 +16,8 @@ Go to your GitHub repo: **https://github.com/deecell/Fleet-manager**
 
 | Secret Name | Secret Value |
 |-------------|--------------|
-| `AWS_ACCESS_KEY_ID` | `AKIA47PAT3D267GZVU5P` |
-| `AWS_SECRET_ACCESS_KEY` | `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` |
+| `AWS_ACCESS_KEY_ID` | (get from Terraform output or AWS console) |
+| `AWS_SECRET_ACCESS_KEY` | (get from Terraform output or AWS console) |
 | `AWS_REGION` | `us-east-2` |
 | `ECR_REPOSITORY` | `deecell-fleet` |
 

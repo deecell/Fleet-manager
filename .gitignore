@@ -9,6 +9,7 @@ vite.config.ts.*
 .terraform/
 *.tfstate
 *.tfstate.*
+*.backup
 .terraform.lock.hcl
 terraform.tfvars
 crash.log
@@ -16,3 +17,13 @@ override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
+terraform/terraform.tfstate*
+
+# Replit config (contains env vars)
+.replit
+
+# Secrets
+*.pem
+*.key
+.env
+.env.*
