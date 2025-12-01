@@ -236,12 +236,11 @@ async function bulkInsertMeasurements(measurements) {
   let paramIndex = 1;
 
   for (const m of measurements) {
-    values.push(`($${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++})`);
+    values.push(`($${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++})`);
     params.push(
       m.organizationId,
       m.deviceId,
       m.truckId,
-      m.fleetId,
       m.voltage1,
       m.voltage2,
       m.current,
@@ -251,14 +250,16 @@ async function bulkInsertMeasurements(measurements) {
       m.energy,
       m.charge,
       m.runtime,
+      m.rssi || null,
       m.source,
-      m.recordedAt
+      m.recordedAt,
+      m.powerStatusString || null
     );
   }
 
   await query(`
     INSERT INTO device_measurements 
-      (organization_id, device_id, truck_id, fleet_id, voltage1, voltage2, current, power, temperature, soc, energy, charge, runtime, source, recorded_at)
+      (organization_id, device_id, truck_id, voltage1, voltage2, current, power, temperature, soc, energy, charge, runtime, rssi, source, recorded_at, power_status_string)
     VALUES ${values.join(', ')}
     ON CONFLICT DO NOTHING
   `, params);
@@ -272,26 +273,27 @@ async function bulkInsertMeasurements(measurements) {
 async function upsertDeviceSnapshot(snapshot) {
   await query(`
     INSERT INTO device_snapshots 
-      (organization_id, device_id, truck_id, fleet_id, voltage1, voltage2, current, power, temperature, soc, energy, charge, runtime, recorded_at, updated_at)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW())
+      (organization_id, device_id, truck_id, voltage1, voltage2, current, power, temperature, soc, energy, charge, runtime, rssi, power_status_string, recorded_at, updated_at)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW())
     ON CONFLICT (device_id) 
     DO UPDATE SET
-      voltage1 = $5,
-      voltage2 = $6,
-      current = $7,
-      power = $8,
-      temperature = $9,
-      soc = $10,
-      energy = $11,
-      charge = $12,
-      runtime = $13,
-      recorded_at = $14,
+      voltage1 = $4,
+      voltage2 = $5,
+      current = $6,
+      power = $7,
+      temperature = $8,
+      soc = $9,
+      energy = $10,
+      charge = $11,
+      runtime = $12,
+      rssi = $13,
+      power_status_string = $14,
+      recorded_at = $15,
       updated_at = NOW()
   `, [
     snapshot.organizationId,
     snapshot.deviceId,
     snapshot.truckId,
-    snapshot.fleetId,
     snapshot.voltage1,
     snapshot.voltage2,
     snapshot.current,
@@ -301,6 +303,8 @@ async function upsertDeviceSnapshot(snapshot) {
     snapshot.energy,
     snapshot.charge,
     snapshot.runtime,
+    snapshot.rssi || null,
+    snapshot.powerStatusString || null,
     snapshot.recordedAt,
   ]);
 }

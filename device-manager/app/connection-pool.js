@@ -50,51 +50,70 @@ class DeviceConnection {
   /**
    * Connect to the device
    */
-  async connect() {
+  connect() {
     if (!powermon) {
       this.log.error('PowerMon addon not available');
-      return false;
+      return Promise.resolve(false);
     }
 
     if (this.status === 'connected') {
-      return true;
+      return Promise.resolve(true);
     }
 
     this.status = 'connecting';
     this.log.info('Connecting to device');
 
-    try {
-      // Create device instance
-      this.device = powermon.createInstance();
-      
-      // Parse applink URL to get connection parameters
-      const urlParams = new URL(this.applinkUrl);
-      const params = new URLSearchParams(urlParams.search);
-      
-      const name = params.get('n');
-      const secret = params.get('s');
-      const hostId = parseInt(params.get('h') || '0', 10);
-      const connKey = params.get('c');
-      
-      // Connect via WiFi
-      const result = this.device.Connect(name, secret, hostId, connKey);
-      
-      if (result === 0) {
-        this.status = 'connected';
-        this.consecutiveFailures = 0;
-        this.reconnectAttempts = 0;
-        this.log.info('Connected successfully');
+    return new Promise((resolve) => {
+      try {
+        // Parse applink URL to get access key
+        const parsed = powermon.PowermonDevice.parseAccessURL(this.applinkUrl);
         
-        await db.markDeviceConnected(this.deviceId);
-        return true;
-      } else {
-        throw new Error(`Connect returned error code: ${result}`);
+        // Create device instance
+        this.device = new powermon.PowermonDevice();
+        
+        // Set connection timeout
+        const timeout = setTimeout(() => {
+          this.log.warn('Connection timeout');
+          this.status = 'disconnected';
+          if (this.device) {
+            this.device.disconnect();
+            this.device = null;
+          }
+          resolve(false);
+        }, 15000);
+        
+        // Connect via WiFi using the parsed access key
+        this.device.connect({
+          accessKey: parsed.accessKey,
+          onConnect: async () => {
+            clearTimeout(timeout);
+            this.status = 'connected';
+            this.consecutiveFailures = 0;
+            this.reconnectAttempts = 0;
+            this.log.info('Connected successfully');
+            
+            await db.markDeviceConnected(this.deviceId);
+            resolve(true);
+          },
+          onDisconnect: (reason) => {
+            clearTimeout(timeout);
+            if (this.status === 'connecting') {
+              this.log.warn('Connection failed during connect', { reason });
+              this.status = 'disconnected';
+              resolve(false);
+            } else {
+              this.log.info('Device disconnected', { reason });
+              this.status = 'disconnected';
+              this.scheduleReconnect();
+            }
+          }
+        });
+      } catch (err) {
+        this.status = 'disconnected';
+        this.log.error('Connection failed', { error: err.message });
+        resolve(false);
       }
-    } catch (err) {
-      this.status = 'disconnected';
-      this.log.error('Connection failed', { error: err.message });
-      return false;
-    }
+    });
   }
 
   /**
@@ -103,7 +122,7 @@ class DeviceConnection {
   disconnect() {
     if (this.device) {
       try {
-        this.device.Disconnect();
+        this.device.disconnect();
       } catch (err) {
         this.log.warn('Error during disconnect', { error: err.message });
       }
@@ -122,62 +141,73 @@ class DeviceConnection {
   /**
    * Poll the device for current data
    */
-  async poll() {
+  poll() {
     if (this.status !== 'connected' || !this.device) {
-      return null;
+      return Promise.resolve(null);
     }
 
     this.lastPollAt = new Date();
 
-    try {
-      // Get monitor data from device
-      const data = this.device.getMonitorData();
-      
-      if (!data || data.error) {
-        throw new Error(data?.error || 'No data returned');
+    return new Promise((resolve) => {
+      try {
+        // Get monitor data from device using callback API
+        this.device.getMonitorData((result) => {
+          if (!result.success) {
+            this.consecutiveFailures++;
+            this.log.warn('Poll failed', { 
+              code: result.code, 
+              failures: this.consecutiveFailures 
+            });
+
+            // Mark as disconnected if too many failures
+            if (this.consecutiveFailures >= 3) {
+              this.status = 'disconnected';
+              db.markDeviceDisconnected(this.deviceId, this.lastSuccessfulPollAt)
+                .then(() => this.scheduleReconnect());
+            }
+
+            resolve(null);
+            return;
+          }
+
+          const data = result.data;
+          this.lastSuccessfulPollAt = this.lastPollAt;
+          this.consecutiveFailures = 0;
+
+          // Transform to measurement format
+          const measurement = {
+            organizationId: this.orgId,
+            deviceId: this.deviceId,
+            truckId: this.truckId,
+            fleetId: null, // Will be looked up if needed
+            voltage1: data.voltage1,
+            voltage2: data.voltage2,
+            current: data.current,
+            power: data.power,
+            temperature: data.temperature,
+            soc: data.soc,
+            energy: data.energyMeter,
+            charge: data.coulombMeter,
+            runtime: data.runtime,
+            rssi: data.rssi,
+            powerStatus: data.powerStatus,
+            powerStatusString: data.powerStatusString,
+            source: 'poll',
+            recordedAt: this.lastPollAt,
+          };
+
+          this.log.debug('Poll successful', { soc: data.soc, voltage: data.voltage1 });
+          resolve(measurement);
+        });
+      } catch (err) {
+        this.consecutiveFailures++;
+        this.log.warn('Poll exception', { 
+          error: err.message, 
+          failures: this.consecutiveFailures 
+        });
+        resolve(null);
       }
-
-      this.lastSuccessfulPollAt = this.lastPollAt;
-      this.consecutiveFailures = 0;
-
-      // Transform to measurement format
-      const measurement = {
-        organizationId: this.orgId,
-        deviceId: this.deviceId,
-        truckId: this.truckId,
-        fleetId: null, // Will be looked up if needed
-        voltage1: data.voltage1,
-        voltage2: data.voltage2,
-        current: data.current,
-        power: data.power,
-        temperature: data.temperature,
-        soc: data.soc,
-        energy: data.energy,
-        charge: data.charge,
-        runtime: data.runtime,
-        source: 'poll',
-        recordedAt: this.lastPollAt,
-      };
-
-      this.log.debug('Poll successful', { soc: data.soc, voltage: data.voltage1 });
-      return measurement;
-
-    } catch (err) {
-      this.consecutiveFailures++;
-      this.log.warn('Poll failed', { 
-        error: err.message, 
-        failures: this.consecutiveFailures 
-      });
-
-      // Mark as disconnected if too many failures
-      if (this.consecutiveFailures >= 3) {
-        this.status = 'disconnected';
-        await db.markDeviceDisconnected(this.deviceId, this.lastSuccessfulPollAt);
-        this.scheduleReconnect();
-      }
-
-      return null;
-    }
+    });
   }
 
   /**
