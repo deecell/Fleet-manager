@@ -6,6 +6,12 @@
 
 ## Latest Updates (December 1, 2025)
 
+### Device Manager Running (December 1, 2025 - 7:12 PM)
+- **Status**: Device Manager polling DCL-Moeck every 10 seconds
+- **Data Flow**: voltage1=28.98V, SOC=99%, current=-1.7A, power=-49.5W, temp=22°C
+- **Connection**: WiFi persistent connection to A3A5B30EA9B3FF98 (172.30.2.26:49262)
+- **Note**: Device Manager runs as background process; restarts needed after Replit shutdown
+
 ### Bug Fix: Dashboard Voltage Display (December 1, 2025)
 - **Issue**: Sleeper V column showing 0.00 instead of actual voltage (26.54V)
 - **Root Cause**: FleetTable had voltage columns swapped. The PowerMon device reports:
