@@ -4,7 +4,24 @@
 
 ---
 
-## Latest Updates (November 30, 2025)
+## Latest Updates (December 1, 2025)
+
+### Database Reset for Production Data (December 1, 2025)
+- **Action**: Cleared all demo/simulated data from database
+- **Reason**: Preparing for real PowerMon devices (DCL-Moeck + 10 more)
+- **Tables Cleared**:
+  - organizations, fleets, trucks, users
+  - power_mon_devices, device_credentials
+  - device_measurements, device_snapshots, device_statistics
+  - alerts, sims, sim_location_history, sim_usage_history
+  - fuel_prices, savings_config, polling_settings
+- **Preserved**: Database schema (all tables exist but empty), admin authentication
+- **Device Simulator**: Disabled in `server/index.ts` - no longer generating fake data
+- **Next**: Add real organization, fleet, truck for DCL-Moeck device
+
+---
+
+## Previous Updates (November 30, 2025)
 
 ### Log Sync Service - Incremental Historical Data Sync (November 30, 2025)
 - **New Feature**: `device-manager/lib/log-sync.js` - Service for syncing historical log data from PowerMon

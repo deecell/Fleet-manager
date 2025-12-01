@@ -1,7 +1,8 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { startDeviceSimulator } from "./services/device-simulator";
+// Device simulator disabled - using real PowerMon devices via Device Manager
+// import { startDeviceSimulator } from "./services/device-simulator";
 
 const app = express();
 
@@ -79,7 +80,7 @@ app.use((req, res, next) => {
   }, () => {
     log(`serving on port ${port}`);
     
-    // Start the device simulator to poll devices every 30 seconds
-    startDeviceSimulator();
+    // Device simulator disabled - using real PowerMon devices via standalone Device Manager
+    // startDeviceSimulator();
   });
 })();
