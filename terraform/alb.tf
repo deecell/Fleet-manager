@@ -145,6 +145,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "alb_logs" {
     id     = "expire-logs"
     status = "Enabled"
 
+    filter {
+      prefix = "alb/"
+    }
+
     expiration {
       days = var.log_retention_days
     }
