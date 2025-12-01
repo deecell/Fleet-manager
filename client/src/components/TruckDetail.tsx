@@ -287,7 +287,7 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
           <TruckTimeline truckId={parseInt(truck.id)} />
         </div>
 
-        {/* Power Meter Voltage Source */}
+{/* Power Meter Voltage Source - Hidden for now
         <Collapsible open={powerMeterOpen} onOpenChange={setPowerMeterOpen}>
           <div className={`py-4 ${!powerMeterOpen ? "border-b border-[#ebeef2]" : ""}`}>
             <CollapsibleTrigger className="flex items-center justify-between w-full" data-testid="toggle-power-meter">
@@ -359,6 +359,7 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
             </div>
           </CollapsibleContent>
         </Collapsible>
+        */}
 
         {/* Current Metrics */}
         <Collapsible open={metricsOpen} onOpenChange={setMetricsOpen}>
