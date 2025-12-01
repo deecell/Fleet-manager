@@ -227,6 +227,32 @@ router.delete("/fleets/:id", adminMiddleware, async (req: Request, res: Response
   }
 });
 
+router.get("/trucks", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const orgs = await storage.listOrganizations();
+    const allTrucks: any[] = [];
+    
+    for (const org of orgs) {
+      const fleetsList = await storage.listFleets(org.id);
+      const trucksList = await storage.listTrucks(org.id);
+      
+      for (const truck of trucksList) {
+        const fleet = fleetsList.find(f => f.id === truck.fleetId);
+        allTrucks.push({
+          ...truck,
+          organizationName: org.name,
+          fleetName: fleet?.name || "Unknown",
+        });
+      }
+    }
+    
+    res.json({ trucks: allTrucks });
+  } catch (error) {
+    console.error("Error listing all trucks:", error);
+    res.status(500).json({ error: "Failed to list trucks" });
+  }
+});
+
 router.get("/organizations/:orgId/trucks", adminMiddleware, async (req: Request, res: Response) => {
   try {
     const orgId = parseInt(req.params.orgId, 10);

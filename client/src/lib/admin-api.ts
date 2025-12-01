@@ -245,6 +245,17 @@ export function useDeleteFleet() {
   });
 }
 
+interface AllTrucksResponse {
+  trucks: (Truck & { organizationName: string; fleetName: string })[];
+}
+
+export function useAdminAllTrucks() {
+  return useQuery<AllTrucksResponse>({
+    queryKey: ["/api/v1/admin/trucks"],
+    queryFn: () => adminFetch(`/api/v1/admin/trucks`),
+  });
+}
+
 export function useAdminTrucks(orgId: number | undefined, fleetId?: number) {
   const params = fleetId ? `?fleetId=${fleetId}` : "";
   return useQuery<TrucksResponse>({
@@ -264,6 +275,7 @@ export function useCreateTruck() {
       }),
     onSuccess: (_, { orgId }) => {
       queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/organizations", orgId, "trucks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/trucks"] });
       queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/stats"] });
     },
   });
@@ -279,6 +291,7 @@ export function useUpdateTruck() {
       }),
     onSuccess: (_, { orgId }) => {
       queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/organizations", orgId, "trucks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/trucks"] });
     },
   });
 }
@@ -290,6 +303,7 @@ export function useDeleteTruck() {
       adminFetch(`/api/v1/admin/trucks/${id}?orgId=${orgId}`, { method: "DELETE" }),
     onSuccess: (_, { orgId }) => {
       queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/organizations", orgId, "trucks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/trucks"] });
       queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/stats"] });
     },
   });
