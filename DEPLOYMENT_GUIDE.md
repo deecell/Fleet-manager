@@ -100,11 +100,12 @@ You need 3 passwords. Write them down!
 4. DON'T check any boxes (no README, no .gitignore)
 5. Click "Create repository"
 
-### 5.2 Add Secrets to GitHub
+### 5.2 Add Secrets to GitHub (REPOSITORY SECRETS, not environment secrets)
 1. In your new repo, click "Settings" (top menu)
 2. In left sidebar, click "Secrets and variables" → "Actions"
-3. Click "New repository secret"
-4. Add each of these secrets one by one:
+3. You'll see two tabs: "Secrets" and "Variables" - stay on **Secrets**
+4. Click the green **"New repository secret"** button (NOT "New environment secret")
+5. Add each of these secrets one by one:
 
 | Secret Name | Value (what to paste) |
 |-------------|----------------------|
