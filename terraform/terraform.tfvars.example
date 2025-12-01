@@ -1,0 +1,104 @@
+# =============================================================================
+# Deecell Fleet Tracking - Terraform Variables Example
+# =============================================================================
+# 
+# Copy this file to terraform.tfvars and fill in your values
+# NEVER commit terraform.tfvars to version control!
+#
+# For CI/CD, set these as GitHub Secrets with TF_VAR_ prefix:
+#   - TF_VAR_db_password
+#   - TF_VAR_session_secret
+#   - TF_VAR_admin_password
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Project Configuration
+# -----------------------------------------------------------------------------
+
+project_name = "deecell-fleet"
+environment  = "production"
+aws_region   = "us-east-1"
+
+# -----------------------------------------------------------------------------
+# Network Configuration
+# -----------------------------------------------------------------------------
+
+vpc_cidr           = "10.0.0.0/16"
+availability_zones = ["us-east-1a", "us-east-1b"]
+single_nat_gateway = true  # Set to false for production HA
+
+# -----------------------------------------------------------------------------
+# Application Configuration
+# -----------------------------------------------------------------------------
+
+# Leave empty for ALB DNS, or set your custom domain
+domain_name       = ""  # e.g., "fleet.deecell.com"
+container_port    = 5000
+health_check_path = "/api/health"
+
+# -----------------------------------------------------------------------------
+# ECS Configuration (Web Application)
+# -----------------------------------------------------------------------------
+
+# Set this after creating ECR repository:
+# aws ecr create-repository --repository-name deecell-fleet --region us-east-1
+ecr_repository_url  = "<ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/deecell-fleet"
+container_image_tag = "latest"
+
+ecs_cpu       = 512   # 0.5 vCPU
+ecs_memory    = 1024  # 1 GB
+desired_count = 2     # Number of tasks
+min_capacity  = 1
+max_capacity  = 4
+
+# -----------------------------------------------------------------------------
+# Device Manager EC2 Configuration
+# -----------------------------------------------------------------------------
+
+device_manager_instance_type = "t3.medium"
+device_manager_key_pair      = ""  # Optional: EC2 key pair name for SSH
+
+# -----------------------------------------------------------------------------
+# Database Configuration
+# -----------------------------------------------------------------------------
+
+db_instance_class        = "db.t3.small"  # db.t3.micro for dev, db.t3.small+ for prod
+db_allocated_storage     = 20
+db_max_allocated_storage = 100
+db_backup_retention      = 7
+db_multi_az              = false  # Set to true for production HA
+
+# Set via environment variable or GitHub Secret:
+# export TF_VAR_db_password="YourSecurePassword123!"
+# db_password = ""  # DO NOT SET HERE
+
+# -----------------------------------------------------------------------------
+# Application Secrets
+# -----------------------------------------------------------------------------
+
+# Set via environment variable or GitHub Secret:
+# export TF_VAR_session_secret="$(openssl rand -base64 48)"
+# export TF_VAR_admin_password="YourAdminPassword!"
+# session_secret = ""  # DO NOT SET HERE
+# admin_password = ""  # DO NOT SET HERE
+
+# Optional API keys (can be added later)
+# eia_api_key    = ""
+# openai_api_key = ""
+
+# -----------------------------------------------------------------------------
+# Security & Compliance
+# -----------------------------------------------------------------------------
+
+enable_deletion_protection = true   # Protects RDS and ALB from accidental deletion
+enable_cloudtrail          = true   # Required for SOC2 compliance
+enable_guardduty           = true   # Threat detection
+enable_container_insights  = true   # ECS monitoring
+log_retention_days         = 90     # CloudWatch log retention
+
+# -----------------------------------------------------------------------------
+# Alerting
+# -----------------------------------------------------------------------------
+
+# Set to receive alerts via email
+alert_email = ""  # e.g., "ops@deecell.com"

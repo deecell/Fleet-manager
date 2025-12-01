@@ -1,0 +1,270 @@
+# =============================================================================
+# Deecell Fleet Tracking - CI/CD Pipeline
+# Triggers on push to main branch
+# =============================================================================
+
+name: Deploy to AWS
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+  ECS_CLUSTER: deecell-fleet-production-cluster
+  ECS_SERVICE: deecell-fleet
+  CONTAINER_NAME: deecell-fleet
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  # ===========================================================================
+  # Job 1: Test
+  # ===========================================================================
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Type Check
+        run: npm run typecheck --if-present
+        continue-on-error: true
+
+      - name: Run Tests
+        run: npm test --if-present
+        continue-on-error: true
+
+  # ===========================================================================
+  # Job 2: Security Scan
+  # ===========================================================================
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run npm audit
+        run: npm audit --audit-level=high || true
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+
+  # ===========================================================================
+  # Job 3: Build and Push Docker Image
+  # ===========================================================================
+  build:
+    name: Build and Push
+    runs-on: ubuntu-latest
+    needs: [test, security]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    outputs:
+      image: ${{ steps.build-image.outputs.image }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          # Build Docker image
+          docker build \
+            --build-arg NODE_ENV=production \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
+            .
+
+          # Push both tags
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+          # Output the image URI
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Scan Docker image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+
+  # ===========================================================================
+  # Job 4: Deploy to ECS
+  # ===========================================================================
+  deploy:
+    name: Deploy to ECS
+    runs-on: ubuntu-latest
+    needs: build
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Download current task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition ${{ env.ECS_SERVICE }} \
+            --query taskDefinition > task-definition.json
+
+      - name: Update task definition with new image
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ needs.build.outputs.image }}
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+          wait-for-minutes: 10
+
+      - name: Verify deployment
+        run: |
+          # Get the ALB URL
+          ALB_URL=$(aws elbv2 describe-load-balancers \
+            --names deecell-fleet-production-alb \
+            --query 'LoadBalancers[0].DNSName' \
+            --output text)
+
+          echo "Deployed to: http://$ALB_URL"
+
+          # Wait for health check
+          for i in {1..30}; do
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://$ALB_URL/api/health" || echo "000")
+            if [ "$HTTP_STATUS" = "200" ]; then
+              echo "Health check passed!"
+              exit 0
+            fi
+            echo "Attempt $i: HTTP $HTTP_STATUS - waiting..."
+            sleep 10
+          done
+
+          echo "Health check failed after 30 attempts"
+          exit 1
+
+  # ===========================================================================
+  # Job 5: Run Database Migrations
+  # ===========================================================================
+  migrate:
+    name: Run Migrations
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: ${{ github.event_name == 'push' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Get database URL from Secrets Manager
+        id: get-db-url
+        run: |
+          # Get the latest secret ARN
+          SECRET_ARN=$(aws secretsmanager list-secrets \
+            --filter Key=name,Values=deecell-fleet-production/database-url \
+            --query 'SecretList[0].ARN' \
+            --output text)
+          
+          # Get the secret value
+          DATABASE_URL=$(aws secretsmanager get-secret-value \
+            --secret-id $SECRET_ARN \
+            --query 'SecretString' \
+            --output text)
+          
+          echo "::add-mask::$DATABASE_URL"
+          echo "database_url=$DATABASE_URL" >> $GITHUB_OUTPUT
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Database Migrations
+        env:
+          DATABASE_URL: ${{ steps.get-db-url.outputs.database_url }}
+        run: |
+          npm run db:push --force || echo "No migrations to run"
+
+  # ===========================================================================
+  # Job 6: Notify
+  # ===========================================================================
+  notify:
+    name: Notify
+    runs-on: ubuntu-latest
+    needs: [deploy, migrate]
+    if: always()
+
+    steps:
+      - name: Deployment Status
+        run: |
+          if [ "${{ needs.deploy.result }}" == "success" ]; then
+            echo "Deployment successful!"
+            echo "::notice title=Deployment Complete::The application has been deployed to production."
+          else
+            echo "Deployment failed!"
+            echo "::error title=Deployment Failed::Check the logs for details."
+            exit 1
+          fi

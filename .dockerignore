@@ -1,0 +1,79 @@
+# =============================================================================
+# Deecell Fleet Tracking - Docker Ignore
+# =============================================================================
+
+# Dependencies
+node_modules
+.npm
+
+# Build output (will be created fresh in container)
+dist
+
+# Git
+.git
+.gitignore
+
+# Replit specific
+.replit
+replit.nix
+.cache
+.config
+.upm
+
+# Environment files (secrets should be injected at runtime)
+.env
+.env.*
+*.env
+!.env.example
+
+# Terraform (infrastructure code)
+terraform/
+.terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+!terraform.tfvars.example
+
+# GitHub Actions (CI/CD config)
+.github/
+
+# Documentation
+*.md
+!README.md
+
+# Development
+coverage/
+.nyc_output/
+*.log
+logs/
+*.tsbuildinfo
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Device Manager (deployed separately to EC2)
+device-manager/
+
+# Test files
+*.test.ts
+*.test.js
+*.spec.ts
+*.spec.js
+__tests__/
+tests/
+
+# Attached assets (not needed in production container)
+attached_assets/
+
+# Deployment documentation
+Deployment/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
