@@ -44,7 +44,6 @@ export default function AdminLogin() {
     e.preventDefault();
     try {
       await login.mutateAsync({ username, password });
-      toast({ title: "Login successful" });
       setLocation("/admin");
     } catch (error: any) {
       toast({ 
