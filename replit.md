@@ -54,22 +54,43 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
 - **API**: `POST /api/v1/auth/login`, `POST /api/v1/auth/logout`, `GET /api/v1/auth/session`.
 - **Protected Routes**: All fleet API routes require authenticated sessions; dashboard redirects to `/login` if unauthenticated.
 
-### Device Manager (Native Addon Complete - LIVE CONNECTION VERIFIED!)
-- **Purpose**: Communicates with PowerMon devices on trucks via Thornwave's libpowermon C++ library.
-- **Architecture**: Node.js native addon (`powermon_addon.node`) built with node-addon-api (N-API).
-- **Library**: `libpowermon_bin` v1.17 - Thornwave's PIC-compiled library with separated BLE init.
-- **Location**: `device-manager/` directory.
+### Device Manager (Production Application - December 1, 2025)
+- **Purpose**: Standalone application for managing PowerMon device connections and data collection.
+- **Deployment**: Designed for AWS EC2, scales independently from web app.
+- **Architecture**: Cohort-based sharding, staggered polling, batch database writes.
+- **Scale Target**: ~1,000 devices per instance, horizontally scalable to tens of thousands.
+
+**Application Structure** (`device-manager/app/`):
+| Module | File | Purpose |
+|--------|------|---------|
+| Config | `config.js` | Environment variables, validation |
+| Logger | `logger.js` | Structured JSON logging |
+| Database | `database.js` | PostgreSQL pool, bulk inserts |
+| Connection Pool | `connection-pool.js` | Persistent device connections |
+| Polling Scheduler | `polling-scheduler.js` | 10-second staggered polling |
+| Batch Writer | `batch-writer.js` | Buffered bulk inserts |
+| Backfill Service | `backfill-service.js` | Gap detection, log sync |
+| Metrics | `metrics.js` | Prometheus metrics, health check |
+| Entry Point | `index.js` | Lifecycle, graceful shutdown |
+
+**Key Parameters**:
+- Poll interval: 10 seconds (matches PowerMon log sample rate)
+- Cohorts: 10 (devices sharded via hash(serial) % 10)
+- Batch flush: 2 seconds OR 500 records
+- Gap threshold: 30 seconds (3 missed polls)
+- Metrics endpoint: `:3001/metrics`
+
+**Native Addon** (`device-manager/build/`):
+- **Library**: `libpowermon_bin` v1.17 - Thornwave's C++ library
 - **Build**: `cd device-manager && npx node-gyp rebuild`
-- **Status**: ✅ MILESTONE ACHIEVED - Live connection to "DCL-Moeck" PowerMon-W device successful!
-- **Verified Data**: Voltage (28.75V), Current (-0.36A), SOC (98%), Temperature (22.9°C), lifetime stats.
-- **Log Sync Service (Nov 30)**: `device-manager/lib/log-sync.js` - Incremental historical data sync
-  - Lists log files on device (tested: 41 files, 14MB, June-Nov 2025)
-  - Reads/decodes binary log data (10-second sample interval)
-  - Tracks sync state per device for incremental updates
-  - Functions: `syncDeviceLogs()`, `syncSince()`, `getLogFileList()`, `decodeLogData()`
-- **Key Update (Nov 30)**: Thornwave separated BLE from `createInstance()` - WiFi works on servers without Bluetooth.
-- **BLE Handling**: `device.isBleAvailable()` returns true only if `initBle()` succeeded.
-- **Fallback**: Subprocess bridge (`powermon-bridge`) available if native addon issues arise.
+- **Status**: ✅ Live connection to "DCL-Moeck" verified
+- **WiFi Support**: Works on servers without Bluetooth
+
+**Log Sync Service** (`device-manager/lib/log-sync.js`):
+- Lists log files on device (tested: 41 files, 14MB)
+- Reads/decodes binary log data (10-second samples)
+- Incremental sync with state tracking
+- Functions: `syncDeviceLogs()`, `syncSince()`, `getLogFileList()`
 
 ### SIMPro Integration (Truck Location Tracking)
 - **Purpose**: Track truck locations via SIM card cell tower triangulation; monitor data usage.

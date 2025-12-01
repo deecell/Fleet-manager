@@ -107,25 +107,28 @@ class BatchWriter {
 
   /**
    * Flush queued data to database
+   * 
+   * IMPORTANT: Only clears queue on successful write to prevent data loss.
+   * Failed writes keep data in queue for retry on next flush.
    */
   async flush() {
     const flushStart = Date.now();
     
-    // Get current queue contents
-    const measurements = [...this.measurementQueue];
-    const snapshots = Array.from(this.snapshotQueue.values());
+    // Snapshot current queue state (don't clear yet - only clear on success)
+    const measurementsToFlush = this.measurementQueue.length;
+    const snapshotsToFlush = this.snapshotQueue.size;
     
-    // Clear queues
-    this.measurementQueue = [];
-    this.snapshotQueue.clear();
-
-    if (measurements.length === 0 && snapshots.length === 0) {
+    if (measurementsToFlush === 0 && snapshotsToFlush === 0) {
       return;
     }
 
+    // Copy data for flush attempt
+    const measurements = this.measurementQueue.slice(0, measurementsToFlush);
+    const snapshots = Array.from(this.snapshotQueue.values());
+
     logger.debug('Flushing batch', { 
-      measurements: measurements.length, 
-      snapshots: snapshots.length 
+      measurements: measurementsToFlush, 
+      snapshots: snapshotsToFlush 
     });
 
     try {
@@ -138,6 +141,10 @@ class BatchWriter {
       for (const snapshot of snapshots) {
         await db.upsertDeviceSnapshot(snapshot);
       }
+
+      // SUCCESS: Now safe to remove flushed items from queue
+      this.measurementQueue.splice(0, measurementsToFlush);
+      this.snapshotQueue.clear();
 
       this.stats.totalWritten += measurements.length;
       this.stats.totalBatches++;
@@ -154,17 +161,17 @@ class BatchWriter {
 
     } catch (err) {
       this.stats.failedBatches++;
-      logger.error('Flush failed', { 
+      logger.error('Flush failed - data retained in queue for retry', { 
         error: err.message,
         measurements: measurements.length 
       });
       
-      // Re-queue failed measurements (at the front)
-      this.measurementQueue = [...measurements, ...this.measurementQueue];
-      
-      // Trim if too large
+      // Data stays in queue for retry on next flush
+      // Trim oldest entries if queue exceeds max size
       if (this.measurementQueue.length > config.batchWriter.maxQueueSize) {
+        const dropped = this.measurementQueue.length - config.batchWriter.maxQueueSize;
         this.measurementQueue = this.measurementQueue.slice(-config.batchWriter.maxQueueSize);
+        logger.warn('Queue overflow - dropped oldest entries', { dropped });
       }
     }
   }

@@ -18,10 +18,15 @@ class PollingScheduler {
     this.ticksPerInterval = config.polling.cohortCount;
     this.tickDurationMs = config.polling.intervalMs / this.ticksPerInterval;
     
+    // Semaphore for concurrent poll limiting
+    this.activePolls = 0;
+    this.maxConcurrentPolls = config.polling.maxConcurrentPolls;
+    
     this.stats = {
       totalPolls: 0,
       successfulPolls: 0,
       failedPolls: 0,
+      skippedPolls: 0, // Polls skipped due to concurrency limit
       ticksProcessed: 0,
       lastTickTime: null,
       averagePollDurationMs: 0,
@@ -77,6 +82,9 @@ class PollingScheduler {
 
   /**
    * Process a single tick (poll one cohort)
+   * 
+   * Enforces MAX_CONCURRENT_POLLS to prevent event loop stalls.
+   * Devices that would exceed the limit are skipped for this tick.
    */
   async processTick() {
     if (!this.isRunning) return;
@@ -88,17 +96,34 @@ class PollingScheduler {
     // Get the cohort for this tick
     const cohortId = this.currentTick;
     const devices = connectionPool.getCohortDevices(cohortId);
+    const readyDevices = devices.filter(conn => conn.isReady());
     
+    // Calculate how many polls we can start (respect concurrency limit)
+    const availableSlots = Math.max(0, this.maxConcurrentPolls - this.activePolls);
+    const devicesToPoll = readyDevices.slice(0, availableSlots);
+    const skippedCount = readyDevices.length - devicesToPoll.length;
+    
+    if (skippedCount > 0) {
+      logger.warn('Concurrency limit reached, skipping devices', { 
+        cohort: cohortId,
+        skipped: skippedCount,
+        activePolls: this.activePolls,
+        limit: this.maxConcurrentPolls 
+      });
+      this.stats.skippedPolls += skippedCount;
+    }
+
     logger.debug('Processing tick', { 
       tick: this.currentTick, 
       cohort: cohortId, 
-      devices: devices.length 
+      total: devices.length,
+      ready: readyDevices.length,
+      polling: devicesToPoll.length,
+      activePolls: this.activePolls
     });
 
-    // Poll all devices in this cohort
-    const pollPromises = devices
-      .filter(conn => conn.isReady())
-      .map(conn => this.pollDevice(conn));
+    // Poll devices with concurrency tracking
+    const pollPromises = devicesToPoll.map(conn => this.pollDeviceWithSemaphore(conn));
 
     const results = await Promise.allSettled(pollPromises);
 
@@ -128,6 +153,18 @@ class PollingScheduler {
 
     // Schedule next tick
     this.scheduleTick();
+  }
+
+  /**
+   * Poll device with semaphore tracking
+   */
+  async pollDeviceWithSemaphore(conn) {
+    this.activePolls++;
+    try {
+      return await this.pollDevice(conn);
+    } finally {
+      this.activePolls--;
+    }
   }
 
   /**
@@ -166,6 +203,8 @@ class PollingScheduler {
       isRunning: this.isRunning,
       currentTick: this.currentTick,
       ticksPerInterval: this.ticksPerInterval,
+      activePolls: this.activePolls,
+      maxConcurrentPolls: this.maxConcurrentPolls,
       poolStats: connectionPool.getStats(),
     };
   }

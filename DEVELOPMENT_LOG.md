@@ -6,6 +6,92 @@
 
 ## Latest Updates (December 1, 2025)
 
+### Device Manager Application - Production Architecture (December 1, 2025)
+- **Created**: Complete Device Manager application structure in `device-manager/app/`
+- **Purpose**: Standalone application for AWS EC2 deployment, manages PowerMon device connections and data collection
+- **Architecture**: Scales independently from web app, designed for tens of thousands of devices
+
+**Core Modules Implemented**:
+
+| Module | File | Purpose |
+|--------|------|---------|
+| Configuration | `config.js` | Environment variables, validation, all tunable parameters |
+| Logger | `logger.js` | Structured JSON logging with log levels and child loggers |
+| Database | `database.js` | PostgreSQL connection pool, all CRUD operations for sync |
+| Connection Pool | `connection-pool.js` | Persistent device connections, cohort-based sharding |
+| Polling Scheduler | `polling-scheduler.js` | Staggered 10-second polling with timing wheel |
+| Batch Writer | `batch-writer.js` | Buffered bulk inserts (2s flush or 500 records) |
+| Backfill Service | `backfill-service.js` | Gap detection and log-based recovery |
+| Metrics | `metrics.js` | Prometheus metrics and health check HTTP server |
+| Main Entry | `index.js` | Application lifecycle, graceful shutdown |
+
+**Key Design Decisions**:
+
+1. **Cohort-Based Sharding**:
+   - Devices assigned to cohorts via `hash(serialNumber) % cohortCount`
+   - Default 10 cohorts, each polled 1 second apart within 10-second interval
+   - Prevents thundering herd, distributes load evenly
+
+2. **Staggered Polling**:
+   - 10-second poll interval (matches PowerMon log sample rate)
+   - ±250ms jitter to avoid synchronization
+   - Supports ~1,000 devices per instance at ~100 polls/second
+
+3. **Batch Database Writes**:
+   - Measurements buffered in memory
+   - Flush triggers: 2-second timeout OR 500 records (whichever first)
+   - Bulk INSERT with `ON CONFLICT DO NOTHING`
+   - Snapshots updated with latest reading per device
+
+4. **Automatic Gap Detection**:
+   - 3 consecutive poll failures = device marked disconnected
+   - `gap_start_at` recorded for backfill reference
+   - Background service processes pending backfills using log sync
+   - Max 5 concurrent backfill operations
+
+5. **Observability**:
+   - Prometheus-compatible metrics at `:3001/metrics`
+   - Health check at `:3001/health`
+   - Structured JSON logs with deviceId/orgId correlation
+   - Stats for polls, writes, backfills, queue depths
+
+**Configuration Environment Variables**:
+```bash
+DATABASE_URL=postgres://...
+POLL_INTERVAL_MS=10000      # 10 seconds
+COHORT_COUNT=10             # Number of polling cohorts
+MAX_CONCURRENT_POLLS=100    # Polls per tick
+POLL_JITTER_MS=250          # ±250ms jitter
+BATCH_FLUSH_INTERVAL_MS=2000 # 2 second flush
+MAX_BATCH_SIZE=500          # Records before forced flush
+GAP_THRESHOLD_MS=30000      # 30 seconds = 3 missed polls
+MAX_CONCURRENT_BACKFILLS=5  # Parallel backfill limit
+DM_PORT=3001                # Metrics server port
+LOG_LEVEL=info              # error/warn/info/debug
+```
+
+**Startup Sequence**:
+1. Validate configuration
+2. Initialize database pool
+3. Load active devices from database
+4. Assign devices to cohorts
+5. Start metrics server
+6. Start batch writer
+7. Connect to all devices
+8. Start polling scheduler
+9. Start backfill service
+10. Periodic device list refresh (every 5 minutes)
+
+**Graceful Shutdown**:
+- SIGTERM/SIGINT handlers
+- Stop new polling
+- Flush remaining measurements
+- Wait for active backfills
+- Disconnect all devices
+- Close database pool
+
+---
+
 ### Database Reset for Production Data (December 1, 2025)
 - **Action**: Cleared all demo/simulated data from database
 - **Reason**: Preparing for real PowerMon devices (DCL-Moeck + 10 more)

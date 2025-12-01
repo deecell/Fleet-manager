@@ -85,6 +85,9 @@ async function main() {
 
 /**
  * Graceful shutdown
+ * 
+ * Order matters: Stop polling first, then wait for backfills,
+ * then flush data, then close connections and database.
  */
 async function shutdown(signal) {
   if (isShuttingDown) return;
@@ -93,21 +96,29 @@ async function shutdown(signal) {
   logger.info('Shutting down Device Manager', { signal });
 
   try {
-    // Stop accepting new work
+    // 1. Stop polling scheduler (no new polls)
     pollingScheduler.stop();
-    backfillService.stop();
+    logger.info('Polling scheduler stopped');
 
-    // Flush remaining data
+    // 2. Wait for active backfill operations to complete
+    await backfillService.stop();
+    logger.info('Backfill service stopped');
+
+    // 3. Flush remaining measurements to database
     await batchWriter.stop();
+    logger.info('Batch writer stopped');
 
-    // Disconnect all devices
+    // 4. Disconnect all device connections
     connectionPool.disconnectAll();
+    logger.info('Device connections closed');
 
-    // Stop metrics server
+    // 5. Stop metrics server
     await stopMetricsServer();
+    logger.info('Metrics server stopped');
 
-    // Close database
+    // 6. Close database pool (last, after all writes complete)
     await db.closeDatabase();
+    logger.info('Database closed');
 
     logger.info('Device Manager shutdown complete');
     process.exit(0);
