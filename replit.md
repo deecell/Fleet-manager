@@ -135,23 +135,40 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
   - `get_low_battery_trucks` - Trucks below SOC threshold
   - `get_fleet_summary` - Quick fleet health overview
 
-### AWS Deployment Infrastructure (December 1, 2025)
-- **Purpose**: Production-ready AWS deployment with Infrastructure as Code and automated CI/CD.
-- **Terraform**: Complete IaC in `terraform/` directory (12 files).
+### AWS Deployment Infrastructure (December 1, 2025) - ✅ LIVE!
+- **Status**: DEPLOYED and running in AWS!
+- **Terraform**: Complete IaC in `terraform/` directory (12 files) - 92+ resources deployed.
 - **GitHub Actions**: CI/CD workflows in `.github/workflows/` (deploy.yml, terraform.yml).
-- **Compliance**: SOC2/ISO27001 readiness with CloudTrail, GuardDuty, encrypted storage.
+- **Compliance**: SOC2/ISO27001 readiness with CloudTrail, encrypted storage.
 
-**AWS Architecture**:
+**Live Production URLs**:
+| Resource | URL/Endpoint |
+|----------|--------------|
+| **Application URL** | http://deecell-fleet-production-alb-5549888.us-east-2.elb.amazonaws.com |
+| **Database Endpoint** | deecell-fleet-production-postgres.cn4qsw8g8yyx.us-east-2.rds.amazonaws.com:5432 |
+| **Database Name** | deecell_fleet |
+| **AWS Account** | 892213647605 |
+| **Region** | us-east-2 (Ohio) |
+
+**AWS Architecture (Deployed)**:
 | Component | Service | Configuration |
 |-----------|---------|---------------|
-| Web App | ECS Fargate | 2-4 tasks, 512 CPU, 1GB RAM |
-| Database | RDS PostgreSQL 15.4 | db.t3.small, encrypted, Multi-AZ optional |
-| Load Balancer | ALB | HTTPS with ACM certificates |
-| Device Manager | EC2 t3.medium | Auto Scaling Group (1-3 instances) |
+| Web App | ECS Fargate | 1-4 tasks, 512 CPU, 1GB RAM, Auto-scaling |
+| Database | RDS PostgreSQL 15 | db.t3.micro (free tier), encrypted |
+| Load Balancer | ALB | HTTP (HTTPS ready with ACM) |
+| Device Manager | EC2 t3.micro | Auto Scaling Group (0-1 instances, free tier) |
 | Networking | VPC | Multi-AZ, public/private/database subnets |
-| Secrets | Secrets Manager | DB URL, session secret, API keys |
+| Secrets | Secrets Manager | DB URL, session secret, admin password |
 | Monitoring | CloudWatch | Logs, dashboards, alarms |
-| Compliance | CloudTrail + GuardDuty | Audit logging, threat detection |
+| Compliance | CloudTrail | Audit logging enabled |
+
+**GitHub Secrets for CI/CD**:
+| Secret | Value |
+|--------|-------|
+| `AWS_ACCESS_KEY_ID` | AKIA47PAT3D267GZVU5P |
+| `AWS_SECRET_ACCESS_KEY` | (see DEVELOPMENT_LOG.md) |
+| `AWS_REGION` | us-east-2 |
+| `ECR_REPOSITORY` | deecell-fleet |
 
 **Terraform Files** (`terraform/`):
 - `main.tf`, `variables.tf`, `vpc.tf`, `rds.tf`, `ecs.tf`, `alb.tf`
