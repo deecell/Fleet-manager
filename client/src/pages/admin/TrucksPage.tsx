@@ -159,7 +159,7 @@ export default function TrucksPage() {
             onClick={openCreate} 
             disabled={!selectedOrgId || fleets.length === 0}
             data-testid="button-create-truck"
-            className="bg-[#F55200]"
+            className="bg-[#F55200] border-0"
           >
             <Plus className="h-4 w-4 mr-2" />
             Add Truck
