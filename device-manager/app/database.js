@@ -1,0 +1,333 @@
+/**
+ * Database Connection for Device Manager
+ * 
+ * Uses the same PostgreSQL database as the web app.
+ * Optimized for batch writes and high throughput.
+ */
+
+const { Pool } = require('pg');
+const { config } = require('./config');
+const logger = require('./logger');
+
+let pool = null;
+
+/**
+ * Initialize the database connection pool
+ */
+function initDatabase() {
+  if (pool) {
+    return pool;
+  }
+
+  pool = new Pool({
+    connectionString: config.database.url,
+    max: config.database.poolSize,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000,
+  });
+
+  pool.on('error', (err) => {
+    logger.error('Unexpected database pool error', { error: err.message });
+  });
+
+  pool.on('connect', () => {
+    logger.debug('New database connection established');
+  });
+
+  logger.info('Database pool initialized', { poolSize: config.database.poolSize });
+  return pool;
+}
+
+/**
+ * Get the database pool
+ */
+function getPool() {
+  if (!pool) {
+    throw new Error('Database not initialized. Call initDatabase() first.');
+  }
+  return pool;
+}
+
+/**
+ * Execute a query
+ */
+async function query(text, params) {
+  const start = Date.now();
+  try {
+    const result = await getPool().query(text, params);
+    const duration = Date.now() - start;
+    logger.debug('Query executed', { duration, rows: result.rowCount });
+    return result;
+  } catch (err) {
+    logger.error('Query failed', { error: err.message, query: text.substring(0, 100) });
+    throw err;
+  }
+}
+
+/**
+ * Get all active devices with credentials for polling
+ */
+async function getActiveDevicesWithCredentials() {
+  const result = await query(`
+    SELECT 
+      d.id as device_id,
+      d.organization_id,
+      d.serial_number,
+      d.device_name,
+      d.truck_id,
+      d.status,
+      c.applink_url,
+      c.connection_key,
+      c.access_key,
+      s.cohort_id,
+      s.last_successful_poll_at,
+      s.connection_status,
+      s.backfill_status,
+      s.gap_start_at
+    FROM power_mon_devices d
+    INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = true
+    LEFT JOIN device_sync_status s ON s.device_id = d.id
+    WHERE d.is_active = true
+    ORDER BY d.id
+  `);
+  return result.rows;
+}
+
+/**
+ * Update device sync status after a poll
+ */
+async function updateDevicePollStatus(deviceId, success, errorMessage = null) {
+  const now = new Date();
+  
+  if (success) {
+    await query(`
+      UPDATE device_sync_status 
+      SET 
+        last_poll_at = $1,
+        last_successful_poll_at = $1,
+        consecutive_poll_failures = 0,
+        connection_status = 'connected',
+        error_message = NULL,
+        updated_at = $1
+      WHERE device_id = $2
+    `, [now, deviceId]);
+  } else {
+    await query(`
+      UPDATE device_sync_status 
+      SET 
+        last_poll_at = $1,
+        consecutive_poll_failures = consecutive_poll_failures + 1,
+        error_message = $2,
+        updated_at = $1
+      WHERE device_id = $3
+    `, [now, errorMessage, deviceId]);
+  }
+}
+
+/**
+ * Create or update device sync status record
+ */
+async function upsertDeviceSyncStatus(deviceId, orgId, cohortId) {
+  await query(`
+    INSERT INTO device_sync_status (device_id, organization_id, cohort_id, updated_at)
+    VALUES ($1, $2, $3, NOW())
+    ON CONFLICT (device_id) 
+    DO UPDATE SET cohort_id = $3, updated_at = NOW()
+  `, [deviceId, orgId, cohortId]);
+}
+
+/**
+ * Mark device as connected
+ */
+async function markDeviceConnected(deviceId) {
+  await query(`
+    UPDATE device_sync_status 
+    SET 
+      connection_status = 'connected',
+      last_connected_at = NOW(),
+      consecutive_poll_failures = 0,
+      updated_at = NOW()
+    WHERE device_id = $1
+  `, [deviceId]);
+  
+  await query(`
+    UPDATE power_mon_devices 
+    SET status = 'online', last_seen_at = NOW(), updated_at = NOW()
+    WHERE id = $1
+  `, [deviceId]);
+}
+
+/**
+ * Mark device as disconnected and record gap start
+ */
+async function markDeviceDisconnected(deviceId, lastSuccessfulPoll) {
+  await query(`
+    UPDATE device_sync_status 
+    SET 
+      connection_status = 'disconnected',
+      last_disconnected_at = NOW(),
+      gap_start_at = COALESCE(gap_start_at, $2),
+      backfill_status = CASE 
+        WHEN gap_start_at IS NULL THEN 'pending' 
+        ELSE backfill_status 
+      END,
+      updated_at = NOW()
+    WHERE device_id = $1
+  `, [deviceId, lastSuccessfulPoll]);
+  
+  await query(`
+    UPDATE power_mon_devices 
+    SET status = 'offline', updated_at = NOW()
+    WHERE id = $1
+  `, [deviceId]);
+}
+
+/**
+ * Get devices needing backfill
+ */
+async function getDevicesNeedingBackfill(limit = 5) {
+  const result = await query(`
+    SELECT 
+      s.device_id,
+      s.organization_id,
+      s.gap_start_at,
+      s.gap_end_at,
+      s.last_log_file_id,
+      s.last_log_offset,
+      d.serial_number,
+      c.applink_url
+    FROM device_sync_status s
+    INNER JOIN power_mon_devices d ON d.id = s.device_id
+    INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = true
+    WHERE s.backfill_status = 'pending'
+    ORDER BY s.gap_start_at ASC
+    LIMIT $1
+  `, [limit]);
+  return result.rows;
+}
+
+/**
+ * Update backfill progress
+ */
+async function updateBackfillProgress(deviceId, lastFileId, lastOffset, samplesSynced, status) {
+  await query(`
+    UPDATE device_sync_status 
+    SET 
+      last_log_file_id = $2,
+      last_log_offset = $3,
+      total_samples_synced = total_samples_synced + $4,
+      last_log_sync_at = NOW(),
+      backfill_status = $5,
+      gap_start_at = CASE WHEN $5 = 'completed' THEN NULL ELSE gap_start_at END,
+      gap_end_at = CASE WHEN $5 = 'completed' THEN NULL ELSE gap_end_at END,
+      updated_at = NOW()
+    WHERE device_id = $1
+  `, [deviceId, lastFileId, lastOffset, samplesSynced, status]);
+}
+
+/**
+ * Bulk insert device measurements
+ */
+async function bulkInsertMeasurements(measurements) {
+  if (measurements.length === 0) return;
+
+  const values = [];
+  const params = [];
+  let paramIndex = 1;
+
+  for (const m of measurements) {
+    values.push(`($${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++})`);
+    params.push(
+      m.organizationId,
+      m.deviceId,
+      m.truckId,
+      m.fleetId,
+      m.voltage1,
+      m.voltage2,
+      m.current,
+      m.power,
+      m.temperature,
+      m.soc,
+      m.energy,
+      m.charge,
+      m.runtime,
+      m.source,
+      m.recordedAt
+    );
+  }
+
+  await query(`
+    INSERT INTO device_measurements 
+      (organization_id, device_id, truck_id, fleet_id, voltage1, voltage2, current, power, temperature, soc, energy, charge, runtime, source, recorded_at)
+    VALUES ${values.join(', ')}
+    ON CONFLICT DO NOTHING
+  `, params);
+
+  logger.debug('Bulk inserted measurements', { count: measurements.length });
+}
+
+/**
+ * Update device snapshot (latest reading for dashboard)
+ */
+async function upsertDeviceSnapshot(snapshot) {
+  await query(`
+    INSERT INTO device_snapshots 
+      (organization_id, device_id, truck_id, fleet_id, voltage1, voltage2, current, power, temperature, soc, energy, charge, runtime, recorded_at, updated_at)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW())
+    ON CONFLICT (device_id) 
+    DO UPDATE SET
+      voltage1 = $5,
+      voltage2 = $6,
+      current = $7,
+      power = $8,
+      temperature = $9,
+      soc = $10,
+      energy = $11,
+      charge = $12,
+      runtime = $13,
+      recorded_at = $14,
+      updated_at = NOW()
+  `, [
+    snapshot.organizationId,
+    snapshot.deviceId,
+    snapshot.truckId,
+    snapshot.fleetId,
+    snapshot.voltage1,
+    snapshot.voltage2,
+    snapshot.current,
+    snapshot.power,
+    snapshot.temperature,
+    snapshot.soc,
+    snapshot.energy,
+    snapshot.charge,
+    snapshot.runtime,
+    snapshot.recordedAt,
+  ]);
+}
+
+/**
+ * Gracefully close the database pool
+ */
+async function closeDatabase() {
+  if (pool) {
+    await pool.end();
+    pool = null;
+    logger.info('Database pool closed');
+  }
+}
+
+module.exports = {
+  initDatabase,
+  getPool,
+  query,
+  getActiveDevicesWithCredentials,
+  updateDevicePollStatus,
+  upsertDeviceSyncStatus,
+  markDeviceConnected,
+  markDeviceDisconnected,
+  getDevicesNeedingBackfill,
+  updateBackfillProgress,
+  bulkInsertMeasurements,
+  upsertDeviceSnapshot,
+  closeDatabase,
+};
