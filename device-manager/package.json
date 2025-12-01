@@ -1,19 +1,25 @@
 {
-  "name": "@deecell/powermon-addon",
+  "name": "@deecell/device-manager",
   "version": "1.0.0",
-  "description": "Node.js Native Addon for libpowermon - PowerMon battery monitor integration",
-  "main": "lib/index.js",
+  "description": "Deecell Device Manager - PowerMon device connection and data collection service",
+  "main": "app/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "install": "node-gyp rebuild",
+    "start": "node app/index.js",
+    "test": "node test-local.js",
     "build": "node-gyp rebuild",
-    "clean": "node-gyp clean"
+    "clean": "node-gyp clean",
+    "rebuild": "node-gyp rebuild"
   },
   "gypfile": true,
   "dependencies": {
-    "node-addon-api": "^7.0.0"
+    "node-addon-api": "^7.0.0",
+    "pg": "^8.11.3"
   },
   "devDependencies": {
     "node-gyp": "^10.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
