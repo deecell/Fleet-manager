@@ -8,9 +8,13 @@
 
 ### Bug Fix: Dashboard Voltage Display (December 1, 2025)
 - **Issue**: Sleeper V column showing 0.00 instead of actual voltage (26.54V)
-- **Root Cause**: FleetTable was displaying `voltage2` in Sleeper section, but PowerMon only provides `voltage1`. The `voltage2` value from the device was NaN, which became null in JSON, then 0.00 when displayed.
-- **Fix**: Updated `client/src/components/FleetTable.tsx` to display `voltage1` in both V columns (Chassis and Sleeper sections)
-- **File Changed**: `client/src/components/FleetTable.tsx` line 212: `truck.v2` → `truck.v1`
+- **Root Cause**: FleetTable had voltage columns swapped. The PowerMon device reports:
+  - `voltage1` = Sleeper battery (26.54V) - the main PowerMon battery
+  - `voltage2` = Chassis battery (NaN → 0.00) - not connected/available
+- **Fix**: Corrected voltage mapping in `client/src/components/FleetTable.tsx`:
+  - Chassis V (line 154): Shows `truck.v2` → 0.00 (chassis battery, NaN when not connected)
+  - Sleeper V (line 212): Shows `truck.v1` → 26.54V (PowerMon battery)
+- **Note**: NaN values from the device are properly converted to 0.00 via JSON serialization (NaN → null → 0)
 
 ---
 

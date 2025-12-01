@@ -148,7 +148,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                   hoveredRowIndex === index ? "bg-[#EEF1FB]" : index % 2 === 1 ? "bg-[#fafbfc]" : "bg-white"
                 } ${selectedTruckId === truck.id ? "bg-[#EEF1FB]" : ""}`}
               >
-                <td className="px-3 py-3 text-[13px] 2xl:text-sm text-[#4a5565] text-center whitespace-nowrap tabular-nums">{truck.v1.toFixed(2)}</td>
+                <td className="px-3 py-3 text-[13px] 2xl:text-sm text-[#4a5565] text-center whitespace-nowrap tabular-nums">{truck.v2.toFixed(2)}</td>
               </tr>
             ))}
           </tbody>
