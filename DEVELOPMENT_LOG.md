@@ -6,6 +6,11 @@
 
 ## Latest Updates (December 1, 2025)
 
+### Baby Steps Deployment Guide Created (December 1, 2025 - 9:00 PM)
+- **New File**: `DEPLOYMENT_GUIDE.md` - Complete step-by-step guide for team
+- **Target Audience**: Non-technical, explains everything from AWS account creation
+- **Estimated Time**: ~1 hour to complete full deployment
+
 ### AWS Deployment Infrastructure Complete (December 1, 2025 - 8:30 PM)
 - **Status**: Full Terraform infrastructure and GitHub Actions CI/CD created
 - **Ready for Team**: Deployment scheduled with Mary & Elliot
