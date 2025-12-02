@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient, apiRequest } from "./queryClient";
+import { queryClient, apiRequest, getOrganizationId } from "./queryClient";
 import type { 
   Truck, PowerMonDevice, DeviceSnapshot, DeviceMeasurement, Alert,
   LegacyTruckWithHistory, LegacyHistoricalDataPoint, LegacyNotification
@@ -44,38 +44,52 @@ interface MeasurementsResponse {
 
 const POLL_INTERVAL = 10000;
 
+function useOrgId() {
+  return getOrganizationId();
+}
+
 export function useTrucks(options?: { fleetId?: number; status?: string }) {
+  const orgId = useOrgId();
   return useQuery<TrucksResponse>({
-    queryKey: ["/api/v1/trucks" + buildQueryString(options)],
+    queryKey: ["/api/v1/trucks" + buildQueryString(options), "org", orgId],
     refetchInterval: POLL_INTERVAL,
+    enabled: !!orgId,
   });
 }
 
 export function useDashboardStats() {
+  const orgId = useOrgId();
   return useQuery<DashboardStatsResponse>({
-    queryKey: ["/api/v1/dashboard/stats"],
+    queryKey: ["/api/v1/dashboard/stats", "org", orgId],
     refetchInterval: POLL_INTERVAL,
+    enabled: !!orgId,
   });
 }
 
 export function useDevices() {
+  const orgId = useOrgId();
   return useQuery<DevicesResponse>({
-    queryKey: ["/api/v1/devices"],
+    queryKey: ["/api/v1/devices", "org", orgId],
     refetchInterval: POLL_INTERVAL,
+    enabled: !!orgId,
   });
 }
 
 export function useSnapshots() {
+  const orgId = useOrgId();
   return useQuery<SnapshotsResponse>({
-    queryKey: ["/api/v1/snapshots"],
+    queryKey: ["/api/v1/snapshots", "org", orgId],
     refetchInterval: POLL_INTERVAL,
+    enabled: !!orgId,
   });
 }
 
 export function useAlerts() {
+  const orgId = useOrgId();
   return useQuery<AlertsResponse>({
-    queryKey: ["/api/v1/alerts"],
+    queryKey: ["/api/v1/alerts", "org", orgId],
     refetchInterval: POLL_INTERVAL,
+    enabled: !!orgId,
   });
 }
 

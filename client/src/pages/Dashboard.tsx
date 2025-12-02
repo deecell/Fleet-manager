@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { LegacyNotification } from "@shared/schema";
 import FleetStats from "@/components/FleetStats";
@@ -7,7 +7,7 @@ import TruckDetail from "@/components/TruckDetail";
 import { Notifications } from "@/components/Notifications";
 import { AlertBanner } from "@/components/AlertBanner";
 import { useLegacyTrucks, useLegacyNotifications, useAcknowledgeAlert, useResolveAlert, LegacyTruckWithDevice } from "@/lib/api";
-import { useSession, useLogout } from "@/lib/auth-api";
+import { useSession, useLogout, initializeOrganizationFromSession } from "@/lib/auth-api";
 import { useToast } from "@/hooks/use-toast";
 import { User, LogOut, Search, Loader2, Download } from "lucide-react";
 import { FleetAssistant } from "@/components/FleetAssistant";
@@ -42,9 +42,18 @@ export default function Dashboard() {
   const acknowledgeAlert = useAcknowledgeAlert();
   const resolveAlert = useResolveAlert();
 
+  const orgInitialized = useRef(false);
+
   useEffect(() => {
-    if (!sessionLoading && !session?.authenticated) {
-      setLocation("/login");
+    if (!sessionLoading) {
+      if (session?.authenticated) {
+        if (!orgInitialized.current) {
+          orgInitialized.current = true;
+          initializeOrganizationFromSession(session);
+        }
+      } else {
+        setLocation("/login");
+      }
     }
   }, [session, sessionLoading, setLocation]);
 

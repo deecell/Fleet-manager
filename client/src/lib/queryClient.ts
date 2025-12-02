@@ -1,6 +1,15 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
-const ORGANIZATION_ID = "6";
+// Dynamic organization ID - set after login
+let currentOrganizationId: string | null = null;
+
+export function setOrganizationId(orgId: number | string | null) {
+  currentOrganizationId = orgId ? String(orgId) : null;
+}
+
+export function getOrganizationId(): string | null {
+  return currentOrganizationId;
+}
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -10,9 +19,12 @@ async function throwIfResNotOk(res: Response) {
 }
 
 function getApiHeaders(includeContentType: boolean = false): HeadersInit {
-  const headers: HeadersInit = {
-    "X-Organization-Id": ORGANIZATION_ID,
-  };
+  const headers: HeadersInit = {};
+  
+  if (currentOrganizationId) {
+    headers["X-Organization-Id"] = currentOrganizationId;
+  }
+  
   if (includeContentType) {
     headers["Content-Type"] = "application/json";
   }

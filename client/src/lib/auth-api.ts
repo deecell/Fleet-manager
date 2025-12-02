@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient, apiRequest } from "./queryClient";
+import { queryClient, apiRequest, setOrganizationId } from "./queryClient";
 
 interface User {
   id: number;
@@ -40,7 +40,10 @@ export function useLogin() {
       }
       return data as LoginResponse;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      if (data.user) {
+        setOrganizationId(data.user.organizationId);
+      }
       queryClient.invalidateQueries({ queryKey: ["/api/auth/session"] });
     },
   });
@@ -57,7 +60,15 @@ export function useLogout() {
       return data;
     },
     onSuccess: () => {
+      setOrganizationId(null);
       queryClient.clear();
     },
   });
+}
+
+export function initializeOrganizationFromSession(session: SessionResponse | null | undefined) {
+  if (session?.authenticated && session.user) {
+    setOrganizationId(session.user.organizationId);
+    queryClient.invalidateQueries();
+  }
 }
