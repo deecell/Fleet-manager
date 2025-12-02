@@ -104,9 +104,13 @@ function formatSmartDecimal(value: number, maxDecimals: number = 1): string {
   return fixed.replace(/\.?0+$/, '');
 }
 
+function formatSmartString(value: string): string {
+  return value.replace(/\.0+$/, '');
+}
+
 function StatCard({ title, trend, icon, iconBgColor, valueColor = "text-neutral-950", targetNumber, prefix = "", suffix = "", decimals = 0, hasInsufficientData = false }: StatCardProps) {
   const animatedValue = useCountUp(targetNumber, 1500, decimals);
-  const formattedValue = formatNumber(animatedValue);
+  const formattedValue = formatSmartString(formatNumber(animatedValue));
 
   return (
     <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.05)] p-6 h-[185px] flex flex-col">
