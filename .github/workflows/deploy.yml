@@ -16,6 +16,7 @@ env:
   ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
   ECS_CLUSTER: deecell-fleet-production-cluster
   ECS_SERVICE: deecell-fleet
+  ECS_TASK_DEFINITION: deecell-fleet-production
   CONTAINER_NAME: deecell-fleet
 
 permissions:
@@ -149,7 +150,7 @@ jobs:
       - name: Download current task definition
         run: |
           aws ecs describe-task-definition \
-            --task-definition ${{ env.ECS_SERVICE }} \
+            --task-definition ${{ env.ECS_TASK_DEFINITION }} \
             --query taskDefinition > task-definition.json
 
       - name: Update task definition with new image
