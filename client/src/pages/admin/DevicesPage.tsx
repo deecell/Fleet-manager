@@ -74,6 +74,9 @@ export default function DevicesPage() {
     deviceName: "",
     hardwareRevision: "",
     firmwareVersion: "",
+    batteryVoltage: "",
+    batteryAh: "",
+    numberOfBatteries: "",
     status: "offline",
   });
 
@@ -83,6 +86,9 @@ export default function DevicesPage() {
       deviceName: "",
       hardwareRevision: "",
       firmwareVersion: "",
+      batteryVoltage: "",
+      batteryAh: "",
+      numberOfBatteries: "",
       status: "offline",
     });
   };
@@ -90,7 +96,13 @@ export default function DevicesPage() {
   const handleCreate = async () => {
     if (!selectedOrgId) return;
     try {
-      await createDevice.mutateAsync({ orgId: selectedOrgId, data: formData });
+      const data = {
+        ...formData,
+        batteryVoltage: formData.batteryVoltage ? parseFloat(formData.batteryVoltage) : null,
+        batteryAh: formData.batteryAh ? parseFloat(formData.batteryAh) : null,
+        numberOfBatteries: formData.numberOfBatteries ? parseInt(formData.numberOfBatteries) : null,
+      };
+      await createDevice.mutateAsync({ orgId: selectedOrgId, data });
       toast({ title: "Device registered successfully" });
       setIsCreateOpen(false);
       resetForm();
@@ -102,7 +114,13 @@ export default function DevicesPage() {
   const handleUpdate = async () => {
     if (!editingDevice || !selectedOrgId) return;
     try {
-      await updateDevice.mutateAsync({ id: editingDevice.id, orgId: selectedOrgId, data: formData });
+      const data = {
+        ...formData,
+        batteryVoltage: formData.batteryVoltage ? parseFloat(formData.batteryVoltage) : null,
+        batteryAh: formData.batteryAh ? parseFloat(formData.batteryAh) : null,
+        numberOfBatteries: formData.numberOfBatteries ? parseInt(formData.numberOfBatteries) : null,
+      };
+      await updateDevice.mutateAsync({ id: editingDevice.id, orgId: selectedOrgId, data });
       toast({ title: "Device updated successfully" });
       setEditingDevice(null);
       resetForm();
@@ -171,6 +189,9 @@ export default function DevicesPage() {
       deviceName: device.deviceName || "",
       hardwareRevision: device.hardwareRevision || "",
       firmwareVersion: device.firmwareVersion || "",
+      batteryVoltage: device.batteryVoltage?.toString() || "",
+      batteryAh: device.batteryAh?.toString() || "",
+      numberOfBatteries: device.numberOfBatteries?.toString() || "",
       status: device.status || "offline",
     });
     setEditingDevice(device);
@@ -375,6 +396,45 @@ export default function DevicesPage() {
                   />
                 </div>
               </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="batteryVoltage">Battery Voltage (V)</Label>
+                  <Input
+                    id="batteryVoltage"
+                    type="number"
+                    step="0.1"
+                    value={formData.batteryVoltage}
+                    onChange={(e) => setFormData({ ...formData, batteryVoltage: e.target.value })}
+                    placeholder="12.8"
+                    data-testid="input-battery-voltage"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="batteryAh">Battery Ah</Label>
+                  <Input
+                    id="batteryAh"
+                    type="number"
+                    step="0.1"
+                    value={formData.batteryAh}
+                    onChange={(e) => setFormData({ ...formData, batteryAh: e.target.value })}
+                    placeholder="100"
+                    data-testid="input-battery-ah"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="numberOfBatteries"># of Batteries</Label>
+                  <Input
+                    id="numberOfBatteries"
+                    type="number"
+                    step="1"
+                    min="1"
+                    value={formData.numberOfBatteries}
+                    onChange={(e) => setFormData({ ...formData, numberOfBatteries: e.target.value })}
+                    placeholder="4"
+                    data-testid="input-num-batteries"
+                  />
+                </div>
+              </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
@@ -431,6 +491,45 @@ export default function DevicesPage() {
                     value={formData.firmwareVersion}
                     onChange={(e) => setFormData({ ...formData, firmwareVersion: e.target.value })}
                     data-testid="input-edit-firmware-version"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="edit-batteryVoltage">Battery Voltage (V)</Label>
+                  <Input
+                    id="edit-batteryVoltage"
+                    type="number"
+                    step="0.1"
+                    value={formData.batteryVoltage}
+                    onChange={(e) => setFormData({ ...formData, batteryVoltage: e.target.value })}
+                    placeholder="12.8"
+                    data-testid="input-edit-battery-voltage"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-batteryAh">Battery Ah</Label>
+                  <Input
+                    id="edit-batteryAh"
+                    type="number"
+                    step="0.1"
+                    value={formData.batteryAh}
+                    onChange={(e) => setFormData({ ...formData, batteryAh: e.target.value })}
+                    placeholder="100"
+                    data-testid="input-edit-battery-ah"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-numberOfBatteries"># of Batteries</Label>
+                  <Input
+                    id="edit-numberOfBatteries"
+                    type="number"
+                    step="1"
+                    min="1"
+                    value={formData.numberOfBatteries}
+                    onChange={(e) => setFormData({ ...formData, numberOfBatteries: e.target.value })}
+                    placeholder="4"
+                    data-testid="input-edit-num-batteries"
                   />
                 </div>
               </div>
