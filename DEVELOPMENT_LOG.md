@@ -6,6 +6,14 @@
 
 ## Latest Updates (December 2, 2025)
 
+### 📋 Pending Tasks / Technical Debt
+
+| Task | Priority | Notes |
+|------|----------|-------|
+| **Add AWS RDS SSL Certificate Verification** | Medium | Currently using `sslmode=disable` for AWS RDS connection. Should add proper certificate verification using AWS `rds-combined-ca-bundle.pem` CA bundle. See [AWS RDS SSL documentation](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html). Steps: 1) Download RDS CA bundle, 2) Add to `server/aws/` directory, 3) Configure `ssl: { ca: rdsCa, rejectUnauthorized: true }` in `server/db.ts`, 4) Update DATABASE_URL to use `sslmode=verify-full`. |
+
+---
+
 ### 🔧 AWS Deployment Fixes (December 2, 2025)
 
 **Issue 1: IAM Permissions for Secrets Manager**
