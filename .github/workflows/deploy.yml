@@ -254,6 +254,7 @@ jobs:
       - name: Run Database Schema Migrations
         env:
           DATABASE_URL: ${{ steps.get-db-url.outputs.database_url }}
+          NODE_TLS_REJECT_UNAUTHORIZED: "0"
         run: |
           echo "Running Drizzle schema push..."
           npm run db:push --force || echo "Schema push completed"
