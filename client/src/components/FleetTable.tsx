@@ -174,7 +174,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                 </button>
               </th>
               <th className="px-1.5 py-3 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap text-center">V</th>
-              <th className="px-1.5 py-3 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap text-center">P (kW)</th>
+              <th className="px-1.5 py-3 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap text-center">kWh</th>
               <th className="px-1.5 py-3 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap text-center">Wh</th>
               <th className="px-1.5 py-3 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap text-center">Ah</th>
               <th className="px-1.5 py-3 text-center">

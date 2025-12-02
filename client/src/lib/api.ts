@@ -148,6 +148,13 @@ export function useLegacyTrucks() {
     
     const truckModel = [truck.make, truck.model, truck.year].filter(Boolean).join(" ") || "Unknown Model";
     
+    // Calculate kWh from battery specs: ((V * Ah) * numBatteries) * SoC / 1000
+    const batteryVoltage = device?.batteryVoltage ?? 25.6;
+    const batteryAh = device?.batteryAh ?? 200;
+    const numberOfBatteries = device?.numberOfBatteries ?? 2;
+    const soc = snapshot?.soc ?? 0;
+    const calculatedKwh = ((batteryVoltage * batteryAh) * numberOfBatteries) * (soc / 100) / 1000;
+    
     return {
       id: String(truck.id),
       name: truck.truckNumber || `Truck-${truck.id}`,
@@ -156,7 +163,7 @@ export function useLegacyTrucks() {
       fw: device?.firmwareVersion || "1.0.0",
       v1: snapshot?.voltage1 ?? 0,
       v2: snapshot?.voltage2 ?? 0,
-      p: (snapshot?.power ?? 0) / 1000,
+      p: calculatedKwh,
       wh: snapshot?.energy ?? 0,
       ah: snapshot?.charge ?? 0,
       temp: tempFahrenheit,
