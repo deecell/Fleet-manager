@@ -2,19 +2,24 @@
 # Deecell Fleet Tracking - Device Manager EC2 Configuration
 # =============================================================================
 
-# Latest Amazon Linux 2023 AMI
-data "aws_ami" "amazon_linux_2023" {
+# Ubuntu 24.04 LTS AMI (has glibc 2.38+ required for PowerMon native addon)
+data "aws_ami" "ubuntu_2404" {
   most_recent = true
-  owners      = ["amazon"]
+  owners      = ["099720109477"] # Canonical
 
   filter {
     name   = "name"
-    values = ["al2023-ami-*-x86_64"]
+    values = ["ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*"]
   }
 
   filter {
     name   = "virtualization-type"
     values = ["hvm"]
+  }
+
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
   }
 }
 
@@ -60,16 +65,29 @@ locals {
     # Log everything
     exec > >(tee /var/log/user-data.log) 2>&1
 
-    echo "Starting Device Manager setup..."
+    echo "Starting Device Manager setup on Ubuntu 24.04..."
 
     # Update system
-    dnf update -y
+    apt-get update -y
+    apt-get upgrade -y
 
-    # Install Node.js 20, AWS CLI, jq
-    dnf install -y nodejs20 npm git gcc-c++ make jq unzip
+    # Install Node.js 20 via NodeSource
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+    apt-get install -y nodejs git build-essential jq unzip
+
+    # Install AWS CLI v2
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
+    unzip -q /tmp/awscliv2.zip -d /tmp
+    /tmp/aws/install
+    rm -rf /tmp/aws /tmp/awscliv2.zip
+
+    # Install Bluetooth library (required for PowerMon native addon to load)
+    apt-get install -y libbluetooth-dev
 
     # Install CloudWatch Agent
-    dnf install -y amazon-cloudwatch-agent
+    wget -q https://amazoncloudwatch-agent.s3.amazonaws.com/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb -O /tmp/amazon-cloudwatch-agent.deb
+    dpkg -i /tmp/amazon-cloudwatch-agent.deb
+    rm /tmp/amazon-cloudwatch-agent.deb
 
     # Create application directory
     mkdir -p /opt/device-manager
@@ -109,7 +127,7 @@ locals {
 
     [Service]
     Type=simple
-    User=ec2-user
+    User=ubuntu
     WorkingDirectory=/opt/device-manager
     ExecStart=/opt/device-manager/start.sh
     Restart=always
@@ -136,8 +154,8 @@ locals {
     cd /opt/device-manager
     unzip -o /tmp/device-manager.zip
     
-    echo "Installing dependencies..."
-    npm ci --only=production
+    echo "Installing dependencies (preserving pre-built native addons)..."
+    npm ci --only=production --ignore-scripts
     
     echo "Restarting service..."
     sudo systemctl restart device-manager
@@ -193,7 +211,7 @@ locals {
     CWAGENT
 
     # Set ownership
-    chown -R ec2-user:ec2-user /opt/device-manager
+    chown -R ubuntu:ubuntu /opt/device-manager
 
     # Start CloudWatch Agent
     systemctl enable amazon-cloudwatch-agent
@@ -209,7 +227,7 @@ locals {
 # Device Manager Launch Template
 resource "aws_launch_template" "device_manager" {
   name_prefix   = "${local.name_prefix}-device-manager-"
-  image_id      = var.device_manager_ami_id != "" ? var.device_manager_ami_id : data.aws_ami.amazon_linux_2023.id
+  image_id      = var.device_manager_ami_id != "" ? var.device_manager_ami_id : data.aws_ami.ubuntu_2404.id
   instance_type = var.device_manager_instance_type
 
   iam_instance_profile {

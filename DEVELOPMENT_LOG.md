@@ -14,6 +14,33 @@
 
 ---
 
+### 🐧 Ubuntu 24.04 for Device Manager (December 2, 2025)
+
+**Changed Device Manager EC2 from Amazon Linux 2023 to Ubuntu 24.04 LTS**
+
+**Problem**: PowerMon native addon (`powermon_addon.node`) was compiled on Replit which has glibc 2.38. Amazon Linux 2023 has an older glibc version, causing `GLIBC_2.38' not found` errors.
+
+**Solution**: Switch to Ubuntu 24.04 LTS which includes glibc 2.38+ out of the box.
+
+**Changes to `terraform/device-manager.tf`**:
+1. New AMI data source: `aws_ami.ubuntu_2404` (Canonical owner: 099720109477)
+2. Updated user data script:
+   - Uses `apt-get` instead of `dnf`
+   - Installs Node.js 20 via NodeSource
+   - Installs AWS CLI v2 manually
+   - Installs `libbluetooth-dev` for PowerMon Bluetooth support
+   - Installs CloudWatch Agent from .deb package
+3. Changed default user from `ec2-user` to `ubuntu`
+4. Updated deploy.sh to use `npm ci --ignore-scripts` to preserve pre-built native addons
+
+**Deployment Steps**:
+1. Run `terraform apply` to create new launch template with Ubuntu AMI
+2. Terminate existing Amazon Linux instance (Auto Scaling will launch Ubuntu instance)
+3. SSH using `ubuntu@<ip>` instead of `ec2-user@<ip>`
+4. Run `/opt/device-manager/deploy.sh` to deploy code
+
+---
+
 ### 🚀 Device Manager AWS CI/CD Setup (December 2, 2025)
 
 **Added automated deployment for Device Manager to AWS EC2**:
