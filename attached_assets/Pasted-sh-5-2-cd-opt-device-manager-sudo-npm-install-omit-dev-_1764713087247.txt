@@ -1,0 +1,64 @@
+sh-5.2$ cd /opt/device-manager && sudo npm install --omit=dev
+
+> @deecell/device-manager@1.0.0 install
+> node-gyp rebuild
+
+gyp info it worked if it ends with ok
+gyp info using node-gyp@10.1.0
+gyp info using node@18.20.8 | linux | x64
+gyp info find Python using Python version 3.9.24 found at "/usr/bin/python3"
+
+gyp http GET https://nodejs.org/download/release/v18.20.8/node-v18.20.8-headers.tar.gz
+gyp http 200 https://nodejs.org/download/release/v18.20.8/node-v18.20.8-headers.tar.gz
+gyp http GET https://nodejs.org/download/release/v18.20.8/SHASUMS256.txt
+gyp http 200 https://nodejs.org/download/release/v18.20.8/SHASUMS256.txt
+gyp info spawn /usr/bin/python3
+gyp info spawn args [
+gyp info spawn args '/usr/lib/nodejs18/lib/node_modules/npm/node_modules/node-gyp/gyp/gyp_main.py',
+gyp info spawn args 'binding.gyp',
+gyp info spawn args '-f',
+gyp info spawn args 'make',
+gyp info spawn args '-I',
+gyp info spawn args '/opt/device-manager/build/config.gypi',
+gyp info spawn args '-I',
+gyp info spawn args '/usr/lib/nodejs18/lib/node_modules/npm/node_modules/node-gyp/addon.gypi',
+gyp info spawn args '-I',
+gyp info spawn args '/root/.cache/node-gyp/18.20.8/include/node/common.gypi',
+gyp info spawn args '-Dlibrary=shared_library',
+gyp info spawn args '-Dvisibility=default',
+gyp info spawn args '-Dnode_root_dir=/root/.cache/node-gyp/18.20.8',
+gyp info spawn args '-Dnode_gyp_dir=/usr/lib/nodejs18/lib/node_modules/npm/node_modules/node-gyp',
+gyp info spawn args '-Dnode_lib_file=/root/.cache/node-gyp/18.20.8/<(target_arch)/node.lib',
+gyp info spawn args '-Dmodule_root_dir=/opt/device-manager',
+gyp info spawn args '-Dnode_engine=v8',
+gyp info spawn args '--depth=.',
+gyp info spawn args '--no-parallel',
+gyp info spawn args '--generator-output',
+gyp info spawn args 'build',
+gyp info spawn args '-Goutput_dir=.'
+gyp info spawn args ]
+gyp info spawn make
+gyp info spawn args [ 'BUILDTYPE=Release', '-C', 'build' ]
+make: Entering directory '/opt/device-manager/build'
+  CXX(target) Release/obj.target/powermon_addon/src/addon.o
+In file included from ../src/addon.cpp:2:
+../src/powermon_wrapper.h:5:10: fatal error: powermon.h: No such file or directory
+    5 | #include <powermon.h>
+      |          ^~~~~~~~~~~~
+compilation terminated.
+make: *** [powermon_addon.target.mk:119: Release/obj.target/powermon_addon/src/addon.o] Error 1
+make: Leaving directory '/opt/device-manager/build'
+gyp ERR! build error
+gyp ERR! stack Error: `make` failed with exit code: 2
+gyp ERR! stack at ChildProcess.<anonymous> (/usr/lib/nodejs18/lib/node_modules/npm/node_modules/node-gyp/lib/build.js:209:23)
+gyp ERR! System Linux 6.1.158-178.288.amzn2023.x86_64
+gyp ERR! command "/usr/bin/node-18" "/usr/lib/nodejs18/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js" "rebuild"
+gyp ERR! cwd /opt/device-manager
+gyp ERR! node -v v18.20.8
+gyp ERR! node-gyp -v v10.1.0
+gyp ERR! not ok
+npm error code 1
+npm error path /opt/device-manager
+npm error command failed
+npm error command sh -c node-gyp rebuild
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-12-02T22_04_10_074Z-debug-0.log
