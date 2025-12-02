@@ -74,9 +74,9 @@ export default function DevicesPage() {
     deviceName: "",
     hardwareRevision: "",
     firmwareVersion: "",
-    batteryVoltage: "",
-    batteryAh: "",
-    numberOfBatteries: "",
+    batteryVoltage: "25.6",
+    batteryAh: "200",
+    numberOfBatteries: "2",
     status: "offline",
   });
 
@@ -86,9 +86,9 @@ export default function DevicesPage() {
       deviceName: "",
       hardwareRevision: "",
       firmwareVersion: "",
-      batteryVoltage: "",
-      batteryAh: "",
-      numberOfBatteries: "",
+      batteryVoltage: "25.6",
+      batteryAh: "200",
+      numberOfBatteries: "2",
       status: "offline",
     });
   };
