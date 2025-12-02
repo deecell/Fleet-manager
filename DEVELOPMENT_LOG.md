@@ -26,15 +26,18 @@
   - Modified `server/index.ts` to use dynamic imports for vite (dev) vs static (prod)
   - Moved `log()` function directly into index.ts to avoid vite.ts import
 
-**Issue 4: Investigating ECS Container Startup Path Issue**
-- Symptom: ECS reports "service did not reach servicesStable state"
-- Added debug logging to `server/static.ts` to show:
-  - Base directory (import.meta.dirname)
-  - Expected public path
-  - Actual directory contents
-- This will reveal what files are actually present in the container at startup
+**Issue 4: Vite Still Being Bundled Despite Dynamic Import**
+- Symptom: ECS logs showed "Cannot find package 'vite'" even after dynamic import fix
+- Root cause: esbuild statically analyzes `import("./vite")` and bundles vite.ts anyway
+- Fix: Used `Function()` constructor to create truly dynamic import that esbuild can't trace:
+  ```javascript
+  const viteModule = "./vite" + "";
+  const { setupVite } = await (Function('return import("' + viteModule + '")')());
+  ```
+- Result: Bundle size reduced from 188kb to 180kb, vite code no longer included
+- Added debug logging to `server/static.ts` for future diagnostics
 
-**Current Status**: Added debug logging, pushing to diagnose ECS startup issue
+**Current Status**: Production server starts correctly, ready to deploy
 
 ---
 

@@ -74,7 +74,9 @@ app.use((req, res, next) => {
   // doesn't interfere with the other routes
   if (app.get("env") === "development") {
     // Dynamic import of vite module - only loaded in development
-    const { setupVite } = await import("./vite");
+    // Use dynamic path construction to prevent esbuild from bundling vite.ts
+    const viteModule = "./vite" + "";
+    const { setupVite } = await (Function('return import("' + viteModule + '")')());
     await setupVite(app, server);
   } else {
     // Use separate static server module that doesn't depend on vite
