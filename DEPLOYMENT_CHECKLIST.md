@@ -45,7 +45,20 @@
 
 ---
 
-## Phase 1: Generate Secrets
+## Phase 1: Store AWS Credentials in Replit
+
+**IMPORTANT**: To run Terraform from Replit, you need to store your AWS credentials as **Replit Secrets** (not just shell exports, which don't persist between sessions).
+
+1. Go to **Secrets** in the Replit sidebar (lock icon)
+2. Add these two secrets:
+   - `AWS_ACCESS_KEY_ID` - Your IAM user access key
+   - `AWS_SECRET_ACCESS_KEY` - Your IAM user secret key
+
+These will persist across sessions and be available whenever you run `terraform apply`.
+
+---
+
+## Phase 2: Generate Secrets
 
 Run these commands to generate secure passwords:
 
@@ -64,7 +77,7 @@ openssl rand -base64 24 | tr -dc 'a-zA-Z0-9!#$%&*' | head -c 24
 
 ---
 
-## Phase 2: GitHub Repository Setup
+## Phase 3: GitHub Repository Setup
 
 ### 2.1 Create GitHub Repository
 
