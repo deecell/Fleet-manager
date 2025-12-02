@@ -162,7 +162,7 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
 
   const formatSocTrend = () => {
     const diff = avgSoc - soc7DayAvg;
-    return `${socTrendIsPositive ? '+' : '-'}${Math.abs(diff).toFixed(0)}% (${socTrendPercent}%) vs 7d`;
+    return `${socTrendIsPositive ? '+' : '-'}${Math.abs(diff).toFixed(1)}% (${socTrendPercent}%) vs 7d`;
   };
 
   const maintenanceValue = fleetStats?.maintenanceIntervalIncrease.value ?? 0;
@@ -195,10 +195,10 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
       />
       <StatCard
         title="Avg. State of charge"
-        value={`${avgSoc.toFixed(0)}%`}
+        value={`${avgSoc.toFixed(1)}%`}
         targetNumber={avgSoc}
         suffix="%"
-        decimals={0}
+        decimals={1}
         trend={{ 
           value: formatSocTrend(), 
           isPositive: socTrendIsPositive 
