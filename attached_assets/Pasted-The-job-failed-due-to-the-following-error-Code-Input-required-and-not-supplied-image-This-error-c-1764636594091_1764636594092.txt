@@ -1,0 +1,50 @@
+The job failed due to the following error:
+
+Code
+Input required and not supplied: image
+This error comes from the Deploy to ECS job in your workflow. Specifically, the step using the aws-actions/amazon-ecs-render-task-definition@v1 action requires an image input:
+
+YAML
+- name: Update task definition with new image
+  id: task-def
+  uses: aws-actions/amazon-ecs-render-task-definition@v1
+  with:
+    task-definition: task-definition.json
+    container-name: ${{ env.CONTAINER_NAME }}
+    image: ${{ needs.build.outputs.image }}
+The problem is that ${{ needs.build.outputs.image }} is empty. This output should be set by your build job:
+
+YAML
+outputs:
+  image: ${{ steps.build-image.outputs.image }}
+Make sure the step with ID build-image in your build job sets the output variable correctly. In your workflow, you use:
+
+sh
+echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+This is correct for setting the output, but the build job will only run (and produce an output) if the triggering event is a push to main:
+
+YAML
+if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+If your workflow was triggered by a pull request, the build job will not run, and so the output ${{ needs.build.outputs.image }} will be unset.
+
+Solution:
+
+If you want to deploy for both pushes and pull requests, adjust or remove the if condition in the build job to ensure it runs when needed:
+
+YAML
+if: github.ref == 'refs/heads/main'
+Or remove the if entirely if you want all deploys to run on each workflow execution.
+
+Alternatively, restrict the deploy job to run only when the image output is supplied to avoid this failure.
+
+Always make sure the build job runs for any workflow path that should deploy, so the image output is set and available.
+
+Code suggestion:
+
+Update the build job trigger condition:
+
+YAML
+build:
+  ...
+  if: github.ref == 'refs/heads/main'
+Or remove if: github.event_name == 'push' && github.ref == 'refs/heads/main' to always run the build job unless you intend for deploy to only happen on pushes.
