@@ -66,12 +66,14 @@ device-manager/
 __tests__/
 tests/
 
-# Attached assets - exclude large files but keep needed assets (logo, icons)
-attached_assets/*.png
+# Attached assets - only exclude unnecessary files, keep all used assets
 attached_assets/*.txt
 attached_assets/*.zip
 attached_assets/generated_images/
 attached_assets/Screenshot*
+attached_assets/Pasted-*
+attached_assets/targeted_element*
+attached_assets/deecell-logo.png
 
 # Deployment documentation
 Deployment/
