@@ -526,6 +526,19 @@ export const savingsConfig = pgTable("savings_config", {
 }));
 
 // =============================================================================
+// DATA MIGRATIONS (tracks which data migrations have been run)
+// =============================================================================
+export const dataMigrations = pgTable("data_migrations", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  description: text("description"),
+  appliedAt: timestamp("applied_at").defaultNow(),
+  appliedBy: text("applied_by").default("system"),
+}, (table) => ({
+  nameIdx: uniqueIndex("data_migration_name_idx").on(table.name),
+}));
+
+// =============================================================================
 // INSERT SCHEMAS (Zod validation for API inputs)
 // =============================================================================
 export const insertOrganizationSchema = createInsertSchema(organizations)
@@ -585,6 +598,9 @@ export const insertFuelPriceSchema = createInsertSchema(fuelPrices)
 export const insertSavingsConfigSchema = createInsertSchema(savingsConfig)
   .omit({ id: true, updatedAt: true });
 
+export const insertDataMigrationSchema = createInsertSchema(dataMigrations)
+  .omit({ id: true, appliedAt: true });
+
 // =============================================================================
 // SELECT TYPES (for query results)
 // =============================================================================
@@ -607,6 +623,7 @@ export type SimUsageHistory = typeof simUsageHistory.$inferSelect;
 export type SimSyncSetting = typeof simSyncSettings.$inferSelect;
 export type FuelPrice = typeof fuelPrices.$inferSelect;
 export type SavingsConfig = typeof savingsConfig.$inferSelect;
+export type DataMigration = typeof dataMigrations.$inferSelect;
 
 // =============================================================================
 // INSERT TYPES (for creating new records)

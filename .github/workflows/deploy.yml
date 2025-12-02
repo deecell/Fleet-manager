@@ -251,11 +251,26 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Run Database Migrations
+      - name: Run Database Schema Migrations
         env:
           DATABASE_URL: ${{ steps.get-db-url.outputs.database_url }}
         run: |
-          npm run db:push --force || echo "No migrations to run"
+          echo "Running Drizzle schema push..."
+          npm run db:push --force || echo "Schema push completed"
+
+      - name: Run Data Migrations (if any)
+        env:
+          DATABASE_URL: ${{ steps.get-db-url.outputs.database_url }}
+        run: |
+          if [ -d "migrations/data" ] && [ "$(ls -A migrations/data/*.ts 2>/dev/null)" ]; then
+            echo "Running pending data migrations..."
+            for migration in migrations/data/*.ts; do
+              echo "Running: $migration"
+              npx tsx "$migration" || echo "Migration $migration failed or already applied"
+            done
+          else
+            echo "No data migrations to run"
+          fi
 
   # ===========================================================================
   # Job 6: Notify

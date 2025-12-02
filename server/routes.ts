@@ -8,6 +8,7 @@ import fleetRoutes from "./api/fleet-routes";
 import adminRoutes from "./api/admin-routes";
 import authRoutes from "./api/auth-routes";
 import assistantRoutes from "./api/assistant-routes";
+import migrationRoutes from "./api/migration-routes";
 import MemoryStore from "memorystore";
 
 const MemoryStoreSession = MemoryStore(session);
@@ -70,6 +71,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register AI Assistant API routes
   app.use("/api/v1/assistant", assistantRoutes);
+
+  // Register Migration API routes (secured with Bearer token)
+  app.use("/api/v1/migrate", migrationRoutes);
 
   // Health check endpoint
   app.get("/api/health", async (req: Request, res: Response) => {
