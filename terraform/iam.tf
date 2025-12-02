@@ -274,10 +274,16 @@ resource "aws_iam_policy" "github_actions" {
         Resource = "*"
       },
       {
-        Sid      = "Secrets"
+        Sid      = "SecretsGet"
         Effect   = "Allow"
         Action   = ["secretsmanager:GetSecretValue"]
         Resource = [aws_secretsmanager_secret.database_url.arn]
+      },
+      {
+        Sid      = "SecretsList"
+        Effect   = "Allow"
+        Action   = ["secretsmanager:ListSecrets"]
+        Resource = "*"
       },
       {
         Sid      = "Logs"
