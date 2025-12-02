@@ -120,11 +120,13 @@ export default function DevicesPage() {
         batteryAh: formData.batteryAh ? parseFloat(formData.batteryAh) : null,
         numberOfBatteries: formData.numberOfBatteries ? parseInt(formData.numberOfBatteries) : null,
       };
+      console.log("Updating device with data:", JSON.stringify(data, null, 2));
       await updateDevice.mutateAsync({ id: editingDevice.id, orgId: selectedOrgId, data });
       toast({ title: "Device updated successfully" });
       setEditingDevice(null);
       resetForm();
     } catch (error) {
+      console.error("Update error:", error);
       toast({ title: "Failed to update device", variant: "destructive" });
     }
   };
