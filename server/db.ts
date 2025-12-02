@@ -13,10 +13,13 @@ const isAWSRDS = connectionString.includes("rds.amazonaws.com");
 const isProduction = process.env.NODE_ENV === "production";
 const useSSL = isAWSRDS || isProduction;
 
-// For AWS RDS, replace sslmode=require with sslmode=no-verify to avoid certificate issues
-if (useSSL && connectionString.includes("sslmode=require")) {
-  connectionString = connectionString.replace("sslmode=require", "sslmode=no-verify");
-  console.log("[Database] Updated sslmode to no-verify for AWS RDS");
+// Remove sslmode from connection string - we'll handle SSL via pg library config
+// This avoids conflicts between URL sslmode and pg ssl options
+if (useSSL) {
+  connectionString = connectionString.replace(/[?&]sslmode=[^&]*/g, "");
+  // Clean up any trailing ? or && from removal
+  connectionString = connectionString.replace(/\?$/, "").replace(/\?&/, "?").replace(/&&/, "&");
+  console.log("[Database] Removed sslmode from URL, using pg ssl config instead");
 }
 
 console.log(`[Database] Connecting with SSL: ${useSSL}, isAWSRDS: ${isAWSRDS}, isProduction: ${isProduction}`);
@@ -28,7 +31,7 @@ const poolConfig: PoolConfig = {
   connectionTimeoutMillis: 2000,
 };
 
-// For AWS RDS, we need to explicitly disable certificate verification
+// For AWS RDS, enable SSL but skip certificate verification
 if (useSSL) {
   poolConfig.ssl = {
     rejectUnauthorized: false,
