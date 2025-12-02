@@ -1,8 +1,18 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
 // Device simulator disabled - using real PowerMon devices via Device Manager
 // import { startDeviceSimulator } from "./services/device-simulator";
+
+// Simple log function that doesn't require vite
+function log(message: string, source = "express") {
+  const formattedTime = new Date().toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  });
+  console.log(`${formattedTime} [${source}] ${message}`);
+}
 
 const app = express();
 
@@ -63,8 +73,12 @@ app.use((req, res, next) => {
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   if (app.get("env") === "development") {
+    // Dynamic import of vite module - only loaded in development
+    const { setupVite } = await import("./vite");
     await setupVite(app, server);
   } else {
+    // Use separate static server module that doesn't depend on vite
+    const { serveStatic } = await import("./static");
     serveStatic(app);
   }
 

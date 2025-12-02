@@ -18,7 +18,15 @@
 - Fix: Updated `server/aws/rds.ts` to parse DATABASE_URL when available, with fallback to individual env vars
 - This allows the health check endpoint `/api/health` to properly connect to the RDS database
 
-**Current Status**: Pushing fix to trigger new deployment
+**Issue 3: Vite Package Not Found in Production**
+- Error: `Cannot find package 'vite' imported from /app/dist/index.js`
+- Root cause: `server/index.ts` imported from `./vite` at top level, which loads vite (a dev dependency)
+- Fix: 
+  - Created new `server/static.ts` for production static file serving (no vite dependency)
+  - Modified `server/index.ts` to use dynamic imports for vite (dev) vs static (prod)
+  - Moved `log()` function directly into index.ts to avoid vite.ts import
+
+**Current Status**: Build successful, pushing fix to trigger new deployment
 
 ---
 
