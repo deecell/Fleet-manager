@@ -751,6 +751,10 @@ export class DbStorage {
     return db.select().from(powerMonDevices).orderBy(asc(powerMonDevices.serialNumber));
   }
 
+  async listAllTrucks(): Promise<Truck[]> {
+    return db.select().from(trucks).orderBy(asc(trucks.truckNumber));
+  }
+
   async listAllUsers(): Promise<User[]> {
     return db.select().from(users).orderBy(asc(users.email));
   }

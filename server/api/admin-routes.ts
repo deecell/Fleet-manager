@@ -398,6 +398,16 @@ router.get("/devices", adminMiddleware, async (req: Request, res: Response) => {
   }
 });
 
+router.get("/trucks", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const trucks = await storage.listAllTrucks();
+    res.json({ trucks });
+  } catch (error) {
+    console.error("Error listing all trucks:", error);
+    res.status(500).json({ error: "Failed to list trucks" });
+  }
+});
+
 router.post("/organizations/:orgId/devices", adminMiddleware, async (req: Request, res: Response) => {
   try {
     const orgId = parseInt(req.params.orgId, 10);

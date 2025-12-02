@@ -33,6 +33,7 @@ import {
   useAdminOrganizations,
   useAdminDevices,
   useAdminTrucks,
+  useAllAdminTrucks,
   useCreateDevice,
   useUpdateDevice,
   useAssignDevice,
@@ -50,6 +51,7 @@ export default function DevicesPage() {
   const [selectedOrgId, setSelectedOrgId] = useState<number | undefined>();
   const { data: devicesData, isLoading } = useAdminDevices(selectedOrgId);
   const { data: trucksData } = useAdminTrucks(selectedOrgId);
+  const { data: allTrucksData } = useAllAdminTrucks();
   const createDevice = useCreateDevice();
   const updateDevice = useUpdateDevice();
   const assignDevice = useAssignDevice();
@@ -200,7 +202,7 @@ export default function DevicesPage() {
 
   const organizations = orgsData?.organizations || [];
   const devices = devicesData?.devices || [];
-  const trucks = trucksData?.trucks || [];
+  const trucks = selectedOrgId ? (trucksData?.trucks || []) : (allTrucksData?.trucks || []);
   const unassignedTrucks = trucks.filter(t => !devices.some(d => d.truckId === t.id));
 
   return (

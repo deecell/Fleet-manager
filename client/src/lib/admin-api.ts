@@ -255,6 +255,13 @@ export function useAdminTrucks(orgId: number | undefined, fleetId?: number) {
   });
 }
 
+export function useAllAdminTrucks() {
+  return useQuery<TrucksResponse>({
+    queryKey: ["/api/v1/admin/trucks"],
+    queryFn: () => adminFetch(`/api/v1/admin/trucks`),
+  });
+}
+
 export function useCreateTruck() {
   const queryClient = useQueryClient();
   return useMutation({
