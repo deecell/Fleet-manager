@@ -15,14 +15,39 @@ export async function runStartupMigrations(): Promise<boolean> {
     await pool.query("SELECT 1");
     console.log("[Migrations] Database connection successful!");
 
-    // Check if this is a fresh install or if we need to fix schema
-    const checkResult = await pool.query(`
-      SELECT column_name FROM information_schema.columns 
-      WHERE table_name = 'organizations' AND column_name = 'plan'
+    // Check schema version - we track this with a simple marker
+    const schemaVersion = "v2"; // Increment this when schema changes
+    const checkVersion = await pool.query(`
+      SELECT EXISTS (
+        SELECT 1 FROM information_schema.tables 
+        WHERE table_name = 'schema_version'
+      ) as exists
     `);
     
-    if (checkResult.rows.length === 0) {
-      console.log("[Migrations] Schema mismatch detected - dropping and recreating tables...");
+    let needsRebuild = false;
+    
+    if (checkVersion.rows[0].exists) {
+      const versionResult = await pool.query(`SELECT version FROM schema_version LIMIT 1`);
+      if (versionResult.rows.length === 0 || versionResult.rows[0].version !== schemaVersion) {
+        needsRebuild = true;
+        console.log(`[Migrations] Schema version mismatch (expected ${schemaVersion})`);
+      }
+    } else {
+      // No version table - check if tables exist at all
+      const tablesExist = await pool.query(`
+        SELECT EXISTS (
+          SELECT 1 FROM information_schema.tables 
+          WHERE table_name = 'organizations'
+        ) as exists
+      `);
+      if (tablesExist.rows[0].exists) {
+        needsRebuild = true;
+        console.log("[Migrations] Tables exist but no version tracking - rebuilding");
+      }
+    }
+    
+    if (needsRebuild) {
+      console.log("[Migrations] Dropping and recreating all tables...");
       
       // Drop tables in reverse dependency order
       await pool.query(`DROP TABLE IF EXISTS sim_location_history CASCADE;`);
@@ -44,11 +69,20 @@ export async function runStartupMigrations(): Promise<boolean> {
       await pool.query(`DROP TABLE IF EXISTS organizations CASCADE;`);
       await pool.query(`DROP TABLE IF EXISTS sessions CASCADE;`);
       await pool.query(`DROP TABLE IF EXISTS session CASCADE;`);
+      await pool.query(`DROP TABLE IF EXISTS schema_version CASCADE;`);
       
       console.log("[Migrations] Old tables dropped successfully");
     } else {
-      console.log("[Migrations] Schema looks correct, skipping recreation");
-      return true;
+      const existsCheck = await pool.query(`
+        SELECT EXISTS (
+          SELECT 1 FROM information_schema.tables 
+          WHERE table_name = 'organizations'
+        ) as exists
+      `);
+      if (existsCheck.rows[0].exists) {
+        console.log("[Migrations] Schema is current, skipping recreation");
+        return true;
+      }
     }
 
     console.log("[Migrations] Creating tables (matching shared/schema.ts)...");
@@ -414,13 +448,13 @@ export async function runStartupMigrations(): Promise<boolean> {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS fuel_prices (
         id SERIAL PRIMARY KEY,
+        price_date TIMESTAMP NOT NULL,
+        price_per_gallon REAL NOT NULL,
         region TEXT NOT NULL,
-        price REAL NOT NULL,
-        effective_date DATE NOT NULL,
         source TEXT DEFAULT 'EIA',
         created_at TIMESTAMP DEFAULT NOW()
       );
-      CREATE UNIQUE INDEX IF NOT EXISTS fuel_price_region_date_idx ON fuel_prices(region, effective_date);
+      CREATE UNIQUE INDEX IF NOT EXISTS fuel_price_region_date_idx ON fuel_prices(region, price_date);
     `);
     console.log("[Migrations] Created fuel_prices");
 
@@ -437,6 +471,17 @@ export async function runStartupMigrations(): Promise<boolean> {
       );
     `);
     console.log("[Migrations] Created savings_config");
+
+    // Schema Version tracking
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS schema_version (
+        id SERIAL PRIMARY KEY,
+        version TEXT NOT NULL,
+        applied_at TIMESTAMP DEFAULT NOW()
+      );
+      INSERT INTO schema_version (version) VALUES ('v2');
+    `);
+    console.log("[Migrations] Created schema_version (v2)");
 
     console.log("[Migrations] ✅ All tables created successfully!");
     return true;
