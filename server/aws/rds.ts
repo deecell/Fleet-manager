@@ -1,24 +1,53 @@
 import { Pool, PoolClient, Client } from "pg";
 
-const RDS_CONFIG = {
-  host: process.env.RDS_HOST || "deecell-fleet-db.cn4qsw8g8yyx.us-east-2.rds.amazonaws.com",
-  port: parseInt(process.env.RDS_PORT || "5432"),
-  user: process.env.RDS_USERNAME || "postgres",
-  password: process.env.RDS_PASSWORD || "",
-  ssl: {
-    rejectUnauthorized: false,
-  },
-};
+// Parse DATABASE_URL if available, otherwise fall back to individual env vars
+function parseConnectionConfig() {
+  const databaseUrl = process.env.DATABASE_URL;
+  
+  if (databaseUrl) {
+    // Parse the DATABASE_URL (format: postgres://user:password@host:port/database)
+    try {
+      const url = new URL(databaseUrl);
+      return {
+        host: url.hostname,
+        port: parseInt(url.port || "5432"),
+        user: url.username,
+        password: url.password,
+        database: url.pathname.slice(1), // Remove leading '/'
+        ssl: {
+          rejectUnauthorized: false,
+        },
+      };
+    } catch (e) {
+      console.error("Failed to parse DATABASE_URL:", e);
+    }
+  }
+  
+  // Fallback to individual environment variables
+  return {
+    host: process.env.RDS_HOST || "localhost",
+    port: parseInt(process.env.RDS_PORT || "5432"),
+    user: process.env.RDS_USERNAME || "postgres",
+    password: process.env.RDS_PASSWORD || "",
+    database: process.env.RDS_DATABASE || "fleet_db",
+    ssl: process.env.RDS_HOST ? { rejectUnauthorized: false } : undefined,
+  };
+}
 
-const DATABASE_NAME = process.env.RDS_DATABASE || "fleet_db";
+const connectionConfig = parseConnectionConfig();
+const DATABASE_NAME = connectionConfig.database;
 
 let pool: Pool | null = null;
 
 function getPool(): Pool {
   if (!pool) {
     pool = new Pool({
-      ...RDS_CONFIG,
+      host: connectionConfig.host,
+      port: connectionConfig.port,
+      user: connectionConfig.user,
+      password: connectionConfig.password,
       database: DATABASE_NAME,
+      ssl: connectionConfig.ssl,
       max: 10,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 10000,
@@ -33,7 +62,11 @@ function getPool(): Pool {
 
 export async function createDatabaseIfNotExists(): Promise<boolean> {
   const client = new Client({
-    ...RDS_CONFIG,
+    host: connectionConfig.host,
+    port: connectionConfig.port,
+    user: connectionConfig.user,
+    password: connectionConfig.password,
+    ssl: connectionConfig.ssl,
     database: "postgres",
   });
 

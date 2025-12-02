@@ -4,7 +4,25 @@
 
 ---
 
-## Latest Updates (December 1, 2025)
+## Latest Updates (December 2, 2025)
+
+### 🔧 AWS Deployment Fixes (December 2, 2025)
+
+**Issue 1: IAM Permissions for Secrets Manager**
+- Error: GitHub Actions could not list secrets to find DATABASE_URL ARN
+- Fix: Added `secretsmanager:ListSecrets` permission to GitHub Actions IAM policy
+- File: `terraform/iam.tf` - Added new `SecretsList` statement
+
+**Issue 2: Database Connection Configuration Mismatch**
+- Root cause: `server/aws/rds.ts` used different env vars (RDS_HOST, RDS_PORT, etc.) than what ECS provides (DATABASE_URL)
+- Fix: Updated `server/aws/rds.ts` to parse DATABASE_URL when available, with fallback to individual env vars
+- This allows the health check endpoint `/api/health` to properly connect to the RDS database
+
+**Current Status**: Pushing fix to trigger new deployment
+
+---
+
+## Previous Updates (December 1, 2025)
 
 ### ✅ AWS Infrastructure LIVE! (December 1, 2025 - 11:30 PM)
 - **Status**: Infrastructure successfully deployed to AWS!
