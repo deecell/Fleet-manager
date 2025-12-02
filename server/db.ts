@@ -8,11 +8,14 @@ if (!connectionString) {
   throw new Error("DATABASE_URL environment variable is required");
 }
 
+const isProduction = process.env.NODE_ENV === "production";
+
 export const pool = new Pool({
   connectionString,
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
+  ssl: isProduction ? { rejectUnauthorized: false } : undefined,
 });
 
 export const db = drizzle(pool, { schema });
