@@ -290,6 +290,37 @@ resource "aws_iam_policy" "github_actions" {
         Effect   = "Allow"
         Action   = ["logs:Get*", "logs:Describe*"]
         Resource = "*"
+      },
+      {
+        Sid    = "DeviceManagerS3"
+        Effect = "Allow"
+        Action = [
+          "s3:PutObject",
+          "s3:GetObject",
+          "s3:ListBucket"
+        ]
+        Resource = [
+          aws_s3_bucket.device_manager_deploy.arn,
+          "${aws_s3_bucket.device_manager_deploy.arn}/*"
+        ]
+      },
+      {
+        Sid    = "DeviceManagerASG"
+        Effect = "Allow"
+        Action = [
+          "autoscaling:DescribeAutoScalingGroups"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "DeviceManagerSSM"
+        Effect = "Allow"
+        Action = [
+          "ssm:SendCommand",
+          "ssm:ListCommandInvocations",
+          "ssm:GetCommandInvocation"
+        ]
+        Resource = "*"
       }
     ]
   })
