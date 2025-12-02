@@ -6,6 +6,7 @@ import {
   insertTruckSchema,
   insertPowerMonDeviceSchema,
   insertUserSchema,
+  insertDeviceCredentialSchema,
 } from "@shared/schema";
 import { z } from "zod";
 import bcrypt from "bcrypt";
@@ -472,6 +473,113 @@ router.post("/devices/:id/unassign", adminMiddleware, async (req: Request, res: 
   } catch (error) {
     console.error("Error unassigning device:", error);
     res.status(500).json({ error: "Failed to unassign device" });
+  }
+});
+
+router.get("/devices/:id/credentials", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const deviceId = parseInt(req.params.id, 10);
+    const organizationId = req.query.orgId ? parseInt(req.query.orgId as string, 10) : undefined;
+    if (!organizationId) {
+      return res.status(400).json({ error: "Organization ID required (use ?orgId=X)" });
+    }
+    const credential = await storage.getCredential(organizationId, deviceId);
+    if (!credential) {
+      return res.status(404).json({ error: "Credentials not found for this device" });
+    }
+    res.json({ credential });
+  } catch (error) {
+    console.error("Error getting device credentials:", error);
+    res.status(500).json({ error: "Failed to get device credentials" });
+  }
+});
+
+router.post("/devices/:id/credentials", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const deviceId = parseInt(req.params.id, 10);
+    const { organizationId, applinkUrl, connectionKey, accessKey } = req.body;
+    
+    if (!organizationId) {
+      return res.status(400).json({ error: "Organization ID required" });
+    }
+    
+    if (!applinkUrl && (!connectionKey || !accessKey)) {
+      return res.status(400).json({ 
+        error: "Either applinkUrl OR both connectionKey and accessKey are required" 
+      });
+    }
+    
+    let finalConnectionKey = connectionKey;
+    let finalAccessKey = accessKey;
+    
+    if (applinkUrl && (!connectionKey || !accessKey)) {
+      const urlMatch = applinkUrl.match(/powermon:\/\/([^@]+)@(\S+)/);
+      if (urlMatch) {
+        finalAccessKey = urlMatch[1];
+        finalConnectionKey = urlMatch[2];
+      } else {
+        return res.status(400).json({ 
+          error: "Invalid applinkUrl format. Expected: powermon://accessKey@connectionKey" 
+        });
+      }
+    }
+    
+    const existing = await storage.getCredential(organizationId, deviceId);
+    if (existing) {
+      return res.status(409).json({ 
+        error: "Credentials already exist for this device. Use PATCH to update." 
+      });
+    }
+    
+    const credential = await storage.createCredential({
+      organizationId,
+      deviceId,
+      connectionKey: finalConnectionKey,
+      accessKey: finalAccessKey,
+      applinkUrl: applinkUrl || `powermon://${finalAccessKey}@${finalConnectionKey}`,
+      isActive: true,
+    });
+    
+    res.status(201).json({ credential });
+  } catch (error) {
+    console.error("Error creating device credentials:", error);
+    res.status(500).json({ error: "Failed to create device credentials" });
+  }
+});
+
+router.patch("/devices/:id/credentials", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const deviceId = parseInt(req.params.id, 10);
+    const { organizationId, applinkUrl, connectionKey, accessKey, isActive } = req.body;
+    
+    if (!organizationId) {
+      return res.status(400).json({ error: "Organization ID required" });
+    }
+    
+    const updateData: Record<string, unknown> = {};
+    
+    if (applinkUrl) {
+      updateData.applinkUrl = applinkUrl;
+      const urlMatch = applinkUrl.match(/powermon:\/\/([^@]+)@(\S+)/);
+      if (urlMatch) {
+        updateData.accessKey = urlMatch[1];
+        updateData.connectionKey = urlMatch[2];
+      }
+    }
+    
+    if (connectionKey) updateData.connectionKey = connectionKey;
+    if (accessKey) updateData.accessKey = accessKey;
+    if (typeof isActive === 'boolean') updateData.isActive = isActive;
+    
+    const credential = await storage.updateCredential(organizationId, deviceId, updateData);
+    if (!credential) {
+      return res.status(404).json({ error: "Credentials not found for this device" });
+    }
+    
+    res.json({ credential });
+  } catch (error) {
+    console.error("Error updating device credentials:", error);
+    res.status(500).json({ error: "Failed to update device credentials" });
   }
 });
 
