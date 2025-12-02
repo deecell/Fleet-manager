@@ -112,7 +112,11 @@ export default function DevicesPage() {
   };
 
   const handleUpdate = async () => {
-    if (!editingDevice || !selectedOrgId) return;
+    console.log("handleUpdate called", { editingDevice: editingDevice?.id, selectedOrgId });
+    if (!editingDevice || !selectedOrgId) {
+      console.log("handleUpdate: Missing editingDevice or selectedOrgId", { editingDevice, selectedOrgId });
+      return;
+    }
     try {
       const data = {
         ...formData,
@@ -122,6 +126,7 @@ export default function DevicesPage() {
       };
       console.log("Updating device with data:", JSON.stringify(data, null, 2));
       await updateDevice.mutateAsync({ id: editingDevice.id, orgId: selectedOrgId, data });
+      console.log("Update successful");
       toast({ title: "Device updated successfully" });
       setEditingDevice(null);
       resetForm();
