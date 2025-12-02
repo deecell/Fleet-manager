@@ -106,7 +106,7 @@ function formatSmartDecimal(value: number, maxDecimals: number = 1): string {
 }
 
 function formatSmartString(value: string): string {
-  return value.replace(/\.0+$/, '');
+  return value.replace(/\.00$/, '').replace(/(\.\d)0$/, '$1');
 }
 
 function StatCard({ title, trend, icon, iconBgColor, valueColor = "text-neutral-950", targetNumber, prefix = "", suffix = "", decimals = 0, hasInsufficientData = false, alwaysShowDecimals = false }: StatCardProps) {
@@ -175,7 +175,7 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
 
   const formatSocTrend = () => {
     const diff = avgSoc - soc7DayAvg;
-    return `${socTrendIsPositive ? '+' : '-'}${Math.abs(diff).toFixed(2)}% (${socTrendPercent}%) vs 7d`;
+    return `${socTrendIsPositive ? '+' : '-'}${formatSmartDecimal(Math.abs(diff), 2)}% (${socTrendPercent}%) vs 7d`;
   };
 
   const maintenanceValue = fleetStats?.maintenanceIntervalIncrease.value ?? 0;
@@ -208,11 +208,10 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
       />
       <StatCard
         title="Avg. State of Charge"
-        value={`${avgSoc.toFixed(2)}%`}
+        value={`${formatSmartDecimal(avgSoc, 2)}%`}
         targetNumber={avgSoc}
         suffix="%"
         decimals={2}
-        alwaysShowDecimals={true}
         trend={{ 
           value: formatSocTrend(), 
           isPositive: socTrendIsPositive 
