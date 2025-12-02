@@ -1,5 +1,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient, apiRequest, setOrganizationId } from "./queryClient";
+import { queryClient, apiRequest, setOrganizationIdForRequests } from "./queryClient";
+import { useOrganization } from "./org-context";
+import { useEffect } from "react";
 
 interface User {
   id: number;
@@ -30,7 +32,24 @@ export function useSession() {
   });
 }
 
+export function useInitializeOrganization() {
+  const { data: session, isLoading } = useSession();
+  const { setOrganizationId, organizationId } = useOrganization();
+
+  useEffect(() => {
+    if (!isLoading && session?.authenticated && session.user && !organizationId) {
+      const orgId = String(session.user.organizationId);
+      setOrganizationId(orgId);
+      setOrganizationIdForRequests(orgId);
+    }
+  }, [session, isLoading, setOrganizationId, organizationId]);
+
+  return { session, isLoading };
+}
+
 export function useLogin() {
+  const { setOrganizationId } = useOrganization();
+  
   return useMutation({
     mutationFn: async (credentials: { email: string; password: string }) => {
       const response = await apiRequest("POST", "/api/auth/login", credentials);
@@ -42,7 +61,9 @@ export function useLogin() {
     },
     onSuccess: (data) => {
       if (data.user) {
-        setOrganizationId(data.user.organizationId);
+        const orgId = String(data.user.organizationId);
+        setOrganizationId(orgId);
+        setOrganizationIdForRequests(orgId);
       }
       queryClient.invalidateQueries({ queryKey: ["/api/auth/session"] });
     },
@@ -50,6 +71,8 @@ export function useLogin() {
 }
 
 export function useLogout() {
+  const { setOrganizationId } = useOrganization();
+  
   return useMutation({
     mutationFn: async () => {
       const response = await apiRequest("POST", "/api/auth/logout", {});
@@ -61,14 +84,8 @@ export function useLogout() {
     },
     onSuccess: () => {
       setOrganizationId(null);
+      setOrganizationIdForRequests(null);
       queryClient.clear();
     },
   });
-}
-
-export function initializeOrganizationFromSession(session: SessionResponse | null | undefined) {
-  if (session?.authenticated && session.user) {
-    setOrganizationId(session.user.organizationId);
-    queryClient.invalidateQueries();
-  }
 }

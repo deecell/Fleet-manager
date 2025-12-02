@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { LegacyNotification } from "@shared/schema";
 import FleetStats from "@/components/FleetStats";
@@ -7,7 +7,7 @@ import TruckDetail from "@/components/TruckDetail";
 import { Notifications } from "@/components/Notifications";
 import { AlertBanner } from "@/components/AlertBanner";
 import { useLegacyTrucks, useLegacyNotifications, useAcknowledgeAlert, useResolveAlert, LegacyTruckWithDevice } from "@/lib/api";
-import { useSession, useLogout, initializeOrganizationFromSession } from "@/lib/auth-api";
+import { useInitializeOrganization, useLogout } from "@/lib/auth-api";
 import { useToast } from "@/hooks/use-toast";
 import { User, LogOut, Search, Loader2, Download } from "lucide-react";
 import { FleetAssistant } from "@/components/FleetAssistant";
@@ -27,7 +27,7 @@ type FilterStatus = "all" | "in-service" | "not-in-service";
 export default function Dashboard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { data: session, isLoading: sessionLoading } = useSession();
+  const { session, isLoading: sessionLoading } = useInitializeOrganization();
   const logout = useLogout();
   
   const [selectedTruckId, setSelectedTruckId] = useState<string | undefined>();
@@ -42,18 +42,9 @@ export default function Dashboard() {
   const acknowledgeAlert = useAcknowledgeAlert();
   const resolveAlert = useResolveAlert();
 
-  const orgInitialized = useRef(false);
-
   useEffect(() => {
-    if (!sessionLoading) {
-      if (session?.authenticated) {
-        if (!orgInitialized.current) {
-          orgInitialized.current = true;
-          initializeOrganizationFromSession(session);
-        }
-      } else {
-        setLocation("/login");
-      }
+    if (!sessionLoading && !session?.authenticated) {
+      setLocation("/login");
     }
   }, [session, sessionLoading, setLocation]);
 

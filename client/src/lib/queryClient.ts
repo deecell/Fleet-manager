@@ -1,14 +1,9 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
-// Dynamic organization ID - set after login
 let currentOrganizationId: string | null = null;
 
-export function setOrganizationId(orgId: number | string | null) {
-  currentOrganizationId = orgId ? String(orgId) : null;
-}
-
-export function getOrganizationId(): string | null {
-  return currentOrganizationId;
+export function setOrganizationIdForRequests(orgId: string | null) {
+  currentOrganizationId = orgId;
 }
 
 async function throwIfResNotOk(res: Response) {

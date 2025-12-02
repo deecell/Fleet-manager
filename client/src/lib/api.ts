@@ -1,5 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient, apiRequest, getOrganizationId } from "./queryClient";
+import { queryClient, apiRequest } from "./queryClient";
+import { useOrganization } from "./org-context";
 import type { 
   Truck, PowerMonDevice, DeviceSnapshot, DeviceMeasurement, Alert,
   LegacyTruckWithHistory, LegacyHistoricalDataPoint, LegacyNotification
@@ -44,52 +45,48 @@ interface MeasurementsResponse {
 
 const POLL_INTERVAL = 10000;
 
-function useOrgId() {
-  return getOrganizationId();
-}
-
 export function useTrucks(options?: { fleetId?: number; status?: string }) {
-  const orgId = useOrgId();
+  const { organizationId } = useOrganization();
   return useQuery<TrucksResponse>({
-    queryKey: ["/api/v1/trucks" + buildQueryString(options), "org", orgId],
+    queryKey: ["/api/v1/trucks" + buildQueryString(options), "org", organizationId],
     refetchInterval: POLL_INTERVAL,
-    enabled: !!orgId,
+    enabled: !!organizationId,
   });
 }
 
 export function useDashboardStats() {
-  const orgId = useOrgId();
+  const { organizationId } = useOrganization();
   return useQuery<DashboardStatsResponse>({
-    queryKey: ["/api/v1/dashboard/stats", "org", orgId],
+    queryKey: ["/api/v1/dashboard/stats", "org", organizationId],
     refetchInterval: POLL_INTERVAL,
-    enabled: !!orgId,
+    enabled: !!organizationId,
   });
 }
 
 export function useDevices() {
-  const orgId = useOrgId();
+  const { organizationId } = useOrganization();
   return useQuery<DevicesResponse>({
-    queryKey: ["/api/v1/devices", "org", orgId],
+    queryKey: ["/api/v1/devices", "org", organizationId],
     refetchInterval: POLL_INTERVAL,
-    enabled: !!orgId,
+    enabled: !!organizationId,
   });
 }
 
 export function useSnapshots() {
-  const orgId = useOrgId();
+  const { organizationId } = useOrganization();
   return useQuery<SnapshotsResponse>({
-    queryKey: ["/api/v1/snapshots", "org", orgId],
+    queryKey: ["/api/v1/snapshots", "org", organizationId],
     refetchInterval: POLL_INTERVAL,
-    enabled: !!orgId,
+    enabled: !!organizationId,
   });
 }
 
 export function useAlerts() {
-  const orgId = useOrgId();
+  const { organizationId } = useOrganization();
   return useQuery<AlertsResponse>({
-    queryKey: ["/api/v1/alerts", "org", orgId],
+    queryKey: ["/api/v1/alerts", "org", organizationId],
     refetchInterval: POLL_INTERVAL,
-    enabled: !!orgId,
+    enabled: !!organizationId,
   });
 }
 
