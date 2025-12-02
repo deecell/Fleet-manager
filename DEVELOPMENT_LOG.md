@@ -6,9 +6,9 @@
 
 ## Latest Updates (December 2, 2025)
 
-### ✅ AWS Deployment Complete (December 2, 2025 - 11:30 PM)
+### ✅ AWS Deployment FULLY OPERATIONAL (December 2, 2025 - 11:40 PM)
 
-**Fresh AWS infrastructure deployed with Ubuntu 24.04 for Device Manager compatibility!**
+**Complete production deployment with Device Manager polling 2 PowerMon devices!**
 
 **Infrastructure Summary**:
 | Component | Status | Details |
@@ -16,24 +16,39 @@
 | **Web App URL** | ✅ LIVE | http://deecell-fleet-production-alb-1191388080.us-east-2.elb.amazonaws.com |
 | **ECS Fargate** | ✅ 2 tasks running | 512 CPU, 1024 MB RAM per task |
 | **RDS PostgreSQL** | ✅ Available | deecell-fleet-production-postgres.cn4qsw8g8yyx.us-east-2.rds.amazonaws.com |
-| **Device Manager EC2** | ✅ Running | Ubuntu 24.04, t3.micro, i-086e55075cb2820b7 |
-| **Device Manager Service** | ✅ Running | Systemd service active, waiting for devices |
+| **Device Manager EC2** | ✅ Active | Ubuntu 24.04, i-086e55075cb2820b7 |
+| **Device Manager Service** | ✅ Polling | **2 active devices registered** |
+
+**Production Data (GTO Fast Racing)**:
+| Resource | Details |
+|----------|---------|
+| Organization | GTO Fast Racing (ID: 2) |
+| Fleet | GFR Racing Fleet |
+| Trucks | GFR-69, GFR-70 |
+| Devices | DCL-Moeck (10.9.1.190), GFR-70 PowerMon (10.9.1.191) |
 
 **What was done**:
-1. Completely tore down old infrastructure (VPC, ECS, RDS, EC2, security groups, etc.)
-2. Re-ran `terraform apply` with Ubuntu 24.04 AMI for Device Manager (glibc 2.38 compatibility)
-3. Deployed Device Manager code via S3 + SSM (npm dependencies installed)
-4. Ran database migrations to create tables and admin user
-5. Configured systemd service with proper SSL settings for RDS connection
+1. Deployed complete AWS infrastructure (VPC, ECS, RDS, EC2, ALB)
+2. Ubuntu 24.04 for Device Manager (glibc 2.38 compatibility)
+3. Database schema migrated with all tables
+4. Seeded GTO Fast Racing organization, fleet, trucks
+5. Configured power_mon_devices and device_credentials tables
+6. Device Manager service running and finding both devices
 
 **Login Credentials**:
-- Admin login: `admin@deecell.com` / Password from `TF_VAR_admin_password` secret
-- Device Manager has no active devices yet (need to configure devices in database)
+- Admin: `admin@deecell.com` / Password from AWS Secrets Manager
+- Customer: Configure user credentials for GTO Fast Racing org
 
-**Next Steps**:
-1. Configure PowerMon devices in the database with WiFi hosts
-2. Add fleet/truck data for the devices
-3. Verify Device Manager connects to PowerMon devices
+**Database Tables (20 tables)**:
+```
+alerts, audit_logs, device_credentials, device_measurements,
+device_snapshots, device_statistics, device_sync_status, devices,
+fleets, fuel_prices, organizations, power_mon_devices, savings_config,
+schema_version, sessions, sim_location_history, sims, snapshots,
+trucks, users
+```
+
+**Note**: Devices are on GFR's local network (10.9.1.x). Device Manager will show connection errors until VPN or network routing is configured between AWS and GFR's facility.
 
 ---
 
