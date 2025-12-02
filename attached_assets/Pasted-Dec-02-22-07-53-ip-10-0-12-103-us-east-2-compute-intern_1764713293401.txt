@@ -1,0 +1,30 @@
+Dec 02 22:07:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1208158]:   throw err;
+Dec 02 22:07:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1208158]:   ^
+Dec 02 22:07:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1208158]: Error: Cannot find module '../build/Release/powermon_addon.node'
+Dec 02 22:07:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1208158]: Require stack:
+Dec 02 22:07:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1208158]: - /opt/device-manager/lib/log-sync.js
+Dec 02 22:07:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1208158]: - /opt/device-manager/app/backfill-service.js
+Dec 02 22:07:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1208158]: - /opt/device-manager/app/index.js
+Dec 02 22:07:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1208158]:     at Module._resolveFilename (node:internal/modules/cjs/loader:1140:15)
+Dec 02 22:07:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1208158]:     at Module._load (node:internal/modules/cjs/loader:981:27)
+Dec 02 22:07:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1208158]:     at Module.require (node:internal/modules/cjs/loader:1231:19)
+Dec 02 22:07:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1208158]:     at require (node:internal/modules/helpers:177:18)
+Dec 02 22:07:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1208158]:     at Object.<anonymous> (/opt/device-manager/lib/log-sync.js:8:15)
+Dec 02 22:07:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1208158]:     at Module._compile (node:internal/modules/cjs/loader:1364:14)
+Dec 02 22:07:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1208158]:     at Module._extensions..js (node:internal/modules/cjs/loader:1422:10)
+Dec 02 22:07:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1208158]:     at Module.load (node:internal/modules/cjs/loader:1203:32)
+Dec 02 22:07:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1208158]:     at Module._load (node:internal/modules/cjs/loader:1019:12)
+Dec 02 22:07:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1208158]:     at Module.require (node:internal/modules/cjs/loader:1231:19) {
+Dec 02 22:07:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1208158]:   code: 'MODULE_NOT_FOUND',
+Dec 02 22:07:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1208158]:   requireStack: [
+Dec 02 22:07:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1208158]:     '/opt/device-manager/lib/log-sync.js',
+Dec 02 22:07:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1208158]:     '/opt/device-manager/app/backfill-service.js',
+Dec 02 22:07:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1208158]:     '/opt/device-manager/app/index.js'
+Dec 02 22:07:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1208158]:   ]
+Dec 02 22:07:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1208158]: }
+Dec 02 22:07:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1208158]: Node.js v18.20.8
+Dec 02 22:07:53 ip-10-0-12-103.us-east-2.compute.internal systemd[1]: device-manager.service: Main process exited, code=exited, status=1/FAILURE
+Dec 02 22:07:53 ip-10-0-12-103.us-east-2.compute.internal systemd[1]: device-manager.service: Failed with result 'exit-code'.
+Dec 02 22:08:03 ip-10-0-12-103.us-east-2.compute.internal systemd[1]: device-manager.service: Scheduled restart job, restart counter is at 131.
+Dec 02 22:08:03 ip-10-0-12-103.us-east-2.compute.internal systemd[1]: Stopped device-manager.service - Deecell Device Manager.
+Dec 02 22:08:03 ip-10-0-12-103.us-east-2.compute.internal systemd[1]: Started device-manager.service - Deecell Device Manager.
