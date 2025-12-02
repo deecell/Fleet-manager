@@ -255,15 +255,13 @@ jobs:
         env:
           NODE_TLS_REJECT_UNAUTHORIZED: "0"
         run: |
-          echo "Running Drizzle schema push..."
-          # Get the raw DATABASE_URL and strip sslmode parameter to avoid conflicts
+          echo "Running custom migration script..."
+          # Get the raw DATABASE_URL
           RAW_URL="${{ steps.get-db-url.outputs.database_url }}"
-          # Remove sslmode parameter from URL
-          CLEAN_URL=$(echo "$RAW_URL" | sed 's/[?&]sslmode=[^&]*//g' | sed 's/\?$//' | sed 's/\?&/?/' | sed 's/&&/\&/g')
-          echo "DATABASE_URL cleaned of sslmode parameter"
-          export DATABASE_URL="$CLEAN_URL"
-          npm run db:push --force
-          echo "Schema push completed successfully"
+          export DATABASE_URL="$RAW_URL"
+          # Run our custom migration script that handles SSL properly
+          npx tsx scripts/run-migrations.ts
+          echo "Schema migration completed successfully"
 
       - name: Run Data Migrations (if any)
         env:
