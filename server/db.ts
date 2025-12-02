@@ -1,8 +1,8 @@
-import { Pool } from "pg";
+import { Pool, PoolConfig } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "@shared/schema";
 
-const connectionString = process.env.DATABASE_URL;
+let connectionString = process.env.DATABASE_URL;
 
 if (!connectionString) {
   throw new Error("DATABASE_URL environment variable is required");
@@ -13,15 +13,29 @@ const isAWSRDS = connectionString.includes("rds.amazonaws.com");
 const isProduction = process.env.NODE_ENV === "production";
 const useSSL = isAWSRDS || isProduction;
 
-console.log(`[Database] Connecting with SSL: ${useSSL}`);
+// For AWS RDS, replace sslmode=require with sslmode=no-verify to avoid certificate issues
+if (useSSL && connectionString.includes("sslmode=require")) {
+  connectionString = connectionString.replace("sslmode=require", "sslmode=no-verify");
+  console.log("[Database] Updated sslmode to no-verify for AWS RDS");
+}
 
-export const pool = new Pool({
+console.log(`[Database] Connecting with SSL: ${useSSL}, isAWSRDS: ${isAWSRDS}, isProduction: ${isProduction}`);
+
+const poolConfig: PoolConfig = {
   connectionString,
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
-  ssl: useSSL ? { rejectUnauthorized: false } : undefined,
-});
+};
+
+// For AWS RDS, we need to explicitly disable certificate verification
+if (useSSL) {
+  poolConfig.ssl = {
+    rejectUnauthorized: false,
+  };
+}
+
+export const pool = new Pool(poolConfig);
 
 export const db = drizzle(pool, { schema });
 
