@@ -224,8 +224,8 @@ export class FleetStatsCalculator {
 
     return {
       avgSoc: {
-        value: Math.round(currentAvgSoc),
-        trend7Day: Math.round(sevenDayAvgSoc),
+        value: Number(currentAvgSoc.toFixed(2)),
+        trend7Day: Number(sevenDayAvgSoc.toFixed(2)),
         trendPercentage: Math.abs(socTrendPercentage),
         trendIsPositive: socDiff >= 0,
       },
