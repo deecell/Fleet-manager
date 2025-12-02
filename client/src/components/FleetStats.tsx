@@ -1,5 +1,6 @@
 import { Battery, TrendingUp, TrendingDown } from "lucide-react";
 import dolarIcon from "@assets/dolar.svg";
+import trendIcon from "@assets/trend.svg";
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -215,7 +216,7 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
           value: formatMaintenanceTrend(), 
           isPositive: maintenanceTrendIsPositive 
         }}
-        icon={<img src={dolarIcon} alt="Dollar" className="h-6 w-6" />}
+        icon={<img src={trendIcon} alt="Trend" className="h-6 w-6" />}
         iconBgColor="bg-[#EBEFFA]"
         hasInsufficientData={maintenanceHasInsufficientData}
       />
