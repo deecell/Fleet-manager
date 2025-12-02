@@ -1,0 +1,50 @@
+Dec 02 21:43:30 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185425]:   throw err;
+Dec 02 21:43:30 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185425]:   ^
+Dec 02 21:43:30 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185425]: Error: Cannot find module '/opt/device-manager/app/index.js'
+Dec 02 21:43:30 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185425]:     at Module._resolveFilename (node:internal/modules/cjs/loader:1140:15)
+Dec 02 21:43:30 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185425]:     at Module._load (node:internal/modules/cjs/loader:981:27)
+Dec 02 21:43:30 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185425]:     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)
+Dec 02 21:43:30 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185425]:     at node:internal/main/run_main_module:28:49 {
+Dec 02 21:43:30 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185425]:   code: 'MODULE_NOT_FOUND',
+Dec 02 21:43:30 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185425]:   requireStack: []
+Dec 02 21:43:30 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185425]: }
+Dec 02 21:43:30 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185425]: Node.js v18.20.8
+Dec 02 21:43:30 ip-10-0-12-103.us-east-2.compute.internal systemd[1]: device-manager.service: Main process exited, code=exited, status=1/FAILURE
+Dec 02 21:43:30 ip-10-0-12-103.us-east-2.compute.internal systemd[1]: device-manager.service: Failed with result 'exit-code'.
+Dec 02 21:43:40 ip-10-0-12-103.us-east-2.compute.internal systemd[1]: device-manager.service: Scheduled restart job, restart counter is at 2.
+Dec 02 21:43:40 ip-10-0-12-103.us-east-2.compute.internal systemd[1]: Stopped device-manager.service - Deecell Device Manager.
+Dec 02 21:43:40 ip-10-0-12-103.us-east-2.compute.internal systemd[1]: Started device-manager.service - Deecell Device Manager.
+Dec 02 21:43:41 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185451]: node:internal/modules/cjs/loader:1143
+Dec 02 21:43:41 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185451]:   throw err;
+Dec 02 21:43:41 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185451]:   ^
+Dec 02 21:43:41 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185451]: Error: Cannot find module '/opt/device-manager/app/index.js'
+Dec 02 21:43:41 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185451]:     at Module._resolveFilename (node:internal/modules/cjs/loader:1140:15)
+Dec 02 21:43:41 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185451]:     at Module._load (node:internal/modules/cjs/loader:981:27)
+Dec 02 21:43:41 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185451]:     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)
+Dec 02 21:43:41 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185451]:     at node:internal/main/run_main_module:28:49 {
+Dec 02 21:43:41 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185451]:   code: 'MODULE_NOT_FOUND',
+Dec 02 21:43:41 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185451]:   requireStack: []
+Dec 02 21:43:41 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185451]: }
+Dec 02 21:43:41 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185451]: Node.js v18.20.8
+Dec 02 21:43:41 ip-10-0-12-103.us-east-2.compute.internal systemd[1]: device-manager.service: Main process exited, code=exited, status=1/FAILURE
+Dec 02 21:43:41 ip-10-0-12-103.us-east-2.compute.internal systemd[1]: device-manager.service: Failed with result 'exit-code'.
+Dec 02 21:43:51 ip-10-0-12-103.us-east-2.compute.internal systemd[1]: device-manager.service: Scheduled restart job, restart counter is at 3.
+Dec 02 21:43:51 ip-10-0-12-103.us-east-2.compute.internal systemd[1]: Stopped device-manager.service - Deecell Device Manager.
+Dec 02 21:43:51 ip-10-0-12-103.us-east-2.compute.internal systemd[1]: Started device-manager.service - Deecell Device Manager.
+Dec 02 21:43:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185719]: node:internal/modules/cjs/loader:1143
+Dec 02 21:43:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185719]:   throw err;
+Dec 02 21:43:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185719]:   ^
+Dec 02 21:43:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185719]: Error: Cannot find module '/opt/device-manager/app/index.js'
+Dec 02 21:43:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185719]:     at Module._resolveFilename (node:internal/modules/cjs/loader:1140:15)
+Dec 02 21:43:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185719]:     at Module._load (node:internal/modules/cjs/loader:981:27)
+Dec 02 21:43:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185719]:     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)
+Dec 02 21:43:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185719]:     at node:internal/main/run_main_module:28:49 {
+Dec 02 21:43:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185719]:   code: 'MODULE_NOT_FOUND',
+Dec 02 21:43:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185719]:   requireStack: []
+Dec 02 21:43:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185719]: }
+Dec 02 21:43:53 ip-10-0-12-103.us-east-2.compute.internal start.sh[1185719]: Node.js v18.20.8
+Dec 02 21:43:53 ip-10-0-12-103.us-east-2.compute.internal systemd[1]: device-manager.service: Main process exited, code=exited, status=1/FAILURE
+Dec 02 21:43:53 ip-10-0-12-103.us-east-2.compute.internal systemd[1]: device-manager.service: Failed with result 'exit-code'.
+Dec 02 21:44:03 ip-10-0-12-103.us-east-2.compute.internal systemd[1]: device-manager.service: Scheduled restart job, restart counter is at 4.
+Dec 02 21:44:03 ip-10-0-12-103.us-east-2.compute.internal systemd[1]: Stopped device-manager.service - Deecell Device Manager.
+Dec 02 21:44:03 ip-10-0-12-103.us-east-2.compute.internal systemd[1]: Started device-manager.service - Deecell Device Manager.
