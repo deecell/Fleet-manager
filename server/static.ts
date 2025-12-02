@@ -3,7 +3,19 @@ import fs from "fs";
 import path from "path";
 
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(import.meta.dirname, "public");
+  const baseDir = import.meta.dirname;
+  const distPath = path.resolve(baseDir, "public");
+
+  console.log(`[static] Base directory: ${baseDir}`);
+  console.log(`[static] Looking for public dir at: ${distPath}`);
+  
+  // List what's actually in the base directory
+  try {
+    const contents = fs.readdirSync(baseDir);
+    console.log(`[static] Contents of ${baseDir}:`, contents);
+  } catch (e) {
+    console.log(`[static] Could not read ${baseDir}:`, e);
+  }
 
   if (!fs.existsSync(distPath)) {
     throw new Error(

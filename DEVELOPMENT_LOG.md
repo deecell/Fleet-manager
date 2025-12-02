@@ -26,7 +26,15 @@
   - Modified `server/index.ts` to use dynamic imports for vite (dev) vs static (prod)
   - Moved `log()` function directly into index.ts to avoid vite.ts import
 
-**Current Status**: Build successful, pushing fix to trigger new deployment
+**Issue 4: Investigating ECS Container Startup Path Issue**
+- Symptom: ECS reports "service did not reach servicesStable state"
+- Added debug logging to `server/static.ts` to show:
+  - Base directory (import.meta.dirname)
+  - Expected public path
+  - Actual directory contents
+- This will reveal what files are actually present in the container at startup
+
+**Current Status**: Added debug logging, pushing to diagnose ECS startup issue
 
 ---
 
