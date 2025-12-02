@@ -5,10 +5,22 @@ import { eq, and, desc, lt, gte } from "drizzle-orm";
 import { savingsCalculator } from "./savings-calculator";
 import { fleetStatsCalculator } from "./fleet-stats-calculator";
 
-const openai = new OpenAI({
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-});
+// Lazy initialization of OpenAI client to prevent crashes if API key is not set
+let openaiClient: OpenAI | null = null;
+
+function getOpenAIClient(): OpenAI {
+  if (!openaiClient) {
+    const apiKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      throw new Error("OpenAI API key not configured. Set AI_INTEGRATIONS_OPENAI_API_KEY or OPENAI_API_KEY environment variable.");
+    }
+    openaiClient = new OpenAI({
+      baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+      apiKey: apiKey,
+    });
+  }
+  return openaiClient;
+}
 
 const SYSTEM_PROMPT = `You are an AI fleet management assistant for Deecell Power Systems. You help fleet managers monitor and manage their trucks equipped with PowerMon solar battery systems.
 
@@ -416,7 +428,7 @@ export async function processChat(
       ...messages.map(m => ({ role: m.role as "user" | "assistant", content: m.content }))
     ];
 
-    let response = await openai.chat.completions.create({
+    let response = await getOpenAIClient().chat.completions.create({
       model: "gpt-4o-mini",
       messages: openaiMessages,
       tools: tools,
@@ -474,7 +486,7 @@ export async function processChat(
         });
       }
 
-      response = await openai.chat.completions.create({
+      response = await getOpenAIClient().chat.completions.create({
         model: "gpt-4o-mini",
         messages: openaiMessages,
         tools: tools,

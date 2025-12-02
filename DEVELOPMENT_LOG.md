@@ -37,7 +37,13 @@
 - Result: Bundle size reduced from 188kb to 180kb, vite code no longer included
 - Added debug logging to `server/static.ts` for future diagnostics
 
-**Current Status**: Production server starts correctly, ready to deploy
+**Issue 5: OpenAI API Key Missing at Startup**
+- Symptom: Container crashes with "Missing credentials. Please pass an `apiKey`"
+- Root cause: OpenAI client initialized at module load time in `fleet-assistant.ts`
+- Fix: Changed to lazy initialization - OpenAI client only created when actually used
+- This allows server to start even without OpenAI key (AI assistant just won't work)
+
+**Current Status**: All startup issues fixed, ready to deploy
 
 ---
 
