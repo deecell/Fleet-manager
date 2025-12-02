@@ -6,6 +6,37 @@
 
 ## Latest Updates (December 2, 2025)
 
+### ✅ AWS Deployment Complete (December 2, 2025 - 11:30 PM)
+
+**Fresh AWS infrastructure deployed with Ubuntu 24.04 for Device Manager compatibility!**
+
+**Infrastructure Summary**:
+| Component | Status | Details |
+|-----------|--------|---------|
+| **Web App URL** | ✅ LIVE | http://deecell-fleet-production-alb-1191388080.us-east-2.elb.amazonaws.com |
+| **ECS Fargate** | ✅ 2 tasks running | 512 CPU, 1024 MB RAM per task |
+| **RDS PostgreSQL** | ✅ Available | deecell-fleet-production-postgres.cn4qsw8g8yyx.us-east-2.rds.amazonaws.com |
+| **Device Manager EC2** | ✅ Running | Ubuntu 24.04, t3.micro, i-086e55075cb2820b7 |
+| **Device Manager Service** | ✅ Running | Systemd service active, waiting for devices |
+
+**What was done**:
+1. Completely tore down old infrastructure (VPC, ECS, RDS, EC2, security groups, etc.)
+2. Re-ran `terraform apply` with Ubuntu 24.04 AMI for Device Manager (glibc 2.38 compatibility)
+3. Deployed Device Manager code via S3 + SSM (npm dependencies installed)
+4. Ran database migrations to create tables and admin user
+5. Configured systemd service with proper SSL settings for RDS connection
+
+**Login Credentials**:
+- Admin login: `admin@deecell.com` / Password from `TF_VAR_admin_password` secret
+- Device Manager has no active devices yet (need to configure devices in database)
+
+**Next Steps**:
+1. Configure PowerMon devices in the database with WiFi hosts
+2. Add fleet/truck data for the devices
+3. Verify Device Manager connects to PowerMon devices
+
+---
+
 ### 📋 Pending Tasks / Technical Debt
 
 | Task | Priority | Notes |
