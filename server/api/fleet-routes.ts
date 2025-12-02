@@ -115,7 +115,9 @@ router.get("/trucks", tenantMiddleware, async (req: Request, res: Response) => {
     const fleetId = req.query.fleetId ? parseInt(req.query.fleetId as string, 10) : undefined;
     const status = req.query.status as string | undefined;
     
+    console.log(`[trucks] Fetching trucks for org=${req.organizationId}, fleetId=${fleetId}, status=${status}`);
     const trucks = await storage.listTrucks(req.organizationId!, fleetId, status);
+    console.log(`[trucks] Found ${trucks.length} trucks: ${trucks.map(t => t.truckNumber).join(', ')}`);
     
     res.json({ 
       trucks,

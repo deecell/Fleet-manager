@@ -227,6 +227,88 @@ router.delete("/fleets/:id", adminMiddleware, async (req: Request, res: Response
   }
 });
 
+router.get("/debug/all-trucks", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const orgs = await storage.listOrganizations();
+    const allTrucks: any[] = [];
+    
+    for (const org of orgs) {
+      const trucks = await storage.listTrucks(org.id);
+      for (const truck of trucks) {
+        allTrucks.push({
+          id: truck.id,
+          truckNumber: truck.truckNumber,
+          organizationId: truck.organizationId,
+          organizationName: org.name,
+          fleetId: truck.fleetId,
+          status: truck.status,
+          isActive: truck.isActive,
+        });
+      }
+    }
+    
+    res.json({ 
+      trucks: allTrucks,
+      message: "Use this to verify truck organization assignments"
+    });
+  } catch (error) {
+    console.error("Error listing all trucks:", error);
+    res.status(500).json({ error: "Failed to list all trucks" });
+  }
+});
+
+router.patch("/debug/fix-truck-org", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { truckNumber, newOrganizationId, newFleetId } = req.body;
+    
+    if (!truckNumber || !newOrganizationId) {
+      return res.status(400).json({ 
+        error: "Missing required fields",
+        required: { truckNumber: "string", newOrganizationId: "number", newFleetId: "number (optional)" }
+      });
+    }
+    
+    const orgs = await storage.listOrganizations();
+    let foundTruck = null;
+    let currentOrgName = "";
+    
+    for (const org of orgs) {
+      const trucks = await storage.listTrucks(org.id);
+      const truck = trucks.find(t => t.truckNumber === truckNumber);
+      if (truck) {
+        foundTruck = truck;
+        currentOrgName = org.name;
+        break;
+      }
+    }
+    
+    if (!foundTruck) {
+      return res.status(404).json({ error: `Truck ${truckNumber} not found in any organization` });
+    }
+    
+    const newOrg = await storage.getOrganization(newOrganizationId);
+    if (!newOrg) {
+      return res.status(404).json({ error: `Organization ${newOrganizationId} not found` });
+    }
+    
+    const updateData: any = { organizationId: newOrganizationId };
+    if (newFleetId !== undefined) {
+      updateData.fleetId = newFleetId;
+    }
+    
+    const updated = await storage.updateTruck(foundTruck.organizationId, foundTruck.id, updateData);
+    
+    res.json({
+      success: true,
+      message: `Truck ${truckNumber} moved from "${currentOrgName}" (org ${foundTruck.organizationId}) to "${newOrg.name}" (org ${newOrganizationId})`,
+      truck: updated
+    });
+  } catch (error) {
+    console.error("Error fixing truck org:", error);
+    res.status(500).json({ error: "Failed to fix truck organization" });
+  }
+});
+
 router.get("/organizations/:orgId/trucks", adminMiddleware, async (req: Request, res: Response) => {
   try {
     const orgId = parseInt(req.params.orgId, 10);
