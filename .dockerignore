@@ -66,8 +66,12 @@ device-manager/
 __tests__/
 tests/
 
-# Attached assets (not needed in production container)
-attached_assets/
+# Attached assets - exclude large files but keep needed assets (logo, icons)
+attached_assets/*.png
+attached_assets/*.txt
+attached_assets/*.zip
+attached_assets/generated_images/
+attached_assets/Screenshot*
 
 # Deployment documentation
 Deployment/
