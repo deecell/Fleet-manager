@@ -1,0 +1,56 @@
+The deployment job to Amazon ECS failed because the service did not reach the servicesStable state. This means ECS could not successfully update and stabilize your service with the new task definition. Common causes include task startup issues, incorrect container image configurations, failed health checks, or networking problems.
+
+Solution Steps:
+
+Verify ECS Task Definition & Image:
+
+Ensure the image URI is correctly updated in your task definition:
+In .github/workflows/deploy.yml, check steps that update the image:
+YAML
+- name: Update task definition with new image
+  uses: aws-actions/amazon-ecs-render-task-definition@v1
+  with:
+    task-definition: task-definition.json
+    container-name: ${{ env.CONTAINER_NAME }}
+    image: ${{ steps.image.outputs.uri }}
+Make sure your service and container configuration match ECS requirements.
+Check Container Startup and Health:
+
+Review your container entrypoint/CMD—make sure it starts the application correctly.
+
+Confirm your health check endpoint (e.g., /api/health) is reachable and returns HTTP 200 upon container startup.
+
+In .github/workflows/deploy.yml, health checks are performed:
+
+YAML
+for i in {1..30}; do
+  HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://$ALB_URL/api/health" || echo "000")
+  if [ "$HTTP_STATUS" = "200" ]; then
+    echo "Health check passed!"
+    exit 0
+  fi
+  echo "Attempt $i: HTTP $HTTP_STATUS - waiting..."
+  sleep 10
+done
+Confirm your ECS service's health check configuration in AWS matches the application endpoint.
+
+Update AWS SDK Usage (if applicable):
+
+Warning in logs: “Please migrate your code to use AWS SDK for JavaScript (v3).”
+Update any AWS SDK usage in code to use v3:
+js
+// Old (v2)
+const AWS = require('aws-sdk');
+// New (v3)
+const { S3Client } = require('@aws-sdk/client-s3');
+See the AWS blog post for migration guidance.
+Example code fix (Node.js health endpoint): If your health endpoint isn't working, add a basic Express route:
+
+js
+app.get('/api/health', (req, res) => res.sendStatus(200));
+Summary:
+
+Double-check container image and task definition updates.
+Ensure /api/health endpoint works and matches ECS health check.
+Migrate any AWS SDK v2 usage to v3 as recommended.
+For more details, review the ECS service events for failed deployments to troubleshoot specific container or networking errors.
