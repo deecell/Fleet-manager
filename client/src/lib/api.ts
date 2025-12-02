@@ -146,8 +146,8 @@ export function useLegacyTrucks() {
     const device = devicesQuery.data?.devices?.find(d => d.truckId === truck.id);
     const snapshot = device ? snapshotsQuery.data?.snapshots?.find(s => s.deviceId === device.id) : undefined;
     
-    const tempCelsius = snapshot?.temperature ?? 25;
-    const tempFahrenheit = (tempCelsius * 9/5) + 32;
+    const tempCelsius = snapshot?.temperature ?? null;
+    const tempFahrenheit = tempCelsius !== null ? (tempCelsius * 9/5) + 32 : 0;
     
     const truckModel = [truck.make, truck.model, truck.year].filter(Boolean).join(" ") || "Unknown Model";
     
