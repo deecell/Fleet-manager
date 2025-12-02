@@ -205,7 +205,7 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
         iconBgColor="bg-[#EBEFFA]"
       />
       <StatCard
-        title="Tractor maintenance interval increase"
+        title="Stored Energy Value"
         value={`${maintenanceValue}%`}
         targetNumber={maintenanceValue}
         suffix="%"
