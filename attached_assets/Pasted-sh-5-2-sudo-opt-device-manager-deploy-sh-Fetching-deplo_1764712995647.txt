@@ -1,0 +1,78 @@
+sh-5.2$ sudo /opt/device-manager/deploy.sh
+Fetching deployment artifact from S3...
+download: s3://deecell-fleet-production-device-manager-deploy-8e7412d7/device-manager-latest.zip to ../../tmp/device-manager.zip
+Extracting artifact...
+Archive:  /tmp/device-manager.zip
+  inflating: binding.gyp
+   creating: lib/
+  inflating: lib/bridge-client.d.ts
+  inflating: lib/index.ts
+  inflating: lib/log-sync.js
+  inflating: lib/index.d.ts
+  inflating: lib/index.js
+  inflating: lib/bridge-client.js
+   creating: app/
+  inflating: app/metrics.js
+  inflating: app/logger.js
+  inflating: app/polling-scheduler.js
+  inflating: app/config.js
+  inflating: app/batch-writer.js
+  inflating: app/database.js
+  inflating: app/connection-pool.js
+  inflating: app/backfill-service.js
+  inflating: app/index.js
+  inflating: package.json
+   creating: build/
+  inflating: build/config.gypi
+  inflating: build/binding.Makefile
+   creating: build/Release/
+  inflating: build/Release/powermon_addon.node
+   creating: build/Release/.deps/
+   creating: build/Release/.deps/Release/
+  inflating: build/Release/.deps/Release/powermon_addon.node.d
+   creating: build/Release/.deps/Release/obj.target/
+  inflating: build/Release/.deps/Release/obj.target/powermon_addon.node.d
+   creating: build/Release/.deps/Release/obj.target/powermon_addon/
+   creating: build/Release/.deps/Release/obj.target/powermon_addon/src/
+  inflating: build/Release/.deps/Release/obj.target/powermon_addon/src/addon.o.d
+  inflating: build/Release/.deps/Release/obj.target/powermon_addon/src/powermon_wrapper.o.d
+   creating: build/Release/obj.target/
+  inflating: build/Release/obj.target/powermon_addon.node
+   creating: build/Release/obj.target/powermon_addon/
+   creating: build/Release/obj.target/powermon_addon/src/
+  inflating: build/Release/obj.target/powermon_addon/src/powermon_wrapper.o
+  inflating: build/Release/obj.target/powermon_addon/src/addon.o
+  inflating: build/powermon_addon.target.mk
+  inflating: build/Makefile
+  inflating: version.json
+   creating: src/
+  inflating: src/powermon_wrapper.cpp
+  inflating: src/addon.cpp
+  inflating: src/powermon_bridge.cpp
+  inflating: src/powermon_wrapper.h
+Installing dependencies...
+npm warn config only Use `--omit=dev` to omit dev dependencies from the install.
+npm error code EUSAGE
+npm error
+npm error The `npm ci` command can only install with an existing package-lock.json or
+npm error npm-shrinkwrap.json with lockfileVersion >= 1. Run an install with npm@5 or
+npm error later to generate a package-lock.json file, then try again.
+npm error
+npm error Clean install a project
+npm error
+npm error Usage:
+npm error npm ci
+npm error
+npm error Options:
+npm error [--install-strategy <hoisted|nested|shallow|linked>] [--legacy-bundling]
+npm error [--global-style] [--omit <dev|optional|peer> [--omit <dev|optional|peer> ...]]
+npm error [--include <prod|dev|optional|peer> [--include <prod|dev|optional|peer> ...]]
+npm error [--strict-peer-deps] [--foreground-scripts] [--ignore-scripts] [--no-audit]
+npm error [--no-bin-links] [--no-fund] [--dry-run]
+npm error [-w|--workspace <workspace-name> [-w|--workspace <workspace-name> ...]]
+npm error [-ws|--workspaces] [--include-workspace-root] [--install-links]
+npm error
+npm error aliases: clean-install, ic, install-clean, isntall-clean
+npm error
+npm error Run "npm help ci" for more info
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-12-02T22_02_48_542Z-debug-0.log
