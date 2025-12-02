@@ -1,4 +1,4 @@
-import { Battery, Clock, Wrench, TrendingUp, TrendingDown } from "lucide-react";
+import { Battery, Wrench, TrendingUp, TrendingDown } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -27,15 +27,6 @@ interface FleetStatsData {
     trend7Day: number;
     trendPercentage: number;
     trendIsPositive: boolean;
-  };
-  tractorHoursOffset: {
-    hours: number;
-    minutes: number;
-    trend7DayHours: number;
-    trend7DayMinutes: number;
-    trendPercentage: number;
-    trendIsPositive: boolean;
-    hasInsufficientData?: boolean;
   };
   maintenanceIntervalIncrease: {
     value: number;
@@ -140,52 +131,6 @@ function StatCard({ title, trend, icon, iconBgColor, valueColor = "text-neutral-
   );
 }
 
-function TimeStatCard({ title, trend, icon, iconBgColor, valueColor = "text-neutral-950", hours, minutes, hasInsufficientData = false }: {
-  title: string;
-  trend?: { value: string; isPositive: boolean; };
-  icon: JSX.Element;
-  iconBgColor: string;
-  valueColor?: string;
-  hours: number;
-  minutes: number;
-  hasInsufficientData?: boolean;
-}) {
-  const animatedHours = useCountUp(hours, 1500, 0);
-  const animatedMinutes = useCountUp(minutes, 1500, 0);
-
-  return (
-    <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.05)] p-6 h-[185px] flex flex-col">
-      <div className="flex items-center justify-between">
-        <div className={`w-[49px] h-[49px] rounded-[9px] flex items-center justify-center ${iconBgColor}`}>
-          {icon}
-        </div>
-        {!hasInsufficientData && trend && (
-          <div className="flex items-center gap-1">
-            {trend.isPositive ? (
-              <TrendingUp className="h-4 w-4 text-[#39c900]" />
-            ) : (
-              <TrendingDown className="h-4 w-4 text-[#ff0900]" />
-            )}
-            <span className={`text-xs font-normal ${trend.isPositive ? "text-[#39c900]" : "text-[#ff0900]"}`}>
-              {trend.value}
-            </span>
-          </div>
-        )}
-      </div>
-      <p className="text-sm text-[#4a5565] mt-[17px]">{title}</p>
-      {hasInsufficientData ? (
-        <p className="text-[18px] min-[1440px]:text-[20px] leading-8 mt-3 tracking-tight text-[#9ca3af] font-light" data-testid={`stat-${title.toLowerCase().replace(/\s+/g, '-')}`}>
-          Awaiting data...
-        </p>
-      ) : (
-        <p className={`text-[26px] min-[1440px]:text-[30px] font-medium leading-8 mt-3 tracking-tight ${valueColor}`} data-testid={`stat-${title.toLowerCase().replace(/\s+/g, '-')}`}>
-          {animatedHours.toString().padStart(2, '0')}:{animatedMinutes.toString().padStart(2, '0')} h
-        </p>
-      )}
-    </div>
-  );
-}
-
 export default function FleetStats({ trucks }: FleetStatsProps) {
   const { data: savingsData } = useQuery<SavingsData>({
     queryKey: ["/api/v1/savings"],
@@ -228,26 +173,10 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
     return `${maintenanceTrendIsPositive ? '+' : '-'}${Math.abs(diff)}% (${maintenanceTrendPercent}%) vs 7d`;
   };
 
-  const hoursOffset = fleetStats?.tractorHoursOffset.hours ?? 0;
-  const minutesOffset = fleetStats?.tractorHoursOffset.minutes ?? 0;
-  const hoursTrendPercent = fleetStats?.tractorHoursOffset.trendPercentage ?? 0;
-  const hoursTrendIsPositive = fleetStats?.tractorHoursOffset.trendIsPositive ?? true;
-  const hours7DayAvg = fleetStats?.tractorHoursOffset.trend7DayHours ?? 0;
-  const minutes7DayAvg = fleetStats?.tractorHoursOffset.trend7DayMinutes ?? 0;
-  const hoursHasInsufficientData = fleetStats?.tractorHoursOffset.hasInsufficientData ?? true;
   const maintenanceHasInsufficientData = fleetStats?.maintenanceIntervalIncrease.hasInsufficientData ?? true;
 
-  const formatHoursTrend = () => {
-    const todayTotal = hoursOffset + minutesOffset / 60;
-    const avgTotal = hours7DayAvg + minutes7DayAvg / 60;
-    const diffHours = Math.abs(todayTotal - avgTotal);
-    const diffH = Math.floor(diffHours);
-    const diffM = Math.round((diffHours - diffH) * 60);
-    return `${hoursTrendIsPositive ? '+' : '-'}${diffH}:${diffM.toString().padStart(2, '0')} (${hoursTrendPercent}%) vs 7d`;
-  };
-
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       <StatCard
         title="Today's Savings"
         value={`$ ${todaySavings.toFixed(2)}`}
@@ -288,18 +217,6 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
         icon={<Wrench className="h-6 w-6 text-[#778AC2]" />}
         iconBgColor="bg-[#EBEFFA]"
         hasInsufficientData={maintenanceHasInsufficientData}
-      />
-      <TimeStatCard
-        title="Tractor hours offset"
-        hours={hoursOffset}
-        minutes={minutesOffset}
-        trend={{ 
-          value: formatHoursTrend(), 
-          isPositive: hoursTrendIsPositive 
-        }}
-        icon={<Clock className="h-6 w-6 text-[#778AC2]" />}
-        iconBgColor="bg-[#EBEFFA]"
-        hasInsufficientData={hoursHasInsufficientData}
       />
     </div>
   );
