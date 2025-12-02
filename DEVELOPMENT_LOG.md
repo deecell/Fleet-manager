@@ -14,6 +14,35 @@
 
 ---
 
+### 🚀 Device Manager AWS CI/CD Setup (December 2, 2025)
+
+**Added automated deployment for Device Manager to AWS EC2**:
+
+1. **GitHub Actions Workflow**: `.github/workflows/deploy-device-manager.yml`
+   - Triggers on changes to `device-manager/` folder
+   - Packages code, uploads to S3, deploys to EC2 via SSM
+   - Can also be triggered manually via workflow_dispatch
+
+2. **Manual Deployment Script**: `device-manager/scripts/deploy-to-aws.sh`
+   - Packages device-manager code
+   - Uploads to S3 bucket
+   - Triggers deployment on EC2 instances via SSM
+   - Supports `--dry-run` mode for testing
+
+3. **New GitHub Secret Required**:
+   - `DEVICE_MANAGER_BUCKET` - Get from `terraform output device_manager_deploy_bucket_name`
+
+4. **Documentation Updated**:
+   - `DEPLOYMENT_CHECKLIST.md` - Added Device Manager CI/CD instructions
+   - Added verification commands and scaling instructions
+
+**Device Poll Results** (live data from GTO Fast Racing):
+- GFR-69 (A3A5B30EA9B3FF98): 29.03V, -2.05A, 98% SOC, charging at 59W
+- GFR-70 (1982A3044D3599E2): 29.03V, -2.15A, 98% SOC, charging at 62W
+- Both trucks at near full charge with healthy voltage
+
+---
+
 ### 🔧 AWS Deployment Fixes (December 2, 2025)
 
 **Issue 1: IAM Permissions for Secrets Manager**

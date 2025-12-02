@@ -91,12 +91,13 @@ Add these secrets:
 |-------------|-------------|------------|
 | `AWS_ACCESS_KEY_ID` | IAM user access key | Created in step 1 |
 | `AWS_SECRET_ACCESS_KEY` | IAM user secret key | Created in step 1 |
-| `AWS_REGION` | AWS region | `us-east-1` |
+| `AWS_REGION` | AWS region | `us-east-2` |
 | `AWS_ACCOUNT_ID` | 12-digit AWS account ID | AWS Console top-right |
 | `ECR_REPOSITORY` | ECR repo name | `deecell-fleet` |
 | `TF_VAR_DB_PASSWORD` | Database password | Generated above |
 | `TF_VAR_SESSION_SECRET` | Session secret | Generated above |
 | `TF_VAR_ADMIN_PASSWORD` | Admin password | Generated above |
+| `DEVICE_MANAGER_BUCKET` | S3 bucket for Device Manager | `terraform output device_manager_deploy_bucket_name` |
 
 ---
 
@@ -196,47 +197,116 @@ This triggers the GitHub Action which:
 
 ## Phase 6: Device Manager Deployment (EC2)
 
-The Device Manager runs on EC2, separate from the web app.
+The Device Manager runs on EC2, separate from the web app. It maintains persistent connections to PowerMon devices and polls them every 10 seconds.
 
-### 6.1 Deploy Device Manager Code
+### 6.1 Automated Deployment (Recommended)
+
+**CI/CD via GitHub Actions** - Automatically deploys when changes are pushed to `device-manager/` folder:
+
+1. **Get S3 Bucket Name** (after Terraform apply):
+   ```bash
+   cd terraform
+   terraform output device_manager_deploy_bucket_name
+   # Example: deecell-fleet-production-device-manager-deploy-abc123
+   ```
+
+2. **Add GitHub Secret**:
+   - Go to **Repository > Settings > Secrets > Actions**
+   - Add `DEVICE_MANAGER_BUCKET` with the bucket name from step 1
+
+3. **Push Changes**:
+   ```bash
+   # Any change to device-manager/ triggers deployment
+   git add device-manager/
+   git commit -m "Update Device Manager"
+   git push origin main
+   ```
+
+4. **Monitor Deployment**:
+   - Go to **GitHub > Actions > Deploy Device Manager**
+   - Watch the workflow execute
+
+### 6.2 Manual Deployment
+
+**Option A: Using the deployment script** (from local machine):
 
 ```bash
-# SSH to the Device Manager EC2 instance
-# (Get the instance IP from AWS EC2 Console)
+cd device-manager
 
-# Or use AWS SSM Session Manager (recommended)
-aws ssm start-session --target i-xxxxx
+# Get the S3 bucket name
+export S3_BUCKET=$(cd ../terraform && terraform output -raw device_manager_deploy_bucket_name)
+
+# Run deployment
+./scripts/deploy-to-aws.sh
+
+# Or dry-run first
+./scripts/deploy-to-aws.sh --dry-run
+```
+
+**Option B: Direct SSH deployment**:
+
+```bash
+# Connect via AWS SSM Session Manager (recommended - no SSH key needed)
+aws ssm start-session --target i-xxxxx --region us-east-2
+
+# Or get instance ID from ASG
+INSTANCE_ID=$(aws autoscaling describe-auto-scaling-groups \
+  --auto-scaling-group-names deecell-fleet-production-device-manager-asg \
+  --query 'AutoScalingGroups[0].Instances[0].InstanceId' \
+  --output text --region us-east-2)
+aws ssm start-session --target $INSTANCE_ID --region us-east-2
 
 # On the EC2 instance:
 cd /opt/device-manager
 
-# Pull the latest code (you'll need to set up deployment method)
-# Option A: Git clone from repo
-# Option B: S3 sync
-# Option C: CodeDeploy
+# Run the deploy script (fetches from S3)
+sudo /opt/device-manager/deploy.sh
 
-# Install dependencies
-npm install
-
-# Get database URL from Secrets Manager
-export DATABASE_URL=$(aws secretsmanager get-secret-value \
-  --secret-id deecell-fleet-production/database-url-xxx \
-  --query 'SecretString' --output text)
-
-# Start the service
-sudo systemctl restart device-manager
+# Check service status
 sudo systemctl status device-manager
 ```
 
-### 6.2 Verify Device Manager
+### 6.3 Verify Device Manager
 
 ```bash
-# Check logs
-journalctl -u device-manager -f
+# Check service status
+sudo systemctl status device-manager
 
-# Check metrics
+# Check logs (real-time)
+sudo journalctl -u device-manager -f
+
+# Check last 100 log lines
+sudo journalctl -u device-manager -n 100
+
+# Check health endpoint
 curl http://localhost:3001/health
+
+# Check Prometheus metrics
 curl http://localhost:3001/metrics
+
+# Expected metrics:
+# device_manager_devices_total - Number of registered devices
+# device_manager_devices_connected - Currently connected devices
+# device_manager_polls_total{status="success"} - Successful polls
+# device_manager_polls_total{status="failed"} - Failed polls
+```
+
+### 6.4 Scaling the Device Manager
+
+For fleets with more than 1,000 devices:
+
+```bash
+# Scale the ASG
+aws autoscaling set-desired-capacity \
+  --auto-scaling-group-name deecell-fleet-production-device-manager-asg \
+  --desired-capacity 2 \
+  --region us-east-2
+
+# Verify instances
+aws autoscaling describe-auto-scaling-groups \
+  --auto-scaling-group-names deecell-fleet-production-device-manager-asg \
+  --query 'AutoScalingGroups[0].Instances' \
+  --region us-east-2
 ```
 
 ---
