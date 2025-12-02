@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 
 interface TruckWithSoc {
   soc: number;
+  wh: number;
 }
 
 interface FleetStatsProps {
@@ -178,17 +179,10 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
     return `${socTrendIsPositive ? '+' : '-'}${formatSmartDecimal(Math.abs(diff), 2)}% (${socTrendPercent}%) vs 7d`;
   };
 
-  const maintenanceValue = fleetStats?.maintenanceIntervalIncrease.value ?? 0;
-  const maintenanceTrendPercent = fleetStats?.maintenanceIntervalIncrease.trendPercentage ?? 0;
-  const maintenanceTrendIsPositive = fleetStats?.maintenanceIntervalIncrease.trendIsPositive ?? true;
-  const maintenance7DayAvg = fleetStats?.maintenanceIntervalIncrease.trend7Day ?? 0;
-
-  const formatMaintenanceTrend = () => {
-    const diff = maintenanceValue - maintenance7DayAvg;
-    return `${maintenanceTrendIsPositive ? '+' : '-'}${Math.abs(diff)}% (${maintenanceTrendPercent}%) vs 7d`;
-  };
-
-  const maintenanceHasInsufficientData = fleetStats?.maintenanceIntervalIncrease.hasInsufficientData ?? true;
+  // Calculate Stored Energy Value: sum of kWh × $0.80
+  const ENERGY_PRICE_PER_KWH = 0.80;
+  const totalKwh = trucks.reduce((sum, t) => sum + (t.wh || 0), 0);
+  const storedEnergyValue = totalKwh * ENERGY_PRICE_PER_KWH;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -221,17 +215,14 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
       />
       <StatCard
         title="Stored Energy Value"
-        value={`${maintenanceValue}%`}
-        targetNumber={maintenanceValue}
-        suffix="%"
-        decimals={0}
-        trend={{ 
-          value: formatMaintenanceTrend(), 
-          isPositive: maintenanceTrendIsPositive 
-        }}
+        value={`$ ${storedEnergyValue.toFixed(2)}`}
+        targetNumber={storedEnergyValue}
+        prefix="$ "
+        decimals={2}
+        alwaysShowDecimals={true}
         icon={<img src={trendIcon} alt="Trend" className="h-6 w-6" />}
         iconBgColor="bg-[#EBEFFA]"
-        hasInsufficientData={maintenanceHasInsufficientData}
+        valueColor="text-[#008236]"
       />
     </div>
   );
