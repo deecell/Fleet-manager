@@ -64,20 +64,34 @@ resource "aws_ecs_task_definition" "main" {
         { name = "LOG_LEVEL", value = "info" },
       ]
 
-      secrets = [
-        {
-          name      = "DATABASE_URL"
-          valueFrom = aws_secretsmanager_secret.database_url.arn
-        },
-        {
-          name      = "SESSION_SECRET"
-          valueFrom = aws_secretsmanager_secret.session_secret.arn
-        },
-        {
-          name      = "ADMIN_PASSWORD"
-          valueFrom = aws_secretsmanager_secret.admin_password.arn
-        }
-      ]
+      secrets = concat(
+        [
+          {
+            name      = "DATABASE_URL"
+            valueFrom = aws_secretsmanager_secret.database_url.arn
+          },
+          {
+            name      = "SESSION_SECRET"
+            valueFrom = aws_secretsmanager_secret.session_secret.arn
+          },
+          {
+            name      = "ADMIN_PASSWORD"
+            valueFrom = aws_secretsmanager_secret.admin_password.arn
+          }
+        ],
+        var.openai_api_key != "" ? [
+          {
+            name      = "OPENAI_API_KEY"
+            valueFrom = aws_secretsmanager_secret.openai_api_key[0].arn
+          }
+        ] : [],
+        var.eia_api_key != "" ? [
+          {
+            name      = "EIA_API_KEY"
+            valueFrom = aws_secretsmanager_secret.eia_api_key[0].arn
+          }
+        ] : []
+      )
 
       logConfiguration = {
         logDriver = "awslogs"
