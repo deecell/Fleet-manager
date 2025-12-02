@@ -45,6 +45,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Setup session middleware for admin authentication
   const sessionSecret = process.env.SESSION_SECRET || process.env.ADMIN_PASSWORD || "deecell-session-secret-2024";
+  
+  // Trust proxy for AWS ALB (needed for secure cookies behind load balancer)
+  app.set("trust proxy", 1);
+  
+  // Only require secure cookies if HTTPS is enabled (check FORCE_HTTPS env var)
+  // ALB can terminate TLS and forward X-Forwarded-Proto header
+  const requireSecureCookies = process.env.FORCE_HTTPS === "true";
+  
   app.use(session({
     secret: sessionSecret,
     resave: false,
@@ -53,7 +61,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       checkPeriod: 86400000 // prune expired entries every 24h
     }),
     cookie: {
-      secure: process.env.NODE_ENV === "production",
+      secure: requireSecureCookies,
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       sameSite: "lax"
