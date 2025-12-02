@@ -207,7 +207,7 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
         valueColor="text-[#008236]"
       />
       <StatCard
-        title="Avg. State of charge"
+        title="Avg. State of Charge"
         value={`${avgSoc.toFixed(2)}%`}
         targetNumber={avgSoc}
         suffix="%"
