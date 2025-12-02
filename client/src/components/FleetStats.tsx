@@ -54,6 +54,7 @@ interface StatCardProps {
   suffix?: string;
   decimals?: number;
   hasInsufficientData?: boolean;
+  alwaysShowDecimals?: boolean;
 }
 
 function useCountUp(target: number, duration: number = 1500, decimals: number = 0) {
@@ -108,9 +109,9 @@ function formatSmartString(value: string): string {
   return value.replace(/\.0+$/, '');
 }
 
-function StatCard({ title, trend, icon, iconBgColor, valueColor = "text-neutral-950", targetNumber, prefix = "", suffix = "", decimals = 0, hasInsufficientData = false }: StatCardProps) {
+function StatCard({ title, trend, icon, iconBgColor, valueColor = "text-neutral-950", targetNumber, prefix = "", suffix = "", decimals = 0, hasInsufficientData = false, alwaysShowDecimals = false }: StatCardProps) {
   const animatedValue = useCountUp(targetNumber, 1500, decimals);
-  const formattedValue = formatSmartString(formatNumber(animatedValue));
+  const formattedValue = alwaysShowDecimals ? formatNumber(animatedValue) : formatSmartString(formatNumber(animatedValue));
 
   return (
     <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.05)] p-6 h-[185px] flex flex-col">
@@ -174,7 +175,7 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
 
   const formatSocTrend = () => {
     const diff = avgSoc - soc7DayAvg;
-    return `${socTrendIsPositive ? '+' : '-'}${formatSmartDecimal(Math.abs(diff), 2)}% (${socTrendPercent}%) vs 7d`;
+    return `${socTrendIsPositive ? '+' : '-'}${Math.abs(diff).toFixed(2)}% (${socTrendPercent}%) vs 7d`;
   };
 
   const maintenanceValue = fleetStats?.maintenanceIntervalIncrease.value ?? 0;
@@ -207,10 +208,11 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
       />
       <StatCard
         title="Avg. State of charge"
-        value={`${formatSmartDecimal(avgSoc, 2)}%`}
+        value={`${avgSoc.toFixed(2)}%`}
         targetNumber={avgSoc}
         suffix="%"
         decimals={2}
+        alwaysShowDecimals={true}
         trend={{ 
           value: formatSocTrend(), 
           isPositive: socTrendIsPositive 
