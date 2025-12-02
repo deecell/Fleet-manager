@@ -5,6 +5,7 @@ import type {
   Truck,
   PowerMonDevice,
   User,
+  DeviceCredential,
 } from "@shared/schema";
 
 interface AdminStatsResponse {
@@ -417,6 +418,47 @@ export function useDeleteUser() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/users"] });
       queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/stats"] });
+    },
+  });
+}
+
+interface CredentialResponse {
+  credential: DeviceCredential;
+}
+
+export function useDeviceCredential(deviceId: number | undefined, orgId: number | undefined) {
+  return useQuery<CredentialResponse>({
+    queryKey: ["/api/v1/admin/devices", deviceId, "credentials", orgId],
+    queryFn: () => adminFetch(`/api/v1/admin/devices/${deviceId}/credentials?orgId=${orgId}`),
+    enabled: !!deviceId && !!orgId,
+    retry: false,
+  });
+}
+
+export function useCreateDeviceCredential() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ deviceId, organizationId, applinkUrl }: { deviceId: number; organizationId: number; applinkUrl: string }) =>
+      adminFetch<CredentialResponse>(`/api/v1/admin/devices/${deviceId}/credentials`, {
+        method: "POST",
+        body: JSON.stringify({ organizationId, applinkUrl }),
+      }),
+    onSuccess: (_, { deviceId, organizationId }) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/devices", deviceId, "credentials", organizationId] });
+    },
+  });
+}
+
+export function useUpdateDeviceCredential() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ deviceId, organizationId, applinkUrl, isActive }: { deviceId: number; organizationId: number; applinkUrl?: string; isActive?: boolean }) =>
+      adminFetch<CredentialResponse>(`/api/v1/admin/devices/${deviceId}/credentials`, {
+        method: "PATCH",
+        body: JSON.stringify({ organizationId, applinkUrl, isActive }),
+      }),
+    onSuccess: (_, { deviceId, organizationId }) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/devices", deviceId, "credentials", organizationId] });
     },
   });
 }

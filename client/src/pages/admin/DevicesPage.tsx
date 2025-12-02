@@ -37,8 +37,11 @@ import {
   useUpdateDevice,
   useAssignDevice,
   useUnassignDevice,
+  useDeviceCredential,
+  useCreateDeviceCredential,
+  useUpdateDeviceCredential,
 } from "@/lib/admin-api";
-import { Plus, Pencil, Cpu, Link2, Unlink } from "lucide-react";
+import { Plus, Pencil, Cpu, Link2, Unlink, Key } from "lucide-react";
 import type { PowerMonDevice } from "@shared/schema";
 
 export default function DevicesPage() {
@@ -55,7 +58,16 @@ export default function DevicesPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingDevice, setEditingDevice] = useState<PowerMonDevice | null>(null);
   const [assigningDevice, setAssigningDevice] = useState<PowerMonDevice | null>(null);
+  const [credentialsDevice, setCredentialsDevice] = useState<PowerMonDevice | null>(null);
   const [selectedTruckId, setSelectedTruckId] = useState<number | undefined>();
+  const [applinkUrl, setApplinkUrl] = useState("");
+  
+  const { data: credentialData, isLoading: isCredentialLoading, error: credentialError } = useDeviceCredential(
+    credentialsDevice?.id,
+    credentialsDevice?.organizationId
+  );
+  const createCredential = useCreateDeviceCredential();
+  const updateCredential = useUpdateDeviceCredential();
 
   const [formData, setFormData] = useState({
     serialNumber: "",
@@ -118,6 +130,38 @@ export default function DevicesPage() {
       toast({ title: "Device unassigned from truck" });
     } catch (error) {
       toast({ title: "Failed to unassign device", variant: "destructive" });
+    }
+  };
+
+  const openCredentials = (device: PowerMonDevice) => {
+    setApplinkUrl("");
+    setCredentialsDevice(device);
+  };
+
+  const handleSaveCredentials = async () => {
+    if (!credentialsDevice || !applinkUrl.trim()) return;
+    
+    try {
+      const hasExisting = credentialData?.credential;
+      if (hasExisting) {
+        await updateCredential.mutateAsync({
+          deviceId: credentialsDevice.id,
+          organizationId: credentialsDevice.organizationId,
+          applinkUrl: applinkUrl.trim(),
+        });
+        toast({ title: "PowerMon URL updated" });
+      } else {
+        await createCredential.mutateAsync({
+          deviceId: credentialsDevice.id,
+          organizationId: credentialsDevice.organizationId,
+          applinkUrl: applinkUrl.trim(),
+        });
+        toast({ title: "PowerMon URL saved" });
+      }
+      setCredentialsDevice(null);
+      setApplinkUrl("");
+    } catch (error: any) {
+      toast({ title: error?.message || "Failed to save credentials", variant: "destructive" });
     }
   };
 
@@ -241,6 +285,15 @@ export default function DevicesPage() {
                           data-testid={`button-edit-device-${device.id}`}
                         >
                           <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => openCredentials(device)}
+                          data-testid={`button-credentials-device-${device.id}`}
+                          title="Manage PowerMon URL"
+                        >
+                          <Key className="h-4 w-4 text-purple-600" />
                         </Button>
                         {device.truckId ? (
                           <Button
@@ -424,6 +477,71 @@ export default function DevicesPage() {
               </Button>
               <Button onClick={handleAssign} disabled={assignDevice.isPending || !selectedTruckId} data-testid="button-submit-assign">
                 {assignDevice.isPending ? "Assigning..." : "Assign"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={!!credentialsDevice} onOpenChange={() => { setCredentialsDevice(null); setApplinkUrl(""); }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>PowerMon Connection URL</DialogTitle>
+              <DialogDescription>
+                Manage the connection URL for device "{credentialsDevice?.serialNumber}".
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              {isCredentialLoading ? (
+                <div className="text-muted-foreground text-sm">Loading...</div>
+              ) : (
+                <>
+                  {credentialData?.credential && (
+                    <div className="bg-muted p-3 rounded-md">
+                      <Label className="text-xs text-muted-foreground">Current URL</Label>
+                      <p className="font-mono text-sm break-all mt-1">
+                        {credentialData.credential.applinkUrl || "Not set"}
+                      </p>
+                      <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
+                        <span>Status: {credentialData.credential.isActive ? "Active" : "Inactive"}</span>
+                      </div>
+                    </div>
+                  )}
+                  {!credentialData?.credential && !credentialError && (
+                    <div className="bg-muted p-3 rounded-md">
+                      <p className="text-sm text-muted-foreground">No connection URL configured yet.</p>
+                    </div>
+                  )}
+                  <div>
+                    <Label htmlFor="applinkUrl">
+                      {credentialData?.credential ? "Update URL" : "PowerMon URL"}
+                    </Label>
+                    <Input
+                      id="applinkUrl"
+                      value={applinkUrl}
+                      onChange={(e) => setApplinkUrl(e.target.value)}
+                      placeholder="powermon://accessKey@connectionKey"
+                      className="font-mono text-sm mt-1"
+                      data-testid="input-applink-url"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Format: powermon://accessKey@connectionKey
+                    </p>
+                  </div>
+                </>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => { setCredentialsDevice(null); setApplinkUrl(""); }}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSaveCredentials} 
+                disabled={createCredential.isPending || updateCredential.isPending || !applinkUrl.trim()} 
+                data-testid="button-submit-credentials"
+              >
+                {createCredential.isPending || updateCredential.isPending 
+                  ? "Saving..." 
+                  : credentialData?.credential ? "Update" : "Save"}
               </Button>
             </DialogFooter>
           </DialogContent>
