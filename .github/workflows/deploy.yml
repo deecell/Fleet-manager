@@ -128,12 +128,12 @@ jobs:
           exit-code: '0'
 
   # ===========================================================================
-  # Job 4: Deploy to ECS
+  # Job 4: Deploy to ECS (runs AFTER migrations)
   # ===========================================================================
   deploy:
     name: Deploy to ECS
     runs-on: ubuntu-latest
-    needs: build
+    needs: [build, migrate]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment: production
 
@@ -205,13 +205,13 @@ jobs:
           exit 1
 
   # ===========================================================================
-  # Job 5: Run Database Migrations
+  # Job 5: Run Database Migrations (runs BEFORE deploy)
   # ===========================================================================
   migrate:
     name: Run Migrations
     runs-on: ubuntu-latest
-    needs: deploy
-    if: ${{ github.event_name == 'push' }}
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout
@@ -263,7 +263,7 @@ jobs:
   notify:
     name: Notify
     runs-on: ubuntu-latest
-    needs: [deploy, migrate]
+    needs: deploy
     if: always()
 
     steps:
