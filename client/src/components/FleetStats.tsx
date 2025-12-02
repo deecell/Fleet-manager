@@ -96,6 +96,14 @@ function formatNumber(num: string): string {
   return parts.join('.');
 }
 
+function formatSmartDecimal(value: number, maxDecimals: number = 1): string {
+  if (Number.isInteger(value)) {
+    return value.toString();
+  }
+  const fixed = value.toFixed(maxDecimals);
+  return fixed.replace(/\.?0+$/, '');
+}
+
 function StatCard({ title, trend, icon, iconBgColor, valueColor = "text-neutral-950", targetNumber, prefix = "", suffix = "", decimals = 0, hasInsufficientData = false }: StatCardProps) {
   const animatedValue = useCountUp(targetNumber, 1500, decimals);
   const formattedValue = formatNumber(animatedValue);
@@ -162,7 +170,7 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
 
   const formatSocTrend = () => {
     const diff = avgSoc - soc7DayAvg;
-    return `${socTrendIsPositive ? '+' : '-'}${Math.abs(diff).toFixed(1)}% (${socTrendPercent}%) vs 7d`;
+    return `${socTrendIsPositive ? '+' : '-'}${formatSmartDecimal(Math.abs(diff))}% (${socTrendPercent}%) vs 7d`;
   };
 
   const maintenanceValue = fleetStats?.maintenanceIntervalIncrease.value ?? 0;
@@ -195,7 +203,7 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
       />
       <StatCard
         title="Avg. State of charge"
-        value={`${avgSoc.toFixed(1)}%`}
+        value={`${formatSmartDecimal(avgSoc)}%`}
         targetNumber={avgSoc}
         suffix="%"
         decimals={1}
