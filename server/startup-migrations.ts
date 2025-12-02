@@ -15,6 +15,42 @@ export async function runStartupMigrations(): Promise<boolean> {
     await pool.query("SELECT 1");
     console.log("[Migrations] Database connection successful!");
 
+    // Check if this is a fresh install or if we need to fix schema
+    const checkResult = await pool.query(`
+      SELECT column_name FROM information_schema.columns 
+      WHERE table_name = 'organizations' AND column_name = 'plan'
+    `);
+    
+    if (checkResult.rows.length === 0) {
+      console.log("[Migrations] Schema mismatch detected - dropping and recreating tables...");
+      
+      // Drop tables in reverse dependency order
+      await pool.query(`DROP TABLE IF EXISTS sim_location_history CASCADE;`);
+      await pool.query(`DROP TABLE IF EXISTS sims CASCADE;`);
+      await pool.query(`DROP TABLE IF EXISTS fuel_prices CASCADE;`);
+      await pool.query(`DROP TABLE IF EXISTS savings_config CASCADE;`);
+      await pool.query(`DROP TABLE IF EXISTS audit_logs CASCADE;`);
+      await pool.query(`DROP TABLE IF EXISTS alerts CASCADE;`);
+      await pool.query(`DROP TABLE IF EXISTS device_sync_status CASCADE;`);
+      await pool.query(`DROP TABLE IF EXISTS device_statistics CASCADE;`);
+      await pool.query(`DROP TABLE IF EXISTS device_measurements CASCADE;`);
+      await pool.query(`DROP TABLE IF EXISTS device_snapshots CASCADE;`);
+      await pool.query(`DROP TABLE IF EXISTS device_credentials CASCADE;`);
+      await pool.query(`DROP TABLE IF EXISTS power_mon_devices CASCADE;`);
+      await pool.query(`DROP TABLE IF EXISTS devices CASCADE;`);
+      await pool.query(`DROP TABLE IF EXISTS trucks CASCADE;`);
+      await pool.query(`DROP TABLE IF EXISTS fleets CASCADE;`);
+      await pool.query(`DROP TABLE IF EXISTS users CASCADE;`);
+      await pool.query(`DROP TABLE IF EXISTS organizations CASCADE;`);
+      await pool.query(`DROP TABLE IF EXISTS sessions CASCADE;`);
+      await pool.query(`DROP TABLE IF EXISTS session CASCADE;`);
+      
+      console.log("[Migrations] Old tables dropped successfully");
+    } else {
+      console.log("[Migrations] Schema looks correct, skipping recreation");
+      return true;
+    }
+
     console.log("[Migrations] Creating tables (matching shared/schema.ts)...");
 
     // Organizations
