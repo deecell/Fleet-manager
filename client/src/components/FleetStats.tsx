@@ -188,7 +188,7 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
           value: formatSavingsTrend(), 
           isPositive: trendIsPositive 
         }}
-        icon={<TrendingUp className="h-6 w-6 text-[#008236]" />}
+        icon={<img src={dolarIcon} alt="Dollar" className="h-6 w-6" />}
         iconBgColor="bg-[#effcdc]"
         valueColor="text-[#008236]"
       />
