@@ -1,56 +1,24 @@
-import { drizzle } from "drizzle-orm/node-postgres";
-import { migrate } from "drizzle-orm/node-postgres/migrator";
-import { Pool, PoolConfig } from "pg";
-import { sql } from "drizzle-orm";
-import * as schema from "../shared/schema";
+import { pool } from "./db";
 
-async function runMigrations() {
-  console.log("Starting database migration...");
-
-  let connectionString = process.env.DATABASE_URL;
-
-  if (!connectionString) {
-    throw new Error("DATABASE_URL environment variable is required");
+export async function runStartupMigrations(): Promise<boolean> {
+  const isProduction = process.env.NODE_ENV === "production";
+  
+  if (!isProduction) {
+    console.log("[Migrations] Skipping startup migrations in development mode");
+    return true;
   }
 
-  const isAWSRDS = connectionString.includes("rds.amazonaws.com");
-
-  // Remove sslmode from connection string for AWS RDS
-  if (isAWSRDS) {
-    connectionString = connectionString.replace(/[?&]sslmode=[^&]*/g, "");
-    connectionString = connectionString.replace(/\?$/, "").replace(/\?&/, "?").replace(/&&/, "&");
-    console.log("Removed sslmode from URL for AWS RDS");
-  }
-
-  console.log(`Connecting to database (AWS RDS: ${isAWSRDS})...`);
-
-  const poolConfig: PoolConfig = {
-    connectionString,
-    max: 5,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 60000, // 60 seconds for slow connections
-  };
-
-  if (isAWSRDS) {
-    poolConfig.ssl = {
-      rejectUnauthorized: false,
-    };
-    console.log("SSL enabled with rejectUnauthorized: false");
-  }
-
-  const pool = new Pool(poolConfig);
-  const db = drizzle(pool, { schema });
+  console.log("[Migrations] Running startup migrations...");
 
   try {
-    // Test connection
-    console.log("Testing database connection...");
+    // Test connection first
+    console.log("[Migrations] Testing database connection...");
     await pool.query("SELECT 1");
-    console.log("Database connection successful!");
+    console.log("[Migrations] Database connection successful!");
 
-    // Create tables using raw SQL from schema
-    console.log("Creating database schema...");
-
-    // Create enum types first
+    // Create enum types first (idempotent)
+    console.log("[Migrations] Creating enum types...");
+    
     await pool.query(`
       DO $$ BEGIN
         CREATE TYPE organization_status AS ENUM ('active', 'inactive', 'suspended');
@@ -100,9 +68,11 @@ async function runMigrations() {
       END $$;
     `);
 
-    console.log("Enum types created!");
+    console.log("[Migrations] Enum types ready!");
 
-    // Create tables
+    // Create tables (idempotent with IF NOT EXISTS)
+    console.log("[Migrations] Creating tables...");
+
     await pool.query(`
       CREATE TABLE IF NOT EXISTS organizations (
         id SERIAL PRIMARY KEY,
@@ -115,7 +85,6 @@ async function runMigrations() {
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
       );
     `);
-    console.log("Created organizations table");
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
@@ -131,7 +100,6 @@ async function runMigrations() {
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
       );
     `);
-    console.log("Created users table");
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS fleets (
@@ -144,7 +112,6 @@ async function runMigrations() {
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
       );
     `);
-    console.log("Created fleets table");
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS trucks (
@@ -165,7 +132,6 @@ async function runMigrations() {
         UNIQUE(organization_id, truck_number)
       );
     `);
-    console.log("Created trucks table");
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS devices (
@@ -182,7 +148,6 @@ async function runMigrations() {
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
       );
     `);
-    console.log("Created devices table");
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS device_snapshots (
@@ -203,7 +168,6 @@ async function runMigrations() {
         raw_data JSONB
       );
     `);
-    console.log("Created device_snapshots table");
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS device_measurements (
@@ -216,7 +180,6 @@ async function runMigrations() {
         unit VARCHAR(20)
       );
     `);
-    console.log("Created device_measurements table");
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS device_statistics (
@@ -234,7 +197,6 @@ async function runMigrations() {
         raw_data JSONB
       );
     `);
-    console.log("Created device_statistics table");
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS alerts (
@@ -252,7 +214,6 @@ async function runMigrations() {
         resolved_at TIMESTAMP WITH TIME ZONE
       );
     `);
-    console.log("Created alerts table");
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS fuel_prices (
@@ -265,7 +226,6 @@ async function runMigrations() {
         UNIQUE(region, effective_date)
       );
     `);
-    console.log("Created fuel_prices table");
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS savings_config (
@@ -278,7 +238,6 @@ async function runMigrations() {
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
       );
     `);
-    console.log("Created savings_config table");
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS sims (
@@ -305,7 +264,6 @@ async function runMigrations() {
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
       );
     `);
-    console.log("Created sims table");
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS sim_location_history (
@@ -318,7 +276,6 @@ async function runMigrations() {
         timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
       );
     `);
-    console.log("Created sim_location_history table");
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS sim_usage_history (
@@ -331,7 +288,6 @@ async function runMigrations() {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
       );
     `);
-    console.log("Created sim_usage_history table");
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS sim_sync_settings (
@@ -346,9 +302,8 @@ async function runMigrations() {
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
       );
     `);
-    console.log("Created sim_sync_settings table");
 
-    // Create session table for connect-pg-simple
+    // Session table for connect-pg-simple
     await pool.query(`
       CREATE TABLE IF NOT EXISTS "session" (
         "sid" VARCHAR NOT NULL COLLATE "default",
@@ -360,9 +315,11 @@ async function runMigrations() {
     await pool.query(`
       CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "session" ("expire");
     `);
-    console.log("Created session table");
+
+    console.log("[Migrations] Tables created!");
 
     // Create indexes
+    console.log("[Migrations] Creating indexes...");
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_users_org ON users(organization_id);`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_fleets_org ON fleets(organization_id);`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_trucks_org ON trucks(organization_id);`);
@@ -377,19 +334,13 @@ async function runMigrations() {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_alerts_status ON alerts(status);`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_sims_org ON sims(organization_id);`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_sims_device ON sims(device_id);`);
-    console.log("Created indexes");
+    console.log("[Migrations] Indexes created!");
 
-    console.log("\n✅ Database schema migration completed successfully!");
+    console.log("[Migrations] ✅ Startup migrations completed successfully!");
+    return true;
 
   } catch (error) {
-    console.error("Migration failed:", error);
-    throw error;
-  } finally {
-    await pool.end();
+    console.error("[Migrations] ❌ Migration failed:", error);
+    return false;
   }
 }
-
-runMigrations().catch((error) => {
-  console.error("Fatal migration error:", error);
-  process.exit(1);
-});

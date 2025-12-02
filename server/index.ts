@@ -1,5 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
+import { runStartupMigrations } from "./startup-migrations";
 // Device simulator disabled - using real PowerMon devices via Device Manager
 // import { startDeviceSimulator } from "./services/device-simulator";
 
@@ -15,6 +16,14 @@ function log(message: string, source = "express") {
 }
 
 const app = express();
+
+// Run database migrations on startup (production only)
+(async () => {
+  const migrationSuccess = await runStartupMigrations();
+  if (!migrationSuccess && process.env.NODE_ENV === "production") {
+    log("Warning: Startup migrations failed, but continuing...", "migrations");
+  }
+})();
 
 declare module 'http' {
   interface IncomingMessage {

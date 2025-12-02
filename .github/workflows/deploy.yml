@@ -251,17 +251,11 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Run Database Schema Migrations
-        env:
-          NODE_TLS_REJECT_UNAUTHORIZED: "0"
+      - name: Skip External Migrations
         run: |
-          echo "Running custom migration script..."
-          # Get the raw DATABASE_URL
-          RAW_URL="${{ steps.get-db-url.outputs.database_url }}"
-          export DATABASE_URL="$RAW_URL"
-          # Run our custom migration script that handles SSL properly
-          npx tsx scripts/run-migrations.ts
-          echo "Schema migration completed successfully"
+          echo "Database migrations will run automatically when ECS container starts"
+          echo "RDS is not publicly accessible - migrations run from within VPC"
+          echo "See server/startup-migrations.ts for migration logic"
 
       - name: Run Data Migrations (if any)
         env:
