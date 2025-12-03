@@ -1,4 +1,4 @@
-import { Battery, TrendingUp, TrendingDown, Leaf } from "lucide-react";
+import { BatteryCharging, TrendingUp, TrendingDown, Leaf } from "lucide-react";
 import dolarIcon from "@assets/dolar.svg";
 import trendIcon from "@assets/trend.svg";
 import { useState, useEffect, useRef } from "react";
@@ -216,8 +216,8 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
           value: formatSocTrend(), 
           isPositive: socTrendIsPositive 
         }}
-        icon={<Battery className="h-6 w-6 text-[#778AC2]" />}
-        iconBgColor="bg-[#EBEFFA]"
+        icon={<BatteryCharging className="h-6 w-6 text-[#FA671E]" />}
+        iconBgColor="bg-[#fef4e8]"
       />
       <StatCard
         title="CO₂ Reduction"
