@@ -75,18 +75,18 @@
 
 **Issue**: PowerMon devices return `runtime` as a decimal (e.g., 0.17), but our database stores it as an integer.
 
-**Current Fix**: Rounding to integer before insert (`Math.round(runtime)`)
-
-**Concern**: The decimal value might be in hours (0.17 hours = ~10 minutes), and we may be losing precision.
+**Current State**: Passing runtime value directly (no rounding) - may cause insert errors if PowerMon sends decimals.
 
 **Options to Consider**:
-1. Change `runtime` column from `integer` to `real` in both `device_snapshots` and `device_measurements` tables
+1. Change `runtime` column from `integer` to `real` in both `device_snapshots` and `device_measurements` tables (recommended)
 2. Confirm PowerMon documentation for runtime units (seconds? minutes? hours?)
-3. Keep as-is if integer precision is acceptable
+3. Add rounding if integer precision is acceptable
 
 **Files Affected**: 
 - `device-manager/app/database.js` (lines 301 and 410)
 - `shared/schema.ts` (lines 171 and 208)
+
+**Note**: The "0.17" error we saw was actually from `todayParkedMinutes`, not runtime. Runtime may or may not cause issues depending on what PowerMon sends.
 
 ---
 

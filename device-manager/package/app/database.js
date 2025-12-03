@@ -295,7 +295,7 @@ async function bulkInsertMeasurements(measurements) {
       m.soc,
       m.energy,
       m.charge,
-      m.runtime != null ? Math.round(m.runtime) : null, // Ensure runtime is integer
+      m.runtime,
       m.rssi || null,
       m.source,
       m.recordedAt,
@@ -404,7 +404,7 @@ async function upsertDeviceSnapshot(snapshot) {
     snapshot.soc,
     snapshot.energy,
     snapshot.charge,
-    snapshot.runtime != null ? Math.round(snapshot.runtime) : null, // Ensure runtime is integer
+    snapshot.runtime,
     snapshot.rssi || null,
     snapshot.powerStatusString || null,
     isParked,
