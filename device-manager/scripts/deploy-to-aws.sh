@@ -80,11 +80,12 @@ echo -e "${GREEN}Step 1: Creating deployment package...${NC}"
 rm -rf package *.zip
 mkdir -p package
 
-# Copy application files
+# Copy application files (excluding build/ - native addons must be compiled on target platform)
 cp -r app package/
 cp -r lib package/
 cp -r src package/
-cp -r build package/ 2>/dev/null || echo "  (no pre-built binaries)"
+# NOTE: Do NOT copy build/ directory - native .node files are platform-specific
+# The deploy.sh on EC2 will run npm install to compile for Amazon Linux 2
 cp package.json package/
 cp binding.gyp package/
 
