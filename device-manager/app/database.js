@@ -111,6 +111,13 @@ async function updateDevicePollStatus(deviceId, success, errorMessage = null) {
         updated_at = $1
       WHERE device_id = $2
     `, [now, deviceId]);
+    
+    // Also update last_seen_at in power_mon_devices so admin UI shows current timestamp
+    await query(`
+      UPDATE power_mon_devices 
+      SET last_seen_at = $1, updated_at = $1
+      WHERE id = $2
+    `, [now, deviceId]);
   } else {
     await query(`
       UPDATE device_sync_status 
