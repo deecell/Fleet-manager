@@ -6,6 +6,172 @@
 
 ## Latest Updates (December 3, 2025)
 
+### 📋 TODO: Implement Password Reset Feature (December 4, 2025)
+
+**Goal**: Allow fleet dashboard users to reset their password via email
+
+---
+
+## Password Reset - Development Plan
+
+### Prerequisites (Before Starting)
+- [ ] Set up AWS SES in us-east-2 (same region as your infrastructure)
+- [ ] Verify a sender email address in SES (e.g., noreply@deecell.com or your domain)
+- [ ] Get SES credentials (or use IAM role if running on EC2/ECS)
+- [ ] Add secrets: `SES_FROM_EMAIL`, optionally `SES_ACCESS_KEY_ID`, `SES_SECRET_ACCESS_KEY`
+
+---
+
+### Step 1: Database Schema (5 min)
+**File**: `shared/schema.ts`
+
+Add `passwordResetTokens` table:
+```typescript
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  token: varchar("token", { length: 64 }).notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  used: boolean("used").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+```
+
+Run: `npm run db:push`
+
+---
+
+### Step 2: Install AWS SES Package (2 min)
+```bash
+npm install @aws-sdk/client-ses
+```
+
+---
+
+### Step 3: Create Email Service (15 min)
+**File**: `server/services/email-service.ts`
+
+```typescript
+// Functions needed:
+// - sendPasswordResetEmail(to: string, resetUrl: string): Promise<void>
+// - Uses AWS SES client
+// - HTML email template with reset link
+// - Plain text fallback
+```
+
+---
+
+### Step 4: Create Password Reset Service (20 min)
+**File**: `server/services/password-reset.ts`
+
+```typescript
+// Functions needed:
+// - generateResetToken(): string (crypto.randomBytes, 32 bytes hex)
+// - createPasswordResetRequest(email: string): Promise<boolean>
+//   - Look up user by email
+//   - Generate token, store with 1-hour expiry
+//   - Send email with reset link
+//   - Return true (always, to prevent email enumeration)
+// - validateResetToken(token: string): Promise<User | null>
+//   - Check token exists, not expired, not used
+//   - Return user if valid
+// - resetPassword(token: string, newPassword: string): Promise<boolean>
+//   - Validate token
+//   - Hash new password with bcrypt
+//   - Update user's password
+//   - Mark token as used
+//   - Invalidate all other tokens for this user
+```
+
+---
+
+### Step 5: API Routes (15 min)
+**File**: `server/api/customer-auth.ts`
+
+Add two new endpoints:
+
+```typescript
+// POST /api/v1/auth/forgot-password
+// Body: { email: string }
+// Response: { success: true, message: "If an account exists..." }
+// Always returns success to prevent email enumeration
+
+// POST /api/v1/auth/reset-password
+// Body: { token: string, password: string }
+// Response: { success: true } or { error: "Invalid or expired token" }
+```
+
+---
+
+### Step 6: Frontend - Forgot Password Page (20 min)
+**File**: `client/src/pages/ForgotPassword.tsx`
+
+- Simple form with email input
+- Submit calls POST /api/v1/auth/forgot-password
+- Show success message: "If an account exists, we've sent a reset link"
+- Link back to login page
+
+---
+
+### Step 7: Frontend - Reset Password Page (20 min)
+**File**: `client/src/pages/ResetPassword.tsx`
+
+- Extract token from URL query param
+- Form with new password + confirm password fields
+- Password validation (min 8 chars, match confirmation)
+- Submit calls POST /api/v1/auth/reset-password
+- On success: redirect to login with success toast
+- On error: show "Invalid or expired link" message
+
+---
+
+### Step 8: Update Login Page (5 min)
+**File**: `client/src/pages/Login.tsx`
+
+- Add "Forgot Password?" link below password field
+- Link to /forgot-password
+
+---
+
+### Step 9: Add Routes to App.tsx (2 min)
+**File**: `client/src/App.tsx`
+
+```typescript
+<Route path="/forgot-password" component={ForgotPassword} />
+<Route path="/reset-password" component={ResetPassword} />
+```
+
+---
+
+### Step 10: Test End-to-End (15 min)
+1. Go to login page, click "Forgot Password?"
+2. Enter valid email, submit
+3. Check email arrives (check SES sandbox if in sandbox mode)
+4. Click reset link
+5. Enter new password
+6. Verify can log in with new password
+7. Verify old password no longer works
+8. Verify reset link can't be reused
+
+---
+
+### Production Deployment
+- Ensure SES is out of sandbox mode (or recipient is verified)
+- Add SES credentials to AWS Secrets Manager
+- Update ECS task definition with SES environment variables
+
+---
+
+### Security Considerations (Built Into Plan)
+- ✅ Tokens expire after 1 hour
+- ✅ Tokens are single-use
+- ✅ No email enumeration (same response for valid/invalid emails)
+- ✅ Secure random token generation (crypto.randomBytes)
+- ✅ Password hashed with bcrypt
+- ✅ All other reset tokens invalidated on password change
+
+---
+
 ### 📋 TODO: Review Today's Savings Calculation (December 4, 2025)
 
 **Reminder**: User wants to review/work on the Today's Savings calculation logic.
