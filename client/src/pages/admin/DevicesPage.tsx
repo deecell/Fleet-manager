@@ -133,9 +133,9 @@ export default function DevicesPage() {
   };
 
   const handleAssign = async () => {
-    if (!assigningDevice || !selectedTruckId || !selectedOrgId) return;
+    if (!assigningDevice || !selectedTruckId) return;
     try {
-      await assignDevice.mutateAsync({ id: assigningDevice.id, truckId: selectedTruckId, organizationId: selectedOrgId });
+      await assignDevice.mutateAsync({ id: assigningDevice.id, truckId: selectedTruckId, organizationId: assigningDevice.organizationId });
       toast({ title: "Device assigned to truck" });
       setAssigningDevice(null);
       setSelectedTruckId(undefined);
@@ -145,9 +145,8 @@ export default function DevicesPage() {
   };
 
   const handleUnassign = async (device: PowerMonDevice) => {
-    if (!selectedOrgId) return;
     try {
-      await unassignDevice.mutateAsync({ id: device.id, organizationId: selectedOrgId });
+      await unassignDevice.mutateAsync({ id: device.id, organizationId: device.organizationId });
       toast({ title: "Device unassigned from truck" });
     } catch (error) {
       toast({ title: "Failed to unassign device", variant: "destructive" });
@@ -202,8 +201,14 @@ export default function DevicesPage() {
 
   const organizations = orgsData?.organizations || [];
   const devices = devicesData?.devices || [];
-  const trucks = selectedOrgId ? (trucksData?.trucks || []) : (allTrucksData?.trucks || []);
+  const allTrucks = allTrucksData?.trucks || [];
+  const trucks = selectedOrgId ? (trucksData?.trucks || []) : allTrucks;
   const unassignedTrucks = trucks.filter(t => !devices.some(d => d.truckId === t.id));
+  
+  // For the assign dialog, filter trucks to only show trucks from the device's organization
+  const trucksForAssignDialog = assigningDevice 
+    ? allTrucks.filter(t => t.organizationId === assigningDevice.organizationId && !devices.some(d => d.truckId === t.id))
+    : [];
 
   return (
     <AdminLayout>
@@ -333,7 +338,7 @@ export default function DevicesPage() {
                             variant="ghost"
                             size="icon"
                             onClick={() => setAssigningDevice(device)}
-                            disabled={unassignedTrucks.length === 0}
+                            disabled={allTrucks.filter(t => t.organizationId === device.organizationId && !devices.some(d => d.truckId === t.id)).length === 0}
                             data-testid={`button-assign-device-${device.id}`}
                           >
                             <Link2 className="h-4 w-4 text-blue-600" />
@@ -564,7 +569,7 @@ export default function DevicesPage() {
                     <SelectValue placeholder="Select a truck" />
                   </SelectTrigger>
                   <SelectContent>
-                    {unassignedTrucks.map((truck) => (
+                    {trucksForAssignDialog.map((truck) => (
                       <SelectItem key={truck.id} value={truck.id.toString()}>
                         {truck.truckNumber} - {truck.driverName || "No driver"}
                       </SelectItem>
