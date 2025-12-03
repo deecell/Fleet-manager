@@ -129,7 +129,14 @@ function formatLocation(lat: number | null, lng: number | null): string {
 export interface LegacyTruckWithDevice extends LegacyTruckWithHistory {
   deviceId?: number;
   lastUpdated?: string;
+  isParked?: boolean;
+  todayParkedMinutes?: number;
+  fuelSavings?: number;
 }
+
+// Fuel savings constants
+const GALLONS_PER_HOUR_IDLING = 1.2;
+const DEFAULT_DIESEL_PRICE = 3.50;
 
 export function useLegacyTrucks() {
   const trucksQuery = useTrucks();
@@ -154,6 +161,14 @@ export function useLegacyTrucks() {
     const numberOfBatteries = device?.numberOfBatteries ?? 2;
     const soc = snapshot?.soc ?? 0;
     const calculatedKwh = ((batteryVoltage * batteryAh) * numberOfBatteries) * (soc / 100) / 1000;
+    
+    // Parked status and fuel savings calculation
+    // Fuel Savings = (parkedMinutes / 60) * 1.2 gal/hr * diesel price
+    const isParked = snapshot?.isParked ?? false;
+    const todayParkedMinutes = snapshot?.todayParkedMinutes ?? 0;
+    const parkedHours = todayParkedMinutes / 60;
+    const gallonsSaved = parkedHours * GALLONS_PER_HOUR_IDLING;
+    const fuelSavings = gallonsSaved * DEFAULT_DIESEL_PRICE;
     
     return {
       id: String(truck.id),
@@ -180,6 +195,9 @@ export function useLegacyTrucks() {
       history: [],
       deviceId: device?.id,
       lastUpdated: snapshot?.updatedAt ? String(snapshot.updatedAt) : snapshot?.recordedAt ? String(snapshot.recordedAt) : undefined,
+      isParked,
+      todayParkedMinutes,
+      fuelSavings,
     };
   });
 

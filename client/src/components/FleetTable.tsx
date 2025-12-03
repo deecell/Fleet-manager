@@ -77,6 +77,8 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                   Truck <ArrowUpDown className="h-3.5 w-3.5 text-[#838383]" />
                 </button>
               </th>
+              <th className="px-3 py-3 text-center text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Parked</th>
+              <th className="px-3 py-3 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Fuel Savings</th>
               <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Driver</th>
               <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Location</th>
               <th className="px-3 py-3 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap pl-[16px] pr-[16px]">Last Updated</th>
@@ -109,6 +111,20 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                       <AlertTriangle className="w-4 h-4 text-[#f55200] shrink-0" data-testid={`alert-icon-${truck.id}`} />
                     )}
                   </div>
+                </td>
+                <td className="px-3 py-2 text-center">
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium ${
+                    truck.isParked 
+                      ? "bg-[#e8f5e9] text-[#2e7d32]" 
+                      : "bg-[#fff3e0] text-[#e65100]"
+                  }`} data-testid={`parked-status-${truck.id}`}>
+                    {truck.isParked ? "Parked" : "Moving"}
+                  </span>
+                </td>
+                <td className="px-3 py-2 text-right">
+                  <span className="text-[13px] 2xl:text-sm text-[#008236] font-medium tabular-nums" data-testid={`fuel-savings-${truck.id}`}>
+                    ${(truck.fuelSavings ?? 0).toFixed(2)}
+                  </span>
                 </td>
                 <td className="px-3 py-2 max-w-[120px]">
                   <span className="text-[13px] 2xl:text-sm text-[#4a5565] line-clamp-2">{truck.driver}</span>
