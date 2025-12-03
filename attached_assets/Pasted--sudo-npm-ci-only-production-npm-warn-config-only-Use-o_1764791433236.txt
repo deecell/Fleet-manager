@@ -1,0 +1,61 @@
+$ sudo npm ci --only=production
+npm warn config only Use `--omit=dev` to omit dev dependencies from the install.
+
+> @deecell/device-manager@1.0.0 install
+> node-gyp rebuild
+
+gyp info it worked if it ends with ok
+gyp info using node-gyp@10.1.0
+gyp info using node@20.19.6 | linux | x64
+gyp info find Python using Python version 3.12.3 found at "/usr/bin/python3"
+
+gyp info spawn /usr/bin/python3
+gyp info spawn args [
+gyp info spawn args '/usr/lib/node_modules/npm/node_modules/node-gyp/gyp/gyp_main.py',
+gyp info spawn args 'binding.gyp',
+gyp info spawn args '-f',
+gyp info spawn args 'make',
+gyp info spawn args '-I',
+gyp info spawn args '/opt/device-manager/build/config.gypi',
+gyp info spawn args '-I',
+gyp info spawn args '/usr/lib/node_modules/npm/node_modules/node-gyp/addon.gypi',
+gyp info spawn args '-I',
+gyp info spawn args '/root/.cache/node-gyp/20.19.6/include/node/common.gypi',
+gyp info spawn args '-Dlibrary=shared_library',
+gyp info spawn args '-Dvisibility=default',
+gyp info spawn args '-Dnode_root_dir=/root/.cache/node-gyp/20.19.6',
+gyp info spawn args '-Dnode_gyp_dir=/usr/lib/node_modules/npm/node_modules/node-gyp',
+gyp info spawn args '-Dnode_lib_file=/root/.cache/node-gyp/20.19.6/<(target_arch)/node.lib',
+gyp info spawn args '-Dmodule_root_dir=/opt/device-manager',
+gyp info spawn args '-Dnode_engine=v8',
+gyp info spawn args '--depth=.',
+gyp info spawn args '--no-parallel',
+gyp info spawn args '--generator-output',
+gyp info spawn args 'build',
+gyp info spawn args '-Goutput_dir=.'
+gyp info spawn args ]
+gyp info spawn make
+gyp info spawn args [ 'BUILDTYPE=Release', '-C', 'build' ]
+make: Entering directory '/opt/device-manager/build'
+  CXX(target) Release/obj.target/powermon_addon/src/addon.o
+  CXX(target) Release/obj.target/powermon_addon/src/powermon_wrapper.o
+  SOLINK_MODULE(target) Release/obj.target/powermon_addon.node
+/usr/bin/ld: cannot find -ldbus-1: No such file or directory
+collect2: error: ld returned 1 exit status
+make: *** [powermon_addon.target.mk:152: Release/obj.target/powermon_addon.node] Error 1
+make: Leaving directory '/opt/device-manager/build'
+gyp ERR! build error
+gyp ERR! stack Error: `make` failed with exit code: 2
+gyp ERR! stack at ChildProcess.<anonymous> (/usr/lib/node_modules/npm/node_modules/node-gyp/lib/build.js:209:23)
+gyp ERR! System Linux 6.14.0-1017-aws
+gyp ERR! command "/usr/bin/node" "/usr/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js" "rebuild"
+gyp ERR! cwd /opt/device-manager
+gyp ERR! node -v v20.19.6
+gyp ERR! node-gyp -v v10.1.0
+gyp ERR! not ok
+npm error code 1
+npm error path /opt/device-manager
+npm error command failed
+npm error command sh -c node-gyp rebuild
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-12-03T19_50_05_705Z-debug-0.log
+$
