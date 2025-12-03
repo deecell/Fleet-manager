@@ -6,6 +6,19 @@
 
 ## Latest Updates (December 3, 2025)
 
+### 📋 TODO: Review Today's Savings Calculation (December 4, 2025)
+
+**Reminder**: User wants to review/work on the Today's Savings calculation logic.
+
+Current formula: `(Solar Wh ÷ 1000 ÷ 9.0 kWh/gallon) × Diesel Price`
+
+Files involved:
+- `server/services/savings-calculator.ts` - Main calculation logic
+- `server/services/eia-client.ts` - EIA diesel price fetching
+- `server/services/padd-regions.ts` - Regional pricing by truck location
+
+---
+
 ### ✅ Fixed Today's Savings Decimal Display (December 3, 2025)
 
 **Fixed trailing zero display in Today's Savings card**
