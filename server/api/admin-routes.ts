@@ -523,13 +523,34 @@ router.post("/devices/:id/credentials", adminMiddleware, async (req: Request, re
     let finalAccessKey = accessKey;
     
     if (applinkUrl && (!connectionKey || !accessKey)) {
+      // Try legacy powermon:// format first
       const urlMatch = applinkUrl.match(/powermon:\/\/([^@]+)@(\S+)/);
       if (urlMatch) {
         finalAccessKey = urlMatch[1];
         finalConnectionKey = urlMatch[2];
+      } else if (applinkUrl.includes('applinks.thornwave.com')) {
+        // Parse Thornwave applink URL format
+        // Example: https://applinks.thornwave.com/?n=DCL-Moeck&s=a3a5b30ea9b3ff98&h=41&c=connectionKey&k=accessKey
+        try {
+          const url = new URL(applinkUrl);
+          const connectionParam = url.searchParams.get('c');
+          const accessParam = url.searchParams.get('k');
+          if (connectionParam && accessParam) {
+            finalConnectionKey = connectionParam;
+            finalAccessKey = accessParam;
+          } else {
+            return res.status(400).json({ 
+              error: "Invalid Thornwave applink URL. Missing 'c' (connection key) or 'k' (access key) parameters." 
+            });
+          }
+        } catch (e) {
+          return res.status(400).json({ 
+            error: "Invalid Thornwave applink URL format." 
+          });
+        }
       } else {
         return res.status(400).json({ 
-          error: "Invalid applinkUrl format. Expected: powermon://accessKey@connectionKey" 
+          error: "Invalid applinkUrl format. Expected: powermon://accessKey@connectionKey or https://applinks.thornwave.com/..." 
         });
       }
     }
@@ -570,10 +591,24 @@ router.patch("/devices/:id/credentials", adminMiddleware, async (req: Request, r
     
     if (applinkUrl) {
       updateData.applinkUrl = applinkUrl;
+      // Try legacy powermon:// format first
       const urlMatch = applinkUrl.match(/powermon:\/\/([^@]+)@(\S+)/);
       if (urlMatch) {
         updateData.accessKey = urlMatch[1];
         updateData.connectionKey = urlMatch[2];
+      } else if (applinkUrl.includes('applinks.thornwave.com')) {
+        // Parse Thornwave applink URL format
+        try {
+          const url = new URL(applinkUrl);
+          const connectionParam = url.searchParams.get('c');
+          const accessParam = url.searchParams.get('k');
+          if (connectionParam && accessParam) {
+            updateData.connectionKey = connectionParam;
+            updateData.accessKey = accessParam;
+          }
+        } catch (e) {
+          // If parsing fails, just store the URL as-is
+        }
       }
     }
     
