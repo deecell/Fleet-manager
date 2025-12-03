@@ -338,35 +338,75 @@ async function upsertDeviceSnapshot(snapshot) {
   let isParked = isCurrentlyParked;
   let parkedSince = isCurrentlyParked ? now : null;
   let todayParkedMinutes = 0;
+  let baseMinutesFromPreviousSessions = 0;
   
   if (currentResult.rows.length > 0) {
     const current = currentResult.rows[0];
     const wasParked = current.is_parked;
     const previousParkedDate = current.parked_date;
     
-    // Reset parked minutes if it's a new day
+    // Carry forward minutes from today (excluding current parking session)
     if (previousParkedDate === todayDate) {
-      todayParkedMinutes = current.today_parked_minutes || 0;
+      baseMinutesFromPreviousSessions = current.today_parked_minutes || 0;
     }
     
     if (wasParked && current.parked_since) {
       if (isCurrentlyParked) {
-        // Still parked - keep the original parked_since
-        parkedSince = current.parked_since;
-        // Add time since last update (approximately 10 seconds per poll)
-        const minutesSinceLastPoll = 10 / 60; // ~0.167 minutes per poll
-        todayParkedMinutes += minutesSinceLastPoll;
+        // Still parked - keep the original parked_since and calculate total time
+        parkedSince = new Date(current.parked_since);
+        
+        // Calculate minutes in current parking session from parked_since to now
+        const currentSessionMinutes = (now - parkedSince) / 1000 / 60;
+        
+        // If same day, use base minutes + current session
+        // If parked_since is from a previous day, only count from midnight
+        const parkedSinceDate = parkedSince.toISOString().split('T')[0];
+        if (parkedSinceDate === todayDate) {
+          // Parking started today - total is current session duration
+          todayParkedMinutes = currentSessionMinutes;
+        } else {
+          // Parking started yesterday or earlier - count from midnight
+          const midnight = new Date(now);
+          midnight.setHours(0, 0, 0, 0);
+          todayParkedMinutes = (now - midnight) / 1000 / 60;
+        }
       } else {
         // Transition: was parked, now moving
-        // Calculate final duration and add to today's minutes
-        const parkedDuration = (now - new Date(current.parked_since)) / 1000 / 60; // minutes
-        // Don't double-count - we already accumulated during parking, just ensure it's captured
+        // Calculate final duration of this parking session
+        const sessionEnd = now;
+        const sessionStart = new Date(current.parked_since);
+        const sessionStartDate = sessionStart.toISOString().split('T')[0];
+        
+        if (sessionStartDate === todayDate) {
+          // Session started today - add full session
+          const sessionMinutes = (sessionEnd - sessionStart) / 1000 / 60;
+          todayParkedMinutes = baseMinutesFromPreviousSessions + sessionMinutes;
+        } else {
+          // Session started before today - count from midnight
+          const midnight = new Date(now);
+          midnight.setHours(0, 0, 0, 0);
+          todayParkedMinutes = (sessionEnd - midnight) / 1000 / 60;
+        }
         parkedSince = null;
       }
     } else if (!wasParked && isCurrentlyParked) {
-      // Transition: was moving, now parked
+      // Transition: was moving, now parked - start new session
       parkedSince = now;
+      todayParkedMinutes = baseMinutesFromPreviousSessions; // Keep previous sessions
+    } else if (!wasParked && !isCurrentlyParked) {
+      // Still moving - keep accumulated minutes from previous sessions
+      todayParkedMinutes = baseMinutesFromPreviousSessions;
     }
+  }
+  
+  // Log parked status at info level for visibility
+  if (isCurrentlyParked) {
+    logger.info('Truck parked - accumulating time', { 
+      deviceId: snapshot.deviceId, 
+      voltage2: snapshot.voltage2,
+      todayParkedMinutes: Math.round(todayParkedMinutes),
+      parkedSince: parkedSince
+    });
   }
   
   await query(`
@@ -414,13 +454,6 @@ async function upsertDeviceSnapshot(snapshot) {
     snapshot.recordedAt,
   ]);
   
-  if (isCurrentlyParked) {
-    logger.debug('Truck parked', { 
-      deviceId: snapshot.deviceId, 
-      voltage2: snapshot.voltage2,
-      todayParkedMinutes: Math.round(todayParkedMinutes)
-    });
-  }
 }
 
 /**
