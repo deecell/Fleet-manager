@@ -202,7 +202,7 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
           value: formatSavingsTrend(), 
           isPositive: trendIsPositive 
         }}
-        icon={<img src={dolarIcon} alt="Dollar" className="h-6 w-6" />}
+        icon={<img src={dolarIcon} alt="Dollar" className="h-[24px] w-[24px]" />}
         iconBgColor="bg-[#effcdc]"
         valueColor="text-[#008236]"
       />
@@ -216,7 +216,7 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
           value: formatSocTrend(), 
           isPositive: socTrendIsPositive 
         }}
-        icon={<BatteryCharging className="h-6 w-6 text-[#FA671E]" />}
+        icon={<BatteryCharging className="h-[24px] w-[24px] text-[#FA671E]" />}
         iconBgColor="bg-[#fef4e8]"
       />
       <StatCard
@@ -229,7 +229,7 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
           value: formatSavingsTrend(), 
           isPositive: trendIsPositive 
         }}
-        icon={<Leaf className="h-6 w-6 text-[#6B6164]" />}
+        icon={<Leaf className="h-[24px] w-[24px] text-[#6B6164]" />}
         iconBgColor="bg-[#ECE8E4]"
         valueColor="text-[#008236]"
       />
@@ -240,7 +240,7 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
         prefix="$ "
         decimals={2}
         alwaysShowDecimals={true}
-        icon={<img src={trendIcon} alt="Trend" className="h-6 w-6" />}
+        icon={<img src={trendIcon} alt="Trend" className="h-[24px] w-[24px]" />}
         iconBgColor="bg-[#EBEFFA]"
         valueColor="text-[#008236]"
       />
