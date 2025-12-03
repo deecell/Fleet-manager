@@ -290,9 +290,16 @@ export default function DevicesPage() {
                       <TableCell className="text-muted-foreground">{device.deviceName || "-"}</TableCell>
                       <TableCell className="text-muted-foreground">{device.firmwareVersion || "-"}</TableCell>
                       <TableCell>
-                        <Badge variant={device.status === "online" ? "default" : "secondary"}>
+                        <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md border text-xs font-medium ${
+                          device.status === "online" 
+                            ? "bg-[rgba(0,201,80,0.14)] border-[#00c950] text-[#00953b]" 
+                            : "bg-[#dedede] border-[#b0b0b0] text-[#636363]"
+                        }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${
+                            device.status === "online" ? "bg-[#00c950]" : "bg-[#888]"
+                          }`} />
                           {device.status === "online" ? "Online" : "Offline"}
-                        </Badge>
+                        </div>
                       </TableCell>
                       <TableCell>
                         {device.truckId ? (
