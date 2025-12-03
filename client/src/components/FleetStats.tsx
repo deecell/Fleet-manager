@@ -139,7 +139,7 @@ function StatCard({ title, trend, icon, iconBgColor, valueColor = "text-neutral-
           Awaiting data...
         </p>
       ) : (
-        <p className={`text-[26px] min-[1440px]:text-[30px] font-medium leading-8 mt-3 tracking-tight ${valueColor}`} data-testid={`stat-${title.toLowerCase().replace(/\s+/g, '-')}`}>
+        <p className="text-[26px] min-[1440px]:text-[30px] font-medium leading-8 mt-3 tracking-tight text-[#0a0a0a]" data-testid={`stat-${title.toLowerCase().replace(/\s+/g, '-')}`}>
           {prefix}{formattedValue}{suffix}
         </p>
       )}
@@ -217,7 +217,7 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
           isPositive: trendIsPositive 
         }}
         icon={<Leaf className="h-6 w-6 text-[#22c55e]" />}
-        iconBgColor="bg-[#dcfce7]"
+        iconBgColor="bg-[#EFFCDC]"
         valueColor="text-[#008236]"
       />
       <StatCard
