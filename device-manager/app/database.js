@@ -409,7 +409,7 @@ async function upsertDeviceSnapshot(snapshot) {
     snapshot.powerStatusString || null,
     isParked,
     parkedSince,
-    Math.round(todayParkedMinutes * 100) / 100, // Round to 2 decimal places
+    Math.round(todayParkedMinutes), // Must be integer for database column
     todayDate,
     snapshot.recordedAt,
   ]);
