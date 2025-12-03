@@ -11,6 +11,7 @@ import {
 import { z } from "zod";
 import bcrypt from "bcrypt";
 import { getSimSyncService } from "../services/sim-sync-service";
+import { createGitHubIssue, listGitHubIssues, getGitHubLabels } from "../services/github-issues";
 
 const SALT_ROUNDS = 10;
 
@@ -853,6 +854,56 @@ router.get("/sims/:simId/location-history", adminMiddleware, async (req: Request
   } catch (error) {
     console.error("Error getting location history:", error);
     res.status(500).json({ error: "Failed to get location history" });
+  }
+});
+
+// GitHub Issues endpoints
+router.get("/github/issues", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const state = (req.query.state as 'open' | 'closed' | 'all') || 'open';
+    const issues = await listGitHubIssues(state);
+    res.json({ issues });
+  } catch (error: any) {
+    console.error("Error listing GitHub issues:", error);
+    res.status(500).json({ error: error.message || "Failed to list GitHub issues" });
+  }
+});
+
+router.get("/github/labels", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const labels = await getGitHubLabels();
+    res.json({ labels });
+  } catch (error: any) {
+    console.error("Error listing GitHub labels:", error);
+    res.status(500).json({ error: error.message || "Failed to list GitHub labels" });
+  }
+});
+
+router.post("/github/issues", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { title, body, labels } = req.body;
+    
+    if (!title || typeof title !== 'string' || title.trim() === '') {
+      return res.status(400).json({ error: "Title is required" });
+    }
+    
+    const issue = await createGitHubIssue({
+      title: title.trim(),
+      body: body || '',
+      labels: labels || [],
+    });
+    
+    res.json({ 
+      success: true, 
+      issue: {
+        number: issue.number,
+        title: issue.title,
+        html_url: issue.html_url,
+      }
+    });
+  } catch (error: any) {
+    console.error("Error creating GitHub issue:", error);
+    res.status(500).json({ error: error.message || "Failed to create GitHub issue" });
   }
 });
 

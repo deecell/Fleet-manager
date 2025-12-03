@@ -14,6 +14,7 @@ import FleetsPage from "@/pages/admin/FleetsPage";
 import TrucksPage from "@/pages/admin/TrucksPage";
 import DevicesPage from "@/pages/admin/DevicesPage";
 import UsersPage from "@/pages/admin/UsersPage";
+import IssuesPage from "@/pages/admin/IssuesPage";
 
 function Router() {
   return (
@@ -27,6 +28,7 @@ function Router() {
       <Route path="/admin/trucks" component={TrucksPage}/>
       <Route path="/admin/devices" component={DevicesPage}/>
       <Route path="/admin/users" component={UsersPage}/>
+      <Route path="/admin/issues" component={IssuesPage}/>
       <Route component={NotFound} />
     </Switch>
   );

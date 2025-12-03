@@ -6,6 +6,30 @@
 
 ## Latest Updates (December 3, 2025)
 
+### ✅ GitHub Issues Integration (December 3, 2025)
+
+**Added ability to create and view GitHub Issues from the Admin panel**
+
+- **Repository**: `deecell/Fleet-manager`
+- **Admin Page**: `/admin/issues`
+- **Features**:
+  - List open issues from the repo
+  - Create new issues with title, description, and labels
+  - Quick templates for Bug Reports, Feature Requests, and Technical Debt
+  - Labels fetched from repo and selectable
+  - Issues open in GitHub when created
+
+**Files Created/Modified**:
+- `server/services/github-issues.ts` - GitHub API service (create, list, labels)
+- `server/api/admin-routes.ts` - Added `/github/issues` and `/github/labels` endpoints
+- `client/src/pages/admin/IssuesPage.tsx` - Admin UI for managing issues
+- `client/src/components/AdminLayout.tsx` - Added Issues nav link
+- `client/src/App.tsx` - Added Issues route
+
+**Secret Required**: `GITHUB_TOKEN` with `repo` scope
+
+---
+
 ### ✅ Auto-Populate Device Info from PowerMon (December 3, 2025)
 
 **Added automatic device info population on first connection**

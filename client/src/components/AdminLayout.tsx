@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Building2, Truck, Cpu, Users, LayoutDashboard, Layers, LogOut, Loader2 } from "lucide-react";
+import { Building2, Truck, Cpu, Users, LayoutDashboard, Layers, LogOut, Loader2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAdminSession, useAdminLogout } from "@/lib/admin-api";
 import { useEffect } from "react";
@@ -15,6 +15,7 @@ const navItems = [
   { href: "/admin/trucks", label: "Trucks", icon: Truck },
   { href: "/admin/devices", label: "Devices", icon: Cpu },
   { href: "/admin/users", label: "Users", icon: Users },
+  { href: "/admin/issues", label: "Issues", icon: AlertCircle },
 ];
 
 export function AdminLayout({ children }: AdminLayoutProps) {
