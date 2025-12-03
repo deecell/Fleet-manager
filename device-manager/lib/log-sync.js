@@ -5,7 +5,22 @@
  * Tracks sync state per device to avoid re-reading data.
  */
 
-const addon = require('../build/Release/powermon_addon.node');
+const path = require('path');
+const fs = require('fs');
+
+// Load native addon with graceful fallback
+let addon = null;
+const addonPath = path.join(__dirname, '../build/Release/powermon_addon.node');
+
+if (process.env.SIMULATION_MODE !== 'true' && process.env.SIMULATION_MODE !== '1') {
+  if (fs.existsSync(addonPath)) {
+    try {
+      addon = require(addonPath);
+    } catch (err) {
+      console.warn('log-sync: Failed to load PowerMon addon:', err.message);
+    }
+  }
+}
 
 /**
  * Creates initial sync state for a device
@@ -112,6 +127,10 @@ function readLogFileRaw(device, fileId, offset, size) {
  * @returns {Object} { success, startTime, samples }
  */
 function decodeLogData(data) {
+  if (!addon) {
+    console.warn('log-sync: Cannot decode log data - addon not available');
+    return { success: false, startTime: null, samples: [] };
+  }
   return addon.PowermonDevice.decodeLogData(data);
 }
 
