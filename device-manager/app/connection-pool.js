@@ -150,8 +150,8 @@ class DeviceConnection {
     if (!this.device) return;
     
     try {
-      // Get device info using callback API
-      this.device.getDeviceInfo((result) => {
+      // Get device info using callback API (method is 'getInfo' not 'getDeviceInfo')
+      this.device.getInfo((result) => {
         if (!result.success) {
           this.log.warn('Failed to get device info', { code: result.code });
           return;
