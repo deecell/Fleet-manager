@@ -77,7 +77,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                   Truck <ArrowUpDown className="h-3.5 w-3.5 text-[#838383]" />
                 </button>
               </th>
-              <th className="px-3 py-3 text-center text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Parked</th>
+              <th className="px-3 py-3 text-center text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap"></th>
               <th className="px-3 py-3 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Fuel Savings</th>
               <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Driver</th>
               <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Location</th>
@@ -118,7 +118,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                       ? "bg-[#e8f5e9] text-[#2e7d32]" 
                       : "bg-[#fff3e0] text-[#e65100]"
                   }`} data-testid={`parked-status-${truck.id}`}>
-                    {truck.isParked ? "Parked" : "Moving"}
+                    {truck.isParked ? "Parked" : "Driving"}
                   </span>
                 </td>
                 <td className="px-3 py-2 text-right">
