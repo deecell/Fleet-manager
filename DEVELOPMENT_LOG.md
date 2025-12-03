@@ -6,6 +6,40 @@
 
 ## Latest Updates (December 3, 2025)
 
+### Parked Status & Fuel Savings Tracking (December 3, 2025)
+
+**Goal**: Track when trucks are parked (idle reduction) and calculate fuel savings based on parked time.
+
+**Implementation Complete**:
+
+1. **Schema Changes** (`shared/schema.ts`):
+   - Added `is_parked` (boolean) - current parked status based on chassis voltage
+   - Added `parked_since` (timestamp) - when truck became parked
+   - Added `today_parked_minutes` (integer) - accumulated parked time today
+   - Added `today_parked_date` (varchar) - date for daily reset tracking
+
+2. **Device Manager Logic** (`device-manager/app/database.js`):
+   - Parked detection: chassis voltage (voltage2) < 13.8V = parked
+   - Daily reset: clears `todayParkedMinutes` at midnight (based on stored date)
+   - Accumulates parked time by tracking `parkedSince` transitions
+
+3. **Frontend API** (`client/src/lib/api.ts`):
+   - Added `isParked`, `todayParkedMinutes`, `fuelSavings` to LegacyTruckWithDevice
+   - Fuel savings formula: `(parkedMinutes / 60) * 1.2 gal/hr * $3.50/gal`
+   - Default diesel price: $3.50 (hardcoded for now)
+
+4. **Dashboard UI** (`client/src/components/FleetTable.tsx`):
+   - Added "Parked" column with green/orange badge (Parked/Moving)
+   - Added "Fuel Savings" column showing dollar amount with 2 decimals
+   - Positioned between Truck and Driver columns
+
+**Future Enhancements**:
+- Connect fuel price to regional diesel pricing API (EIA integration)
+- Add timezone-aware daily resets per fleet
+- Display parked duration (hours:minutes) alongside status
+
+---
+
 ### 📋 TODO: Implement Password Reset Feature (December 4, 2025)
 
 **Goal**: Allow fleet dashboard users to reset their password via email
