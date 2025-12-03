@@ -157,12 +157,21 @@ export default function OrganizationsPage() {
                         <Badge variant="secondary">{org.plan || "standard"}</Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge 
-                          variant="secondary"
-                          className={org.isActive ? "bg-green-100 text-green-700" : "bg-[#dedede] text-[#636363]"}
-                        >
-                          {org.isActive ? "Active" : "Inactive"}
-                        </Badge>
+                        {org.isActive ? (
+                          <Badge 
+                            className="rounded-md font-medium"
+                            style={{ backgroundColor: 'rgba(0, 201, 80, 0.14)', color: '#00953b' }}
+                          >
+                            Active
+                          </Badge>
+                        ) : (
+                          <Badge 
+                            variant="secondary"
+                            className="bg-[#dedede] text-[#636363] rounded-md"
+                          >
+                            Inactive
+                          </Badge>
+                        )}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {org.createdAt ? new Date(org.createdAt).toLocaleDateString() : "-"}

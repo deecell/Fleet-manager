@@ -247,12 +247,21 @@ export default function UsersPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge 
-                          variant="secondary"
-                          className={user.isActive ? "bg-green-100 text-green-700" : "bg-[#dedede] text-[#636363]"}
-                        >
-                          {user.isActive ? "Active" : "Inactive"}
-                        </Badge>
+                        {user.isActive ? (
+                          <Badge 
+                            className="rounded-md font-medium"
+                            style={{ backgroundColor: 'rgba(0, 201, 80, 0.14)', color: '#00953b' }}
+                          >
+                            Active
+                          </Badge>
+                        ) : (
+                          <Badge 
+                            variant="secondary"
+                            className="bg-[#dedede] text-[#636363] rounded-md"
+                          >
+                            Inactive
+                          </Badge>
+                        )}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : "Never"}

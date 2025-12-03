@@ -191,12 +191,21 @@ export default function FleetsPage() {
                       <TableCell className="text-muted-foreground">{fleet.description || "-"}</TableCell>
                       <TableCell className="text-muted-foreground">{fleet.timezone}</TableCell>
                       <TableCell>
-                        <Badge 
-                          variant="secondary"
-                          className={fleet.isActive ? "bg-green-100 text-green-700" : "bg-[#dedede] text-[#636363]"}
-                        >
-                          {fleet.isActive ? "Active" : "Inactive"}
-                        </Badge>
+                        {fleet.isActive ? (
+                          <Badge 
+                            className="rounded-md font-medium"
+                            style={{ backgroundColor: 'rgba(0, 201, 80, 0.14)', color: '#00953b' }}
+                          >
+                            Active
+                          </Badge>
+                        ) : (
+                          <Badge 
+                            variant="secondary"
+                            className="bg-[#dedede] text-[#636363] rounded-md"
+                          >
+                            Inactive
+                          </Badge>
+                        )}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {fleet.createdAt ? new Date(fleet.createdAt).toLocaleDateString() : "-"}
