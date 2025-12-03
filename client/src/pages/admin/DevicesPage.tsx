@@ -293,10 +293,10 @@ export default function DevicesPage() {
                         <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md border text-xs font-medium ${
                           device.status === "online" 
                             ? "bg-[rgba(0,201,80,0.14)] border-[#00c950] text-[#00953b]" 
-                            : "bg-[#dedede] border-[#b0b0b0] text-[#636363]"
+                            : "bg-[rgba(255,9,0,0.14)] border-[#ff0900] text-[#ff0900]"
                         }`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${
-                            device.status === "online" ? "bg-[#00c950]" : "bg-[#888]"
+                            device.status === "online" ? "bg-[#00c950]" : "bg-[#ff0900]"
                           }`} />
                           {device.status === "online" ? "Online" : "Offline"}
                         </div>
