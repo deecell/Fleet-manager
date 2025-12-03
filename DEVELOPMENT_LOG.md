@@ -6,6 +6,18 @@
 
 ## Latest Updates (December 3, 2025)
 
+### Deployment Preparation (December 3, 2025 - Evening)
+
+**Changes Ready for Production**:
+- Incremental database migrations now run on existing production database
+- Uses `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` (safe, idempotent)
+- New columns added to `device_snapshots`: `is_parked`, `parked_since`, `today_parked_minutes`, `parked_date`
+- Frontend calculates parked status from voltage2 immediately (no Device Manager dependency)
+
+**To Deploy**: Commit and push to trigger GitHub Actions CI/CD pipeline.
+
+---
+
 ### Parked Status & Fuel Savings Tracking (December 3, 2025)
 
 **Goal**: Track when trucks are parked (idle reduction) and calculate fuel savings based on parked time.

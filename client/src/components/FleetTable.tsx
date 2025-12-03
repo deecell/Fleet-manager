@@ -1,3 +1,4 @@
+// FleetTable component - displays truck fleet with parked status and savings
 import { LegacyTruckWithDevice } from "@/lib/api";
 import { ArrowUpDown, AlertTriangle } from "lucide-react";
 import { useState } from "react";

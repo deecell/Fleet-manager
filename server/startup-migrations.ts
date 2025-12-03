@@ -2,6 +2,7 @@ import { pool } from "./db";
 
 // Incremental migrations for adding new columns to existing tables
 // These run safely on existing databases without dropping/recreating tables
+// Last updated: December 3, 2025 - Added parked status columns
 async function runIncrementalMigrations(): Promise<void> {
   console.log("[Migrations] Running incremental migrations...");
   
