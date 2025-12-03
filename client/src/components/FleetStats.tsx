@@ -1,4 +1,4 @@
-import { Battery, TrendingUp, TrendingDown } from "lucide-react";
+import { Battery, TrendingUp, TrendingDown, Leaf } from "lucide-react";
 import dolarIcon from "@assets/dolar.svg";
 import trendIcon from "@assets/trend.svg";
 import { useState, useEffect, useRef } from "react";
@@ -159,9 +159,14 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
   });
 
   const todaySavings = savingsData?.todaySavings ?? 0;
+  const todayGallonsSaved = savingsData?.todayGallonsSaved ?? 0;
   const trendDollar = savingsData?.trendDollarAmount ?? 0;
   const trendPercent = savingsData?.trendPercentage ?? 0;
   const trendIsPositive = savingsData?.trendIsPositive ?? true;
+
+  // CO2 Reduction: Each gallon of diesel emits 22.4 lbs of CO2
+  const CO2_LBS_PER_GALLON = 22.4;
+  const todayCO2Reduction = todayGallonsSaved * CO2_LBS_PER_GALLON;
 
   const formatSavingsTrend = () => {
     const dollarStr = `$ ${Math.abs(trendDollar).toFixed(0)}`;
@@ -185,7 +190,7 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
   const storedEnergyValue = totalKwh * ENERGY_PRICE_PER_KWH;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <StatCard
         title="Today's Savings"
         value={`$ ${todaySavings.toFixed(2)}`}
@@ -199,6 +204,20 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
         }}
         icon={<img src={dolarIcon} alt="Dollar" className="h-6 w-6" />}
         iconBgColor="bg-[#effcdc]"
+        valueColor="text-[#008236]"
+      />
+      <StatCard
+        title="CO₂ Reduction"
+        value={`${todayCO2Reduction.toFixed(1)} lbs`}
+        targetNumber={todayCO2Reduction}
+        suffix=" lbs"
+        decimals={1}
+        trend={{ 
+          value: formatSavingsTrend(), 
+          isPositive: trendIsPositive 
+        }}
+        icon={<Leaf className="h-6 w-6 text-[#22c55e]" />}
+        iconBgColor="bg-[#dcfce7]"
         valueColor="text-[#008236]"
       />
       <StatCard
