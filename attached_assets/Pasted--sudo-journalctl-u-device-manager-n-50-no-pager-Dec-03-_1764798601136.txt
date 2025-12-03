@@ -1,0 +1,51 @@
+$ sudo journalctl -u device-manager -n 50 --no-pager
+Dec 03 21:46:59 ip-10-0-11-200 node[27449]: {"timestamp":"2025-12-03T21:46:59.294Z","level":"info","message":"Polling scheduler stopped","service":"device-manager","totalPolls":338,"successfulPolls":338,"failedPolls":0,"skippedPolls":0,"ticksProcessed":1125,"lastTickTime":"2025-12-03T21:46:58.240Z","averagePollDurationMs":123.12433501538592}
+Dec 03 21:46:59 ip-10-0-11-200 node[27449]: {"timestamp":"2025-12-03T21:46:59.294Z","level":"info","message":"Polling scheduler stopped","service":"device-manager"}
+Dec 03 21:46:59 ip-10-0-11-200 node[27449]: {"timestamp":"2025-12-03T21:46:59.294Z","level":"info","message":"Backfill service stopped","service":"device-manager","totalBackfills":0,"successfulBackfills":0,"failedBackfills":0,"totalSamplesBackfilled":0,"lastCheckTime":"2025-12-03T21:46:54.296Z"}
+Dec 03 21:46:59 ip-10-0-11-200 node[27449]: {"timestamp":"2025-12-03T21:46:59.295Z","level":"info","message":"Backfill service stopped","service":"device-manager"}
+Dec 03 21:46:59 ip-10-0-11-200 node[27449]: {"timestamp":"2025-12-03T21:46:59.303Z","level":"info","message":"Batch writer stopped","service":"device-manager","totalWritten":338,"totalBatches":237,"failedBatches":0,"queueHighWaterMark":2,"lastFlushTime":"2025-12-03T21:46:59.303Z","averageFlushDurationMs":9.432692383288254}
+Dec 03 21:46:59 ip-10-0-11-200 node[27449]: {"timestamp":"2025-12-03T21:46:59.304Z","level":"info","message":"Batch writer stopped","service":"device-manager"}
+Dec 03 21:46:59 ip-10-0-11-200 node[27449]: {"timestamp":"2025-12-03T21:46:59.304Z","level":"info","message":"Disconnecting all devices","service":"device-manager"}
+Dec 03 21:46:59 ip-10-0-11-200 node[27449]: {"timestamp":"2025-12-03T21:46:59.398Z","level":"info","message":"Disconnected","service":"device-manager","deviceId":3,"serial":"A3A5B30EA9B3FF98","cohort":4}
+Dec 03 21:46:59 ip-10-0-11-200 node[27449]: {"timestamp":"2025-12-03T21:46:59.449Z","level":"info","message":"Disconnected","service":"device-manager","deviceId":4,"serial":"1982A3044D3599E2","cohort":9}
+Dec 03 21:46:59 ip-10-0-11-200 node[27449]: {"timestamp":"2025-12-03T21:46:59.495Z","level":"info","message":"Disconnected","service":"device-manager","deviceId":5,"serial":"B051375C222A5334","cohort":4}
+Dec 03 21:46:59 ip-10-0-11-200 node[27449]: {"timestamp":"2025-12-03T21:46:59.495Z","level":"info","message":"All devices disconnected","service":"device-manager"}
+Dec 03 21:46:59 ip-10-0-11-200 node[27449]: {"timestamp":"2025-12-03T21:46:59.495Z","level":"info","message":"Device connections closed","service":"device-manager"}
+Dec 03 21:46:59 ip-10-0-11-200 node[27449]: {"timestamp":"2025-12-03T21:46:59.496Z","level":"info","message":"Metrics server stopped","service":"device-manager"}
+Dec 03 21:46:59 ip-10-0-11-200 node[27449]: {"timestamp":"2025-12-03T21:46:59.496Z","level":"info","message":"Metrics server stopped","service":"device-manager"}
+Dec 03 21:46:59 ip-10-0-11-200 node[27449]: {"timestamp":"2025-12-03T21:46:59.496Z","level":"info","message":"Database pool closed","service":"device-manager"}
+Dec 03 21:46:59 ip-10-0-11-200 node[27449]: {"timestamp":"2025-12-03T21:46:59.496Z","level":"info","message":"Database closed","service":"device-manager"}
+Dec 03 21:46:59 ip-10-0-11-200 node[27449]: {"timestamp":"2025-12-03T21:46:59.496Z","level":"info","message":"Device Manager shutdown complete","service":"device-manager"}
+Dec 03 21:46:59 ip-10-0-11-200 systemd[1]: device-manager.service: Deactivated successfully.
+Dec 03 21:46:59 ip-10-0-11-200 systemd[1]: Stopped device-manager.service - Deecell Fleet Device Manager.
+Dec 03 21:46:59 ip-10-0-11-200 systemd[1]: device-manager.service: Consumed 5.705s CPU time.
+Dec 03 21:48:38 ip-10-0-11-200 systemd[1]: Started device-manager.service - Deecell Fleet Device Manager.
+Dec 03 21:48:38 ip-10-0-11-200 node[27798]: {"timestamp":"2025-12-03T21:48:38.818Z","level":"info","message":"PowerMon addon loaded successfully","service":"device-manager"}
+Dec 03 21:48:38 ip-10-0-11-200 node[27798]: {"timestamp":"2025-12-03T21:48:38.823Z","level":"info","message":"Device Manager starting","service":"device-manager","pollInterval":10000,"cohorts":10,"batchFlushInterval":2000}
+Dec 03 21:48:38 ip-10-0-11-200 node[27798]: {"timestamp":"2025-12-03T21:48:38.823Z","level":"info","message":"Configuration validated","service":"device-manager"}
+Dec 03 21:48:38 ip-10-0-11-200 node[27798]: {"timestamp":"2025-12-03T21:48:38.824Z","level":"info","message":"Database pool initialized","service":"device-manager","poolSize":10}
+Dec 03 21:48:38 ip-10-0-11-200 node[27798]: {"timestamp":"2025-12-03T21:48:38.824Z","level":"info","message":"Database initialized","service":"device-manager"}
+Dec 03 21:48:38 ip-10-0-11-200 node[27798]: {"timestamp":"2025-12-03T21:48:38.824Z","level":"info","message":"Initializing connection pool","service":"device-manager"}
+Dec 03 21:48:38 ip-10-0-11-200 node[27798]: (node:27798) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
+Dec 03 21:48:38 ip-10-0-11-200 node[27798]: (Use `node --trace-warnings ...` to show where the warning was created)
+Dec 03 21:48:38 ip-10-0-11-200 node[27798]: {"timestamp":"2025-12-03T21:48:38.899Z","level":"info","message":"Found active devices","service":"device-manager","count":3}
+Dec 03 21:48:38 ip-10-0-11-200 node[27798]: {"timestamp":"2025-12-03T21:48:38.910Z","level":"info","message":"Connection pool initialized","service":"device-manager","devices":3,"cohorts":2}
+Dec 03 21:48:38 ip-10-0-11-200 node[27798]: {"timestamp":"2025-12-03T21:48:38.911Z","level":"info","message":"Batch writer started","service":"device-manager","flushIntervalMs":2000,"maxBatchSize":500}
+Dec 03 21:48:38 ip-10-0-11-200 node[27798]: {"timestamp":"2025-12-03T21:48:38.911Z","level":"info","message":"Connecting to all devices","service":"device-manager"}
+Dec 03 21:48:38 ip-10-0-11-200 node[27798]: {"timestamp":"2025-12-03T21:48:38.912Z","level":"info","message":"Connecting to device","service":"device-manager","deviceId":3,"serial":"A3A5B30EA9B3FF98","cohort":4}
+Dec 03 21:48:38 ip-10-0-11-200 node[27798]: {"timestamp":"2025-12-03T21:48:38.964Z","level":"info","message":"Metrics server started","service":"device-manager","port":3001,"metricsPath":"/metrics","healthPath":"/health"}
+Dec 03 21:48:38 ip-10-0-11-200 node[27798]: {"timestamp":"2025-12-03T21:48:38.965Z","level":"info","message":"Connected successfully","service":"device-manager","deviceId":3,"serial":"A3A5B30EA9B3FF98","cohort":4}
+Dec 03 21:48:38 ip-10-0-11-200 node[27798]: {"timestamp":"2025-12-03T21:48:38.969Z","level":"info","message":"Connecting to device","service":"device-manager","deviceId":4,"serial":"1982A3044D3599E2","cohort":9}
+Dec 03 21:48:38 ip-10-0-11-200 node[27798]: {"timestamp":"2025-12-03T21:48:38.976Z","level":"info","message":"Connected successfully","service":"device-manager","deviceId":4,"serial":"1982A3044D3599E2","cohort":9}
+Dec 03 21:48:38 ip-10-0-11-200 node[27798]: {"timestamp":"2025-12-03T21:48:38.980Z","level":"info","message":"Connecting to device","service":"device-manager","deviceId":5,"serial":"B051375C222A5334","cohort":4}
+Dec 03 21:48:38 ip-10-0-11-200 node[27798]: {"timestamp":"2025-12-03T21:48:38.987Z","level":"info","message":"Connected successfully","service":"device-manager","deviceId":5,"serial":"B051375C222A5334","cohort":4}
+Dec 03 21:48:38 ip-10-0-11-200 node[27798]: {"timestamp":"2025-12-03T21:48:38.991Z","level":"info","message":"Connection results","service":"device-manager","success":3,"failed":0}
+Dec 03 21:48:38 ip-10-0-11-200 node[27798]: {"timestamp":"2025-12-03T21:48:38.991Z","level":"info","message":"Starting polling scheduler","service":"device-manager","intervalMs":10000,"cohorts":10,"tickDurationMs":1000}
+Dec 03 21:48:38 ip-10-0-11-200 node[27798]: {"timestamp":"2025-12-03T21:48:38.991Z","level":"info","message":"Backfill service started","service":"device-manager","gapThresholdMs":30000,"maxConcurrent":5}
+Dec 03 21:48:38 ip-10-0-11-200 node[27798]: {"timestamp":"2025-12-03T21:48:38.991Z","level":"info","message":"Device Manager started successfully","service":"device-manager","devices":3,"status":"running"}
+Dec 03 21:48:39 ip-10-0-11-200 node[27798]: {"timestamp":"2025-12-03T21:48:39.671Z","level":"info","message":"Fetched device info from PowerMon","service":"device-manager","deviceId":5,"serial":"B051375C222A5334","cohort":4,"serialNumber":"B051375C222A5334","firmwareVersion":"1.32","hardwareRevision":"PowerMon-W","deviceName":"DCL-Carter"}
+Dec 03 21:48:39 ip-10-0-11-200 node[27798]: {"timestamp":"2025-12-03T21:48:39.674Z","level":"info","message":"Updated device info","service":"device-manager","deviceId":5,"serialNumber":"B051375C222A5334","firmwareVersion":"1.32","hardwareRevision":"PowerMon-W","deviceName":"DCL-Carter"}
+Dec 03 21:48:39 ip-10-0-11-200 node[27798]: {"timestamp":"2025-12-03T21:48:39.866Z","level":"info","message":"Fetched device info from PowerMon","service":"device-manager","deviceId":4,"serial":"1982A3044D3599E2","cohort":9,"serialNumber":"1982A3044D3599E2","firmwareVersion":"0.2","hardwareRevision":"PowerMon-E","deviceName":"DCL-Moeck-Shop"}
+Dec 03 21:48:39 ip-10-0-11-200 node[27798]: {"timestamp":"2025-12-03T21:48:39.869Z","level":"info","message":"Updated device info","service":"device-manager","deviceId":4,"serialNumber":"1982A3044D3599E2","firmwareVersion":"0.2","hardwareRevision":"PowerMon-E","deviceName":"DCL-Moeck-Shop"}
+Dec 03 21:48:40 ip-10-0-11-200 node[27798]: {"timestamp":"2025-12-03T21:48:40.284Z","level":"info","message":"Fetched device info from PowerMon","service":"device-manager","deviceId":3,"serial":"A3A5B30EA9B3FF98","cohort":4,"serialNumber":"A3A5B30EA9B3FF98","firmwareVersion":"1.32","hardwareRevision":"PowerMon-W","deviceName":"DCL-Moeck"}
+Dec 03 21:48:40 ip-10-0-11-200 node[27798]: {"timestamp":"2025-12-03T21:48:40.287Z","level":"info","message":"Updated device info","service":"device-manager","deviceId":3,"serialNumber":"A3A5B30EA9B3FF98","firmwareVersion":"1.32","hardwareRevision":"PowerMon-W","deviceName":"DCL-Moeck"}
