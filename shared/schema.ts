@@ -172,6 +172,10 @@ export const deviceSnapshots = pgTable("device_snapshots", {
   rssi: integer("rssi"),
   powerStatus: integer("power_status"),
   powerStatusString: text("power_status_string"),
+  isParked: boolean("is_parked").default(false),
+  parkedSince: timestamp("parked_since"),
+  todayParkedMinutes: integer("today_parked_minutes").default(0),
+  parkedDate: text("parked_date"),
   recordedAt: timestamp("recorded_at").notNull(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => ({

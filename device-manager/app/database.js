@@ -314,13 +314,65 @@ async function bulkInsertMeasurements(measurements) {
 }
 
 /**
+ * Parked detection threshold: chassis voltage < 13.8V means parked
+ */
+const PARKED_VOLTAGE_THRESHOLD = 13.8;
+
+/**
  * Update device snapshot (latest reading for dashboard)
+ * Also tracks parked status and accumulates parked time
  */
 async function upsertDeviceSnapshot(snapshot) {
+  const now = new Date();
+  const todayDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
+  
+  // Determine if currently parked based on chassis voltage (voltage2)
+  const isCurrentlyParked = (snapshot.voltage2 || 0) < PARKED_VOLTAGE_THRESHOLD;
+  
+  // Get current snapshot to check previous state
+  const currentResult = await query(
+    'SELECT is_parked, parked_since, today_parked_minutes, parked_date FROM device_snapshots WHERE device_id = $1',
+    [snapshot.deviceId]
+  );
+  
+  let isParked = isCurrentlyParked;
+  let parkedSince = isCurrentlyParked ? now : null;
+  let todayParkedMinutes = 0;
+  
+  if (currentResult.rows.length > 0) {
+    const current = currentResult.rows[0];
+    const wasParked = current.is_parked;
+    const previousParkedDate = current.parked_date;
+    
+    // Reset parked minutes if it's a new day
+    if (previousParkedDate === todayDate) {
+      todayParkedMinutes = current.today_parked_minutes || 0;
+    }
+    
+    if (wasParked && current.parked_since) {
+      if (isCurrentlyParked) {
+        // Still parked - keep the original parked_since
+        parkedSince = current.parked_since;
+        // Add time since last update (approximately 10 seconds per poll)
+        const minutesSinceLastPoll = 10 / 60; // ~0.167 minutes per poll
+        todayParkedMinutes += minutesSinceLastPoll;
+      } else {
+        // Transition: was parked, now moving
+        // Calculate final duration and add to today's minutes
+        const parkedDuration = (now - new Date(current.parked_since)) / 1000 / 60; // minutes
+        // Don't double-count - we already accumulated during parking, just ensure it's captured
+        parkedSince = null;
+      }
+    } else if (!wasParked && isCurrentlyParked) {
+      // Transition: was moving, now parked
+      parkedSince = now;
+    }
+  }
+  
   await query(`
     INSERT INTO device_snapshots 
-      (organization_id, device_id, truck_id, voltage1, voltage2, current, power, temperature, soc, energy, charge, runtime, rssi, power_status_string, recorded_at, updated_at)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW())
+      (organization_id, device_id, truck_id, voltage1, voltage2, current, power, temperature, soc, energy, charge, runtime, rssi, power_status_string, is_parked, parked_since, today_parked_minutes, parked_date, recorded_at, updated_at)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, NOW())
     ON CONFLICT (device_id) 
     DO UPDATE SET
       voltage1 = $4,
@@ -334,7 +386,11 @@ async function upsertDeviceSnapshot(snapshot) {
       runtime = $12,
       rssi = $13,
       power_status_string = $14,
-      recorded_at = $15,
+      is_parked = $15,
+      parked_since = $16,
+      today_parked_minutes = $17,
+      parked_date = $18,
+      recorded_at = $19,
       updated_at = NOW()
   `, [
     snapshot.organizationId,
@@ -351,8 +407,20 @@ async function upsertDeviceSnapshot(snapshot) {
     snapshot.runtime,
     snapshot.rssi || null,
     snapshot.powerStatusString || null,
+    isParked,
+    parkedSince,
+    Math.round(todayParkedMinutes * 100) / 100, // Round to 2 decimal places
+    todayDate,
     snapshot.recordedAt,
   ]);
+  
+  if (isCurrentlyParked) {
+    logger.debug('Truck parked', { 
+      deviceId: snapshot.deviceId, 
+      voltage2: snapshot.voltage2,
+      todayParkedMinutes: Math.round(todayParkedMinutes)
+    });
+  }
 }
 
 /**
