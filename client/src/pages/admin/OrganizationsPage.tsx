@@ -118,7 +118,7 @@ export default function OrganizationsPage() {
               Manage customer accounts and their settings
             </p>
           </div>
-          <Button className="bg-[#FA4B1E]" onClick={() => setIsCreateOpen(true)} data-testid="button-create-org">
+          <Button className="bg-[#FA4B1E] text-white" onClick={() => setIsCreateOpen(true)} data-testid="button-create-org">
             <Plus className="h-4 w-4 mr-2" />
             Add Organization
           </Button>
