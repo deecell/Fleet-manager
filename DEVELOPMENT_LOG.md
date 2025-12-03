@@ -27,6 +27,22 @@ https://applinks.thornwave.com/?n=DCL-Moeck&s=a3a5b30ea9b3ff98&h=41&c=c1HOvvGTYe
 
 ---
 
+### ✅ Fixed Device-to-Truck Assignment Bug (December 3, 2025)
+
+**Problem**: "Assign" button did nothing when clicked - devices couldn't be assigned to trucks.
+
+**Root Cause**: The `handleAssign` function used `selectedOrgId` (the organization filter dropdown) instead of the device's own `organizationId`. When viewing "All organizations", `selectedOrgId` was undefined, causing the function to silently return.
+
+**Changes to `client/src/pages/admin/DevicesPage.tsx`**:
+1. `handleAssign` now uses `assigningDevice.organizationId` instead of `selectedOrgId`
+2. `handleUnassign` now uses `device.organizationId` instead of `selectedOrgId`
+3. Truck dropdown in assign dialog filters trucks by the device's organization
+4. Assign button disable logic checks for available trucks in the device's organization
+
+**Result**: Device assignment now works correctly regardless of which organization filter is selected in the admin panel.
+
+---
+
 ## Previous Updates (December 2, 2025)
 
 ### ✅ AWS Deployment FULLY OPERATIONAL (December 2, 2025 - 11:40 PM)
