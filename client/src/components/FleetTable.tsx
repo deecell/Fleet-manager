@@ -65,7 +65,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
   return (
     <div className="flex gap-3 w-full mt-[0px] mb-[0px] pt-[2px] pb-[2px] min-w-[900px]">
       {/* Section 1: Truck & Location */}
-      <div className="bg-white rounded-b-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[23] mt-[21px]">
+      <div className="bg-white rounded-b-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[30] mt-[21px]">
         <table className="w-full">
           <thead>
             <tr className="bg-[#303030] h-[41px]">
@@ -142,7 +142,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
         </table>
       </div>
       {/* Section 2: Chassis */}
-      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[4]">
+      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[3]">
         <table className="w-full">
           <thead>
             <tr className="h-[21px]">
@@ -172,7 +172,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
         </table>
       </div>
       {/* Section 3: Sleeper */}
-      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[24]">
+      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[18]">
         <table className="w-full">
           <thead>
             <tr className="h-[21px]">
