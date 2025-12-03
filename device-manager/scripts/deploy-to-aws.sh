@@ -85,9 +85,19 @@ cp -r app package/
 cp -r lib package/
 cp -r src package/
 # NOTE: Do NOT copy build/ directory - native .node files are platform-specific
-# The deploy.sh on EC2 will run npm install to compile for Amazon Linux 2
+# The deploy.sh on EC2 will run npm install to compile for the target platform
 cp package.json package/
 cp binding.gyp package/
+
+# Copy libpowermon library (required for native addon compilation)
+# This contains header files and static library for the Thornwave PowerMon SDK
+if [ -d "../libpowermon_bin" ]; then
+  echo "  Including libpowermon_bin library..."
+  mkdir -p package/libpowermon_bin
+  cp -r ../libpowermon_bin/* package/libpowermon_bin/
+else
+  echo -e "${YELLOW}  Warning: libpowermon_bin not found - native addon won't build${NC}"
+fi
 
 # Create version info
 COMMIT_SHA=$(git rev-parse HEAD 2>/dev/null || echo "unknown")

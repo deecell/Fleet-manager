@@ -154,11 +154,14 @@ locals {
     cd /opt/device-manager
     unzip -o /tmp/device-manager.zip
     
-    echo "Installing dependencies and building native addon..."
+    echo "Installing dependencies..."
     npm ci --only=production
     
-    echo "Rebuilding native addon for this platform..."
+    echo "Building native addon for this platform..."
     npm rebuild
+    
+    echo "Verifying native addon..."
+    ls -la build/Release/powermon_addon.node 2>/dev/null || echo "Warning: addon not built"
     
     echo "Restarting service..."
     sudo systemctl restart device-manager

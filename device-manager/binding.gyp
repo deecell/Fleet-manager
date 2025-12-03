@@ -8,10 +8,11 @@
       ],
       "include_dirs": [
         "<!@(node -p \"require('node-addon-api').include\")",
+        "<(module_root_dir)/libpowermon_bin/inc",
         "../libpowermon_bin/inc"
       ],
       "libraries": [
-        "<(module_root_dir)/../libpowermon_bin/powermon_lib_pic.a",
+        "<(module_root_dir)/libpowermon_bin/powermon_lib_pic.a",
         "-lstdc++",
         "-lbluetooth",
         "-ldbus-1",
