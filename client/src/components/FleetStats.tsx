@@ -192,6 +192,7 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
         targetNumber={todaySavings}
         prefix="$ "
         decimals={2}
+        alwaysShowDecimals={true}
         trend={{ 
           value: formatSavingsTrend(), 
           isPositive: trendIsPositive 

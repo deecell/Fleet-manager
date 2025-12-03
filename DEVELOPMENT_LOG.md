@@ -6,6 +6,26 @@
 
 ## Latest Updates (December 3, 2025)
 
+### ✅ Fixed Today's Savings Decimal Display (December 3, 2025)
+
+**Fixed trailing zero display in Today's Savings card**
+
+- Before: `$10.1` (missing trailing zero)
+- After: `$10.10` (correct 2 decimal places)
+
+**Change**: Added `alwaysShowDecimals={true}` to the Today's Savings StatCard in `client/src/components/FleetStats.tsx`
+
+---
+
+### ✅ Fixed Device Info API Method Name (December 3, 2025)
+
+**Fixed PowerMon method name in Device Manager**
+
+- Changed `device.getDeviceInfo()` to `device.getInfo()` in connection-pool.js
+- The wrapper exports `getInfo` not `getDeviceInfo`
+
+---
+
 ### ✅ GitHub Issues Integration (December 3, 2025)
 
 **Added ability to create and view GitHub Issues from the Admin panel**
