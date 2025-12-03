@@ -256,9 +256,18 @@ export default function TrucksPage() {
                         {truck.vinNumber || "-"}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={truck.status === "in-service" ? "default" : "secondary"}>
-                          {truck.status === "in-service" ? "In Service" : "Not In Service"}
-                        </Badge>
+                        {truck.status === "in-service" ? (
+                          <Badge 
+                            className="rounded-md font-medium"
+                            style={{ backgroundColor: 'rgba(0, 201, 80, 0.14)', color: '#00953b' }}
+                          >
+                            In Service
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary">
+                            Not In Service
+                          </Badge>
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button
