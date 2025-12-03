@@ -93,6 +93,10 @@ class DeviceConnection {
             this.log.info('Connected successfully');
             
             await db.markDeviceConnected(this.deviceId);
+            
+            // Fetch and update device info on first connection
+            await this.fetchAndUpdateDeviceInfo();
+            
             resolve(true);
           },
           onDisconnect: (reason) => {
@@ -136,6 +140,42 @@ class DeviceConnection {
     
     this.status = 'disconnected';
     this.log.info('Disconnected');
+  }
+
+  /**
+   * Fetch device info from PowerMon and update database
+   * Called on first successful connection to auto-populate device details
+   */
+  async fetchAndUpdateDeviceInfo() {
+    if (!this.device) return;
+    
+    try {
+      // Get device info using callback API
+      this.device.getDeviceInfo((result) => {
+        if (!result.success) {
+          this.log.warn('Failed to get device info', { code: result.code });
+          return;
+        }
+        
+        const info = result.data;
+        const deviceInfo = {};
+        
+        // Map PowerMon info fields to database fields
+        if (info.serialNumber) deviceInfo.serialNumber = info.serialNumber;
+        if (info.firmwareVersion) deviceInfo.firmwareVersion = info.firmwareVersion;
+        if (info.hardwareRevision) deviceInfo.hardwareRevision = info.hardwareRevision;
+        if (info.hostId) deviceInfo.hostId = info.hostId;
+        
+        if (Object.keys(deviceInfo).length > 0) {
+          this.log.info('Fetched device info from PowerMon', deviceInfo);
+          db.updateDeviceInfo(this.deviceId, deviceInfo).catch((err) => {
+            this.log.error('Failed to update device info in database', { error: err.message });
+          });
+        }
+      });
+    } catch (err) {
+      this.log.warn('Error fetching device info', { error: err.message });
+    }
   }
 
   /**

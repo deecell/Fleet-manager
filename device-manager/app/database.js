@@ -165,6 +165,45 @@ async function markDeviceConnected(deviceId) {
 }
 
 /**
+ * Update device info from PowerMon (serial, firmware, hardware revision)
+ * Called on first successful connection to auto-populate device details
+ */
+async function updateDeviceInfo(deviceId, deviceInfo) {
+  const updates = [];
+  const params = [deviceId];
+  let paramIndex = 2;
+  
+  if (deviceInfo.serialNumber) {
+    updates.push(`serial_number = $${paramIndex++}`);
+    params.push(deviceInfo.serialNumber);
+  }
+  if (deviceInfo.firmwareVersion) {
+    updates.push(`firmware_version = $${paramIndex++}`);
+    params.push(deviceInfo.firmwareVersion);
+  }
+  if (deviceInfo.hardwareRevision) {
+    updates.push(`hardware_revision = $${paramIndex++}`);
+    params.push(deviceInfo.hardwareRevision);
+  }
+  if (deviceInfo.hostId) {
+    updates.push(`host_id = $${paramIndex++}`);
+    params.push(deviceInfo.hostId);
+  }
+  
+  if (updates.length === 0) return;
+  
+  updates.push('updated_at = NOW()');
+  
+  await query(`
+    UPDATE power_mon_devices 
+    SET ${updates.join(', ')}
+    WHERE id = $1
+  `, params);
+  
+  logger.info('Updated device info', { deviceId, ...deviceInfo });
+}
+
+/**
  * Mark device as disconnected and record gap start
  */
 async function markDeviceDisconnected(deviceId, lastSuccessfulPoll) {
@@ -336,6 +375,7 @@ module.exports = {
   upsertDeviceSyncStatus,
   markDeviceConnected,
   markDeviceDisconnected,
+  updateDeviceInfo,
   getDevicesNeedingBackfill,
   updateBackfillProgress,
   bulkInsertMeasurements,

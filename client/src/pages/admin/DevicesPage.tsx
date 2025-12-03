@@ -358,7 +358,7 @@ export default function DevicesPage() {
             <DialogHeader>
               <DialogTitle>Register Device</DialogTitle>
               <DialogDescription>
-                Add a new PowerMon device to the selected organization.
+                Add a new PowerMon device. Serial number, firmware version, and hardware revision will be auto-populated when the device connects.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
@@ -381,28 +381,6 @@ export default function DevicesPage() {
                   placeholder="PowerMon Unit 1"
                   data-testid="input-device-name"
                 />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="hardwareRevision">Hardware Revision</Label>
-                  <Input
-                    id="hardwareRevision"
-                    value={formData.hardwareRevision}
-                    onChange={(e) => setFormData({ ...formData, hardwareRevision: e.target.value })}
-                    placeholder="Rev A"
-                    data-testid="input-hardware-rev"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="firmwareVersion">Firmware Version</Label>
-                  <Input
-                    id="firmwareVersion"
-                    value={formData.firmwareVersion}
-                    onChange={(e) => setFormData({ ...formData, firmwareVersion: e.target.value })}
-                    placeholder="1.10.0"
-                    data-testid="input-firmware-version"
-                  />
-                </div>
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>

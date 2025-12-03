@@ -6,6 +6,34 @@
 
 ## Latest Updates (December 3, 2025)
 
+### ✅ Auto-Populate Device Info from PowerMon (December 3, 2025)
+
+**Added automatic device info population on first connection**
+
+When the Device Manager connects to a PowerMon device for the first time, it now automatically fetches and stores:
+- Serial Number
+- Firmware Version
+- Hardware Revision
+- Host ID
+
+**Changes**:
+1. **`device-manager/app/database.js`**:
+   - Added `updateDeviceInfo()` function to update device details in `power_mon_devices` table
+
+2. **`device-manager/app/connection-pool.js`**:
+   - Added `fetchAndUpdateDeviceInfo()` method to DeviceConnection class
+   - Called automatically after successful connection via `getDeviceInfo()` API
+   - Logs device info when fetched and updates database
+
+3. **`client/src/pages/admin/DevicesPage.tsx`**:
+   - Removed Hardware Revision and Firmware Version fields from Register Device dialog
+   - These fields are now auto-populated, so users don't need to enter them
+   - Updated dialog description to explain auto-population
+
+**User Experience**: Users only need to enter Serial Number (placeholder) and Device Name when registering. All technical details are filled in automatically when the PowerMon connects.
+
+---
+
 ### ✅ Thornwave Applink URL Support (December 3, 2025)
 
 **Added support for Thornwave applink URL format in device credentials**
