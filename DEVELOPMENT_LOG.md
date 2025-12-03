@@ -4,7 +4,30 @@
 
 ---
 
-## Latest Updates (December 2, 2025)
+## Latest Updates (December 3, 2025)
+
+### ✅ Thornwave Applink URL Support (December 3, 2025)
+
+**Added support for Thornwave applink URL format in device credentials**
+
+The system now accepts both URL formats:
+1. Legacy: `powermon://accessKey@connectionKey`
+2. Thornwave: `https://applinks.thornwave.com/?n=DeviceName&s=serial&h=41&c=connectionKey&k=accessKey`
+
+**Changes to `server/api/admin-routes.ts`**:
+- Updated POST `/devices/:id/credentials` to parse Thornwave URLs
+- Updated PATCH `/devices/:id/credentials` to parse Thornwave URLs
+- Extracts `c` parameter as connectionKey and `k` parameter as accessKey
+- Stores full applink URL for Device Manager compatibility
+
+**Example Thornwave URL**:
+```
+https://applinks.thornwave.com/?n=DCL-Moeck&s=a3a5b30ea9b3ff98&h=41&c=c1HOvvGTYe4HcxZ1AWUUVg%3D%3D&k=qN19gp1NyTIjTcKXIFUagek74WSxnF9446mW1lX0Ca4%3D
+```
+
+---
+
+## Previous Updates (December 2, 2025)
 
 ### ✅ AWS Deployment FULLY OPERATIONAL (December 2, 2025 - 11:40 PM)
 
