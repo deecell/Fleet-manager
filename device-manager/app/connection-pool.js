@@ -10,13 +10,35 @@ const { config } = require('./config');
 const logger = require('./logger');
 const db = require('./database');
 
-// Load the native addon
-let powermon;
-try {
-  powermon = require(path.join(__dirname, '../build/Release/powermon_addon.node'));
-} catch (err) {
-  logger.error('Failed to load PowerMon addon', { error: err.message });
-  powermon = null;
+// Load the native addon - with graceful fallback to simulation mode
+let powermon = null;
+let simulationMode = false;
+
+// Check if we're in simulation mode via environment variable
+// SIMULATION_MODE=true skips loading native addon entirely (avoids crash on incompatible binaries)
+if (process.env.SIMULATION_MODE === 'true' || process.env.SIMULATION_MODE === '1') {
+  simulationMode = true;
+  logger.info('Running in SIMULATION MODE - no real device connections');
+} else {
+  // Only attempt to load addon if not in simulation mode
+  // Note: If addon is compiled for different architecture, Node will crash on require()
+  // Set SIMULATION_MODE=true to avoid this on EC2 until addon is rebuilt for target platform
+  const addonPath = path.join(__dirname, '../build/Release/powermon_addon.node');
+  const fs = require('fs');
+  
+  if (!fs.existsSync(addonPath)) {
+    logger.warn('PowerMon addon not found at ' + addonPath + ', running in simulation mode');
+    simulationMode = true;
+  } else {
+    try {
+      powermon = require(addonPath);
+      logger.info('PowerMon addon loaded successfully');
+    } catch (err) {
+      logger.error('Failed to load PowerMon addon', { error: err.message });
+      logger.warn('Set SIMULATION_MODE=true to avoid crash on incompatible binaries');
+      simulationMode = true;
+    }
+  }
 }
 
 /**
