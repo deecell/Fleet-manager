@@ -239,12 +239,18 @@ export default function UsersPage() {
                         {[user.firstName, user.lastName].filter(Boolean).join(" ") || "-"}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={getRoleBadgeVariant(user.role)}>
+                        <Badge 
+                          variant="secondary"
+                          className="bg-[#dedede] text-[#636363]"
+                        >
                           {formatRole(user.role)}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={user.isActive ? "default" : "secondary"}>
+                        <Badge 
+                          variant="secondary"
+                          className={user.isActive ? "bg-green-100 text-green-700" : "bg-[#dedede] text-[#636363]"}
+                        >
                           {user.isActive ? "Active" : "Inactive"}
                         </Badge>
                       </TableCell>
