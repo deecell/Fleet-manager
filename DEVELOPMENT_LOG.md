@@ -43,6 +43,20 @@ https://applinks.thornwave.com/?n=DCL-Moeck&s=a3a5b30ea9b3ff98&h=41&c=c1HOvvGTYe
 
 ---
 
+### ✅ Fixed "Last Seen" Timestamp Not Updating (December 3, 2025)
+
+**Problem**: The "Last Seen" timestamp on the admin Devices page wasn't updating - it only showed when the device first connected, not ongoing poll activity.
+
+**Root Cause**: The `updateDevicePollStatus()` function in Device Manager only updated `last_successful_poll_at` in `device_sync_status` table, but didn't update `last_seen_at` in `power_mon_devices` table (which is what the admin UI displays).
+
+**Fix in `device-manager/app/database.js`**:
+- Added query to update `power_mon_devices.last_seen_at` on every successful poll
+- Now the admin dashboard shows real-time "Last Seen" timestamps
+
+**Deployment Required**: Push to GitHub and redeploy Device Manager on EC2.
+
+---
+
 ## Previous Updates (December 2, 2025)
 
 ### ✅ AWS Deployment FULLY OPERATIONAL (December 2, 2025 - 11:40 PM)
