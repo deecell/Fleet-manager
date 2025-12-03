@@ -134,7 +134,7 @@ export default function UsersPage() {
   const getRoleBadgeVariant = (role: string | null) => {
     switch (role) {
       case "super_admin":
-        return "destructive";
+        return "secondary";
       case "org_admin":
         return "default";
       case "manager":
