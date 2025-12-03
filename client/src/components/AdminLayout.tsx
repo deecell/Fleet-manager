@@ -77,7 +77,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             );
           })}
         </nav>
-        <div className="p-4 border-t border-border space-y-2">
+        <div className="p-4 border-t border-border space-y-2 bg-[#ffffff]">
           <Link href="/">
             <div 
               className="admin-nav-item flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground cursor-pointer"
