@@ -207,6 +207,19 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
         valueColor="text-[#008236]"
       />
       <StatCard
+        title="Avg. State of Charge"
+        value={`${formatSmartDecimal(avgSoc, 2)}%`}
+        targetNumber={avgSoc}
+        suffix="%"
+        decimals={2}
+        trend={{ 
+          value: formatSocTrend(), 
+          isPositive: socTrendIsPositive 
+        }}
+        icon={<Battery className="h-6 w-6 text-[#778AC2]" />}
+        iconBgColor="bg-[#EBEFFA]"
+      />
+      <StatCard
         title="CO₂ Reduction"
         value={`${todayCO2Reduction.toFixed(1)} lbs`}
         targetNumber={todayCO2Reduction}
@@ -219,19 +232,6 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
         icon={<Leaf className="h-6 w-6 text-[#22c55e]" />}
         iconBgColor="bg-[#EFFCDC]"
         valueColor="text-[#008236]"
-      />
-      <StatCard
-        title="Avg. State of Charge"
-        value={`${formatSmartDecimal(avgSoc, 2)}%`}
-        targetNumber={avgSoc}
-        suffix="%"
-        decimals={2}
-        trend={{ 
-          value: formatSocTrend(), 
-          isPositive: socTrendIsPositive 
-        }}
-        icon={<Battery className="h-6 w-6 text-[#778AC2]" />}
-        iconBgColor="bg-[#EBEFFA]"
       />
       <StatCard
         title="Stored Energy Value"
