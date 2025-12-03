@@ -6,6 +6,25 @@
 
 ## Latest Updates (December 3, 2025)
 
+### Device Manager Recovery (December 3, 2025 - 8:04 PM)
+
+**Issue**: Device Manager stopped working after a deploy - native addon failed to compile.
+
+**Root Cause**: 
+1. `libpowermon_bin` library wasn't included in deployment package
+2. EC2 was missing `libdbus-1-dev` system dependency
+3. `todayParkedMinutes` was being inserted as decimal (0.17) into integer column
+
+**Fixes Applied**:
+1. Updated `binding.gyp` to look for libpowermon in package directory
+2. Updated `deploy-to-aws.sh` to include libpowermon_bin in zip
+3. Installed `libdbus-1-dev` on EC2: `sudo apt-get install -y libdbus-1-dev`
+4. Fixed `database.js` - changed `Math.round(todayParkedMinutes * 100) / 100` to `Math.round(todayParkedMinutes)`
+
+**Status**: All 3 devices connected and polling successfully!
+
+---
+
 ### Deployment Preparation (December 3, 2025 - Evening)
 
 **Changes Ready for Production**:
