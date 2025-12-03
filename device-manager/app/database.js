@@ -185,9 +185,9 @@ async function updateDeviceInfo(deviceId, deviceInfo) {
     updates.push(`hardware_revision = $${paramIndex++}`);
     params.push(deviceInfo.hardwareRevision);
   }
-  if (deviceInfo.hostId) {
-    updates.push(`host_id = $${paramIndex++}`);
-    params.push(deviceInfo.hostId);
+  if (deviceInfo.deviceName) {
+    updates.push(`device_name = $${paramIndex++}`);
+    params.push(deviceInfo.deviceName);
   }
   
   if (updates.length === 0) return;

@@ -161,10 +161,11 @@ class DeviceConnection {
         const deviceInfo = {};
         
         // Map PowerMon info fields to database fields
-        if (info.serialNumber) deviceInfo.serialNumber = info.serialNumber;
+        // PowerMon returns: serial, firmwareVersion, hardwareRevision, hardwareString, name
+        if (info.serial) deviceInfo.serialNumber = info.serial;
         if (info.firmwareVersion) deviceInfo.firmwareVersion = info.firmwareVersion;
-        if (info.hardwareRevision) deviceInfo.hardwareRevision = info.hardwareRevision;
-        if (info.hostId) deviceInfo.hostId = info.hostId;
+        if (info.hardwareString) deviceInfo.hardwareRevision = info.hardwareString;
+        if (info.name) deviceInfo.deviceName = info.name;
         
         if (Object.keys(deviceInfo).length > 0) {
           this.log.info('Fetched device info from PowerMon', deviceInfo);
