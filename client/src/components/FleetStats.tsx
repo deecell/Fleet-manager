@@ -229,8 +229,8 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
           value: formatSavingsTrend(), 
           isPositive: trendIsPositive 
         }}
-        icon={<Leaf className="h-6 w-6 text-[#22c55e]" />}
-        iconBgColor="bg-[#EFFCDC]"
+        icon={<Leaf className="h-6 w-6 text-[#6B6164]" />}
+        iconBgColor="bg-[#ECE8E4]"
         valueColor="text-[#008236]"
       />
       <StatCard
