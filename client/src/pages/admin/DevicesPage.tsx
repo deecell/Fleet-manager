@@ -586,8 +586,10 @@ export default function DevicesPage() {
                       <p className="font-mono text-sm break-all mt-1">
                         {credentialData.credential.applinkUrl || "Not set"}
                       </p>
-                      <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
-                        <span>Status: {credentialData.credential.isActive ? "Active" : "Inactive"}</span>
+                      <div className="flex gap-4 mt-2 text-xs">
+                        <span className={credentialData.credential.isActive ? "text-green-700" : "text-[#636363]"}>
+                          Status: {credentialData.credential.isActive ? "Active" : "Inactive"}
+                        </span>
                       </div>
                     </div>
                   )}

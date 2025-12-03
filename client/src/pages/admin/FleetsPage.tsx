@@ -191,7 +191,10 @@ export default function FleetsPage() {
                       <TableCell className="text-muted-foreground">{fleet.description || "-"}</TableCell>
                       <TableCell className="text-muted-foreground">{fleet.timezone}</TableCell>
                       <TableCell>
-                        <Badge variant={fleet.isActive ? "default" : "secondary"}>
+                        <Badge 
+                          variant="secondary"
+                          className={fleet.isActive ? "bg-green-100 text-green-700" : "bg-[#dedede] text-[#636363]"}
+                        >
                           {fleet.isActive ? "Active" : "Inactive"}
                         </Badge>
                       </TableCell>

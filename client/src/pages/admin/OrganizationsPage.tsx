@@ -157,7 +157,10 @@ export default function OrganizationsPage() {
                         <Badge variant="secondary">{org.plan || "standard"}</Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={org.isActive ? "default" : "secondary"}>
+                        <Badge 
+                          variant="secondary"
+                          className={org.isActive ? "bg-green-100 text-green-700" : "bg-[#dedede] text-[#636363]"}
+                        >
                           {org.isActive ? "Active" : "Inactive"}
                         </Badge>
                       </TableCell>
