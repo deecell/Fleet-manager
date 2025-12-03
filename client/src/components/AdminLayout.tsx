@@ -56,7 +56,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             </span>
           </Link>
         </div>
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 p-4 space-y-1 bg-[#ffffff]">
           {navItems.map((item) => {
             const isActive = location === item.href || 
               (item.href !== "/admin" && location.startsWith(item.href));
