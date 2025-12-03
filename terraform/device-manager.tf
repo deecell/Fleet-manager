@@ -154,8 +154,11 @@ locals {
     cd /opt/device-manager
     unzip -o /tmp/device-manager.zip
     
-    echo "Installing dependencies (preserving pre-built native addons)..."
-    npm ci --only=production --ignore-scripts
+    echo "Installing dependencies and building native addon..."
+    npm ci --only=production
+    
+    echo "Rebuilding native addon for this platform..."
+    npm rebuild
     
     echo "Restarting service..."
     sudo systemctl restart device-manager
