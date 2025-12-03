@@ -1,5 +1,35 @@
 import { pool } from "./db";
 
+// Incremental migrations for adding new columns to existing tables
+// These run safely on existing databases without dropping/recreating tables
+async function runIncrementalMigrations(): Promise<void> {
+  console.log("[Migrations] Running incremental migrations...");
+  
+  // Migration: Add parked status columns to device_snapshots (Dec 2025)
+  try {
+    await pool.query(`
+      ALTER TABLE device_snapshots 
+      ADD COLUMN IF NOT EXISTS is_parked BOOLEAN DEFAULT FALSE;
+    `);
+    await pool.query(`
+      ALTER TABLE device_snapshots 
+      ADD COLUMN IF NOT EXISTS parked_since TIMESTAMP;
+    `);
+    await pool.query(`
+      ALTER TABLE device_snapshots 
+      ADD COLUMN IF NOT EXISTS today_parked_minutes INTEGER DEFAULT 0;
+    `);
+    await pool.query(`
+      ALTER TABLE device_snapshots 
+      ADD COLUMN IF NOT EXISTS parked_date TEXT;
+    `);
+    console.log("[Migrations] Added parked status columns to device_snapshots");
+  } catch (error) {
+    // Columns may already exist, that's fine
+    console.log("[Migrations] Parked columns already exist or error:", error);
+  }
+}
+
 export async function runStartupMigrations(): Promise<boolean> {
   const isProduction = process.env.NODE_ENV === "production";
   
@@ -80,7 +110,8 @@ export async function runStartupMigrations(): Promise<boolean> {
         ) as exists
       `);
       if (existsCheck.rows[0].exists) {
-        console.log("[Migrations] Schema is current, skipping recreation");
+        console.log("[Migrations] Schema is current, running incremental migrations only");
+        await runIncrementalMigrations();
         return true;
       }
     }
@@ -482,6 +513,9 @@ export async function runStartupMigrations(): Promise<boolean> {
       INSERT INTO schema_version (version) VALUES ('v2');
     `);
     console.log("[Migrations] Created schema_version (v2)");
+
+    // Run incremental migrations for new columns
+    await runIncrementalMigrations();
 
     console.log("[Migrations] ✅ All tables created successfully!");
     return true;
