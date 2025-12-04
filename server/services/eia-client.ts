@@ -10,7 +10,7 @@ interface EIAResponse {
   response: {
     data: Array<{
       period: string;
-      value: number;
+      value: string | number; // EIA returns value as string
       "area-name": string;
       "product-name": string;
       duoarea: string;
@@ -53,7 +53,9 @@ export class EIAClient {
       const data: EIAResponse = await response.json();
       
       if (data.response?.data?.length > 0) {
-        const latestPrice = data.response.data[0].value;
+        // EIA returns value as string, parse to float
+        const rawValue = data.response.data[0].value;
+        const latestPrice = typeof rawValue === 'string' ? parseFloat(rawValue) : rawValue;
         const priceDate = new Date(data.response.data[0].period);
         
         await this.storeFuelPrice(priceDate, latestPrice, region);
