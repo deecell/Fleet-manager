@@ -190,7 +190,7 @@ export default function Dashboard() {
     .map(n => n.truckId as string);
 
   return (
-    <div className="min-h-screen bg-[#fafbfc] pb-[78px]">
+    <div className="min-h-screen bg-[#fafbfc] pb-[66px]">
       <header className="border-b border-gray-200 bg-white h-[75px]">
         <div className="h-full px-6 lg:px-[144px] flex items-center justify-between">
           <div className="flex items-center gap-4">

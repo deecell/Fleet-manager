@@ -99,7 +99,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           </div>
         </div>
       </aside>
-      <div className="flex-1 flex flex-col overflow-hidden pb-[78px]">
+      <div className="flex-1 flex flex-col overflow-hidden pb-[66px]">
         <main className="flex-1 overflow-auto">
           {children}
         </main>
