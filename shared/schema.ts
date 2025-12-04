@@ -176,6 +176,8 @@ export const deviceSnapshots = pgTable("device_snapshots", {
   parkedSince: timestamp("parked_since"),
   todayParkedMinutes: integer("today_parked_minutes").default(0),
   parkedDate: text("parked_date"),
+  monthParkedMinutes: integer("month_parked_minutes").default(0),
+  parkedMonth: text("parked_month"),
   recordedAt: timestamp("recorded_at").notNull(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => ({
