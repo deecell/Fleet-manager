@@ -135,7 +135,7 @@ export interface LegacyTruckWithDevice extends LegacyTruckWithHistory {
 }
 
 // Fuel savings and parked status constants
-const PARKED_VOLTAGE_THRESHOLD = 13.8; // Chassis voltage below this = parked (engine off)
+const PARKED_VOLTAGE_THRESHOLD = 13.0; // Chassis voltage below this = parked (engine off)
 const GALLONS_PER_HOUR_IDLING = 1.2;
 const DEFAULT_DIESEL_PRICE = 3.50;
 
@@ -163,7 +163,7 @@ export function useLegacyTrucks() {
     const soc = snapshot?.soc ?? 0;
     const calculatedKwh = ((batteryVoltage * batteryAh) * numberOfBatteries) * (soc / 100) / 1000;
     
-    // Parked status: chassis voltage (v2) < 13.8V means parked (engine off)
+    // Parked status: chassis voltage (v2) < 13.0V means parked (engine off)
     // Calculate from voltage directly for immediate display
     const chassisVoltage = snapshot?.voltage2 ?? 0;
     const isParked = chassisVoltage < PARKED_VOLTAGE_THRESHOLD;

@@ -314,9 +314,9 @@ async function bulkInsertMeasurements(measurements) {
 }
 
 /**
- * Parked detection threshold: chassis voltage < 13.8V means parked
+ * Parked detection threshold: chassis voltage < 13.0V means parked
  */
-const PARKED_VOLTAGE_THRESHOLD = 13.8;
+const PARKED_VOLTAGE_THRESHOLD = 13.0;
 
 /**
  * Update device snapshot (latest reading for dashboard)
