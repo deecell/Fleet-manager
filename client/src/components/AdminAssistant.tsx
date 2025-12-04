@@ -1,14 +1,19 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, User, X } from "lucide-react";
+import { Send, User, X, GripVertical } from "lucide-react";
 import sunIcon from "@assets/icon-sun.svg";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+}
+
+interface Position {
+  x: number;
+  y: number;
 }
 
 export function AdminAssistant() {
@@ -25,6 +30,12 @@ export function AdminAssistant() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const [buttonPosition, setButtonPosition] = useState<Position>({ x: 0, y: 0 });
+  const [windowPosition, setWindowPosition] = useState<Position>({ x: 0, y: 0 });
+  const [isDraggingButton, setIsDraggingButton] = useState(false);
+  const [isDraggingWindow, setIsDraggingWindow] = useState(false);
+  const dragStartRef = useRef<{ x: number; y: number; posX: number; posY: number }>({ x: 0, y: 0, posX: 0, posY: 0 });
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -36,6 +47,64 @@ export function AdminAssistant() {
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [open]);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (isDraggingButton) {
+      const deltaX = dragStartRef.current.x - e.clientX;
+      const deltaY = dragStartRef.current.y - e.clientY;
+      setButtonPosition({
+        x: dragStartRef.current.posX + deltaX,
+        y: dragStartRef.current.posY + deltaY
+      });
+    }
+    if (isDraggingWindow) {
+      const deltaX = dragStartRef.current.x - e.clientX;
+      const deltaY = dragStartRef.current.y - e.clientY;
+      setWindowPosition({
+        x: dragStartRef.current.posX + deltaX,
+        y: dragStartRef.current.posY + deltaY
+      });
+    }
+  }, [isDraggingButton, isDraggingWindow]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDraggingButton(false);
+    setIsDraggingWindow(false);
+  }, []);
+
+  useEffect(() => {
+    if (isDraggingButton || isDraggingWindow) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+      return () => {
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+      };
+    }
+  }, [isDraggingButton, isDraggingWindow, handleMouseMove, handleMouseUp]);
+
+  const startDraggingButton = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragStartRef.current = { 
+      x: e.clientX, 
+      y: e.clientY, 
+      posX: buttonPosition.x, 
+      posY: buttonPosition.y 
+    };
+    setIsDraggingButton(true);
+  };
+
+  const startDraggingWindow = (e: React.MouseEvent) => {
+    e.preventDefault();
+    dragStartRef.current = { 
+      x: e.clientX, 
+      y: e.clientY, 
+      posX: windowPosition.x, 
+      posY: windowPosition.y 
+    };
+    setIsDraggingWindow(true);
+  };
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
@@ -102,21 +171,36 @@ export function AdminAssistant() {
     "How many users are there?"
   ];
 
+  const handleButtonClick = () => {
+    if (!isDraggingButton) {
+      setOpen(!open);
+    }
+  };
+
   return (
     <>
       {open && (
         <div 
-          className="fixed bottom-[180px] right-6 w-[380px] h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col z-50 overflow-hidden"
+          className="fixed w-[380px] h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col z-50 overflow-hidden"
+          style={{
+            right: `${24 + windowPosition.x}px`,
+            bottom: `${180 + windowPosition.y}px`,
+            cursor: isDraggingWindow ? "grabbing" : "default"
+          }}
           data-testid="admin-chat-window"
         >
           <div className="flex items-center justify-between p-4 border-b bg-[#2d3748]">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#EBEFFA] flex items-center justify-center">
+            <div 
+              className="flex items-center gap-2 cursor-grab active:cursor-grabbing select-none"
+              onMouseDown={startDraggingWindow}
+            >
+              <GripVertical className="h-4 w-4 text-gray-400" />
+              <div className="w-10 h-10 rounded-full bg-[#EBEFFA] flex items-center justify-center pointer-events-none">
                 <img src={sunIcon} alt="Ray Ray" className="h-6 w-6" />
               </div>
-              <div>
+              <div className="pointer-events-none">
                 <h3 className="font-semibold text-sm text-white">Ray Ray (Admin)</h3>
-                <p className="text-xs text-gray-300">Cross-organization insights</p>
+                <p className="text-xs text-gray-300">Drag to move</p>
               </div>
             </div>
             <button 
@@ -230,11 +314,17 @@ export function AdminAssistant() {
         </div>
       )}
       <button
-        onClick={() => setOpen(!open)}
-        className="fixed bottom-[102px] right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center z-50 bg-[#2d3748]"
+        onClick={handleButtonClick}
+        onMouseDown={startDraggingButton}
+        className="fixed w-14 h-14 rounded-full shadow-lg flex items-center justify-center z-50 bg-[#2d3748] select-none"
+        style={{
+          right: `${24 + buttonPosition.x}px`,
+          bottom: `${102 + buttonPosition.y}px`,
+          cursor: isDraggingButton ? "grabbing" : "grab"
+        }}
         data-testid="button-open-admin-assistant"
       >
-        <img src={sunIcon} alt="Admin AI Assistant" className="h-8 w-8" />
+        <img src={sunIcon} alt="Admin AI Assistant" className="h-8 w-8 pointer-events-none" />
       </button>
     </>
   );
