@@ -71,6 +71,23 @@
 
 ---
 
+### 📋 BACKLOG: Centralize Parked Voltage Threshold (December 4, 2025)
+
+**Issue**: The parked voltage threshold (13.0V) is duplicated in two places:
+1. `client/src/lib/api.ts` (line 141) - Frontend calculation
+2. `device-manager/app/database.js` (line 322) - Device Manager calculation
+
+**Why**: These are separate applications deployed to different environments (Replit vs AWS EC2), so they can't share code at runtime.
+
+**Proposed Solutions**:
+1. **Database config** (recommended): Store threshold in `savings_config` or new `fleet_settings` table, Device Manager fetches on startup
+2. **Environment variable**: Both apps read from `PARKED_VOLTAGE_THRESHOLD` env var
+3. **API endpoint**: Device Manager calls Replit backend for configuration on startup
+
+**Benefit**: Single source of truth, change once instead of twice, reduces risk of inconsistency.
+
+---
+
 ### 📋 BACKLOG: Review Runtime Data Type (December 3, 2025)
 
 **Issue**: PowerMon devices return `runtime` as a decimal (e.g., 0.17), but our database stores it as an integer.
