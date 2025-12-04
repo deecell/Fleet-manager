@@ -6,6 +6,78 @@
 
 ## Latest Updates (December 4, 2025)
 
+### Device Manager SSL/TLS Connection Issue (December 4, 2025 - 7:30 PM)
+
+**Problem**: Device Manager failed to connect to AWS RDS PostgreSQL with error:
+```
+"self-signed certificate in certificate chain"
+```
+
+**Root Cause**: Node.js `pg` driver requires explicit SSL configuration for AWS RDS connections. Unlike `psql` CLI which uses system certificates, Node.js doesn't automatically trust AWS RDS certificates.
+
+**Quick Fix Applied (Temporary - for immediate recovery)**:
+Added `NODE_TLS_REJECT_UNAUTHORIZED=0` to systemd service via SSM command.
+
+**Proper Production Fix (Now Implemented)**:
+
+1. **Terraform user data** (`terraform/device-manager.tf`):
+   - Downloads RDS CA bundle during EC2 setup
+   - Stores at `/opt/device-manager/certs/rds-ca-bundle.pem`
+   - Sets `RDS_CA_BUNDLE` environment variable in systemd service
+
+2. **Database.js** (`device-manager/app/database.js`):
+   - Added `getSslConfig()` function
+   - Uses AWS RDS CA bundle when `RDS_CA_BUNDLE` env var is set
+   - Falls back to `rejectUnauthorized: false` if bundle not found (logs warning)
+   - Full certificate verification when bundle is present
+
+**Implementation**:
+```javascript
+function getSslConfig() {
+  const rdsCaBundle = process.env.RDS_CA_BUNDLE;
+  
+  if (rdsCaBundle && fs.existsSync(rdsCaBundle)) {
+    return {
+      rejectUnauthorized: true,
+      ca: fs.readFileSync(rdsCaBundle).toString()
+    };
+  }
+  
+  // Fallback for development
+  return { rejectUnauthorized: false };
+}
+```
+
+**Files Modified**:
+- `device-manager/app/database.js` - Added SSL config with CA bundle support
+- `terraform/device-manager.tf` - Downloads RDS CA bundle, sets env var
+
+**To Apply on Existing Instance** (if needed):
+```bash
+# SSH or SSM into EC2
+mkdir -p /opt/device-manager/certs
+curl -sS "https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem" \
+  -o /opt/device-manager/certs/rds-ca-bundle.pem
+
+# Update systemd service to include env var
+sudo sed -i '/\[Service\]/a Environment=RDS_CA_BUNDLE=/opt/device-manager/certs/rds-ca-bundle.pem' \
+  /etc/systemd/system/device-manager.service
+  
+# Remove the insecure NODE_TLS fix if present
+sudo sed -i '/NODE_TLS_REJECT_UNAUTHORIZED/d' /etc/systemd/system/device-manager.service
+
+sudo systemctl daemon-reload
+sudo systemctl restart device-manager
+```
+
+**References**:
+- AWS RDS SSL Docs: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html
+- Certificate Bundle: https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem
+
+**Status**: ✅ Proper SSL implementation deployed. New EC2 instances will automatically use certificate verification.
+
+---
+
 ### Admin AI Assistant (December 4, 2025 - 5:15 PM)
 
 **Goal**: Create a separate Ray Ray AI assistant for the admin dashboard with cross-organization data access.

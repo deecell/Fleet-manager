@@ -5,11 +5,35 @@
  * Optimized for batch writes and high throughput.
  */
 
+const fs = require('fs');
 const { Pool } = require('pg');
 const { config } = require('./config');
 const logger = require('./logger');
 
 let pool = null;
+
+/**
+ * Get SSL configuration for database connection
+ * Uses AWS RDS CA bundle if available, otherwise falls back to basic SSL
+ */
+function getSslConfig() {
+  const rdsCaBundle = process.env.RDS_CA_BUNDLE;
+  
+  if (rdsCaBundle && fs.existsSync(rdsCaBundle)) {
+    logger.info('Using AWS RDS CA certificate bundle for SSL', { path: rdsCaBundle });
+    return {
+      rejectUnauthorized: true,
+      ca: fs.readFileSync(rdsCaBundle).toString()
+    };
+  }
+  
+  // Fallback for development or when certificate not available
+  // Note: rejectUnauthorized: false is less secure but allows connection
+  logger.warn('RDS CA bundle not found, using basic SSL (less secure)');
+  return {
+    rejectUnauthorized: false
+  };
+}
 
 /**
  * Initialize the database connection pool
@@ -24,7 +48,7 @@ function initDatabase() {
     max: config.database.poolSize,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 10000,
-    ssl: true
+    ssl: getSslConfig()
   });
 
   pool.on('error', (err) => {

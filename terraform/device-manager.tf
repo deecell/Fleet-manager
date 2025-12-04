@@ -119,6 +119,12 @@ locals {
     
     chmod +x /opt/device-manager/start.sh
 
+    # Download AWS RDS CA certificate bundle for secure SSL connections
+    mkdir -p /opt/device-manager/certs
+    curl -sS "https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem" -o /opt/device-manager/certs/rds-ca-bundle.pem
+    chmod 644 /opt/device-manager/certs/rds-ca-bundle.pem
+    chown ubuntu:ubuntu /opt/device-manager/certs/rds-ca-bundle.pem
+
     # Create systemd service that uses the startup script
     cat > /etc/systemd/system/device-manager.service << 'SYSTEMD'
     [Unit]
@@ -129,6 +135,7 @@ locals {
     Type=simple
     User=ubuntu
     WorkingDirectory=/opt/device-manager
+    Environment=RDS_CA_BUNDLE=/opt/device-manager/certs/rds-ca-bundle.pem
     ExecStart=/opt/device-manager/start.sh
     Restart=always
     RestartSec=10
