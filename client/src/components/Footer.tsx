@@ -5,7 +5,7 @@ import openaiLogo from "@assets/openai.svg";
 
 export function Footer() {
   return (
-    <footer className="bg-[#fafbfc] border-t border-[#ebeef2] h-[78px] flex items-center justify-between px-8 shrink-0">
+    <footer className="fixed bottom-0 left-0 right-0 bg-[#fafbfc] border-t border-[#ebeef2] h-[78px] flex items-center justify-between px-8 z-40">
       <p className="font-light text-[12px] text-[#9da4ac] tracking-[-0.31px]">
         © 2026 Deecell, LLC. All rights reserved
       </p>
