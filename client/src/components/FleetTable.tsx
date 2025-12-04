@@ -116,8 +116,8 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                 <td className="px-3 py-2 text-center">
                   <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium ${
                     truck.isParked 
-                      ? "bg-[#e8f5e9] text-[#2e7d32]" 
-                      : "bg-[#fff3e0] text-[#e65100]"
+                      ? "bg-[#f0f0f0] text-[#6b7280]" 
+                      : "bg-[#e8f5e9] text-[#2e7d32]"
                   }`} data-testid={`parked-status-${truck.id}`}>
                     {truck.isParked ? "Parked" : "Driving"}
                   </span>
