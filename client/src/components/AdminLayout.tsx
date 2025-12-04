@@ -3,6 +3,7 @@ import { Building2, Truck, Cpu, Users, LayoutDashboard, Layers, LogOut, Loader2,
 import { cn } from "@/lib/utils";
 import { useAdminSession, useAdminLogout } from "@/lib/admin-api";
 import { useEffect } from "react";
+import { FleetAssistant } from "@/components/FleetAssistant";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -100,6 +101,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       <main className="flex-1 overflow-auto">
         {children}
       </main>
+      <FleetAssistant />
     </div>
   );
 }
