@@ -12,8 +12,8 @@ export function Footer() {
           Our partners
         </span>
         <div className="flex items-center gap-5">
-          <img src={openaiLogo} alt="OpenAI" className="h-[22px]" data-testid="logo-openai" />
           <img src={awsLogo} alt="AWS" className="h-[20px]" data-testid="logo-aws" />
+          <img src={openaiLogo} alt="OpenAI" className="h-[22px]" data-testid="logo-openai" />
           <img src={rtLogo} alt="Railtracks" className="h-[12px]" data-testid="logo-railtracks" />
           <img src={slLogo} alt="SL" className="h-[18px]" data-testid="logo-sl" />
         </div>
