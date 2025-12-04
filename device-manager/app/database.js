@@ -24,6 +24,7 @@ function initDatabase() {
     max: config.database.poolSize,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 10000,
+    ssl: true
   });
 
   pool.on('error', (err) => {
