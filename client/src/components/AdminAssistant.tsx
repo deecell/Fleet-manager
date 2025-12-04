@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, User, X } from "lucide-react";
-import sunIcon from "@assets/sun.png";
+import sunIcon from "@assets/icon-sun.svg";
 
 interface Message {
   role: "user" | "assistant";
