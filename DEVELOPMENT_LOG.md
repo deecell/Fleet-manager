@@ -6,6 +6,37 @@
 
 ## Latest Updates (December 4, 2025)
 
+### Admin AI Assistant (December 4, 2025 - 5:15 PM)
+
+**Goal**: Create a separate Ray Ray AI assistant for the admin dashboard with cross-organization data access.
+
+**Implementation Complete**:
+
+1. **Backend Service** (`server/services/admin-assistant.ts`):
+   - Admin-specific system prompt for cross-org context
+   - Function tools for admin queries:
+     - `get_system_overview` - Total counts: orgs, fleets, trucks, devices, users, alerts
+     - `list_organizations` - All organizations with fleet/truck/device/user counts
+     - `get_organization_details` - Deep dive into specific organization
+     - `get_all_devices_status` - Device health across all orgs (online/offline filter)
+     - `get_cross_org_alerts` - Active alerts system-wide
+     - `get_user_stats` - User counts by organization
+     - `get_low_battery_devices` - Low SOC devices across all orgs
+     - `get_fleet_summary` - All fleets with truck counts
+
+2. **API Endpoint** (`server/api/admin-routes.ts`):
+   - `POST /api/v1/admin/assistant/chat` - Protected by adminMiddleware
+   - Separate from tenant-scoped fleet assistant
+
+3. **Frontend Component** (`client/src/components/AdminAssistant.tsx`):
+   - Dark header theme to distinguish from fleet assistant
+   - Admin-specific suggested questions
+   - Calls admin endpoint instead of fleet endpoint
+
+**Status**: ✅ Live in admin dashboard
+
+---
+
 ### EIA Diesel Price Integration (December 4, 2025 - 4:45 PM)
 
 **Goal**: Use real-time diesel prices from the US Energy Information Administration instead of hardcoded $3.50.

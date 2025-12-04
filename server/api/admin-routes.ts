@@ -12,6 +12,7 @@ import { z } from "zod";
 import bcrypt from "bcrypt";
 import { getSimSyncService } from "../services/sim-sync-service";
 import { createGitHubIssue, listGitHubIssues, getGitHubLabels } from "../services/github-issues";
+import { processAdminChat, ChatMessage } from "../services/admin-assistant";
 
 const SALT_ROUNDS = 10;
 
@@ -904,6 +905,35 @@ router.post("/github/issues", adminMiddleware, async (req: Request, res: Respons
   } catch (error: any) {
     console.error("Error creating GitHub issue:", error);
     res.status(500).json({ error: error.message || "Failed to create GitHub issue" });
+  }
+});
+
+const adminChatSchema = z.object({
+  messages: z.array(z.object({
+    role: z.enum(["user", "assistant"]),
+    content: z.string()
+  }))
+});
+
+router.post("/assistant/chat", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const parsed = adminChatSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: "Invalid request body", details: parsed.error });
+    }
+
+    const { messages } = parsed.data;
+    console.log(`[AdminAssistant] Processing admin chat, ${messages.length} messages`);
+
+    const response = await processAdminChat(messages as ChatMessage[]);
+
+    return res.json({ 
+      response,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error("[AdminAssistant] Chat error:", error);
+    return res.status(500).json({ error: "Failed to process admin chat request" });
   }
 });
 
