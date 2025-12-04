@@ -6,6 +6,32 @@
 
 ## Latest Updates (December 4, 2025)
 
+### EIA Diesel Price Integration (December 4, 2025 - 4:45 PM)
+
+**Goal**: Use real-time diesel prices from the US Energy Information Administration instead of hardcoded $3.50.
+
+**Implementation Complete**:
+
+1. **Backend Endpoint** (`server/api/fleet-routes.ts`):
+   - Added `GET /api/v1/fuel-price` endpoint
+   - Fetches current US diesel price via `eiaClient.getCurrentFuelPrice()`
+   - Returns `{ pricePerGallon, source, currency }`
+
+2. **Frontend Hook** (`client/src/lib/api.ts`):
+   - Added `useFuelPrice()` hook that queries `/api/v1/fuel-price`
+   - Refetches every 5 minutes, considered fresh for 1 minute
+   - Falls back to $3.50 if API unavailable
+
+3. **Savings Calculations**:
+   - `useLegacyTrucks()` now uses dynamic diesel price for fuelSavings and mtdFuelSavings
+   - FleetStats Today's Savings automatically uses the dynamic price through truck data
+
+**API Key**: `EIA_API_KEY` secret configured - fetches weekly diesel prices by PADD region.
+
+**Status**: ✅ Connected and live
+
+---
+
 ### Monthly Parked Time Tracking (December 4, 2025 - 4:30 PM)
 
 **Goal**: Display Month-to-Date (MTD) fuel savings for individual trucks based on parked time.

@@ -141,13 +141,31 @@ const PARKED_VOLTAGE_THRESHOLD = 13.0; // Chassis voltage below this = parked (e
 const GALLONS_PER_HOUR_IDLING = 1.2;
 const DEFAULT_DIESEL_PRICE = 3.50;
 
+interface FuelPriceResponse {
+  pricePerGallon: number;
+  source: string;
+  currency: string;
+}
+
+export function useFuelPrice() {
+  return useQuery<FuelPriceResponse>({
+    queryKey: ["/api/v1/fuel-price"],
+    refetchInterval: 300000, // Refetch every 5 minutes
+    staleTime: 60000, // Consider fresh for 1 minute
+  });
+}
+
 export function useLegacyTrucks() {
   const trucksQuery = useTrucks();
   const devicesQuery = useDevices();
   const snapshotsQuery = useSnapshots();
+  const fuelPriceQuery = useFuelPrice();
 
   const isLoading = trucksQuery.isLoading || devicesQuery.isLoading || snapshotsQuery.isLoading;
   const isError = trucksQuery.isError || devicesQuery.isError || snapshotsQuery.isError;
+
+  // Use EIA price if available, fallback to default
+  const dieselPrice = fuelPriceQuery.data?.pricePerGallon ?? DEFAULT_DIESEL_PRICE;
 
   const legacyTrucks: LegacyTruckWithDevice[] = (trucksQuery.data?.trucks || []).map(truck => {
     const device = devicesQuery.data?.devices?.find(d => d.truckId === truck.id);
@@ -170,12 +188,12 @@ export function useLegacyTrucks() {
     const chassisVoltage = snapshot?.voltage2 ?? 0;
     const isParked = chassisVoltage < PARKED_VOLTAGE_THRESHOLD;
     
-    // Fuel Savings = (parkedMinutes / 60) * 1.2 gal/hr * diesel price
+    // Fuel Savings = (parkedMinutes / 60) * 1.2 gal/hr * diesel price (from EIA API)
     // Use database value if available, otherwise 0 (Device Manager tracks accumulated time)
     const todayParkedMinutes = snapshot?.todayParkedMinutes ?? 0;
     const parkedHours = todayParkedMinutes / 60;
     const gallonsSaved = parkedHours * GALLONS_PER_HOUR_IDLING;
-    const fuelSavings = gallonsSaved * DEFAULT_DIESEL_PRICE;
+    const fuelSavings = gallonsSaved * dieselPrice;
     
     // MTD Savings = (month_parked_minutes + today_parked_minutes) converted to savings
     // month_parked_minutes stores completed days only, so we add today for full MTD
@@ -183,7 +201,7 @@ export function useLegacyTrucks() {
     const monthParkedMinutes = completedDaysMinutes + todayParkedMinutes;
     const mtdParkedHours = monthParkedMinutes / 60;
     const mtdGallonsSaved = mtdParkedHours * GALLONS_PER_HOUR_IDLING;
-    const mtdFuelSavings = mtdGallonsSaved * DEFAULT_DIESEL_PRICE;
+    const mtdFuelSavings = mtdGallonsSaved * dieselPrice;
     
     return {
       id: String(truck.id),
@@ -222,6 +240,8 @@ export function useLegacyTrucks() {
     data: legacyTrucks,
     isLoading,
     isError,
+    fuelPrice: dieselPrice,
+    fuelPriceSource: fuelPriceQuery.data?.source ?? "default",
     refetch: () => {
       trucksQuery.refetch();
       devicesQuery.refetch();

@@ -808,6 +808,7 @@ router.get("/export/trucks/:id", tenantMiddleware, async (req: Request, res: Res
 // SAVINGS CALCULATOR (calculates fuel savings from solar energy)
 // ===========================================================================
 import { savingsCalculator } from "../services/savings-calculator";
+import { eiaClient } from "../services/eia-client";
 
 router.get("/savings", tenantMiddleware, async (req: Request, res: Response) => {
   try {
@@ -816,6 +817,21 @@ router.get("/savings", tenantMiddleware, async (req: Request, res: Response) => 
   } catch (error) {
     console.error("Error calculating savings:", error);
     res.status(500).json({ error: "Failed to calculate savings" });
+  }
+});
+
+// Get current fuel price (uses EIA API with fallback to default)
+router.get("/fuel-price", tenantMiddleware, async (req: Request, res: Response) => {
+  try {
+    const price = await eiaClient.getCurrentFuelPrice("US");
+    res.json({ 
+      pricePerGallon: price,
+      source: process.env.EIA_API_KEY ? "EIA" : "default",
+      currency: "USD"
+    });
+  } catch (error) {
+    console.error("Error getting fuel price:", error);
+    res.status(500).json({ error: "Failed to get fuel price" });
   }
 });
 

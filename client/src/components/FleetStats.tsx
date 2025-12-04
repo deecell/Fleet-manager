@@ -138,9 +138,8 @@ function StatCard({ title, trend, icon, iconBgColor, valueColor = "text-neutral-
   );
 }
 
-// Constants for fuel savings calculation (must match api.ts)
+// Constants for fuel savings calculation
 const GALLONS_PER_HOUR_IDLING = 1.2;
-const DEFAULT_DIESEL_PRICE = 3.50;
 const CO2_LBS_PER_GALLON = 22.4;
 
 export default function FleetStats({ trucks }: FleetStatsProps) {
