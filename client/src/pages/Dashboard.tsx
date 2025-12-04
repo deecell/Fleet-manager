@@ -11,6 +11,7 @@ import { useInitializeOrganization, useLogout } from "@/lib/auth-api";
 import { useToast } from "@/hooks/use-toast";
 import { User, LogOut, Search, Loader2, Download } from "lucide-react";
 import { FleetAssistant } from "@/components/FleetAssistant";
+import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -397,6 +398,7 @@ export default function Dashboard() {
         />
       )}
       
+      <Footer />
       <FleetAssistant />
     </div>
   );

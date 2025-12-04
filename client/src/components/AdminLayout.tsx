@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { useAdminSession, useAdminLogout } from "@/lib/admin-api";
 import { useEffect } from "react";
 import { AdminAssistant } from "@/components/AdminAssistant";
+import { Footer } from "@/components/Footer";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -98,9 +99,12 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           </div>
         </div>
       </aside>
-      <main className="flex-1 overflow-auto">
-        {children}
-      </main>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 overflow-auto">
+          {children}
+        </main>
+        <Footer />
+      </div>
       <AdminAssistant />
     </div>
   );
