@@ -6,6 +6,41 @@
 
 ## Latest Updates (December 4, 2025)
 
+### Backend Savings Calculator Bug Fix (December 4, 2025 - 9:55 PM)
+
+**Problem**: The backend savings calculator (`server/services/savings-calculator.ts`) was using an incorrect formula based on solar energy measurements that no longer exist in the data model.
+
+**Root Cause**: The original implementation calculated savings from `solarWh` in device measurements, but the system was refactored to use parked-time-based idle reduction savings. The backend was never updated to match.
+
+**Impact**: 
+- `/api/v1/savings` endpoint returned $0 or incorrect values
+- Fleet Assistant AI provided incorrect savings data
+- Dashboard statistics were inconsistent between frontend (correct) and backend (wrong)
+
+**Correct Formula** (now implemented):
+```
+savings = (parked_minutes / 60) × 1.2 gal/hr × diesel_price
+CO₂ reduction = gallons_saved × 22.4 lbs/gallon
+```
+
+**Device Manager Semantics** (clarified):
+- `month_parked_minutes` = completed days only (does NOT include today)
+- `today_parked_minutes` = current day's parked time
+- `MTD total = month_parked_minutes + today_parked_minutes`
+
+**Files Modified**:
+- `server/services/savings-calculator.ts` - Complete refactor to parked-time formula
+- `server/services/fleet-assistant.ts` - Updated `get_fleet_statistics` function
+
+**Verification**:
+- Database query confirmed: GFR-70 with 8 parked minutes = $0.60 savings
+- Formula: `(8/60) × 1.2 × $3.758 = $0.60` ✅
+- Unique constraint on `device_snapshots.device_id` ensures one snapshot per device
+
+**Status**: ✅ Backend now matches frontend calculations
+
+---
+
 ### Device Manager SSL/TLS Connection Issue (December 4, 2025 - 7:30 PM)
 
 **Problem**: Device Manager failed to connect to AWS RDS PostgreSQL with error:
