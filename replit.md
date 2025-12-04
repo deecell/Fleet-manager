@@ -144,7 +144,8 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
 **Live Production URLs**:
 | Resource | URL/Endpoint |
 |----------|--------------|
-| **Application URL** | http://deecell-fleet-production-alb-5549888.us-east-2.elb.amazonaws.com |
+| **Application URL** | https://app.deecell.com |
+| **ALB Direct URL** | http://deecell-fleet-production-alb-1191388080.us-east-2.elb.amazonaws.com |
 | **Database Endpoint** | deecell-fleet-production-postgres.cn4qsw8g8yyx.us-east-2.rds.amazonaws.com:5432 |
 | **Database Name** | deecell_fleet |
 | **AWS Account** | 892213647605 |

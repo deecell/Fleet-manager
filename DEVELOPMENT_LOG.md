@@ -6,6 +6,33 @@
 
 ## Latest Updates (December 4, 2025)
 
+### Custom Domain Setup (December 4, 2025 - 10:15 PM)
+
+**Goal**: Set up https://app.deecell.com as the production URL.
+
+**Configuration Completed**:
+
+1. **AWS Certificate Manager (ACM)**:
+   - Requested SSL certificate for `app.deecell.com`
+   - Validated via DNS (CNAME record in Namecheap)
+   - Status: ✅ Issued
+
+2. **ALB HTTPS Listener**:
+   - Added HTTPS listener on port 443
+   - Attached ACM certificate
+   - Forward to target group: `deecell-fleet-production-tg`
+
+3. **Namecheap DNS Records**:
+   - CNAME: `app` → `deecell-fleet-production-alb-1191388080.us-east-2.elb.amazonaws.com`
+   - CNAME: AWS certificate validation record
+
+4. **Security Group**:
+   - HTTPS (port 443) already allowed on ALB security group
+
+**Production URL**: https://app.deecell.com ✅
+
+---
+
 ### Backend Savings Calculator Bug Fix (December 4, 2025 - 9:55 PM)
 
 **Problem**: The backend savings calculator (`server/services/savings-calculator.ts`) was using an incorrect formula based on solar energy measurements that no longer exist in the data model.
