@@ -63,13 +63,13 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
   });
 
   return (
-    <div className="flex gap-3 w-full mt-[0px] mb-[0px] pt-[2px] pb-[2px] min-w-[900px]">
+    <div className="flex gap-3 w-full mt-[0px] mb-[0px] pt-[2px] pb-[2px] min-w-[1100px]">
       {/* Section 1: Truck & Location */}
-      <div className="bg-white rounded-b-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[30] mt-[21px]">
-        <table className="w-full">
+      <div className="bg-white rounded-b-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[30] mt-[21px] min-w-[655px] shrink-0">
+        <table className="w-full table-fixed">
           <thead>
             <tr className="bg-[#303030] h-[41px]">
-              <th className="py-3 text-left pl-[14px] pr-[14px] rounded-tl-lg">
+              <th className="py-3 text-left pl-[14px] pr-[14px] rounded-tl-lg min-w-[110px] w-[110px]">
                 <button 
                   onClick={() => handleSort("name")}
                   className="flex items-center gap-1.5 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap"
@@ -78,11 +78,11 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                   Truck <ArrowUpDown className="h-3.5 w-3.5 text-[#838383]" />
                 </button>
               </th>
-              <th className="px-3 py-3 text-center text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap"></th>
-              <th className="px-3 py-3 text-center text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">MTD Savings</th>
-              <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Driver</th>
-              <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Location</th>
-              <th className="px-3 py-3 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap pl-[16px] pr-[16px]">Last Updated</th>
+              <th className="px-3 py-3 text-center text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap min-w-[75px] w-[75px]"></th>
+              <th className="px-3 py-3 text-center text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap min-w-[110px] w-[110px]">MTD Savings</th>
+              <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap min-w-[90px] w-[90px]">Driver</th>
+              <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap min-w-[140px]">Location</th>
+              <th className="px-3 py-3 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap pl-[16px] pr-[16px] min-w-[130px] w-[130px]">Last Updated</th>
             </tr>
           </thead>
           <tbody>
@@ -97,7 +97,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                 } ${selectedTruckId === truck.id ? "bg-[#EEF1FB]" : ""}`}
                 data-testid={`truck-row-${truck.id}`}
               >
-                <td className="py-3 pl-[18px] pr-[10px]">
+                <td className="py-3 pl-[18px] pr-[10px] min-w-[110px] w-[110px]">
                   <div className="flex items-center gap-2.5">
                     <div 
                       className={`w-2 h-2 rounded-full shrink-0 ${
@@ -113,7 +113,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                     )}
                   </div>
                 </td>
-                <td className="px-3 py-2 text-center">
+                <td className="px-3 py-2 text-center min-w-[75px] w-[75px]">
                   <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium ${
                     truck.isParked 
                       ? "bg-[#f0f0f0] text-[#6b7280]" 
@@ -122,18 +122,18 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                     {truck.isParked ? "Parked" : "Driving"}
                   </span>
                 </td>
-                <td className="px-3 py-2 text-center">
+                <td className="px-3 py-2 text-center min-w-[110px] w-[110px]">
                   <span className="text-[13px] 2xl:text-sm text-[#008236] font-medium tabular-nums" data-testid={`fuel-savings-${truck.id}`}>
                     ${(truck.mtdFuelSavings ?? 0).toFixed(2)}
                   </span>
                 </td>
-                <td className="px-3 py-2 max-w-[120px]">
+                <td className="px-3 py-2 min-w-[90px] w-[90px]">
                   <span className="text-[13px] 2xl:text-sm text-[#4a5565] line-clamp-2">{truck.driver}</span>
                 </td>
-                <td className="px-3 py-2 max-w-[160px]">
+                <td className="px-3 py-2 min-w-[140px]">
                   <span className="text-[13px] 2xl:text-sm text-[#4a5565] line-clamp-2">{truck.address}</span>
                 </td>
-                <td className="px-3 py-2 pl-[10px] pr-[18px] max-w-[120px]">
+                <td className="px-3 py-2 pl-[10px] pr-[18px] min-w-[130px] w-[130px]">
                   <span className="text-[13px] 2xl:text-sm text-[#4a5565] text-right block whitespace-nowrap">{formatDateTime(truck.lastUpdated)}</span>
                 </td>
               </tr>
@@ -142,7 +142,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
         </table>
       </div>
       {/* Section 2: Chassis */}
-      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[3]">
+      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[3] min-w-[70px] shrink-0">
         <table className="w-full">
           <thead>
             <tr className="h-[21px]">
@@ -172,7 +172,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
         </table>
       </div>
       {/* Section 3: Sleeper */}
-      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[18]">
+      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[18] min-w-[350px] shrink-0">
         <table className="w-full">
           <thead>
             <tr className="h-[21px]">
