@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, User, X, GripVertical } from "lucide-react";
+import { Send, User, X } from "lucide-react";
 import sunIcon from "@assets/icon-sun.svg";
 
 interface Message {
@@ -30,10 +30,8 @@ export function FleetAssistant() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const [buttonPosition, setButtonPosition] = useState<Position>({ x: 0, y: 0 });
-  const [windowPosition, setWindowPosition] = useState<Position>({ x: 0, y: 0 });
-  const [isDraggingButton, setIsDraggingButton] = useState(false);
-  const [isDraggingWindow, setIsDraggingWindow] = useState(false);
+  const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number; y: number; posX: number; posY: number }>({ x: 0, y: 0, posX: 0, posY: 0 });
 
   useEffect(() => {
@@ -49,31 +47,22 @@ export function FleetAssistant() {
   }, [open]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (isDraggingButton) {
+    if (isDragging) {
       const deltaX = dragStartRef.current.x - e.clientX;
       const deltaY = dragStartRef.current.y - e.clientY;
-      setButtonPosition({
+      setPosition({
         x: dragStartRef.current.posX + deltaX,
         y: dragStartRef.current.posY + deltaY
       });
     }
-    if (isDraggingWindow) {
-      const deltaX = dragStartRef.current.x - e.clientX;
-      const deltaY = dragStartRef.current.y - e.clientY;
-      setWindowPosition({
-        x: dragStartRef.current.posX + deltaX,
-        y: dragStartRef.current.posY + deltaY
-      });
-    }
-  }, [isDraggingButton, isDraggingWindow]);
+  }, [isDragging]);
 
   const handleMouseUp = useCallback(() => {
-    setIsDraggingButton(false);
-    setIsDraggingWindow(false);
+    setIsDragging(false);
   }, []);
 
   useEffect(() => {
-    if (isDraggingButton || isDraggingWindow) {
+    if (isDragging) {
       document.addEventListener("mousemove", handleMouseMove);
       document.addEventListener("mouseup", handleMouseUp);
       return () => {
@@ -81,29 +70,18 @@ export function FleetAssistant() {
         document.removeEventListener("mouseup", handleMouseUp);
       };
     }
-  }, [isDraggingButton, isDraggingWindow, handleMouseMove, handleMouseUp]);
+  }, [isDragging, handleMouseMove, handleMouseUp]);
 
-  const startDraggingButton = (e: React.MouseEvent) => {
+  const startDragging = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     dragStartRef.current = { 
       x: e.clientX, 
       y: e.clientY, 
-      posX: buttonPosition.x, 
-      posY: buttonPosition.y 
+      posX: position.x, 
+      posY: position.y 
     };
-    setIsDraggingButton(true);
-  };
-
-  const startDraggingWindow = (e: React.MouseEvent) => {
-    e.preventDefault();
-    dragStartRef.current = { 
-      x: e.clientX, 
-      y: e.clientY, 
-      posX: windowPosition.x, 
-      posY: windowPosition.y 
-    };
-    setIsDraggingWindow(true);
+    setIsDragging(true);
   };
 
   const sendMessage = async () => {
@@ -172,7 +150,7 @@ export function FleetAssistant() {
   ];
 
   const handleButtonClick = () => {
-    if (!isDraggingButton) {
+    if (!isDragging) {
       setOpen(!open);
     }
   };
@@ -183,24 +161,19 @@ export function FleetAssistant() {
         <div 
           className="fixed w-[380px] h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col z-50 overflow-hidden"
           style={{
-            right: `${24 + windowPosition.x}px`,
-            bottom: `${180 + windowPosition.y}px`,
-            cursor: isDraggingWindow ? "grabbing" : "default"
+            right: `${24 + position.x}px`,
+            bottom: `${180 + position.y}px`
           }}
           data-testid="chat-window"
         >
           <div className="flex items-center justify-between p-4 border-b from-primary/10 to-primary/5 bg-[#ffffff]">
-            <div 
-              className="flex items-center gap-2 cursor-grab active:cursor-grabbing select-none"
-              onMouseDown={startDraggingWindow}
-            >
-              <GripVertical className="h-4 w-4 text-gray-400" />
-              <div className="w-10 h-10 rounded-full bg-[#EBEFFA] flex items-center justify-center pointer-events-none">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-[#EBEFFA] flex items-center justify-center">
                 <img src={sunIcon} alt="Ray Ray" className="h-6 w-6" />
               </div>
-              <div className="pointer-events-none">
+              <div>
                 <h3 className="font-semibold text-sm text-neutral-950">Ray Ray</h3>
-                <p className="text-xs text-muted-foreground">Drag to move</p>
+                <p className="text-xs text-muted-foreground">Ask me anything about your fleet</p>
               </div>
             </div>
             <button 
@@ -315,12 +288,12 @@ export function FleetAssistant() {
       )}
       <button
         onClick={handleButtonClick}
-        onMouseDown={startDraggingButton}
+        onMouseDown={startDragging}
         className="fixed w-14 h-14 rounded-full shadow-lg flex items-center justify-center z-50 bg-[#ebeffa] select-none"
         style={{
-          right: `${24 + buttonPosition.x}px`,
-          bottom: `${102 + buttonPosition.y}px`,
-          cursor: isDraggingButton ? "grabbing" : "grab"
+          right: `${24 + position.x}px`,
+          bottom: `${102 + position.y}px`,
+          cursor: isDragging ? "grabbing" : "grab"
         }}
         data-testid="button-open-assistant"
       >
