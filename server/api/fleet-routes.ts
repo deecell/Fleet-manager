@@ -805,7 +805,8 @@ router.get("/export/trucks/:id", tenantMiddleware, async (req: Request, res: Res
 });
 
 // ===========================================================================
-// SAVINGS CALCULATOR (calculates fuel savings from solar energy)
+// SAVINGS CALCULATOR (calculates fuel savings from idle reduction/parked time)
+// Formula: (parked_minutes / 60) × 1.2 gal/hr × diesel_price
 // ===========================================================================
 import { savingsCalculator } from "../services/savings-calculator";
 import { eiaClient } from "../services/eia-client";

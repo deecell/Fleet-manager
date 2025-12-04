@@ -1,18 +1,13 @@
 import { db } from "../db";
-import { deviceMeasurements, savingsConfig, trucks, powerMonDevices } from "@shared/schema";
-import { eq, and, gte, lte, sql, isNotNull } from "drizzle-orm";
+import { deviceSnapshots, savingsConfig, trucks, powerMonDevices } from "@shared/schema";
+import { eq, and, sql } from "drizzle-orm";
 import { eiaClient } from "./eia-client";
 import { getPADDFromCoordinates, PADDRegion, getPADDRegionName } from "./padd-regions";
 
-const DEFAULT_DIESEL_KWH_PER_GALLON = 9.0;
-
-interface DailySavings {
-  date: string;
-  totalWhSolar: number;
-  fuelSavedGallons: number;
-  savings: number;
-  fuelPriceUsed: number;
-}
+// Idle reduction constants - based on APU/idle fuel consumption
+const GALLONS_PER_HOUR_IDLING = 1.2; // Diesel trucks consume ~1.2 gallons/hour idling
+const CO2_LBS_PER_GALLON = 22.4; // Burning 1 gallon of diesel produces 22.4 lbs of CO2
+const DEFAULT_FUEL_PRICE = 3.50;
 
 interface TruckSavings {
   truckId: number;
@@ -20,28 +15,36 @@ interface TruckSavings {
   region: PADDRegion;
   regionName: string;
   fuelPrice: number;
-  solarWh: number;
-  gallonsSaved: number;
-  savings: number;
+  todayParkedMinutes: number;
+  monthParkedMinutes: number;
+  todayGallonsSaved: number;
+  todaySavings: number;
+  mtdGallonsSaved: number;
+  mtdSavings: number;
+  todayCO2Reduction: number;
+  mtdCO2Reduction: number;
+  isParked: boolean;
+  chassisVoltage: number | null;
 }
 
 interface SavingsResult {
   todaySavings: number;
-  todayWhSolar: number;
   todayGallonsSaved: number;
-  last7DaysAverage: number;
-  trendPercentage: number;
-  trendIsPositive: boolean;
-  trendDollarAmount: number;
+  todayCO2Reduction: number;
+  todayParkedMinutes: number;
+  mtdSavings: number;
+  mtdGallonsSaved: number;
+  mtdCO2Reduction: number;
+  mtdParkedMinutes: number;
   currentFuelPrice: number;
-  dailyBreakdown: DailySavings[];
-  truckBreakdown?: TruckSavings[];
+  truckBreakdown: TruckSavings[];
   usesRegionalPricing: boolean;
+  trucksParkedNow: number;
+  trucksTotal: number;
 }
 
 export class SavingsCalculator {
   async getSavingsConfig(organizationId: number): Promise<{
-    dieselKwhPerGallon: number;
     defaultFuelPrice: number;
     useLivePrices: boolean;
   }> {
@@ -54,8 +57,7 @@ export class SavingsCalculator {
 
       if (config) {
         return {
-          dieselKwhPerGallon: config.dieselKwhPerGallon ?? DEFAULT_DIESEL_KWH_PER_GALLON,
-          defaultFuelPrice: config.defaultFuelPricePerGallon ?? 3.50,
+          defaultFuelPrice: config.defaultFuelPricePerGallon ?? DEFAULT_FUEL_PRICE,
           useLivePrices: config.useLiveFuelPrices ?? true,
         };
       }
@@ -64,261 +66,151 @@ export class SavingsCalculator {
     }
 
     return {
-      dieselKwhPerGallon: DEFAULT_DIESEL_KWH_PER_GALLON,
-      defaultFuelPrice: 3.50,
+      defaultFuelPrice: DEFAULT_FUEL_PRICE,
       useLivePrices: true,
     };
   }
 
-  async getTrucksWithLocations(organizationId: number): Promise<Array<{
-    truckId: number;
-    truckNumber: string;
-    latitude: number | null;
-    longitude: number | null;
-    deviceId: number | null;
-  }>> {
-    try {
-      const result = await db
-        .select({
-          truckId: trucks.id,
-          truckNumber: trucks.truckNumber,
-          latitude: trucks.latitude,
-          longitude: trucks.longitude,
-          deviceId: powerMonDevices.id,
-        })
-        .from(trucks)
-        .leftJoin(powerMonDevices, eq(powerMonDevices.truckId, trucks.id))
-        .where(eq(trucks.organizationId, organizationId));
-
-      return result;
-    } catch (error) {
-      console.error("[SavingsCalculator] Failed to get trucks with locations:", error);
-      return [];
-    }
-  }
-
-  async getTodaySolarEnergy(organizationId: number): Promise<number> {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
-
-    return this.getSolarEnergyForPeriod(organizationId, today, tomorrow);
-  }
-
-  async getTodaySolarEnergyByDevice(organizationId: number): Promise<Map<number, number>> {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
-
-    return this.getSolarEnergyByDeviceForPeriod(organizationId, today, tomorrow);
-  }
-
-  async getDailySolarEnergy(organizationId: number, date: Date): Promise<number> {
-    const startOfDay = new Date(date);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
-
-    return this.getSolarEnergyForPeriod(organizationId, startOfDay, endOfDay);
-  }
-
-  private async getSolarEnergyForPeriod(
-    organizationId: number, 
-    startDate: Date, 
-    endDate: Date
-  ): Promise<number> {
-    try {
-      const result = await db
-        .select({
-          deviceId: deviceMeasurements.deviceId,
-          maxEnergy: sql<number>`MAX(${deviceMeasurements.energy})`,
-          minEnergy: sql<number>`MIN(${deviceMeasurements.energy})`,
-        })
-        .from(deviceMeasurements)
-        .where(
-          and(
-            eq(deviceMeasurements.organizationId, organizationId),
-            gte(deviceMeasurements.recordedAt, startDate),
-            lte(deviceMeasurements.recordedAt, endDate)
-          )
-        )
-        .groupBy(deviceMeasurements.deviceId);
-
-      let totalEnergy = 0;
-      for (const row of result) {
-        const maxEnergy = row.maxEnergy || 0;
-        const minEnergy = row.minEnergy || 0;
-        totalEnergy += Math.max(0, maxEnergy - minEnergy);
-      }
-      
-      return totalEnergy;
-    } catch (error) {
-      console.error("[SavingsCalculator] Failed to get solar energy for period:", error);
-      return 0;
-    }
-  }
-
-  private async getSolarEnergyByDeviceForPeriod(
-    organizationId: number,
-    startDate: Date,
-    endDate: Date
-  ): Promise<Map<number, number>> {
-    const energyByDevice = new Map<number, number>();
-
-    try {
-      const result = await db
-        .select({
-          deviceId: deviceMeasurements.deviceId,
-          maxEnergy: sql<number>`MAX(${deviceMeasurements.energy})`,
-          minEnergy: sql<number>`MIN(${deviceMeasurements.energy})`,
-        })
-        .from(deviceMeasurements)
-        .where(
-          and(
-            eq(deviceMeasurements.organizationId, organizationId),
-            gte(deviceMeasurements.recordedAt, startDate),
-            lte(deviceMeasurements.recordedAt, endDate)
-          )
-        )
-        .groupBy(deviceMeasurements.deviceId);
-
-      for (const row of result) {
-        const maxEnergy = row.maxEnergy || 0;
-        const minEnergy = row.minEnergy || 0;
-        const energy = Math.max(0, maxEnergy - minEnergy);
-        energyByDevice.set(row.deviceId, energy);
-      }
-    } catch (error) {
-      console.error("[SavingsCalculator] Failed to get solar energy by device:", error);
-    }
-
-    return energyByDevice;
-  }
-
+  /**
+   * Calculate savings based on parked time (idle reduction)
+   * Formula: savings = (parked_minutes / 60) × 1.2 gal/hr × diesel_price
+   * CO2 reduction: gallons_saved × 22.4 lbs/gallon
+   */
   async calculateSavings(organizationId: number): Promise<SavingsResult> {
     const config = await this.getSavingsConfig(organizationId);
-    const trucksWithLocations = await this.getTrucksWithLocations(organizationId);
-    
-    const trucksWithCoords = trucksWithLocations.filter(
-      t => t.latitude !== null && t.longitude !== null && t.deviceId !== null
-    );
-    const usesRegionalPricing = trucksWithCoords.length > 0;
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // Get all trucks with their snapshots and location data
+    const trucksWithSnapshots = await db
+      .select({
+        truckId: trucks.id,
+        truckNumber: trucks.truckNumber,
+        latitude: trucks.latitude,
+        longitude: trucks.longitude,
+        deviceId: powerMonDevices.id,
+        todayParkedMinutes: deviceSnapshots.todayParkedMinutes,
+        monthParkedMinutes: deviceSnapshots.monthParkedMinutes,
+        isParked: deviceSnapshots.isParked,
+        voltage2: deviceSnapshots.voltage2,
+      })
+      .from(trucks)
+      .leftJoin(powerMonDevices, eq(powerMonDevices.truckId, trucks.id))
+      .leftJoin(deviceSnapshots, eq(deviceSnapshots.deviceId, powerMonDevices.id))
+      .where(eq(trucks.organizationId, organizationId));
+
+    // Determine if we can use regional pricing
+    const trucksWithCoords = trucksWithSnapshots.filter(
+      t => t.latitude !== null && t.longitude !== null
+    );
+    const usesRegionalPricing = trucksWithCoords.length > 0 && config.useLivePrices;
 
     let currentFuelPrice = config.defaultFuelPrice;
-    let todaySavings = 0;
-    let todayWhSolar = 0;
-    let todayGallonsSaved = 0;
+    let totalTodaySavings = 0;
+    let totalTodayGallonsSaved = 0;
+    let totalTodayCO2Reduction = 0;
+    let totalTodayParkedMinutes = 0;
+    let totalMtdSavings = 0;
+    let totalMtdGallonsSaved = 0;
+    let totalMtdCO2Reduction = 0;
+    let totalMtdParkedMinutes = 0;
+    let trucksParkedNow = 0;
+
     const truckBreakdown: TruckSavings[] = [];
+    const regionPrices = new Map<PADDRegion, number>();
 
-    if (usesRegionalPricing && config.useLivePrices) {
-      const energyByDevice = await this.getTodaySolarEnergyByDevice(organizationId);
-      
-      const regionPrices = new Map<PADDRegion, number>();
-      let totalWeightedPrice = 0;
-      let totalEnergy = 0;
+    // Get US average price as baseline
+    if (config.useLivePrices) {
+      currentFuelPrice = await eiaClient.getCurrentFuelPrice("US");
+    }
 
-      for (const truck of trucksWithCoords) {
-        if (!truck.deviceId) continue;
-        
-        const solarWh = energyByDevice.get(truck.deviceId) || 0;
-        if (solarWh === 0) continue;
+    for (const truck of trucksWithSnapshots) {
+      const todayParkedMinutes = truck.todayParkedMinutes ?? 0;
+      // MTD = completed days (monthParkedMinutes) + today's minutes
+      const mtdParkedMinutes = (truck.monthParkedMinutes ?? 0) + todayParkedMinutes;
+      const isParked = truck.isParked ?? false;
+      const chassisVoltage = truck.voltage2;
 
-        const paddInfo = getPADDFromCoordinates(truck.latitude!, truck.longitude!);
-        const region = paddInfo.code;
+      if (isParked) {
+        trucksParkedNow++;
+      }
 
-        let fuelPrice = regionPrices.get(region);
-        if (fuelPrice === undefined) {
-          fuelPrice = await eiaClient.getCurrentFuelPrice(region);
-          regionPrices.set(region, fuelPrice);
+      // Determine fuel price for this truck (regional if available)
+      let fuelPrice = currentFuelPrice;
+      let region: PADDRegion = "US";
+
+      if (usesRegionalPricing && truck.latitude !== null && truck.longitude !== null) {
+        const paddInfo = getPADDFromCoordinates(truck.latitude, truck.longitude);
+        region = paddInfo.code;
+
+        // Cache regional prices
+        let cachedPrice = regionPrices.get(region);
+        if (cachedPrice === undefined) {
+          cachedPrice = await eiaClient.getCurrentFuelPrice(region);
+          regionPrices.set(region, cachedPrice);
         }
-
-        const solarKwh = solarWh / 1000;
-        const gallonsSaved = solarKwh / config.dieselKwhPerGallon;
-        const savings = gallonsSaved * fuelPrice;
-
-        todayWhSolar += solarWh;
-        todayGallonsSaved += gallonsSaved;
-        todaySavings += savings;
-        totalWeightedPrice += fuelPrice * solarWh;
-        totalEnergy += solarWh;
-
-        truckBreakdown.push({
-          truckId: truck.truckId,
-          truckNumber: truck.truckNumber,
-          region,
-          regionName: getPADDRegionName(region),
-          fuelPrice,
-          solarWh,
-          gallonsSaved,
-          savings,
-        });
+        fuelPrice = cachedPrice;
       }
 
-      currentFuelPrice = totalEnergy > 0 
-        ? totalWeightedPrice / totalEnergy 
-        : await eiaClient.getCurrentFuelPrice("US");
+      // Calculate today's savings
+      const todayParkedHours = todayParkedMinutes / 60;
+      const todayGallonsSaved = todayParkedHours * GALLONS_PER_HOUR_IDLING;
+      const todaySavings = todayGallonsSaved * fuelPrice;
+      const todayCO2Reduction = todayGallonsSaved * CO2_LBS_PER_GALLON;
 
-    } else {
-      if (config.useLivePrices) {
-        currentFuelPrice = await eiaClient.getCurrentFuelPrice("US");
-      }
+      // Calculate MTD savings
+      const mtdParkedHours = mtdParkedMinutes / 60;
+      const mtdGallonsSaved = mtdParkedHours * GALLONS_PER_HOUR_IDLING;
+      const mtdSavings = mtdGallonsSaved * fuelPrice;
+      const mtdCO2Reduction = mtdGallonsSaved * CO2_LBS_PER_GALLON;
 
-      todayWhSolar = await this.getTodaySolarEnergy(organizationId);
-      const todayKwh = todayWhSolar / 1000;
-      todayGallonsSaved = todayKwh / config.dieselKwhPerGallon;
-      todaySavings = todayGallonsSaved * currentFuelPrice;
-    }
+      // Accumulate totals
+      totalTodayParkedMinutes += todayParkedMinutes;
+      totalTodayGallonsSaved += todayGallonsSaved;
+      totalTodaySavings += todaySavings;
+      totalTodayCO2Reduction += todayCO2Reduction;
+      totalMtdParkedMinutes += mtdParkedMinutes;
+      totalMtdGallonsSaved += mtdGallonsSaved;
+      totalMtdSavings += mtdSavings;
+      totalMtdCO2Reduction += mtdCO2Reduction;
 
-    const dailyBreakdown: DailySavings[] = [];
-    let last7DaysTotal = 0;
-
-    for (let i = 1; i <= 7; i++) {
-      const date = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
-      const dayWh = await this.getDailySolarEnergy(organizationId, date);
-      const dayPrice = await eiaClient.getPriceForDate(date, "US");
-      
-      const dayKwh = dayWh / 1000;
-      const dayGallons = dayKwh / config.dieselKwhPerGallon;
-      const daySavings = dayGallons * dayPrice;
-
-      dailyBreakdown.push({
-        date: date.toISOString().split('T')[0],
-        totalWhSolar: dayWh,
-        fuelSavedGallons: dayGallons,
-        savings: daySavings,
-        fuelPriceUsed: dayPrice,
+      truckBreakdown.push({
+        truckId: truck.truckId,
+        truckNumber: truck.truckNumber || `Truck-${truck.truckId}`,
+        region,
+        regionName: getPADDRegionName(region),
+        fuelPrice,
+        todayParkedMinutes,
+        monthParkedMinutes: mtdParkedMinutes,
+        todayGallonsSaved,
+        todaySavings,
+        mtdGallonsSaved,
+        mtdSavings,
+        todayCO2Reduction,
+        mtdCO2Reduction,
+        isParked,
+        chassisVoltage,
       });
-
-      last7DaysTotal += daySavings;
     }
-
-    const last7DaysAverage = dailyBreakdown.length > 0 
-      ? last7DaysTotal / dailyBreakdown.length 
-      : 0;
-
-    const trendDollarAmount = todaySavings - last7DaysAverage;
-    const trendPercentage = last7DaysAverage > 0 
-      ? Math.round((trendDollarAmount / last7DaysAverage) * 100) 
-      : 0;
-    const trendIsPositive = trendDollarAmount >= 0;
 
     return {
-      todaySavings,
-      todayWhSolar,
-      todayGallonsSaved,
-      last7DaysAverage,
-      trendPercentage,
-      trendIsPositive,
-      trendDollarAmount,
+      todaySavings: totalTodaySavings,
+      todayGallonsSaved: totalTodayGallonsSaved,
+      todayCO2Reduction: totalTodayCO2Reduction,
+      todayParkedMinutes: totalTodayParkedMinutes,
+      mtdSavings: totalMtdSavings,
+      mtdGallonsSaved: totalMtdGallonsSaved,
+      mtdCO2Reduction: totalMtdCO2Reduction,
+      mtdParkedMinutes: totalMtdParkedMinutes,
       currentFuelPrice,
-      dailyBreakdown,
-      truckBreakdown: usesRegionalPricing ? truckBreakdown : undefined,
+      truckBreakdown,
       usesRegionalPricing,
+      trucksParkedNow,
+      trucksTotal: trucksWithSnapshots.length,
     };
   }
 
+  /**
+   * Get savings for a specific truck
+   */
   async getSavingsForTruck(
     organizationId: number,
     truckId: number
@@ -333,9 +225,14 @@ export class SavingsCalculator {
           latitude: trucks.latitude,
           longitude: trucks.longitude,
           deviceId: powerMonDevices.id,
+          todayParkedMinutes: deviceSnapshots.todayParkedMinutes,
+          monthParkedMinutes: deviceSnapshots.monthParkedMinutes,
+          isParked: deviceSnapshots.isParked,
+          voltage2: deviceSnapshots.voltage2,
         })
         .from(trucks)
         .leftJoin(powerMonDevices, eq(powerMonDevices.truckId, trucks.id))
+        .leftJoin(deviceSnapshots, eq(deviceSnapshots.deviceId, powerMonDevices.id))
         .where(
           and(
             eq(trucks.organizationId, organizationId),
@@ -343,57 +240,54 @@ export class SavingsCalculator {
           )
         );
 
-      if (!truckData || !truckData.deviceId) {
+      if (!truckData) {
         return null;
       }
 
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
-
-      const [energyResult] = await db
-        .select({
-          maxEnergy: sql<number>`MAX(${deviceMeasurements.energy})`,
-          minEnergy: sql<number>`MIN(${deviceMeasurements.energy})`,
-        })
-        .from(deviceMeasurements)
-        .where(
-          and(
-            eq(deviceMeasurements.deviceId, truckData.deviceId),
-            gte(deviceMeasurements.recordedAt, today),
-            lte(deviceMeasurements.recordedAt, tomorrow)
-          )
-        );
-
-      const solarWh = energyResult 
-        ? Math.max(0, (energyResult.maxEnergy || 0) - (energyResult.minEnergy || 0))
-        : 0;
-
-      let region: PADDRegion = "US";
+      // Determine fuel price
       let fuelPrice = config.defaultFuelPrice;
-
-      if (truckData.latitude !== null && truckData.longitude !== null) {
-        const paddInfo = getPADDFromCoordinates(truckData.latitude, truckData.longitude);
-        region = paddInfo.code;
-      }
+      let region: PADDRegion = "US";
 
       if (config.useLivePrices) {
+        fuelPrice = await eiaClient.getCurrentFuelPrice("US");
+      }
+
+      if (truckData.latitude !== null && truckData.longitude !== null && config.useLivePrices) {
+        const paddInfo = getPADDFromCoordinates(truckData.latitude, truckData.longitude);
+        region = paddInfo.code;
         fuelPrice = await eiaClient.getCurrentFuelPrice(region);
       }
 
-      const solarKwh = solarWh / 1000;
-      const gallonsSaved = solarKwh / config.dieselKwhPerGallon;
-      const savings = gallonsSaved * fuelPrice;
+      const todayParkedMinutes = truckData.todayParkedMinutes ?? 0;
+      const mtdParkedMinutes = (truckData.monthParkedMinutes ?? 0) + todayParkedMinutes;
+
+      // Calculate savings
+      const todayParkedHours = todayParkedMinutes / 60;
+      const todayGallonsSaved = todayParkedHours * GALLONS_PER_HOUR_IDLING;
+      const todaySavings = todayGallonsSaved * fuelPrice;
+      const todayCO2Reduction = todayGallonsSaved * CO2_LBS_PER_GALLON;
+
+      const mtdParkedHours = mtdParkedMinutes / 60;
+      const mtdGallonsSaved = mtdParkedHours * GALLONS_PER_HOUR_IDLING;
+      const mtdSavings = mtdGallonsSaved * fuelPrice;
+      const mtdCO2Reduction = mtdGallonsSaved * CO2_LBS_PER_GALLON;
 
       return {
         truckId: truckData.truckId,
-        truckNumber: truckData.truckNumber,
+        truckNumber: truckData.truckNumber || `Truck-${truckData.truckId}`,
         region,
         regionName: getPADDRegionName(region),
         fuelPrice,
-        solarWh,
-        gallonsSaved,
-        savings,
+        todayParkedMinutes,
+        monthParkedMinutes: mtdParkedMinutes,
+        todayGallonsSaved,
+        todaySavings,
+        mtdGallonsSaved,
+        mtdSavings,
+        todayCO2Reduction,
+        mtdCO2Reduction,
+        isParked: truckData.isParked ?? false,
+        chassisVoltage: truckData.voltage2,
       };
     } catch (error) {
       console.error(`[SavingsCalculator] Failed to get savings for truck ${truckId}:`, error);

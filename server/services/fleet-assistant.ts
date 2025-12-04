@@ -271,8 +271,14 @@ async function executeFunction(name: string, args: Record<string, unknown>, orga
 
         return JSON.stringify({
           todaysSavings: `$${savings.todaySavings.toFixed(2)}`,
+          todaysGallonsSaved: `${savings.todayGallonsSaved.toFixed(2)} gallons`,
+          todaysCO2Reduction: `${savings.todayCO2Reduction.toFixed(1)} lbs`,
+          todaysParkedTime: `${Math.floor(savings.todayParkedMinutes / 60)}h ${savings.todayParkedMinutes % 60}m`,
+          mtdSavings: `$${savings.mtdSavings.toFixed(2)}`,
+          mtdGallonsSaved: `${savings.mtdGallonsSaved.toFixed(2)} gallons`,
+          mtdCO2Reduction: `${savings.mtdCO2Reduction.toFixed(1)} lbs`,
           fuelPriceUsed: `$${savings.currentFuelPrice.toFixed(2)}/gallon`,
-          last7DayAverage: `$${savings.last7DaysAverage.toFixed(2)}`,
+          trucksParkedNow: `${savings.trucksParkedNow} of ${savings.trucksTotal}`,
           averageSOC: `${stats.avgSoc.value}%`,
           tractorHoursOffset: `${stats.tractorHoursOffset.hours}:${stats.tractorHoursOffset.minutes.toString().padStart(2, '0')} hours`,
           maintenanceIntervalIncrease: `${stats.maintenanceIntervalIncrease.value}%`
