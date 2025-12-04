@@ -106,7 +106,7 @@ export function AdminAssistant() {
     <>
       {open && (
         <div 
-          className="fixed bottom-24 right-6 w-[380px] h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col z-50 overflow-hidden"
+          className="fixed bottom-[180px] right-6 w-[380px] h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col z-50 overflow-hidden"
           data-testid="admin-chat-window"
         >
           <div className="flex items-center justify-between p-4 border-b bg-[#2d3748]">
@@ -231,7 +231,7 @@ export function AdminAssistant() {
       )}
       <button
         onClick={() => setOpen(!open)}
-        className="fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center z-50 bg-[#2d3748]"
+        className="fixed bottom-[102px] right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center z-50 bg-[#2d3748]"
         data-testid="button-open-admin-assistant"
       >
         <img src={sunIcon} alt="Admin AI Assistant" className="h-8 w-8" />
