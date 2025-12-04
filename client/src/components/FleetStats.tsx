@@ -7,21 +7,12 @@ import { useQuery } from "@tanstack/react-query";
 interface TruckWithSoc {
   soc: number;
   wh: number;
+  fuelSavings?: number;
+  todayParkedMinutes?: number;
 }
 
 interface FleetStatsProps {
   trucks: TruckWithSoc[];
-}
-
-interface SavingsData {
-  todaySavings: number;
-  todayWhSolar: number;
-  todayGallonsSaved: number;
-  last7DaysAverage: number;
-  trendPercentage: number;
-  trendIsPositive: boolean;
-  trendDollarAmount: number;
-  currentFuelPrice: number;
 }
 
 interface FleetStatsData {
@@ -147,32 +138,26 @@ function StatCard({ title, trend, icon, iconBgColor, valueColor = "text-neutral-
   );
 }
 
-export default function FleetStats({ trucks }: FleetStatsProps) {
-  const { data: savingsData } = useQuery<SavingsData>({
-    queryKey: ["/api/v1/savings"],
-    refetchInterval: 60000,
-  });
+// Constants for fuel savings calculation (must match api.ts)
+const GALLONS_PER_HOUR_IDLING = 1.2;
+const DEFAULT_DIESEL_PRICE = 3.50;
+const CO2_LBS_PER_GALLON = 22.4;
 
+export default function FleetStats({ trucks }: FleetStatsProps) {
   const { data: fleetStats } = useQuery<FleetStatsData>({
     queryKey: ["/api/v1/fleet-stats"],
     refetchInterval: 60000,
   });
 
-  const todaySavings = savingsData?.todaySavings ?? 0;
-  const todayGallonsSaved = savingsData?.todayGallonsSaved ?? 0;
-  const trendDollar = savingsData?.trendDollarAmount ?? 0;
-  const trendPercent = savingsData?.trendPercentage ?? 0;
-  const trendIsPositive = savingsData?.trendIsPositive ?? true;
-
+  // Calculate Today's Savings by summing each truck's daily parked time savings
+  // This uses the same formula as individual truck savings: (parkedMinutes / 60) * 1.2 gal/hr * diesel price
+  const todaySavings = trucks.reduce((sum, truck) => sum + (truck.fuelSavings ?? 0), 0);
+  const todayParkedMinutes = trucks.reduce((sum, truck) => sum + (truck.todayParkedMinutes ?? 0), 0);
+  const todayParkedHours = todayParkedMinutes / 60;
+  const todayGallonsSaved = todayParkedHours * GALLONS_PER_HOUR_IDLING;
+  
   // CO2 Reduction: Each gallon of diesel emits 22.4 lbs of CO2
-  const CO2_LBS_PER_GALLON = 22.4;
   const todayCO2Reduction = todayGallonsSaved * CO2_LBS_PER_GALLON;
-
-  const formatSavingsTrend = () => {
-    const dollarStr = `$ ${Math.abs(trendDollar).toFixed(0)}`;
-    const percentStr = `(${Math.abs(trendPercent)}%)`;
-    return `${trendIsPositive ? '+' : '-'}${dollarStr} ${percentStr} vs 7d`;
-  };
 
   const avgSoc = fleetStats?.avgSoc.value ?? (trucks.length > 0 ? trucks.reduce((sum, t) => sum + t.soc, 0) / trucks.length : 0);
   const socTrendPercent = fleetStats?.avgSoc.trendPercentage ?? 0;
@@ -198,10 +183,6 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
         prefix="$ "
         decimals={2}
         alwaysShowDecimals={true}
-        trend={{ 
-          value: formatSavingsTrend(), 
-          isPositive: trendIsPositive 
-        }}
         icon={<img src={dolarIcon} alt="Dollar" className="h-[24px] w-[24px]" />}
         iconBgColor="bg-[#effcdc]"
         valueColor="text-[#008236]"
@@ -225,10 +206,6 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
         targetNumber={todayCO2Reduction}
         suffix=" lbs"
         decimals={1}
-        trend={{ 
-          value: formatSavingsTrend(), 
-          isPositive: trendIsPositive 
-        }}
         icon={<Leaf className="h-[24px] w-[24px] text-[#6B6164]" />}
         iconBgColor="bg-[#ECE8E4]"
         valueColor="text-[#008236]"

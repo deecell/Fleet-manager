@@ -325,13 +325,14 @@ const PARKED_VOLTAGE_THRESHOLD = 13.0;
 async function upsertDeviceSnapshot(snapshot) {
   const now = new Date();
   const todayDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
+  const currentMonth = todayDate.substring(0, 7); // YYYY-MM
   
   // Determine if currently parked based on chassis voltage (voltage2)
   const isCurrentlyParked = (snapshot.voltage2 || 0) < PARKED_VOLTAGE_THRESHOLD;
   
   // Get current snapshot to check previous state
   const currentResult = await query(
-    'SELECT is_parked, parked_since, today_parked_minutes, parked_date FROM device_snapshots WHERE device_id = $1',
+    'SELECT is_parked, parked_since, today_parked_minutes, parked_date, month_parked_minutes, parked_month FROM device_snapshots WHERE device_id = $1',
     [snapshot.deviceId]
   );
   
@@ -339,16 +340,34 @@ async function upsertDeviceSnapshot(snapshot) {
   let parkedSince = isCurrentlyParked ? now : null;
   let todayParkedMinutes = 0;
   let baseMinutesFromPreviousSessions = 0;
+  let monthParkedMinutes = 0;
+  let baseMonthMinutes = 0;
   
   if (currentResult.rows.length > 0) {
     const current = currentResult.rows[0];
     const wasParked = current.is_parked;
     const previousParkedDate = current.parked_date;
+    const previousParkedMonth = current.parked_month;
     
     // Carry forward minutes from today (excluding current parking session)
     if (previousParkedDate === todayDate) {
       baseMinutesFromPreviousSessions = current.today_parked_minutes || 0;
     }
+    
+    // Handle monthly minutes
+    // month_parked_minutes stores ONLY completed days (not including today)
+    // Final MTD = month_parked_minutes + todayParkedMinutes
+    if (previousParkedMonth === currentMonth) {
+      // Same month - carry forward the "completed days" total
+      baseMonthMinutes = current.month_parked_minutes || 0;
+      
+      // If day changed, add yesterday's completed parked time to monthly total
+      if (previousParkedDate !== todayDate) {
+        const yesterdayFinalMinutes = current.today_parked_minutes || 0;
+        baseMonthMinutes += yesterdayFinalMinutes;
+      }
+    }
+    // If month changed, baseMonthMinutes stays at 0 (reset for new month)
     
     if (wasParked && current.parked_since) {
       if (isCurrentlyParked) {
@@ -399,20 +418,27 @@ async function upsertDeviceSnapshot(snapshot) {
     }
   }
   
+  // Calculate month-to-date parked minutes for display (completed days + today)
+  // Note: We store baseMonthMinutes (completed days only) in the database
+  // and calculate the full MTD at display time as: month_parked_minutes + today_parked_minutes
+  monthParkedMinutes = baseMonthMinutes + todayParkedMinutes;
+  
   // Log parked status at info level for visibility
   if (isCurrentlyParked) {
     logger.info('Truck parked - accumulating time', { 
       deviceId: snapshot.deviceId, 
       voltage2: snapshot.voltage2,
       todayParkedMinutes: Math.round(todayParkedMinutes),
+      monthParkedMinutes: Math.round(monthParkedMinutes),
+      completedDaysMinutes: Math.round(baseMonthMinutes),
       parkedSince: parkedSince
     });
   }
   
   await query(`
     INSERT INTO device_snapshots 
-      (organization_id, device_id, truck_id, voltage1, voltage2, current, power, temperature, soc, energy, charge, runtime, rssi, power_status_string, is_parked, parked_since, today_parked_minutes, parked_date, recorded_at, updated_at)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, NOW())
+      (organization_id, device_id, truck_id, voltage1, voltage2, current, power, temperature, soc, energy, charge, runtime, rssi, power_status_string, is_parked, parked_since, today_parked_minutes, parked_date, month_parked_minutes, parked_month, recorded_at, updated_at)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, NOW())
     ON CONFLICT (device_id) 
     DO UPDATE SET
       voltage1 = $4,
@@ -430,7 +456,9 @@ async function upsertDeviceSnapshot(snapshot) {
       parked_since = $16,
       today_parked_minutes = $17,
       parked_date = $18,
-      recorded_at = $19,
+      month_parked_minutes = $19,
+      parked_month = $20,
+      recorded_at = $21,
       updated_at = NOW()
   `, [
     snapshot.organizationId,
@@ -451,6 +479,8 @@ async function upsertDeviceSnapshot(snapshot) {
     parkedSince,
     Math.round(todayParkedMinutes), // Must be integer for database column
     todayDate,
+    Math.round(baseMonthMinutes), // Completed days only (MTD = this + todayParkedMinutes)
+    currentMonth,
     snapshot.recordedAt,
   ]);
   

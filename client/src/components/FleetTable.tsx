@@ -79,7 +79,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                 </button>
               </th>
               <th className="px-3 py-3 text-center text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap"></th>
-              <th className="px-3 py-3 text-center text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Savings</th>
+              <th className="px-3 py-3 text-center text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">MTD Savings</th>
               <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Driver</th>
               <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Location</th>
               <th className="px-3 py-3 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap pl-[16px] pr-[16px]">Last Updated</th>
@@ -124,7 +124,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                 </td>
                 <td className="px-3 py-2 text-center">
                   <span className="text-[13px] 2xl:text-sm text-[#008236] font-medium tabular-nums" data-testid={`fuel-savings-${truck.id}`}>
-                    ${(truck.fuelSavings ?? 0).toFixed(2)}
+                    ${(truck.mtdFuelSavings ?? 0).toFixed(2)}
                   </span>
                 </td>
                 <td className="px-3 py-2 max-w-[120px]">

@@ -131,7 +131,9 @@ export interface LegacyTruckWithDevice extends LegacyTruckWithHistory {
   lastUpdated?: string;
   isParked?: boolean;
   todayParkedMinutes?: number;
+  monthParkedMinutes?: number;
   fuelSavings?: number;
+  mtdFuelSavings?: number;
 }
 
 // Fuel savings and parked status constants
@@ -175,6 +177,14 @@ export function useLegacyTrucks() {
     const gallonsSaved = parkedHours * GALLONS_PER_HOUR_IDLING;
     const fuelSavings = gallonsSaved * DEFAULT_DIESEL_PRICE;
     
+    // MTD Savings = (month_parked_minutes + today_parked_minutes) converted to savings
+    // month_parked_minutes stores completed days only, so we add today for full MTD
+    const completedDaysMinutes = snapshot?.monthParkedMinutes ?? 0;
+    const monthParkedMinutes = completedDaysMinutes + todayParkedMinutes;
+    const mtdParkedHours = monthParkedMinutes / 60;
+    const mtdGallonsSaved = mtdParkedHours * GALLONS_PER_HOUR_IDLING;
+    const mtdFuelSavings = mtdGallonsSaved * DEFAULT_DIESEL_PRICE;
+    
     return {
       id: String(truck.id),
       name: truck.truckNumber || `Truck-${truck.id}`,
@@ -202,7 +212,9 @@ export function useLegacyTrucks() {
       lastUpdated: snapshot?.updatedAt ? String(snapshot.updatedAt) : snapshot?.recordedAt ? String(snapshot.recordedAt) : undefined,
       isParked,
       todayParkedMinutes,
+      monthParkedMinutes,
       fuelSavings,
+      mtdFuelSavings,
     };
   });
 

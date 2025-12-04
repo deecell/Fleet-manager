@@ -4,7 +4,39 @@
 
 ---
 
-## Latest Updates (December 3, 2025)
+## Latest Updates (December 4, 2025)
+
+### Monthly Parked Time Tracking (December 4, 2025 - 4:30 PM)
+
+**Goal**: Display Month-to-Date (MTD) fuel savings for individual trucks based on parked time.
+
+**Implementation Complete**:
+
+1. **Schema Changes** (`shared/schema.ts`):
+   - Added `month_parked_minutes` (integer) - accumulated parked minutes from completed days in current month
+   - Added `parked_month` (text) - "YYYY-MM" format for monthly reset tracking
+
+2. **Device Manager Logic** (`device-manager/app/database.js`):
+   - Monthly tracking: stores completed days' parked minutes in `monthParkedMinutes`
+   - Monthly reset: clears `monthParkedMinutes` when month changes
+   - MTD calculation: `monthParkedMinutes + todayParkedMinutes` (backend tracks completed days, frontend adds current day)
+
+3. **Frontend Changes**:
+   - **FleetTable.tsx**: Fuel Savings column now shows MTD savings (monthParkedMinutes + todayParkedMinutes)
+   - **FleetStats.tsx**: Today's Savings shows aggregate of all trucks' daily parked time savings
+   - **api.ts**: Added `monthParkedMinutes` field, updated fuelSavings calculation
+
+4. **Production Deployment**:
+   - Migration ran successfully: `ALTER TABLE device_snapshots ADD COLUMN IF NOT EXISTS month_parked_minutes INTEGER DEFAULT 0`
+   - Device Manager deployed and running with monthly tracking
+
+**Savings Formula**:
+- `(parkedMinutes / 60) × 1.2 gal/hr × $3.50/gal`
+- CO₂ reduction: `gallonsSaved × 22.4 lbs CO₂/gallon`
+
+**Status**: ✅ Live and collecting data on 3 devices
+
+---
 
 ### Device Manager Recovery (December 3, 2025 - 8:04 PM)
 
