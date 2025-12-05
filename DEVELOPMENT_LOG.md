@@ -92,7 +92,16 @@ export const passwordResetTokens = pgTable("password_reset_tokens", {
 - `client/src/lib/api.ts` - Added status calculation logic in `useLegacyTrucks`
 - `client/src/components/FleetTable.tsx` - Updated badge display with duration
 
-**Display Format**: `Parked | 25min`, `Driving`, `Idling | 10min`
+**Display Format**: `Parked | 25min`, `Driving | 15min`, `Idling | 10min`
+
+**Database Changes**:
+- Added `driving_since` timestamp column to `device_snapshots` table
+- Device Manager tracks driving start time when truck transitions from parked to driving
+
+**Device Manager Updates** (`device-manager/app/database.js`):
+- Tracks `drivingSince` timestamp similar to `parkedSince`
+- Sets `drivingSince = now` when truck starts driving
+- Clears `drivingSince = null` when truck parks
 
 **Status**: ✅ Complete
 

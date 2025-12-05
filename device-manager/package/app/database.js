@@ -5,11 +5,35 @@
  * Optimized for batch writes and high throughput.
  */
 
+const fs = require('fs');
 const { Pool } = require('pg');
 const { config } = require('./config');
 const logger = require('./logger');
 
 let pool = null;
+
+/**
+ * Get SSL configuration for database connection
+ * Uses AWS RDS CA bundle if available, otherwise falls back to basic SSL
+ */
+function getSslConfig() {
+  const rdsCaBundle = process.env.RDS_CA_BUNDLE;
+  
+  if (rdsCaBundle && fs.existsSync(rdsCaBundle)) {
+    logger.info('Using AWS RDS CA certificate bundle for SSL', { path: rdsCaBundle });
+    return {
+      rejectUnauthorized: true,
+      ca: fs.readFileSync(rdsCaBundle).toString()
+    };
+  }
+  
+  // Fallback for development or when certificate not available
+  // Note: rejectUnauthorized: false is less secure but allows connection
+  logger.warn('RDS CA bundle not found, using basic SSL (less secure)');
+  return {
+    rejectUnauthorized: false
+  };
+}
 
 /**
  * Initialize the database connection pool
@@ -24,6 +48,7 @@ function initDatabase() {
     max: config.database.poolSize,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 10000,
+    ssl: getSslConfig()
   });
 
   pool.on('error', (err) => {
@@ -332,12 +357,13 @@ async function upsertDeviceSnapshot(snapshot) {
   
   // Get current snapshot to check previous state
   const currentResult = await query(
-    'SELECT is_parked, parked_since, today_parked_minutes, parked_date, month_parked_minutes, parked_month FROM device_snapshots WHERE device_id = $1',
+    'SELECT is_parked, parked_since, driving_since, today_parked_minutes, parked_date, month_parked_minutes, parked_month FROM device_snapshots WHERE device_id = $1',
     [snapshot.deviceId]
   );
   
   let isParked = isCurrentlyParked;
   let parkedSince = isCurrentlyParked ? now : null;
+  let drivingSince = isCurrentlyParked ? null : now;
   let todayParkedMinutes = 0;
   let baseMinutesFromPreviousSessions = 0;
   let monthParkedMinutes = 0;
@@ -373,6 +399,7 @@ async function upsertDeviceSnapshot(snapshot) {
       if (isCurrentlyParked) {
         // Still parked - keep the original parked_since and calculate total time
         parkedSince = new Date(current.parked_since);
+        drivingSince = null;
         
         // Calculate minutes in current parking session from parked_since to now
         const currentSessionMinutes = (now - parkedSince) / 1000 / 60;
@@ -390,7 +417,7 @@ async function upsertDeviceSnapshot(snapshot) {
           todayParkedMinutes = (now - midnight) / 1000 / 60;
         }
       } else {
-        // Transition: was parked, now moving
+        // Transition: was parked, now moving - start driving session
         // Calculate final duration of this parking session
         const sessionEnd = now;
         const sessionStart = new Date(current.parked_since);
@@ -407,14 +434,17 @@ async function upsertDeviceSnapshot(snapshot) {
           todayParkedMinutes = (sessionEnd - midnight) / 1000 / 60;
         }
         parkedSince = null;
+        drivingSince = now; // Start driving session
       }
     } else if (!wasParked && isCurrentlyParked) {
-      // Transition: was moving, now parked - start new session
+      // Transition: was moving, now parked - start new parking session
       parkedSince = now;
+      drivingSince = null; // End driving session
       todayParkedMinutes = baseMinutesFromPreviousSessions; // Keep previous sessions
     } else if (!wasParked && !isCurrentlyParked) {
-      // Still moving - keep accumulated minutes from previous sessions
+      // Still moving - keep accumulated minutes and driving_since
       todayParkedMinutes = baseMinutesFromPreviousSessions;
+      drivingSince = current.driving_since ? new Date(current.driving_since) : now;
     }
   }
   
@@ -437,8 +467,8 @@ async function upsertDeviceSnapshot(snapshot) {
   
   await query(`
     INSERT INTO device_snapshots 
-      (organization_id, device_id, truck_id, voltage1, voltage2, current, power, temperature, soc, energy, charge, runtime, rssi, power_status_string, is_parked, parked_since, today_parked_minutes, parked_date, month_parked_minutes, parked_month, recorded_at, updated_at)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, NOW())
+      (organization_id, device_id, truck_id, voltage1, voltage2, current, power, temperature, soc, energy, charge, runtime, rssi, power_status_string, is_parked, parked_since, driving_since, today_parked_minutes, parked_date, month_parked_minutes, parked_month, recorded_at, updated_at)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, NOW())
     ON CONFLICT (device_id) 
     DO UPDATE SET
       voltage1 = $4,
@@ -454,11 +484,12 @@ async function upsertDeviceSnapshot(snapshot) {
       power_status_string = $14,
       is_parked = $15,
       parked_since = $16,
-      today_parked_minutes = $17,
-      parked_date = $18,
-      month_parked_minutes = $19,
-      parked_month = $20,
-      recorded_at = $21,
+      driving_since = $17,
+      today_parked_minutes = $18,
+      parked_date = $19,
+      month_parked_minutes = $20,
+      parked_month = $21,
+      recorded_at = $22,
       updated_at = NOW()
   `, [
     snapshot.organizationId,
@@ -477,6 +508,7 @@ async function upsertDeviceSnapshot(snapshot) {
     snapshot.powerStatusString || null,
     isParked,
     parkedSince,
+    drivingSince,
     Math.round(todayParkedMinutes), // Must be integer for database column
     todayDate,
     Math.round(baseMonthMinutes), // Completed days only (MTD = this + todayParkedMinutes)

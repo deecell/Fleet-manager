@@ -201,20 +201,23 @@ export function useLegacyTrucks() {
     let statusLabel: "Driving" | "Parked" | "Idling" = "Driving";
     let statusDurationMinutes = 0;
     const parkedSince = snapshot?.parkedSince ? String(snapshot.parkedSince) : null;
+    const drivingSince = snapshot?.drivingSince ? String(snapshot.drivingSince) : null;
+    const now = Date.now();
     
     if (isParked) {
       statusLabel = isIdling ? "Idling" : "Parked";
       // Calculate duration from parkedSince if available
       if (parkedSince) {
         const parkedTime = new Date(parkedSince).getTime();
-        const now = Date.now();
         statusDurationMinutes = Math.max(0, Math.floor((now - parkedTime) / 60000));
       }
     } else {
       statusLabel = "Driving";
-      // For driving, we could use lastUpdated minus parked duration, but for now show 0
-      // This could be improved if we track drivingSince in the database
-      statusDurationMinutes = 0;
+      // Calculate duration from drivingSince if available
+      if (drivingSince) {
+        const drivingTime = new Date(drivingSince).getTime();
+        statusDurationMinutes = Math.max(0, Math.floor((now - drivingTime) / 60000));
+      }
     }
     
     // Fuel Savings = (parkedMinutes / 60) * 1.2 gal/hr * diesel price (from EIA API)
