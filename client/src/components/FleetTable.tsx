@@ -79,7 +79,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                 </button>
               </th>
               <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap" style={{ width: '16%' }}>Status</th>
-              <th className="px-3 py-3 text-center text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap" style={{ width: '10%' }}>Savings</th>
+              <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap" style={{ width: '10%' }}>Savings</th>
               <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap" style={{ width: '12%' }}>Driver</th>
               <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap" style={{ width: '30%' }}>Location</th>
               <th className="px-3 py-3 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap pl-[16px] pr-[16px]" style={{ width: '18%' }}>Last Updated</th>
@@ -124,7 +124,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                     {truck.statusLabel || "Driving"}{truck.statusDurationMinutes !== undefined && truck.statusDurationMinutes > 0 ? ` | ${truck.statusDurationMinutes}min` : ""}
                   </span>
                 </td>
-                <td className="px-3 py-2 text-center">
+                <td className="px-3 py-2 text-left">
                   <div className="text-[13px] 2xl:text-sm text-[#008236] font-medium tabular-nums" data-testid={`fuel-savings-${truck.id}`}>
                     <div className="whitespace-nowrap">${(truck.fuelSavings ?? 0).toFixed(2)} <span className="text-[#9c9ca7] font-normal">today</span></div>
                     <div className="whitespace-nowrap">${(truck.mtdFuelSavings ?? 0).toFixed(2)} <span className="text-[#9c9ca7] font-normal">month</span></div>
