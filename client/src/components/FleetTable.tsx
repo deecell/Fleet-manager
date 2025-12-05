@@ -65,11 +65,11 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
   return (
     <div className="flex gap-3 w-full mt-[0px] mb-[0px] pt-[2px] pb-[2px] min-w-[1100px]">
       {/* Section 1: Truck & Location */}
-      <div className="bg-white rounded-b-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[30] mt-[21px] min-w-[655px] shrink-0">
+      <div className="bg-white rounded-b-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[30] mt-[21px] min-w-[720px] shrink-0">
         <table className="w-full table-fixed">
           <thead>
             <tr className="bg-[#303030] h-[41px]">
-              <th className="py-3 text-left pl-[14px] pr-[14px] rounded-tl-lg min-w-[110px] w-[110px]">
+              <th className="py-3 text-left pl-[14px] pr-[14px] rounded-tl-lg w-[100px]">
                 <button 
                   onClick={() => handleSort("name")}
                   className="flex items-center gap-1.5 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap"
@@ -78,11 +78,11 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                   Truck <ArrowUpDown className="h-3.5 w-3.5 text-[#838383]" />
                 </button>
               </th>
-              <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap min-w-[110px] w-[110px]">Status</th>
-              <th className="px-3 py-3 text-center text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap min-w-[110px] w-[110px]">Savings</th>
-              <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap min-w-[90px] w-[90px]">Driver</th>
-              <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap min-w-[140px]">Location</th>
-              <th className="px-3 py-3 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap pl-[16px] pr-[16px] min-w-[130px] w-[130px]">Last Updated</th>
+              <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap w-[130px]">Status</th>
+              <th className="px-3 py-3 text-center text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap w-[80px]">Savings</th>
+              <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap w-[80px]">Driver</th>
+              <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap">Location</th>
+              <th className="px-3 py-3 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap pl-[16px] pr-[16px] w-[120px]">Last Updated</th>
             </tr>
           </thead>
           <tbody>
@@ -97,8 +97,8 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                 } ${selectedTruckId === truck.id ? "bg-[#EEF1FB]" : ""}`}
                 data-testid={`truck-row-${truck.id}`}
               >
-                <td className="py-3 pl-[18px] pr-[10px] min-w-[110px] w-[110px]">
-                  <div className="flex items-center gap-2.5">
+                <td className="py-3 pl-[14px] pr-[10px] w-[100px]">
+                  <div className="flex items-center gap-2">
                     <div 
                       className={`w-2 h-2 rounded-full shrink-0 ${
                         truck.status === "in-service" ? "bg-[#00c950]" : "bg-[#ff0900]"
@@ -113,7 +113,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                     )}
                   </div>
                 </td>
-                <td className="px-3 py-2 text-left min-w-[110px] w-[110px]">
+                <td className="px-3 py-2 text-left w-[130px]">
                   <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium whitespace-nowrap ${
                     truck.statusLabel === "Driving" 
                       ? "bg-[#e8f5e9] text-[#2e7d32]" 
@@ -124,18 +124,18 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                     {truck.statusLabel || "Driving"}{truck.statusDurationMinutes !== undefined && truck.statusDurationMinutes > 0 ? ` | ${truck.statusDurationMinutes}min` : ""}
                   </span>
                 </td>
-                <td className="px-3 py-2 text-center min-w-[110px] w-[110px]">
+                <td className="px-3 py-2 text-center w-[80px]">
                   <span className="text-[13px] 2xl:text-sm text-[#008236] font-medium tabular-nums" data-testid={`fuel-savings-${truck.id}`}>
                     ${(truck.mtdFuelSavings ?? 0).toFixed(2)}
                   </span>
                 </td>
-                <td className="px-3 py-2 min-w-[90px] w-[90px]">
+                <td className="px-3 py-2 w-[80px]">
                   <span className="text-[13px] 2xl:text-sm text-[#4a5565] line-clamp-2">{truck.driver}</span>
                 </td>
-                <td className="px-3 py-2 min-w-[140px]">
+                <td className="px-3 py-2">
                   <span className="text-[13px] 2xl:text-sm text-[#4a5565] line-clamp-2">{truck.address}</span>
                 </td>
-                <td className="px-3 py-2 pl-[10px] pr-[18px] min-w-[130px] w-[130px]">
+                <td className="px-3 py-2 pl-[10px] pr-[16px] w-[120px]">
                   <span className="text-[13px] 2xl:text-sm text-[#4a5565] text-right block whitespace-nowrap">{formatDateTime(truck.lastUpdated)}</span>
                 </td>
               </tr>
