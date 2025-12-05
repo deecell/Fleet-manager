@@ -6,6 +6,28 @@
 
 ## Latest Updates (December 5, 2025)
 
+### UI Fixes & Email Enhancements (December 5, 2025)
+
+**Footer Overlap Fix**:
+- Added `sidebarOffset` prop to Footer component (`client/src/components/Footer.tsx`)
+- When `sidebarOffset={true}`, footer starts at `left-64` (after sidebar)
+- AdminLayout sidebar now has `z-50` to ensure it stays above footer (`z-40`)
+- Fleet Dashboard uses `pb-[66px]` padding to prevent content overlap
+
+**Welcome Email Checkbox in Admin UI**:
+- Added checkbox to user creation dialog in UsersPage.tsx
+- Checkbox label: "Send welcome email with login credentials"
+- Default: checked (true)
+- Server now reads `sendWelcome` from query string OR request body
+- Toast shows success/failure status after user creation
+
+**Alert Notification Role Fix**:
+- Updated `alert-notifications.ts` to use correct roles
+- Now filters for: `org_admin`, `super_admin`, `manager` (was: `admin`, `manager`)
+- Matches actual role values used throughout the application
+
+---
+
 ### SendGrid Email Integration (December 5, 2025)
 
 **Goal**: Add email functionality for password resets, welcome emails, and critical alert notifications.
