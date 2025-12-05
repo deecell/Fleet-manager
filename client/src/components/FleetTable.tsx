@@ -24,6 +24,18 @@ function formatDateTime(dateStr?: string): string {
   });
 }
 
+function formatDuration(minutes: number): string {
+  if (minutes < 60) {
+    return `${minutes}min`;
+  }
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  if (mins === 0) {
+    return `${hours}h`;
+  }
+  return `${hours}h ${mins}min`;
+}
+
 export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, alertTruckIds = [] }: FleetTableProps) {
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -121,7 +133,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                         ? "bg-[#fff3e0] text-[#e65100]"
                         : "bg-[#f0f0f0] text-[#6b7280]"
                   }`} data-testid={`parked-status-${truck.id}`}>
-                    {truck.statusLabel || "Driving"}{truck.statusDurationMinutes !== undefined && truck.statusDurationMinutes > 0 ? ` | ${truck.statusDurationMinutes}min` : ""}
+                    {truck.statusLabel || "Driving"}{truck.statusDurationMinutes !== undefined && truck.statusDurationMinutes > 0 ? ` | ${formatDuration(truck.statusDurationMinutes)}` : ""}
                   </span>
                 </td>
                 <td className="px-3 py-2 text-left">
