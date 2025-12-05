@@ -63,9 +63,9 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
   });
 
   return (
-    <div className="flex gap-3 w-full mt-[0px] mb-[0px] pt-[2px] pb-[2px] min-w-[1100px]">
+    <div className="flex gap-3 w-full mt-[0px] mb-[0px] pt-[2px] pb-[2px]">
       {/* Section 1: Truck & Location */}
-      <div className="bg-white rounded-b-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[30] mt-[21px] min-w-[720px] shrink-0">
+      <div className="bg-white rounded-b-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[30] mt-[21px] shrink-0">
         <table className="w-full">
           <thead>
             <tr className="bg-[#303030] h-[41px]">
@@ -125,9 +125,10 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                   </span>
                 </td>
                 <td className="px-3 py-2 text-center">
-                  <span className="text-[13px] 2xl:text-sm text-[#008236] font-medium tabular-nums whitespace-nowrap" data-testid={`fuel-savings-${truck.id}`}>
-                    ${(truck.fuelSavings ?? 0).toFixed(2)} <span className="text-[#9c9ca7] font-normal">today</span> | ${(truck.mtdFuelSavings ?? 0).toFixed(2)} <span className="text-[#9c9ca7] font-normal">month</span>
-                  </span>
+                  <div className="text-[13px] 2xl:text-sm text-[#008236] font-medium tabular-nums" data-testid={`fuel-savings-${truck.id}`}>
+                    <div className="whitespace-nowrap">${(truck.fuelSavings ?? 0).toFixed(2)} <span className="text-[#9c9ca7] font-normal">today</span></div>
+                    <div className="whitespace-nowrap">${(truck.mtdFuelSavings ?? 0).toFixed(2)} <span className="text-[#9c9ca7] font-normal">month</span></div>
+                  </div>
                 </td>
                 <td className="px-3 py-2">
                   <span className="text-[13px] 2xl:text-sm text-[#4a5565] line-clamp-2">{truck.driver}</span>
