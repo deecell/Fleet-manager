@@ -188,11 +188,11 @@ jobs:
             --query 'LoadBalancers[0].DNSName' \
             --output text)
 
-          echo "Deployed to: http://$ALB_URL"
+          echo "Deployed to: https://app.deecell.com"
 
-          # Wait for health check
+          # Wait for health check (use HTTPS since ALB redirects HTTP to HTTPS)
           for i in {1..30}; do
-            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://$ALB_URL/api/health" || echo "000")
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -k "https://app.deecell.com/api/health" || echo "000")
             if [ "$HTTP_STATUS" = "200" ]; then
               echo "Health check passed!"
               exit 0
