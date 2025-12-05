@@ -1,0 +1,23 @@
+$ sudo systemctl status device-manager
+● device-manager.service - Deecell Device Manager
+     Loaded: loaded (/etc/systemd/system/device-manager.service; enabled; preset: enabled)
+     Active: active (running) since Fri 2025-12-05 18:36:34 UTC; 12min ago
+   Main PID: 22253 (node)
+      Tasks: 17 (limit: 1008)
+     Memory: 29.1M (peak: 56.0M)
+        CPU: 9.109s
+     CGroup: /system.slice/device-manager.service
+             └─22253 node app/index.js
+
+Dec 05 18:49:09 ip-10-0-11-159 start.sh[22253]: {"timestamp":"2025-12-05T18:49:09.064Z","level":"error","message":"Query failed","service":"device-manager","error":"column \"driving_since\" does not exist","que>
+Dec 05 18:49:09 ip-10-0-11-159 start.sh[22253]: {"timestamp":"2025-12-05T18:49:09.064Z","level":"error","message":"Flush failed - data retained in queue for retry","service":"device-manager","error":"column \"d>
+Dec 05 18:49:11 ip-10-0-11-159 start.sh[22253]: {"timestamp":"2025-12-05T18:49:11.107Z","level":"error","message":"Query failed","service":"device-manager","error":"column \"driving_since\" does not exist","que>
+Dec 05 18:49:11 ip-10-0-11-159 start.sh[22253]: {"timestamp":"2025-12-05T18:49:11.107Z","level":"error","message":"Flush failed - data retained in queue for retry","service":"device-manager","error":"column \"d>
+Dec 05 18:49:13 ip-10-0-11-159 start.sh[22253]: {"timestamp":"2025-12-05T18:49:13.153Z","level":"error","message":"Query failed","service":"device-manager","error":"column \"driving_since\" does not exist","que>
+Dec 05 18:49:13 ip-10-0-11-159 start.sh[22253]: {"timestamp":"2025-12-05T18:49:13.153Z","level":"error","message":"Flush failed - data retained in queue for retry","service":"device-manager","error":"column \"d>
+Dec 05 18:49:15 ip-10-0-11-159 start.sh[22253]: {"timestamp":"2025-12-05T18:49:15.196Z","level":"error","message":"Query failed","service":"device-manager","error":"column \"driving_since\" does not exist","que>
+Dec 05 18:49:15 ip-10-0-11-159 start.sh[22253]: {"timestamp":"2025-12-05T18:49:15.196Z","level":"error","message":"Flush failed - data retained in queue for retry","service":"device-manager","error":"column \"d>
+Dec 05 18:49:17 ip-10-0-11-159 start.sh[22253]: {"timestamp":"2025-12-05T18:49:17.238Z","level":"error","message":"Query failed","service":"device-manager","error":"column \"driving_since\" does not exist","que>
+Dec 05 18:49:17 ip-10-0-11-159 start.sh[22253]: {"timestamp":"2025-12-05T18:49:17.238Z","level":"error","message":"Flush failed - data retained in queue for retry","service":"device-manager","error":"column \"d>
+lines 1-20/20 (END)
+
