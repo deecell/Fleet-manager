@@ -104,7 +104,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           {children}
         </main>
       </div>
-      <Footer />
+      <Footer sidebarOffset />
       <AdminAssistant />
     </div>
   );
