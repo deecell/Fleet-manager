@@ -55,8 +55,9 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex flex-col bg-background">
+      <div className="flex-1 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4">
             <img src={logoSvg} alt="Deecell Logo" className="h-12 w-auto" />
@@ -122,6 +123,10 @@ export default function AdminLogin() {
           </div>
         </CardContent>
       </Card>
+      </div>
+      <footer className="py-6 text-center text-sm text-muted-foreground">
+        <p>&copy; {new Date().getFullYear()} Deecell. All rights reserved.</p>
+      </footer>
     </div>
   );
 }

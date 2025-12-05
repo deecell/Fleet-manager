@@ -51,8 +51,9 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
-      <Card className="w-full max-w-md shadow-lg">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-muted">
+      <div className="flex-1 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center space-y-4">
           <div className="mx-auto">
             <img src={logoSvg} alt="Deecell Logo" className="h-14 w-auto" />
@@ -115,6 +116,10 @@ export default function Login() {
           </div>
         </CardContent>
       </Card>
+      </div>
+      <footer className="py-6 text-center text-sm text-muted-foreground">
+        <p>&copy; {new Date().getFullYear()} Deecell. All rights reserved.</p>
+      </footer>
     </div>
   );
 }
