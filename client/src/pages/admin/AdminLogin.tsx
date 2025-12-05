@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAdminLogin, useAdminSession } from "@/lib/admin-api";
 import { Loader2 } from "lucide-react";
 import logoSvg from "@assets/logo.svg";
+import { Footer } from "@/components/Footer";
 
 export default function AdminLogin() {
   const [, setLocation] = useLocation();
@@ -56,7 +57,7 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <div className="flex-1 flex items-center justify-center p-4">
+      <div className="flex-1 flex items-center justify-center p-4 pb-24">
         <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4">
@@ -124,9 +125,7 @@ export default function AdminLogin() {
         </CardContent>
       </Card>
       </div>
-      <footer className="py-6 text-center text-sm text-muted-foreground">
-        <p>&copy; {new Date().getFullYear()} Deecell. All rights reserved.</p>
-      </footer>
+      <Footer />
     </div>
   );
 }
