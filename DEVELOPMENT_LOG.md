@@ -6,6 +6,34 @@
 
 ## Latest Updates (December 5, 2025)
 
+### Production Database Migration Fix (December 5, 2025)
+
+**Issue**: Device Manager was failing with `column "driving_since" does not exist` error.
+
+**Root Cause**: Production database schema was out of sync with application code. The `device_snapshots` table was missing the `driving_since` column that was added in a recent code update. Database migrations are not automated in the CI/CD pipeline.
+
+**Resolution**: Manually connected to production RDS via psql and ran:
+```sql
+ALTER TABLE device_snapshots 
+ADD COLUMN IF NOT EXISTS driving_since TIMESTAMP,
+ADD COLUMN IF NOT EXISTS is_parked BOOLEAN DEFAULT false,
+ADD COLUMN IF NOT EXISTS parked_since TIMESTAMP,
+ADD COLUMN IF NOT EXISTS today_parked_minutes INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS parked_date DATE,
+ADD COLUMN IF NOT EXISTS month_parked_minutes INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS parked_month VARCHAR(7);
+```
+
+**How to Access Production Database**:
+1. Go to AWS Console → Secrets Manager
+2. Find secret containing "database-url" 
+3. Click "Retrieve secret value" to get the connection URL
+4. From EC2 instance: `psql "postgresql://..."`
+
+**Note**: Database migrations must be run manually before/after deployments when schema changes are made. Consider adding automated migrations to CI/CD in the future.
+
+---
+
 ### Daily Slack Summary (December 5, 2025)
 
 **Feature**: GitHub Actions workflow that sends daily development summaries to Slack.
