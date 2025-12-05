@@ -83,8 +83,9 @@ db_multi_az              = false  # Set to true for production HA
 # admin_password = ""  # DO NOT SET HERE
 
 # Optional API keys (can be added later)
-# eia_api_key    = ""
-# openai_api_key = ""
+# eia_api_key      = ""
+# openai_api_key   = ""
+# sendgrid_api_key = ""
 
 # -----------------------------------------------------------------------------
 # Security & Compliance

@@ -90,6 +90,12 @@ resource "aws_ecs_task_definition" "main" {
             name      = "EIA_API_KEY"
             valueFrom = aws_secretsmanager_secret.eia_api_key[0].arn
           }
+        ] : [],
+        var.sendgrid_api_key != "" ? [
+          {
+            name      = "SENDGRID_API_KEY"
+            valueFrom = aws_secretsmanager_secret.sendgrid_api_key[0].arn
+          }
         ] : []
       )
 

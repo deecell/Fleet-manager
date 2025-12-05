@@ -215,6 +215,13 @@ variable "openai_api_key" {
   default     = ""
 }
 
+variable "sendgrid_api_key" {
+  description = "SendGrid API key for email notifications"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
 # -----------------------------------------------------------------------------
 # Security & Compliance
 # -----------------------------------------------------------------------------

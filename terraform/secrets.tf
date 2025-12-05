@@ -61,3 +61,19 @@ resource "aws_secretsmanager_secret_version" "openai_api_key" {
   secret_id     = aws_secretsmanager_secret.openai_api_key[0].id
   secret_string = var.openai_api_key
 }
+
+# SendGrid API Key (optional)
+resource "aws_secretsmanager_secret" "sendgrid_api_key" {
+  count                   = var.sendgrid_api_key != "" ? 1 : 0
+  name                    = "${local.name_prefix}/sendgrid-api-key-${random_id.suffix.hex}"
+  description             = "SendGrid API key for email notifications"
+  recovery_window_in_days = var.environment == "production" ? 7 : 0
+
+  tags = local.common_tags
+}
+
+resource "aws_secretsmanager_secret_version" "sendgrid_api_key" {
+  count         = var.sendgrid_api_key != "" ? 1 : 0
+  secret_id     = aws_secretsmanager_secret.sendgrid_api_key[0].id
+  secret_string = var.sendgrid_api_key
+}
