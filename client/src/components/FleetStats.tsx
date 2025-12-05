@@ -228,16 +228,11 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <StatCard
-        title="Today's Savings"
-        value={`$ ${todaySavings.toFixed(2)}`}
-        targetNumber={todaySavings}
-        prefix="$ "
-        decimals={2}
-        alwaysShowDecimals={true}
+      <SavingsCard
+        todaySavings={todaySavings}
+        mtdSavings={mtdSavings}
         icon={<img src={dolarIcon} alt="Dollar" className="h-[24px] w-[24px]" />}
         iconBgColor="bg-[#effcdc]"
-        valueColor="text-[#008236]"
       />
       <StatCard
         title="Avg. State of Charge"
