@@ -1,0 +1,148 @@
+name: Daily Development Summary to Slack
+
+on:
+  schedule:
+    # Runs at 6 PM UTC every day (adjust as needed)
+    # To change: https://crontab.guru/
+    - cron: '0 18 * * *'
+  workflow_dispatch: # Allows manual trigger for testing
+
+jobs:
+  send-summary:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for accurate commit counting
+      
+      - name: Get today's commits
+        id: commits
+        run: |
+          # Get commits from the last 24 hours
+          SINCE=$(date -u -d '24 hours ago' '+%Y-%m-%dT%H:%M:%SZ')
+          TODAY=$(date -u '+%B %d, %Y')
+          echo "date=$TODAY" >> $GITHUB_OUTPUT
+          
+          # Get commit count
+          COMMIT_COUNT=$(git log --since="$SINCE" --oneline 2>/dev/null | wc -l)
+          echo "count=$COMMIT_COUNT" >> $GITHUB_OUTPUT
+          
+          # Get commit details (last 10 max to avoid message overflow)
+          # Escape special characters for JSON safety
+          COMMITS_RAW=$(git log --since="$SINCE" --pretty=format:"• %s (%an)" --no-merges 2>/dev/null | head -10)
+          # Escape backslashes, double quotes, and newlines for JSON
+          COMMITS_ESCAPED=$(echo "$COMMITS_RAW" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
+          
+          echo "commits=$COMMITS_ESCAPED" >> $GITHUB_OUTPUT
+          
+          # Get files changed count
+          FILES_CHANGED=$(git log --since="$SINCE" --pretty=format: --name-only 2>/dev/null | sort -u | grep -v '^$' | wc -l)
+          echo "files_changed=$FILES_CHANGED" >> $GITHUB_OUTPUT
+          
+          # Get list of contributors (also escape for JSON)
+          CONTRIBUTORS_RAW=$(git log --since="$SINCE" --pretty=format:"%an" 2>/dev/null | sort -u | tr '\n' ', ' | sed 's/,$//')
+          CONTRIBUTORS_ESCAPED=$(echo "$CONTRIBUTORS_RAW" | sed 's/"/\\"/g')
+          echo "contributors=$CONTRIBUTORS_ESCAPED" >> $GITHUB_OUTPUT
+      
+      - name: Send Slack notification
+        if: steps.commits.outputs.count > 0
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "📊 Deecell Fleet Dashboard - Daily Dev Summary",
+                    "emoji": true
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*📅 Date:*\n${{ steps.commits.outputs.date }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*🔢 Commits:*\n${{ steps.commits.outputs.count }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*📁 Files Changed:*\n${{ steps.commits.outputs.files_changed }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*👥 Contributors:*\n${{ steps.commits.outputs.contributors || 'N/A' }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "divider"
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Recent Changes:*\n${{ steps.commits.outputs.commits || 'No commits in the last 24 hours' }}"
+                  }
+                },
+                {
+                  "type": "divider"
+                },
+                {
+                  "type": "context",
+                  "elements": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "🔗 <https://github.com/${{ github.repository }}|View Repository> | <https://app.deecell.com|Live App>"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+      
+      - name: No commits notification
+        if: steps.commits.outputs.count == 0
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "📊 Deecell Fleet Dashboard - Daily Dev Summary",
+                    "emoji": true
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "✨ No development activity in the last 24 hours.\n\nEverything is running smoothly! 🚀"
+                  }
+                },
+                {
+                  "type": "context",
+                  "elements": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "🔗 <https://github.com/${{ github.repository }}|View Repository> | <https://app.deecell.com|Live App>"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

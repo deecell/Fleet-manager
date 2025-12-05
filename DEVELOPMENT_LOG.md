@@ -6,6 +6,44 @@
 
 ## Latest Updates (December 5, 2025)
 
+### Daily Slack Summary (December 5, 2025)
+
+**Feature**: GitHub Actions workflow that sends daily development summaries to Slack.
+
+**Workflow File**: `.github/workflows/daily-slack-summary.yml`
+
+**Schedule**: Runs daily at 6 PM UTC (configurable via cron expression)
+
+**Summary Includes**:
+- Commit count from last 24 hours
+- List of recent commits with descriptions
+- Files changed count
+- Contributors
+
+**Setup Instructions**:
+
+1. **Create Slack Incoming Webhook**:
+   - Go to your Slack workspace → Apps → Incoming Webhooks
+   - Or visit: https://api.slack.com/messaging/webhooks
+   - Create a new webhook and select the channel for summaries
+   - Copy the webhook URL
+
+2. **Add GitHub Secret**:
+   - Go to your GitHub repository → Settings → Secrets and variables → Actions
+   - Click "New repository secret"
+   - Name: `SLACK_WEBHOOK_URL`
+   - Value: Your Slack webhook URL
+   - Click "Add secret"
+
+3. **Test the Workflow**:
+   - Go to Actions tab in GitHub
+   - Select "Daily Development Summary to Slack"
+   - Click "Run workflow" to test manually
+
+**Manual Trigger**: Can be triggered anytime via GitHub Actions UI (workflow_dispatch enabled)
+
+---
+
 ### UI Fixes & Email Enhancements (December 5, 2025)
 
 **Footer Overlap Fix**:

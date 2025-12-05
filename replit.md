@@ -135,6 +135,15 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
   - `get_low_battery_trucks` - Trucks below SOC threshold
   - `get_fleet_summary` - Quick fleet health overview
 
+### Slack Integration (Daily Dev Summary)
+- **Purpose**: Automated daily summary of development activity sent to Slack.
+- **Workflow**: `.github/workflows/daily-slack-summary.yml`
+- **Schedule**: Daily at 6 PM UTC (configurable via cron)
+- **Content**: Commit count, commit descriptions, files changed, contributors.
+- **Trigger**: Automatic (scheduled) + manual via GitHub Actions UI.
+- **Secret Required**: `SLACK_WEBHOOK_URL` in GitHub repository secrets.
+- **Setup**: Create Incoming Webhook in Slack workspace → Add URL to GitHub secrets.
+
 ### AWS Deployment Infrastructure (December 1, 2025) - ✅ LIVE!
 - **Status**: DEPLOYED and running in AWS!
 - **Terraform**: Complete IaC in `terraform/` directory (12 files) - 92+ resources deployed.
