@@ -24,7 +24,7 @@ export async function sendAlertNotifications(alert: Alert): Promise<number> {
     const adminUsers = users.filter(u => 
       u.isActive && 
       u.email && 
-      (u.role === "admin" || u.role === "manager")
+      (u.role === "org_admin" || u.role === "super_admin" || u.role === "manager")
     );
 
     if (adminUsers.length === 0) {

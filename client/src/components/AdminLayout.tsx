@@ -50,7 +50,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   return (
     <div className="flex h-screen bg-background">
-      <aside className="w-64 border-r border-border bg-card flex flex-col">
+      <aside className="w-64 border-r border-border bg-card flex flex-col z-50">
         <div className="h-16 flex items-center px-6 border-b border-border bg-[#ffffff]">
           <Link href="/admin">
             <span className="text-lg font-semibold text-foreground cursor-pointer" data-testid="link-admin-home">

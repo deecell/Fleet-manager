@@ -655,7 +655,9 @@ router.get("/users", adminMiddleware, async (req: Request, res: Response) => {
 router.post("/organizations/:orgId/users", adminMiddleware, async (req: Request, res: Response) => {
   try {
     const orgId = parseInt(req.params.orgId, 10);
-    const { password, sendWelcome = true, ...restBody } = req.body;
+    const sendWelcomeQuery = req.query.sendWelcome === "true";
+    const { password, sendWelcome: sendWelcomeBody, ...restBody } = req.body;
+    const sendWelcome = sendWelcomeQuery || sendWelcomeBody === true;
     const data = insertUserSchema.omit({ organizationId: true }).parse(restBody);
     
     if (!password || typeof password !== "string" || password.length < 6) {
