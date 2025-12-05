@@ -1,6 +1,8 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { storage } from "../storage";
 import bcrypt from "bcrypt";
+import crypto from "crypto";
+import { sendPasswordResetEmail, sendPasswordChangedEmail, isEmailConfigured } from "../services/email-service";
 
 const router = Router();
 
@@ -169,6 +171,182 @@ router.get("/session", async (req: Request, res: Response) => {
       organizationName: organization.name,
     }
   });
+});
+
+router.post("/forgot-password", async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ 
+        error: "Missing email", 
+        message: "Email is required" 
+      });
+    }
+
+    if (!isEmailConfigured()) {
+      return res.status(503).json({ 
+        error: "Email not configured", 
+        message: "Password reset is not available at this time" 
+      });
+    }
+
+    const user = await storage.getUserByEmailGlobal(email.toLowerCase().trim());
+    
+    if (!user || !user.isActive) {
+      return res.json({ 
+        success: true, 
+        message: "If an account exists with this email, you will receive a password reset link" 
+      });
+    }
+
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+    await storage.createPasswordResetToken({
+      userId: user.id,
+      token,
+      expiresAt,
+    });
+
+    await sendPasswordResetEmail(user.email, token, user.firstName || undefined);
+
+    return res.json({ 
+      success: true, 
+      message: "If an account exists with this email, you will receive a password reset link" 
+    });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    return res.status(500).json({ 
+      error: "Server error", 
+      message: "An error occurred processing your request" 
+    });
+  }
+});
+
+router.get("/reset-password/:token", async (req: Request, res: Response) => {
+  try {
+    const { token } = req.params;
+    
+    if (!token) {
+      return res.status(400).json({ 
+        valid: false, 
+        message: "Token is required" 
+      });
+    }
+
+    const resetToken = await storage.getPasswordResetToken(token);
+    
+    if (!resetToken) {
+      return res.status(400).json({ 
+        valid: false, 
+        message: "Invalid or expired reset link" 
+      });
+    }
+
+    if (resetToken.usedAt) {
+      return res.status(400).json({ 
+        valid: false, 
+        message: "This reset link has already been used" 
+      });
+    }
+
+    if (new Date() > resetToken.expiresAt) {
+      return res.status(400).json({ 
+        valid: false, 
+        message: "This reset link has expired" 
+      });
+    }
+
+    const user = await storage.getUserById(resetToken.userId);
+    if (!user || !user.isActive) {
+      return res.status(400).json({ 
+        valid: false, 
+        message: "Account not found" 
+      });
+    }
+
+    return res.json({ 
+      valid: true,
+      email: user.email,
+    });
+  } catch (error) {
+    console.error("Validate reset token error:", error);
+    return res.status(500).json({ 
+      valid: false, 
+      message: "An error occurred validating your reset link" 
+    });
+  }
+});
+
+router.post("/reset-password", async (req: Request, res: Response) => {
+  try {
+    const { token, password } = req.body;
+    
+    if (!token || !password) {
+      return res.status(400).json({ 
+        error: "Missing fields", 
+        message: "Token and password are required" 
+      });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({ 
+        error: "Password too short", 
+        message: "Password must be at least 8 characters" 
+      });
+    }
+
+    const resetToken = await storage.getPasswordResetToken(token);
+    
+    if (!resetToken) {
+      return res.status(400).json({ 
+        error: "Invalid token", 
+        message: "Invalid or expired reset link" 
+      });
+    }
+
+    if (resetToken.usedAt) {
+      return res.status(400).json({ 
+        error: "Token used", 
+        message: "This reset link has already been used" 
+      });
+    }
+
+    if (new Date() > resetToken.expiresAt) {
+      return res.status(400).json({ 
+        error: "Token expired", 
+        message: "This reset link has expired" 
+      });
+    }
+
+    const user = await storage.getUserById(resetToken.userId);
+    if (!user || !user.isActive) {
+      return res.status(400).json({ 
+        error: "Account not found", 
+        message: "Account not found or inactive" 
+      });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    await storage.updateUserPassword(user.id, passwordHash);
+
+    await storage.markPasswordResetTokenUsed(token);
+
+    await sendPasswordChangedEmail(user.email, user.firstName || undefined);
+
+    return res.json({ 
+      success: true, 
+      message: "Your password has been reset successfully" 
+    });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    return res.status(500).json({ 
+      error: "Server error", 
+      message: "An error occurred resetting your password" 
+    });
+  }
 });
 
 export default router;

@@ -4,7 +4,79 @@
 
 ---
 
-## Latest Updates (December 4, 2025)
+## Latest Updates (December 5, 2025)
+
+### SendGrid Email Integration (December 5, 2025)
+
+**Goal**: Add email functionality for password resets, welcome emails, and critical alert notifications.
+
+**Email Service Implementation** (`server/services/email-service.ts`):
+- Sender: `hello@deecell.com` (requires SendGrid domain authentication)
+- Templates: Password reset, welcome with temp password, critical alerts
+- Secret: `SENDGRID_API_KEY` required
+
+**Password Reset Flow**:
+1. User submits email on `/forgot-password`
+2. Backend creates 24-hour token, stores in `password_reset_tokens` table
+3. Email sent with reset link to `/reset-password?token=xxx`
+4. User submits new password, token validated and marked as used
+5. Password updated, user can login
+
+**Database Schema** (added to `shared/schema.ts`):
+```typescript
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  usedAt: timestamp("used_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+```
+
+**Welcome Email Automation**:
+- Triggered when admin creates new user via `/api/v1/admin/organizations/:orgId/users`
+- Includes temporary password in email
+- Can be disabled with `sendWelcome: false` in request body
+
+**Alert Notification System** (`server/services/alert-notifications.ts`):
+- Critical alerts trigger email to org admins/managers
+- Alert types: `low_voltage`, `critical_voltage`, `soc_critical`, `device_offline`
+- Includes truck/device context in email
+
+**API Endpoints**:
+- `POST /api/v1/auth/forgot-password` - Request password reset
+- `POST /api/v1/auth/reset-password` - Complete password reset
+- `GET /api/v1/auth/verify-reset-token` - Validate token before showing form
+
+**Frontend Pages**:
+- `/forgot-password` - Email input form
+- `/reset-password` - New password form (with token validation)
+
+**DNS Setup (Namecheap for SendGrid)**:
+- Use subdomain prefix only (e.g., `em1234` not `em1234.deecell.com`)
+- Add CNAME records for domain authentication
+
+**Files Created/Modified**:
+- `server/services/email-service.ts` - Core SendGrid integration
+- `server/services/alert-notifications.ts` - Alert email dispatcher
+- `server/api/auth-routes.ts` - Password reset endpoints
+- `server/api/admin-routes.ts` - Added welcome email on user creation
+- `server/db-storage.ts` - Token CRUD operations
+- `client/src/pages/ForgotPassword.tsx` - Request reset form
+- `client/src/pages/ResetPassword.tsx` - Set new password form
+- `shared/schema.ts` - Added password_reset_tokens table
+
+**Alert Notification Trigger** (Fix Applied):
+- `sendAlertNotifications()` now called from `db-storage.ts` when alerts are created
+- Only critical alerts trigger emails (filtered by `shouldNotifyForAlert()`)
+- Non-blocking: email failures don't affect alert creation
+
+**Status**: ✅ Complete (pending SendGrid domain authentication)
+
+---
+
+## Previous Updates (December 4, 2025)
 
 ### Custom Domain Setup (December 4, 2025 - 10:15 PM)
 

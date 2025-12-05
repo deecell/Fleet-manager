@@ -11,6 +11,7 @@ import {
   type Alert, type InsertAlert,
   type AuditLog, type InsertAuditLog,
   type PollingSetting, type InsertPollingSetting,
+  type PasswordResetToken, type InsertPasswordResetToken,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -136,6 +137,8 @@ export interface IStorage {
   listAllUsers(): Promise<User[]>;
   deleteUser(organizationId: number, id: number): Promise<boolean>;
   getUserByEmailGlobal(email: string): Promise<User | undefined>;
+  getUserById(id: number): Promise<User | undefined>;
+  updateUserPassword(userId: number, passwordHash: string): Promise<void>;
   hasActiveAlertForDevice(organizationId: number, deviceId: number, alertType: string): Promise<boolean>;
   getAdminStats(): Promise<{
     totalOrganizations: number;
@@ -147,6 +150,11 @@ export interface IStorage {
     offlineDevices: number;
     activeAlerts: number;
   }>;
+
+  // Password Reset Tokens
+  createPasswordResetToken(data: InsertPasswordResetToken): Promise<PasswordResetToken>;
+  getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined>;
+  markPasswordResetTokenUsed(token: string): Promise<void>;
 }
 
 export { dbStorage as storage } from "./db-storage";

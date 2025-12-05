@@ -377,6 +377,24 @@ export const sessions = pgTable("sessions", {
 }));
 
 // =============================================================================
+// PASSWORD RESET TOKENS
+// =============================================================================
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  usedAt: timestamp("used_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  tokenIdx: index("password_reset_token_idx").on(table.token),
+  userIdx: index("password_reset_user_idx").on(table.userId),
+  expiresIdx: index("password_reset_expires_idx").on(table.expiresAt),
+}));
+
+// =============================================================================
 // SIM CARDS (from SIMPro - linked to PowerMon devices by name)
 // =============================================================================
 export const sims = pgTable("sims", {
@@ -610,6 +628,9 @@ export const insertSavingsConfigSchema = createInsertSchema(savingsConfig)
 export const insertDataMigrationSchema = createInsertSchema(dataMigrations)
   .omit({ id: true, appliedAt: true });
 
+export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens)
+  .omit({ id: true, createdAt: true, usedAt: true });
+
 // =============================================================================
 // SELECT TYPES (for query results)
 // =============================================================================
@@ -633,6 +654,7 @@ export type SimSyncSetting = typeof simSyncSettings.$inferSelect;
 export type FuelPrice = typeof fuelPrices.$inferSelect;
 export type SavingsConfig = typeof savingsConfig.$inferSelect;
 export type DataMigration = typeof dataMigrations.$inferSelect;
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 
 // =============================================================================
 // INSERT TYPES (for creating new records)
@@ -656,6 +678,7 @@ export type InsertSimUsageHistory = z.infer<typeof insertSimUsageHistorySchema>;
 export type InsertSimSyncSetting = z.infer<typeof insertSimSyncSettingsSchema>;
 export type InsertFuelPrice = z.infer<typeof insertFuelPriceSchema>;
 export type InsertSavingsConfig = z.infer<typeof insertSavingsConfigSchema>;
+export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
 
 // =============================================================================
 // LEGACY SCHEMAS (for backward compatibility with existing dashboard)

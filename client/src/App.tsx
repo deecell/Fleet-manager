@@ -6,6 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { OrgProvider } from "./lib/org-context";
 import Dashboard from "@/pages/Dashboard";
 import Login from "@/pages/Login";
+import ForgotPassword from "@/pages/ForgotPassword";
+import ResetPassword from "@/pages/ResetPassword";
 import NotFound from "@/pages/not-found";
 import AdminLogin from "@/pages/admin/AdminLogin";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
@@ -21,6 +23,8 @@ function Router() {
     <Switch>
       <Route path="/" component={Dashboard}/>
       <Route path="/login" component={Login}/>
+      <Route path="/forgot-password" component={ForgotPassword}/>
+      <Route path="/reset-password" component={ResetPassword}/>
       <Route path="/admin/login" component={AdminLogin}/>
       <Route path="/admin" component={AdminDashboard}/>
       <Route path="/admin/organizations" component={OrganizationsPage}/>

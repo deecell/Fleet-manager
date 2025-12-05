@@ -4,6 +4,7 @@ import {
   organizations, users, fleets, trucks, powerMonDevices,
   deviceCredentials, deviceSnapshots, deviceMeasurements,
   deviceSyncStatus, alerts, auditLogs, pollingSettings,
+  passwordResetTokens,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Fleet, type InsertFleet,
@@ -16,7 +17,9 @@ import {
   type Alert, type InsertAlert,
   type AuditLog, type InsertAuditLog,
   type PollingSetting, type InsertPollingSetting,
+  type PasswordResetToken, type InsertPasswordResetToken,
 } from "@shared/schema";
+import { sendAlertNotifications, shouldNotifyForAlert } from "./services/alert-notifications";
 
 export class DbStorage {
   // ===========================================================================
@@ -529,6 +532,13 @@ export class DbStorage {
   
   async createAlert(data: InsertAlert): Promise<Alert> {
     const [alert] = await db.insert(alerts).values(data).returning();
+    
+    if (shouldNotifyForAlert(alert.alertType)) {
+      sendAlertNotifications(alert).catch(err => {
+        console.error(`[DbStorage] Failed to send alert notifications for alert ${alert.id}:`, err);
+      });
+    }
+    
     return alert;
   }
 
@@ -817,6 +827,38 @@ export class DbStorage {
       offlineDevices: deviceStats?.offline ?? 0,
       activeAlerts: alertCount?.count ?? 0,
     };
+  }
+
+  async getUserById(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async updateUserPassword(userId: number, passwordHash: string): Promise<void> {
+    await db.update(users)
+      .set({ passwordHash, updatedAt: new Date() })
+      .where(eq(users.id, userId));
+  }
+
+  // ===========================================================================
+  // PASSWORD RESET TOKENS
+  // ===========================================================================
+
+  async createPasswordResetToken(data: InsertPasswordResetToken): Promise<PasswordResetToken> {
+    const [token] = await db.insert(passwordResetTokens).values(data).returning();
+    return token;
+  }
+
+  async getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined> {
+    const [resetToken] = await db.select().from(passwordResetTokens)
+      .where(eq(passwordResetTokens.token, token));
+    return resetToken;
+  }
+
+  async markPasswordResetTokenUsed(token: string): Promise<void> {
+    await db.update(passwordResetTokens)
+      .set({ usedAt: new Date() })
+      .where(eq(passwordResetTokens.token, token));
   }
 }
 

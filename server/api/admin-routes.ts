@@ -13,6 +13,7 @@ import bcrypt from "bcrypt";
 import { getSimSyncService } from "../services/sim-sync-service";
 import { createGitHubIssue, listGitHubIssues, getGitHubLabels } from "../services/github-issues";
 import { processAdminChat, ChatMessage } from "../services/admin-assistant";
+import { sendWelcomeEmail, isEmailConfigured } from "../services/email-service";
 
 const SALT_ROUNDS = 10;
 
@@ -654,7 +655,7 @@ router.get("/users", adminMiddleware, async (req: Request, res: Response) => {
 router.post("/organizations/:orgId/users", adminMiddleware, async (req: Request, res: Response) => {
   try {
     const orgId = parseInt(req.params.orgId, 10);
-    const { password, ...restBody } = req.body;
+    const { password, sendWelcome = true, ...restBody } = req.body;
     const data = insertUserSchema.omit({ organizationId: true }).parse(restBody);
     
     if (!password || typeof password !== "string" || password.length < 6) {
@@ -671,7 +672,19 @@ router.post("/organizations/:orgId/users", adminMiddleware, async (req: Request,
       organizationId: orgId,
       passwordHash 
     });
-    res.status(201).json({ user });
+
+    let welcomeEmailSent = false;
+    if (sendWelcome && isEmailConfigured() && user.email) {
+      try {
+        await sendWelcomeEmail(user.email, user.firstName || undefined, password);
+        welcomeEmailSent = true;
+        console.log(`Welcome email sent to ${user.email}`);
+      } catch (emailError) {
+        console.error(`Failed to send welcome email to ${user.email}:`, emailError);
+      }
+    }
+
+    res.status(201).json({ user, welcomeEmailSent });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: "Validation failed", details: error.errors });
