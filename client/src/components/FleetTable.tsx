@@ -125,8 +125,8 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                   </span>
                 </td>
                 <td className="px-3 py-2 text-center">
-                  <span className="text-[13px] 2xl:text-sm text-[#008236] font-medium tabular-nums" data-testid={`fuel-savings-${truck.id}`}>
-                    ${(truck.mtdFuelSavings ?? 0).toFixed(2)}
+                  <span className="text-[13px] 2xl:text-sm text-[#008236] font-medium tabular-nums whitespace-nowrap" data-testid={`fuel-savings-${truck.id}`}>
+                    ${(truck.fuelSavings ?? 0).toFixed(2)} <span className="text-[#9c9ca7] font-normal">today</span> | ${(truck.mtdFuelSavings ?? 0).toFixed(2)} <span className="text-[#9c9ca7] font-normal">month</span>
                   </span>
                 </td>
                 <td className="px-3 py-2">
