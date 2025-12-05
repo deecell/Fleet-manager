@@ -199,17 +199,28 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
     refetchInterval: 60000,
   });
 
-  // Use API data for savings and CO2 calculations
-  const todaySavings = savingsData?.todaySavings ?? trucks.reduce((sum, truck) => sum + (truck.fuelSavings ?? 0), 0);
-  const mtdSavings = savingsData?.mtdSavings ?? todaySavings;
+  // Calculate fallback savings from truck props
+  const truckBasedSavings = trucks.reduce((sum, truck) => sum + (truck.fuelSavings ?? 0), 0);
+  const truckBasedParkedMinutes = trucks.reduce((sum, truck) => sum + (truck.todayParkedMinutes ?? 0), 0);
+  
+  // Use API data if available and non-zero, otherwise fallback to truck-based calculation
+  const todaySavings = (savingsData?.todaySavings && savingsData.todaySavings > 0) 
+    ? savingsData.todaySavings 
+    : truckBasedSavings;
+  
+  // For MTD, use API data if available, otherwise estimate as 30x today (placeholder until real data accumulates)
+  const mtdSavings = (savingsData?.mtdSavings && savingsData.mtdSavings > 0) 
+    ? savingsData.mtdSavings 
+    : todaySavings * 30;
   
   // CO2 Reduction from API or calculate from parked minutes
-  const todayCO2Reduction = savingsData?.todayCO2Reduction ?? (() => {
-    const todayParkedMinutes = trucks.reduce((sum, truck) => sum + (truck.todayParkedMinutes ?? 0), 0);
-    const todayParkedHours = todayParkedMinutes / 60;
-    const todayGallonsSaved = todayParkedHours * GALLONS_PER_HOUR_IDLING;
-    return todayGallonsSaved * CO2_LBS_PER_GALLON;
-  })();
+  const todayCO2Reduction = (savingsData?.todayCO2Reduction && savingsData.todayCO2Reduction > 0) 
+    ? savingsData.todayCO2Reduction 
+    : (() => {
+        const todayParkedHours = truckBasedParkedMinutes / 60;
+        const todayGallonsSaved = todayParkedHours * GALLONS_PER_HOUR_IDLING;
+        return todayGallonsSaved * CO2_LBS_PER_GALLON;
+      })();
 
   const avgSoc = fleetStats?.avgSoc.value ?? (trucks.length > 0 ? trucks.reduce((sum, t) => sum + t.soc, 0) / trucks.length : 0);
   const socTrendPercent = fleetStats?.avgSoc.trendPercentage ?? 0;
