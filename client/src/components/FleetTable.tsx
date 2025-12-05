@@ -66,7 +66,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
     <div className="flex gap-3 w-full mt-[0px] mb-[0px] pt-[2px] pb-[2px] min-w-[1100px]">
       {/* Section 1: Truck & Location */}
       <div className="bg-white rounded-b-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[30] mt-[21px] min-w-[655px] shrink-0">
-        <table className="w-full">
+        <table className="w-full table-fixed">
           <thead>
             <tr className="bg-[#303030] h-[41px]">
               <th className="py-3 text-left pl-[14px] pr-[14px] rounded-tl-lg min-w-[110px] w-[110px]">
