@@ -125,7 +125,7 @@ export default function AdminLogin() {
         </CardContent>
       </Card>
       </div>
-      <Footer />
+      <Footer transparent />
     </div>
   );
 }
