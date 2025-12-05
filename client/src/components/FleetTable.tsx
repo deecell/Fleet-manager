@@ -78,7 +78,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                   Truck <ArrowUpDown className="h-3.5 w-3.5 text-[#838383]" />
                 </button>
               </th>
-              <th className="px-3 py-3 text-center text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap min-w-[75px] w-[75px]"></th>
+              <th className="px-3 py-3 text-center text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap min-w-[110px] w-[110px]">Status</th>
               <th className="px-3 py-3 text-center text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap min-w-[110px] w-[110px]">MTD Savings</th>
               <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap min-w-[90px] w-[90px]">Driver</th>
               <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap min-w-[140px]">Location</th>
@@ -113,13 +113,15 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                     )}
                   </div>
                 </td>
-                <td className="px-3 py-2 text-center min-w-[75px] w-[75px]">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium ${
-                    truck.isParked 
-                      ? "bg-[#f0f0f0] text-[#6b7280]" 
-                      : "bg-[#e8f5e9] text-[#2e7d32]"
+                <td className="px-3 py-2 text-center min-w-[110px] w-[110px]">
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium whitespace-nowrap ${
+                    truck.statusLabel === "Driving" 
+                      ? "bg-[#e8f5e9] text-[#2e7d32]" 
+                      : truck.statusLabel === "Idling"
+                        ? "bg-[#fff3e0] text-[#e65100]"
+                        : "bg-[#f0f0f0] text-[#6b7280]"
                   }`} data-testid={`parked-status-${truck.id}`}>
-                    {truck.isParked ? "Parked" : "Driving"}
+                    {truck.statusLabel || "Driving"}{truck.statusDurationMinutes !== undefined && truck.statusDurationMinutes > 0 ? ` | ${truck.statusDurationMinutes}min` : ""}
                   </span>
                 </td>
                 <td className="px-3 py-2 text-center min-w-[110px] w-[110px]">

@@ -130,6 +130,10 @@ export interface LegacyTruckWithDevice extends LegacyTruckWithHistory {
   deviceId?: number;
   lastUpdated?: string;
   isParked?: boolean;
+  isIdling?: boolean;
+  statusLabel?: "Driving" | "Parked" | "Idling";
+  statusDurationMinutes?: number;
+  parkedSince?: string | null;
   todayParkedMinutes?: number;
   monthParkedMinutes?: number;
   fuelSavings?: number;
@@ -188,6 +192,31 @@ export function useLegacyTrucks() {
     const chassisVoltage = snapshot?.voltage2 ?? 0;
     const isParked = chassisVoltage < PARKED_VOLTAGE_THRESHOLD;
     
+    // Idling: engine on (v2 >= 13.0V) but power draw is minimal (device drawing power)
+    // We consider it idling if parked with significant sleeper power draw (> 100W)
+    const sleeperPower = snapshot?.power ?? 0;
+    const isIdling = isParked && sleeperPower > 100;
+    
+    // Determine status label and calculate duration
+    let statusLabel: "Driving" | "Parked" | "Idling" = "Driving";
+    let statusDurationMinutes = 0;
+    const parkedSince = snapshot?.parkedSince ? String(snapshot.parkedSince) : null;
+    
+    if (isParked) {
+      statusLabel = isIdling ? "Idling" : "Parked";
+      // Calculate duration from parkedSince if available
+      if (parkedSince) {
+        const parkedTime = new Date(parkedSince).getTime();
+        const now = Date.now();
+        statusDurationMinutes = Math.max(0, Math.floor((now - parkedTime) / 60000));
+      }
+    } else {
+      statusLabel = "Driving";
+      // For driving, we could use lastUpdated minus parked duration, but for now show 0
+      // This could be improved if we track drivingSince in the database
+      statusDurationMinutes = 0;
+    }
+    
     // Fuel Savings = (parkedMinutes / 60) * 1.2 gal/hr * diesel price (from EIA API)
     // Use database value if available, otherwise 0 (Device Manager tracks accumulated time)
     const todayParkedMinutes = snapshot?.todayParkedMinutes ?? 0;
@@ -229,6 +258,10 @@ export function useLegacyTrucks() {
       deviceId: device?.id,
       lastUpdated: snapshot?.updatedAt ? String(snapshot.updatedAt) : snapshot?.recordedAt ? String(snapshot.recordedAt) : undefined,
       isParked,
+      isIdling,
+      statusLabel,
+      statusDurationMinutes,
+      parkedSince,
       todayParkedMinutes,
       monthParkedMinutes,
       fuelSavings,

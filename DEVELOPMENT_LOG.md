@@ -76,6 +76,28 @@ export const passwordResetTokens = pgTable("password_reset_tokens", {
 
 ---
 
+### Fleet Table Status Duration Display (December 5, 2025)
+
+**Goal**: Show how long a truck has been in its current state (Driving, Parked, Idling) with format "Status | Xmin".
+
+**Implementation**:
+- Added `statusLabel`, `statusDurationMinutes`, `isIdling`, `parkedSince` fields to `LegacyTruckWithDevice` interface
+- Status duration calculated from `parkedSince` timestamp in device snapshots
+- Three status states with distinct colors:
+  - **Driving**: Green (`#e8f5e9` bg, `#2e7d32` text)
+  - **Parked**: Gray (`#f0f0f0` bg, `#6b7280` text)
+  - **Idling**: Orange (`#fff3e0` bg, `#e65100` text) - parked with power draw > 100W
+
+**Files Modified**:
+- `client/src/lib/api.ts` - Added status calculation logic in `useLegacyTrucks`
+- `client/src/components/FleetTable.tsx` - Updated badge display with duration
+
+**Display Format**: `Parked | 25min`, `Driving`, `Idling | 10min`
+
+**Status**: ✅ Complete
+
+---
+
 ## Previous Updates (December 4, 2025)
 
 ### Custom Domain Setup (December 4, 2025 - 10:15 PM)
