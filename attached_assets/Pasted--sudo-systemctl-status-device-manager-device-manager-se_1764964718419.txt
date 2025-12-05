@@ -1,0 +1,22 @@
+$ sudo systemctl status device-manager
+● device-manager.service - Deecell Device Manager
+     Loaded: loaded (/etc/systemd/system/device-manager.service; enabled; preset: enabled)
+     Active: active (running) since Fri 2025-12-05 19:58:01 UTC; 19s ago
+   Main PID: 23810 (node)
+      Tasks: 17 (limit: 1008)
+     Memory: 13.2M (peak: 56.4M)
+        CPU: 1.275s
+     CGroup: /system.slice/device-manager.service
+             └─23810 node app/index.js
+
+Dec 05 19:58:03 ip-10-0-11-159 start.sh[23810]: {"timestamp":"2025-12-05T19:58:03.168Z","level":"info","message":"Device Manager started successfully","service":"device-manager","devices":3,"status":"running"}
+Dec 05 19:58:03 ip-10-0-11-159 start.sh[23810]: {"timestamp":"2025-12-05T19:58:03.619Z","level":"info","message":"Fetched device info from PowerMon","service":"device-manager","deviceId":5,"serial":"B051375C222>
+Dec 05 19:58:03 ip-10-0-11-159 start.sh[23810]: {"timestamp":"2025-12-05T19:58:03.622Z","level":"info","message":"Updated device info","service":"device-manager","deviceId":5,"serialNumber":"B051375C222A5334",">
+Dec 05 19:58:03 ip-10-0-11-159 start.sh[23810]: {"timestamp":"2025-12-05T19:58:03.779Z","level":"info","message":"Fetched device info from PowerMon","service":"device-manager","deviceId":4,"serial":"1982A3044D3>
+Dec 05 19:58:03 ip-10-0-11-159 start.sh[23810]: {"timestamp":"2025-12-05T19:58:03.781Z","level":"info","message":"Updated device info","service":"device-manager","deviceId":4,"serialNumber":"1982A3044D3599E2",">
+Dec 05 19:58:03 ip-10-0-11-159 start.sh[23810]: {"timestamp":"2025-12-05T19:58:03.996Z","level":"info","message":"Fetched device info from PowerMon","service":"device-manager","deviceId":3,"serial":"A3A5B30EA9B>
+Dec 05 19:58:03 ip-10-0-11-159 start.sh[23810]: {"timestamp":"2025-12-05T19:58:03.999Z","level":"info","message":"Updated device info","service":"device-manager","deviceId":3,"serialNumber":"A3A5B30EA9B3FF98",">
+Dec 05 19:58:09 ip-10-0-11-159 start.sh[23810]: {"timestamp":"2025-12-05T19:58:09.106Z","level":"info","message":"Truck parked - accumulating time","service":"device-manager","deviceId":5,"voltage2":0.035176262>
+Dec 05 19:58:15 ip-10-0-11-159 start.sh[23810]: {"timestamp":"2025-12-05T19:58:15.116Z","level":"info","message":"Truck parked - accumulating time","service":"device-manager","deviceId":4,"voltage2":12.49726104>
+Dec 05 19:58:19 ip-10-0-11-159 start.sh[23810]: {"timestamp":"2025-12-05T19:58:19.123Z","level":"info","message":"Truck parked - accumulating time","service":"device-manager","deviceId":5,"voltage2":0.034739423>
+lines 1-20/20 (END)
