@@ -52,12 +52,11 @@ export default function OrganizationsPage() {
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
-    plan: "standard",
     isActive: true,
   });
 
   const resetForm = () => {
-    setFormData({ name: "", slug: "", plan: "standard", isActive: true });
+    setFormData({ name: "", slug: "", isActive: true });
   };
 
   const handleCreate = async () => {
@@ -98,7 +97,6 @@ export default function OrganizationsPage() {
     setFormData({
       name: org.name,
       slug: org.slug,
-      plan: org.plan || "standard",
       isActive: org.isActive ?? true,
     });
     setEditingOrg(org);
@@ -142,7 +140,6 @@ export default function OrganizationsPage() {
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Slug</TableHead>
-                    <TableHead>Plan</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -153,9 +150,6 @@ export default function OrganizationsPage() {
                     <TableRow key={org.id} data-testid={`row-org-${org.id}`}>
                       <TableCell className="font-medium">{org.name}</TableCell>
                       <TableCell className="text-muted-foreground">{org.slug}</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{org.plan || "standard"}</Badge>
-                      </TableCell>
                       <TableCell>
                         {org.isActive ? (
                           <Badge 
@@ -231,19 +225,6 @@ export default function OrganizationsPage() {
                   data-testid="input-org-slug"
                 />
               </div>
-              <div>
-                <Label htmlFor="plan">Plan</Label>
-                <Select value={formData.plan} onValueChange={(v) => setFormData({ ...formData, plan: v })}>
-                  <SelectTrigger data-testid="select-org-plan">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="standard">Standard</SelectItem>
-                    <SelectItem value="professional">Professional</SelectItem>
-                    <SelectItem value="enterprise">Enterprise</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
@@ -282,19 +263,6 @@ export default function OrganizationsPage() {
                   onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/\s/g, '-') })}
                   data-testid="input-edit-org-slug"
                 />
-              </div>
-              <div>
-                <Label htmlFor="edit-plan">Plan</Label>
-                <Select value={formData.plan} onValueChange={(v) => setFormData({ ...formData, plan: v })}>
-                  <SelectTrigger data-testid="select-edit-org-plan">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="standard">Standard</SelectItem>
-                    <SelectItem value="professional">Professional</SelectItem>
-                    <SelectItem value="enterprise">Enterprise</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
               <div>
                 <Label htmlFor="edit-status">Status</Label>
