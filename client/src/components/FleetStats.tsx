@@ -31,6 +31,18 @@ interface FleetStatsData {
   };
 }
 
+interface SavingsData {
+  todaySavings: number;
+  todayGallonsSaved: number;
+  todayCO2Reduction: number;
+  todayParkedMinutes: number;
+  mtdSavings: number;
+  mtdGallonsSaved: number;
+  mtdCO2Reduction: number;
+  mtdParkedMinutes: number;
+  currentFuelPrice: number;
+}
+
 interface StatCardProps {
   title: string;
   value: string;
@@ -138,6 +150,39 @@ function StatCard({ title, trend, icon, iconBgColor, valueColor = "text-neutral-
   );
 }
 
+interface SavingsCardProps {
+  todaySavings: number;
+  mtdSavings: number;
+  icon: JSX.Element;
+  iconBgColor: string;
+}
+
+function SavingsCard({ todaySavings, mtdSavings, icon, iconBgColor }: SavingsCardProps) {
+  const animatedMtd = useCountUp(mtdSavings, 1500, 2);
+  const formattedMtd = formatNumber(animatedMtd);
+  
+  return (
+    <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.05)] p-6 h-[185px] flex flex-col" data-testid="card-total-savings">
+      <div className="flex items-center justify-between">
+        <div className={`w-[49px] h-[49px] rounded-[9px] flex items-center justify-center ${iconBgColor}`}>
+          {icon}
+        </div>
+        <div className="text-[#39c900] text-center whitespace-nowrap">
+          <span className="font-medium text-[19px]">${Math.round(todaySavings)} </span>
+          <span className="text-[12px]">today</span>
+        </div>
+      </div>
+      <p className="text-sm text-[#4a5565] mt-[17px]">Total Savings</p>
+      <div className="flex items-baseline gap-2 mt-3">
+        <p className="text-[26px] min-[1440px]:text-[30px] font-medium leading-8 tracking-tight text-[#0a0a0a]" data-testid="stat-total-savings">
+          $ {formattedMtd}
+        </p>
+        <span className="text-[12px] text-[#4a5565]">This month</span>
+      </div>
+    </div>
+  );
+}
+
 // Constants for fuel savings calculation
 const GALLONS_PER_HOUR_IDLING = 1.2;
 const CO2_LBS_PER_GALLON = 22.4;
@@ -148,15 +193,23 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
     refetchInterval: 60000,
   });
 
-  // Calculate Today's Savings by summing each truck's daily parked time savings
-  // This uses the same formula as individual truck savings: (parkedMinutes / 60) * 1.2 gal/hr * diesel price
-  const todaySavings = trucks.reduce((sum, truck) => sum + (truck.fuelSavings ?? 0), 0);
-  const todayParkedMinutes = trucks.reduce((sum, truck) => sum + (truck.todayParkedMinutes ?? 0), 0);
-  const todayParkedHours = todayParkedMinutes / 60;
-  const todayGallonsSaved = todayParkedHours * GALLONS_PER_HOUR_IDLING;
+  // Fetch savings data from API for accurate monthly calculations
+  const { data: savingsData } = useQuery<SavingsData>({
+    queryKey: ["/api/v1/fleet/savings"],
+    refetchInterval: 60000,
+  });
+
+  // Use API data for savings and CO2 calculations
+  const todaySavings = savingsData?.todaySavings ?? trucks.reduce((sum, truck) => sum + (truck.fuelSavings ?? 0), 0);
+  const mtdSavings = savingsData?.mtdSavings ?? todaySavings;
   
-  // CO2 Reduction: Each gallon of diesel emits 22.4 lbs of CO2
-  const todayCO2Reduction = todayGallonsSaved * CO2_LBS_PER_GALLON;
+  // CO2 Reduction from API or calculate from parked minutes
+  const todayCO2Reduction = savingsData?.todayCO2Reduction ?? (() => {
+    const todayParkedMinutes = trucks.reduce((sum, truck) => sum + (truck.todayParkedMinutes ?? 0), 0);
+    const todayParkedHours = todayParkedMinutes / 60;
+    const todayGallonsSaved = todayParkedHours * GALLONS_PER_HOUR_IDLING;
+    return todayGallonsSaved * CO2_LBS_PER_GALLON;
+  })();
 
   const avgSoc = fleetStats?.avgSoc.value ?? (trucks.length > 0 ? trucks.reduce((sum, t) => sum + t.soc, 0) / trucks.length : 0);
   const socTrendPercent = fleetStats?.avgSoc.trendPercentage ?? 0;

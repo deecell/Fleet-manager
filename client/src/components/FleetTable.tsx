@@ -79,7 +79,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                 </button>
               </th>
               <th className="px-3 py-3 text-center text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap min-w-[110px] w-[110px]">Status</th>
-              <th className="px-3 py-3 text-center text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap min-w-[110px] w-[110px]">MTD Savings</th>
+              <th className="px-3 py-3 text-center text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap min-w-[110px] w-[110px]">Savings</th>
               <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap min-w-[90px] w-[90px]">Driver</th>
               <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap min-w-[140px]">Location</th>
               <th className="px-3 py-3 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap pl-[16px] pr-[16px] min-w-[130px] w-[130px]">Last Updated</th>
