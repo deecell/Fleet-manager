@@ -69,7 +69,7 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
         <table className="w-full">
           <thead>
             <tr className="bg-[#303030] h-[41px]">
-              <th className="py-3 text-left pl-[14px] pr-[14px] rounded-tl-lg" style={{ width: '14%' }}>
+              <th className="py-3 text-left pl-[14px] pr-[14px] rounded-tl-lg" style={{ width: '12%' }}>
                 <button 
                   onClick={() => handleSort("name")}
                   className="flex items-center gap-1.5 text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap"
@@ -78,11 +78,11 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                   Truck <ArrowUpDown className="h-3.5 w-3.5 text-[#838383]" />
                 </button>
               </th>
-              <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap" style={{ width: '16%' }}>Status</th>
-              <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap" style={{ width: '10%' }}>Savings</th>
+              <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap" style={{ width: '18%' }}>Status</th>
+              <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap" style={{ width: '16%' }}>Savings</th>
               <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap" style={{ width: '12%' }}>Driver</th>
-              <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap" style={{ width: '30%' }}>Location</th>
-              <th className="px-3 py-3 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap pl-[16px] pr-[16px]" style={{ width: '18%' }}>Last Updated</th>
+              <th className="px-3 py-3 text-left text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap" style={{ width: '22%' }}>Location</th>
+              <th className="px-3 py-3 text-right text-white text-[13px] 2xl:text-sm font-medium whitespace-nowrap pl-[16px] pr-[16px]" style={{ width: '20%' }}>Last Updated</th>
             </tr>
           </thead>
           <tbody>
