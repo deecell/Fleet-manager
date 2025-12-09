@@ -195,7 +195,7 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
 
   // Fetch savings data from API for accurate monthly calculations
   const { data: savingsData } = useQuery<SavingsData>({
-    queryKey: ["/api/v1/fleet/savings"],
+    queryKey: ["/api/v1/savings"],
     refetchInterval: 60000,
   });
 
