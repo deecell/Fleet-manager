@@ -4,7 +4,51 @@
 
 ---
 
-## Latest Updates (December 5, 2025)
+## Latest Updates (December 9, 2025)
+
+### User Profile Picture Upload (December 9, 2025)
+
+**Feature**: Users can now upload profile pictures from the user profile dialog.
+
+**Implementation**:
+- Added `profile_picture_url` column to users table
+- Created API endpoints:
+  - `POST /api/v1/auth/profile-picture` - Upload new profile picture (base64 encoded)
+  - `DELETE /api/v1/auth/profile-picture` - Remove profile picture
+  - `GET /api/v1/auth/profile` - Get current user profile including picture URL
+- Updated UserProfileDialog component with avatar upload UI
+- Profile pictures stored in AWS S3 (`deecell-fleet-files` bucket)
+
+**Validation**:
+- File types: JPEG, PNG, GIF, WebP only
+- File size: 5MB maximum
+- Client-side and server-side validation
+
+**Database Migration Required**:
+Run `npm run db:push` to add the new column to the users table.
+
+---
+
+### User Profile & Password Change (December 9, 2025)
+
+**Feature**: Users can access their profile settings from the header dropdown menu.
+
+**Implementation**:
+- Added Profile Settings menu item to user dropdown
+- Created UserProfileDialog component with two tabs:
+  - Profile tab: Shows user info and avatar
+  - Password tab: Allows changing password
+- Added `POST /api/v1/auth/change-password` endpoint with proper validation
+
+**Security**:
+- Requires current password verification before change
+- Minimum 8 character password requirement
+- Checks user isActive status before allowing changes
+- Sends email notification on password change
+
+---
+
+## Previous Updates (December 5, 2025)
 
 ### Production Database Migration Fix (December 5, 2025)
 
