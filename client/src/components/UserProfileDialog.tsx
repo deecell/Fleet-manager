@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useState, useRef } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Loader2, User, Lock, Mail } from "lucide-react";
+import { Eye, EyeOff, Loader2, User, Lock, Mail, Camera, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface UserProfileDialogProps {
   open: boolean;
@@ -30,12 +31,20 @@ export function UserProfileDialog({
   organizationName,
 }: UserProfileDialogProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Fetch current profile to get profile picture URL
+  const { data: profile } = useQuery({
+    queryKey: ["/api/v1/auth/profile"],
+    enabled: open,
+  });
 
   const changePasswordMutation = useMutation({
     mutationFn: async (data: { currentPassword: string; newPassword: string }) => {
@@ -61,6 +70,92 @@ export function UserProfileDialog({
       });
     },
   });
+
+  const uploadPictureMutation = useMutation({
+    mutationFn: async (data: { imageData: string; contentType: string }) => {
+      const response = await apiRequest("POST", "/api/v1/auth/profile-picture", data);
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.message || "Failed to upload profile picture");
+      }
+      return result;
+    },
+    onSuccess: () => {
+      toast({ title: "Profile picture updated" });
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/auth/profile"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to upload profile picture",
+        description: error.message,
+        variant: "destructive"
+      });
+    },
+  });
+
+  const deletePictureMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("DELETE", "/api/v1/auth/profile-picture");
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.message || "Failed to remove profile picture");
+      }
+      return result;
+    },
+    onSuccess: () => {
+      toast({ title: "Profile picture removed" });
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/auth/profile"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to remove profile picture",
+        description: error.message,
+        variant: "destructive"
+      });
+    },
+  });
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Only JPEG, PNG, GIF, and WebP images are allowed",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Profile picture must be less than 5MB",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Read file as base64
+    const reader = new FileReader();
+    reader.onload = () => {
+      const imageData = reader.result as string;
+      uploadPictureMutation.mutate({
+        imageData,
+        contentType: file.type
+      });
+    };
+    reader.readAsDataURL(file);
+
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   const handleChangePassword = () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
@@ -90,6 +185,19 @@ export function UserProfileDialog({
     changePasswordMutation.mutate({ currentPassword, newPassword });
   };
 
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map(n => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const profilePictureUrl = (profile as any)?.profilePictureUrl;
+  const isUploading = uploadPictureMutation.isPending;
+  const isDeleting = deletePictureMutation.isPending;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -109,12 +217,82 @@ export function UserProfileDialog({
           <TabsContent value="profile" className="space-y-4 pt-4">
             <div className="space-y-3">
               <div className="flex items-center gap-3 p-3 bg-[#fafbfc] rounded-lg">
-                <div className="w-12 h-12 rounded-full bg-[#303030] flex items-center justify-center">
-                  <User className="w-6 h-6 text-white" />
+                <div className="relative group">
+                  <Avatar className="w-16 h-16 border-2 border-white shadow-sm">
+                    <AvatarImage src={profilePictureUrl} alt={userName} />
+                    <AvatarFallback className="bg-[#303030] text-white text-lg">
+                      {getInitials(userName)}
+                    </AvatarFallback>
+                  </Avatar>
+                  
+                  {/* Upload overlay */}
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                    data-testid="button-upload-avatar"
+                  >
+                    {isUploading ? (
+                      <Loader2 className="w-5 h-5 text-white animate-spin" />
+                    ) : (
+                      <Camera className="w-5 h-5 text-white" />
+                    )}
+                  </button>
+                  
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                    data-testid="input-avatar-file"
+                  />
                 </div>
-                <div>
+                
+                <div className="flex-1">
                   <p className="font-medium text-neutral-950" data-testid="text-profile-name">{userName}</p>
                   <p className="text-sm text-[#4a5565]" data-testid="text-profile-org">{organizationName}</p>
+                  
+                  <div className="flex gap-2 mt-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading}
+                      className="text-xs h-7"
+                      data-testid="button-change-photo"
+                    >
+                      {isUploading ? (
+                        <>
+                          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Camera className="w-3 h-3 mr-1" />
+                          {profilePictureUrl ? "Change" : "Upload"}
+                        </>
+                      )}
+                    </Button>
+                    
+                    {profilePictureUrl && (
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        onClick={() => deletePictureMutation.mutate()}
+                        disabled={isDeleting}
+                        className="text-xs h-7 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        data-testid="button-remove-photo"
+                      >
+                        {isDeleting ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-3 h-3" />
+                        )}
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
               

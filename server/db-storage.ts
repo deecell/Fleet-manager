@@ -840,6 +840,12 @@ export class DbStorage {
       .where(eq(users.id, userId));
   }
 
+  async updateUserProfilePicture(userId: number, profilePictureUrl: string | null): Promise<void> {
+    await db.update(users)
+      .set({ profilePictureUrl, updatedAt: new Date() })
+      .where(eq(users.id, userId));
+  }
+
   // ===========================================================================
   // PASSWORD RESET TOKENS
   // ===========================================================================

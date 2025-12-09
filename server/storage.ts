@@ -139,6 +139,7 @@ export interface IStorage {
   getUserByEmailGlobal(email: string): Promise<User | undefined>;
   getUserById(id: number): Promise<User | undefined>;
   updateUserPassword(userId: number, passwordHash: string): Promise<void>;
+  updateUserProfilePicture(userId: number, profilePictureUrl: string | null): Promise<void>;
   hasActiveAlertForDevice(organizationId: number, deviceId: number, alertType: string): Promise<boolean>;
   getAdminStats(): Promise<{
     totalOrganizations: number;

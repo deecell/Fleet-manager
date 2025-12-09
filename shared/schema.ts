@@ -30,6 +30,7 @@ export const users = pgTable("users", {
   passwordHash: text("password_hash"),
   firstName: text("first_name"),
   lastName: text("last_name"),
+  profilePictureUrl: text("profile_picture_url"),
   role: text("role").default("user"),
   isActive: boolean("is_active").default(true),
   lastLoginAt: timestamp("last_login_at"),

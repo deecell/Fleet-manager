@@ -3,6 +3,7 @@ import { storage } from "../storage";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { sendPasswordResetEmail, sendPasswordChangedEmail, isEmailConfigured } from "../services/email-service";
+import { uploadFile, deleteFile } from "../aws/s3";
 
 const router = Router();
 
@@ -413,6 +414,156 @@ router.post("/change-password", requireAuth, async (req: Request, res: Response)
     return res.status(500).json({ 
       error: "Server error", 
       message: "An error occurred changing your password" 
+    });
+  }
+});
+
+// Upload/update profile picture
+router.post("/profile-picture", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = req.session.userId!;
+    const { imageData, contentType } = req.body;
+
+    if (!imageData || !contentType) {
+      return res.status(400).json({
+        error: "Missing data",
+        message: "Image data and content type are required"
+      });
+    }
+
+    // Validate content type
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    if (!allowedTypes.includes(contentType)) {
+      return res.status(400).json({
+        error: "Invalid format",
+        message: "Only JPEG, PNG, GIF, and WebP images are allowed"
+      });
+    }
+
+    const user = await storage.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({
+        error: "User not found",
+        message: "User account not found"
+      });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({
+        error: "Account inactive",
+        message: "Your account has been deactivated"
+      });
+    }
+
+    // Delete old profile picture if exists
+    if (user.profilePictureUrl) {
+      try {
+        const oldKey = user.profilePictureUrl.split('/').pop();
+        if (oldKey) {
+          await deleteFile(`profile-pictures/${oldKey}`);
+        }
+      } catch (e) {
+        console.warn("Failed to delete old profile picture:", e);
+      }
+    }
+
+    // Decode base64 and upload to S3
+    const base64Data = imageData.replace(/^data:image\/\w+;base64,/, "");
+    const buffer = Buffer.from(base64Data, "base64");
+    
+    // Max 5MB
+    if (buffer.length > 5 * 1024 * 1024) {
+      return res.status(400).json({
+        error: "File too large",
+        message: "Profile picture must be less than 5MB"
+      });
+    }
+
+    const extension = contentType.split("/")[1];
+    const key = `profile-pictures/${userId}-${Date.now()}.${extension}`;
+    const url = await uploadFile(key, buffer, contentType);
+
+    await storage.updateUserProfilePicture(userId, url);
+
+    // Update session if we're storing profile picture there
+    return res.json({
+      success: true,
+      profilePictureUrl: url
+    });
+  } catch (error) {
+    console.error("Profile picture upload error:", error);
+    return res.status(500).json({
+      error: "Server error",
+      message: "Failed to upload profile picture"
+    });
+  }
+});
+
+// Delete profile picture
+router.delete("/profile-picture", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = req.session.userId!;
+
+    const user = await storage.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({
+        error: "User not found",
+        message: "User account not found"
+      });
+    }
+
+    if (user.profilePictureUrl) {
+      try {
+        const oldKey = user.profilePictureUrl.split('/').pop();
+        if (oldKey) {
+          await deleteFile(`profile-pictures/${oldKey}`);
+        }
+      } catch (e) {
+        console.warn("Failed to delete profile picture from S3:", e);
+      }
+    }
+
+    await storage.updateUserProfilePicture(userId, null);
+
+    return res.json({
+      success: true,
+      message: "Profile picture removed"
+    });
+  } catch (error) {
+    console.error("Profile picture delete error:", error);
+    return res.status(500).json({
+      error: "Server error",
+      message: "Failed to remove profile picture"
+    });
+  }
+});
+
+// Get current user profile
+router.get("/profile", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = req.session.userId!;
+    const user = await storage.getUserById(userId);
+    
+    if (!user) {
+      return res.status(404).json({
+        error: "User not found",
+        message: "User account not found"
+      });
+    }
+
+    return res.json({
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      profilePictureUrl: user.profilePictureUrl,
+      role: user.role
+    });
+  } catch (error) {
+    console.error("Get profile error:", error);
+    return res.status(500).json({
+      error: "Server error",
+      message: "Failed to get profile"
     });
   }
 });
