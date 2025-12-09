@@ -9,7 +9,8 @@ import { AlertBanner } from "@/components/AlertBanner";
 import { useLegacyTrucks, useLegacyNotifications, useAcknowledgeAlert, useResolveAlert, LegacyTruckWithDevice } from "@/lib/api";
 import { useInitializeOrganization, useLogout } from "@/lib/auth-api";
 import { useToast } from "@/hooks/use-toast";
-import { User, LogOut, Search, Loader2, Download } from "lucide-react";
+import { User, LogOut, Search, Loader2, Download, Settings } from "lucide-react";
+import { UserProfileDialog } from "@/components/UserProfileDialog";
 import { FleetAssistant } from "@/components/FleetAssistant";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ export default function Dashboard() {
   const [alertBannerDismissed, setAlertBannerDismissed] = useState(false);
   const [readNotifications, setReadNotifications] = useState<Set<string>>(new Set());
   const [dismissedNotifications, setDismissedNotifications] = useState<Set<string>>(new Set());
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
 
   const { data: trucks, isLoading: trucksLoading } = useLegacyTrucks();
   const { data: apiNotifications, isLoading: notificationsLoading } = useLegacyNotifications();
@@ -236,10 +238,23 @@ export default function Dashboard() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 bg-white">
-                <div className="px-3 py-2">
+                <div 
+                  className="px-3 py-2 cursor-pointer hover:bg-[#fafbfc] rounded-sm"
+                  onClick={() => setProfileDialogOpen(true)}
+                  data-testid="button-profile"
+                >
                   <p className="text-sm font-medium text-neutral-950">{userName}</p>
                   <p className="text-xs text-[#4a5565]">{userEmail}</p>
                 </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  className="cursor-pointer"
+                  onClick={() => setProfileDialogOpen(true)}
+                  data-testid="menu-item-profile"
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Profile Settings
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
                   className="cursor-pointer text-[#ff0900] focus:text-[#ff0900]"
@@ -400,6 +415,14 @@ export default function Dashboard() {
       
       <Footer />
       <FleetAssistant />
+      
+      <UserProfileDialog
+        open={profileDialogOpen}
+        onOpenChange={setProfileDialogOpen}
+        userName={userName}
+        userEmail={userEmail}
+        organizationName={organizationName}
+      />
     </div>
   );
 }

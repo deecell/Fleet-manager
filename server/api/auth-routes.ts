@@ -349,4 +349,72 @@ router.post("/reset-password", async (req: Request, res: Response) => {
   }
 });
 
+// Change password for authenticated users
+router.post("/change-password", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.session.userId!;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ 
+        error: "Missing fields", 
+        message: "Current password and new password are required" 
+      });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ 
+        error: "Password too short", 
+        message: "New password must be at least 8 characters" 
+      });
+    }
+
+    const user = await storage.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ 
+        error: "User not found", 
+        message: "User account not found" 
+      });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({ 
+        error: "Account inactive", 
+        message: "Your account has been deactivated" 
+      });
+    }
+
+    if (!user.passwordHash) {
+      return res.status(400).json({ 
+        error: "No password set", 
+        message: "No password set for this account. Contact your administrator." 
+      });
+    }
+
+    const passwordMatch = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!passwordMatch) {
+      return res.status(401).json({ 
+        error: "Invalid password", 
+        message: "Current password is incorrect" 
+      });
+    }
+
+    const newPasswordHash = await bcrypt.hash(newPassword, 10);
+    await storage.updateUserPassword(userId, newPasswordHash);
+
+    await sendPasswordChangedEmail(user.email, user.firstName || undefined);
+
+    return res.json({ 
+      success: true, 
+      message: "Password changed successfully" 
+    });
+  } catch (error) {
+    console.error("Change password error:", error);
+    return res.status(500).json({ 
+      error: "Server error", 
+      message: "An error occurred changing your password" 
+    });
+  }
+});
+
 export default router;
