@@ -6,6 +6,26 @@
 
 ## Latest Updates (December 11, 2025)
 
+### SendGrid Email Integration Fixed (December 11, 2025)
+
+**Issue**: Password reset emails not working - API returned "Email not configured" error.
+
+**Root Cause**: ECS execution role lacked permission to read the new SendGrid secret from AWS Secrets Manager.
+
+**Resolution**:
+1. Created SendGrid API key secret in Secrets Manager: `deecell-fleet-production/sendgrid-api-key`
+2. Updated ECS task definition (revision 61) with `SENDGRID_API_KEY` environment variable referencing the secret
+3. Added secret ARN to IAM execution role policy: `deecell-fleet-production-ecs-execution-policy`
+4. Force redeployed ECS service to pick up new permissions
+
+**Verification**: 
+- Tested `POST /api/auth/forgot-password` - returns success response
+- Email service now properly configured in production
+
+**Note**: The sender email `hello@deecell.com` must be verified in SendGrid for emails to actually send.
+
+---
+
 ### SIMPro Location API Update (December 11, 2025)
 
 **Issue**: Location API endpoints were returning 404 errors.
