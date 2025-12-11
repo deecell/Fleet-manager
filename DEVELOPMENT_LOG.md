@@ -4,7 +4,33 @@
 
 ---
 
-## Latest Updates (December 9, 2025)
+## Latest Updates (December 11, 2025)
+
+### SIMPro Location API Update (December 11, 2025)
+
+**Issue**: Location API endpoints were returning 404 errors.
+
+**Root Cause**: The SIMPro API uses ICCID (not MSISDN) for location lookups. The correct endpoint is `/api/v3/sims/{iccid}/location` (not `/sim/{msisdn}/location`).
+
+**Resolution**:
+- Updated `simpro-client.ts` to use correct endpoint: `/sims/{iccid}/location`
+- Updated `sim-sync-service.ts` to pass ICCID instead of MSISDN
+- Added error handling for authorization errors (location feature not enabled)
+
+**Authorization Issue Found**:
+The location API returns `"You are not authorised to use this API Function"` - this means the Location API feature needs to be enabled on the SIMPro account by Wireless Logic.
+
+**API Documentation**: https://simpro4.wirelesslogic.com/doc/restapi/v3#tag/Location
+
+**SIMs Imported**:
+| Device | ICCID | MSISDN | Organization |
+|--------|-------|--------|--------------|
+| DCL-Moeck | 89444611503504517903 | 883190603571827 | GTO Fast Racing |
+| DCL-Carter | 89444611503504616283 | 883190603400853 | Carter Racing |
+
+---
+
+## Previous Updates (December 9, 2025)
 
 ### User Profile Picture Upload (December 9, 2025)
 

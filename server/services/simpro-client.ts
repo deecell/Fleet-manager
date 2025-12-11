@@ -61,10 +61,14 @@ export interface SimProLocation {
   longitude: number;
   accuracy?: number;
   timestamp?: string;
+  location_age_minutes?: number;
+  location_last_connected?: string;
   mcc?: string;
   mnc?: string;
   lac?: string;
   cell_id?: string;
+  error?: boolean;
+  errorMessage?: string;
 }
 
 export interface SimProUsage {
@@ -186,16 +190,19 @@ export class SimProClient {
 
   /**
    * Get the location of a SIM (cell tower triangulation)
+   * Uses ICCID as per SIMPro API v3 documentation
+   * Endpoint: /api/v3/sims/{iccid}/location
    */
-  async getSimLocation(msisdn: string): Promise<SimProLocation> {
-    return this.request<SimProLocation>(`/sim/${msisdn}/location`);
+  async getSimLocation(iccid: string): Promise<SimProLocation> {
+    return this.request<SimProLocation>(`/sims/${iccid}/location`);
   }
 
   /**
-   * Get cell tower location for a SIM
+   * Get cell tower location using LAC and Cell ID
+   * Endpoint: /api/v3/sim/cell-location
    */
-  async getCellTowerLocation(msisdn: string): Promise<SimProLocation> {
-    return this.request<SimProLocation>(`/cell-tower-location/${msisdn}`);
+  async getCellTowerLocation(lac: string, cellId: string): Promise<SimProLocation> {
+    return this.request<SimProLocation>(`/sim/cell-location?lac=${lac}&cell_id=${cellId}`);
   }
 
   /**

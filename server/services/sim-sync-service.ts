@@ -229,12 +229,20 @@ export class SimSyncService {
         );
 
       for (const sim of orgSims) {
-        if (!sim.msisdn) continue;
+        if (!sim.iccid) continue;
         result.simsProcessed++;
 
         try {
-          // Get location from SIMPro
-          const location = await this.client.getSimLocation(sim.msisdn);
+          // Get location from SIMPro using ICCID (per API v3 docs)
+          const location = await this.client.getSimLocation(sim.iccid);
+          
+          // Check for authorization error (feature not enabled)
+          if (location.error && location.errorMessage) {
+            result.errors.push(
+              `Location API not authorized for SIM ${sim.iccid}: ${location.errorMessage}`
+            );
+            continue;
+          }
 
           if (location.latitude && location.longitude) {
             // Update SIM record with new location
@@ -280,7 +288,7 @@ export class SimSyncService {
 
         } catch (error) {
           result.errors.push(
-            `Error getting location for SIM ${sim.msisdn}: ${error instanceof Error ? error.message : 'Unknown error'}`
+            `Error getting location for SIM ${sim.iccid}: ${error instanceof Error ? error.message : 'Unknown error'}`
           );
         }
       }
