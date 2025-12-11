@@ -6,6 +6,56 @@
 
 ## Latest Updates (December 11, 2025)
 
+### Password Reset Tokens Table Migration (December 11, 2025)
+
+**Issue**: Password reset emails were failing with "Server error" after SendGrid was configured.
+
+**Root Cause**: The `password_reset_tokens` table was missing from the production RDS database. The table exists in the Drizzle schema but was never migrated to production.
+
+**Initial Approach (Failed)**:
+1. Created `db-migration` ECS task definition using `postgres:15-alpine` image
+2. Configured to run `psql` with DATABASE_URL from Secrets Manager
+3. Multiple attempts failed due to:
+   - First attempt: Used default VPC subnets instead of production VPC
+   - Second attempt: Private subnets couldn't reach Secrets Manager (no VPC endpoint)
+   - Third attempt: IAM execution role lacked CloudWatch Logs permissions
+
+**Successful Resolution**:
+Used the existing migration API endpoint in the production app:
+```bash
+curl -X POST "https://app.deecell.com/api/v1/migrate/run-sql" \
+  -H "Authorization: Bearer $ADMIN_PASSWORD" \
+  -d '{"statements": [
+    "CREATE TABLE IF NOT EXISTS password_reset_tokens (...)",
+    "ALTER TABLE password_reset_tokens ADD CONSTRAINT ...",
+    "CREATE INDEX IF NOT EXISTS ..."
+  ]}'
+```
+
+**Table Created**:
+```sql
+CREATE TABLE password_reset_tokens (
+  id serial PRIMARY KEY,
+  user_id integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token text NOT NULL UNIQUE,
+  expires_at timestamp NOT NULL,
+  used_at timestamp,
+  created_at timestamp DEFAULT now()
+);
+
+CREATE INDEX password_reset_token_idx ON password_reset_tokens (token);
+CREATE INDEX password_reset_user_idx ON password_reset_tokens (user_id);
+CREATE INDEX password_reset_expires_idx ON password_reset_tokens (expires_at);
+```
+
+**Verification**: 
+- Tested `POST /api/auth/forgot-password` - returns `{"success":true}`
+- Password reset emails now sent successfully via SendGrid
+
+**Lesson Learned**: For one-off database migrations, the built-in `/api/v1/migrate/run-sql` endpoint is simpler than ECS tasks, since the web app already has database connectivity.
+
+---
+
 ### SendGrid Email Integration Fixed (December 11, 2025)
 
 **Issue**: Password reset emails not working - API returned "Email not configured" error.
