@@ -59,7 +59,7 @@ function getEmailWrapper(content: string): string {
         <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
           <!-- Header -->
           <tr>
-            <td style="background-color: #16a34a; padding: 24px; text-align: center;">
+            <td style="background-color: #FA4B1E; padding: 24px; text-align: center;">
               <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 600;">
                 Deecell Fleet Manager
               </h1>
@@ -108,7 +108,7 @@ export async function sendPasswordResetEmail(
     <table width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 24px 0;">
       <tr>
         <td align="center">
-          <a href="${resetUrl}" style="display: inline-block; background-color: #16a34a; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 32px; border-radius: 6px;">
+          <a href="${resetUrl}" style="display: inline-block; background-color: #FA4B1E; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 32px; border-radius: 6px;">
             Reset Password
           </a>
         </td>
@@ -123,7 +123,7 @@ export async function sendPasswordResetEmail(
     <hr style="border: none; border-top: 1px solid #e4e4e7; margin: 24px 0;">
     <p style="margin: 0; color: #71717a; font-size: 12px;">
       If the button doesn't work, copy and paste this link into your browser:<br>
-      <a href="${resetUrl}" style="color: #16a34a; word-break: break-all;">${resetUrl}</a>
+      <a href="${resetUrl}" style="color: #FA4B1E; word-break: break-all;">${resetUrl}</a>
     </p>
   `;
 
@@ -166,7 +166,7 @@ export async function sendWelcomeEmail(
     <table width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 24px 0;">
       <tr>
         <td align="center">
-          <a href="${loginUrl}" style="display: inline-block; background-color: #16a34a; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 32px; border-radius: 6px;">
+          <a href="${loginUrl}" style="display: inline-block; background-color: #FA4B1E; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 32px; border-radius: 6px;">
             Log In to Dashboard
           </a>
         </td>
@@ -235,7 +235,7 @@ export async function sendAlertEmail(
     <table width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 24px 0;">
       <tr>
         <td align="center">
-          <a href="${dashboardUrl}" style="display: inline-block; background-color: #16a34a; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 32px; border-radius: 6px;">
+          <a href="${dashboardUrl}" style="display: inline-block; background-color: #FA4B1E; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 32px; border-radius: 6px;">
             View in Dashboard
           </a>
         </td>
@@ -274,7 +274,7 @@ export async function sendPasswordChangedEmail(
     <table width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 24px 0;">
       <tr>
         <td align="center">
-          <a href="${APP_URL}/login" style="display: inline-block; background-color: #16a34a; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 32px; border-radius: 6px;">
+          <a href="${APP_URL}/login" style="display: inline-block; background-color: #FA4B1E; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 32px; border-radius: 6px;">
             Log In
           </a>
         </td>
