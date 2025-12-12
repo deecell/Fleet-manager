@@ -212,7 +212,8 @@ export class SimSyncService {
   }
 
   /**
-   * Sync locations for all SIMs and update truck positions
+   * Sync locations for all SIMs using the usage-location endpoint
+   * Note: This endpoint returns country/network info, not GPS coordinates
    */
   async syncLocations(organizationId: number): Promise<LocationSyncResult> {
     const result: LocationSyncResult = {
@@ -228,7 +229,7 @@ export class SimSyncService {
     }
 
     try {
-      // Get all SIMs for this organization that have MSISDN
+      // Get all SIMs for this organization that have ICCID
       const orgSims = await db
         .select()
         .from(sims)
@@ -239,69 +240,57 @@ export class SimSyncService {
           )
         );
 
-      for (const sim of orgSims) {
-        if (!sim.iccid) continue;
-        result.simsProcessed++;
+      // Filter SIMs with ICCIDs
+      const simsWithIccid = orgSims.filter(sim => sim.iccid);
+      if (simsWithIccid.length === 0) {
+        result.errors.push('No SIMs with ICCIDs found');
+        return result;
+      }
 
-        try {
-          // Get location from SIMPro using ICCID (per API v3 docs)
-          const location = await this.client.getSimLocation(sim.iccid);
-          
-          // Check for authorization error (feature not enabled)
-          if (location.error && location.errorMessage) {
-            result.errors.push(
-              `Location API not authorized for SIM ${sim.iccid}: ${location.errorMessage}`
-            );
-            continue;
-          }
+      // Batch call to usage-location endpoint with all ICCIDs
+      const iccids = simsWithIccid.map(sim => sim.iccid!);
+      result.simsProcessed = iccids.length;
 
-          if (location.latitude && location.longitude) {
-            // Update SIM record with new location
+      try {
+        const locationData = await this.client.getUsageLocation(iccids);
+        
+        // Process each location result
+        for (const locInfo of locationData) {
+          const sim = simsWithIccid.find(s => s.iccid === locInfo.iccid);
+          if (!sim) continue;
+
+          // Update SIM record with network location info
+          await db
+            .update(sims)
+            .set({
+              country: locInfo.country || null,
+              networkName: locInfo.network || null,
+              mcc: locInfo.mcc || null,
+              mnc: locInfo.mnc || null,
+              lastLocationUpdate: new Date(),
+              updatedAt: new Date(),
+            })
+            .where(eq(sims.id, sim.id));
+          result.locationsUpdated++;
+
+          // Update truck with country info if linked
+          if (sim.truckId && locInfo.country) {
             await db
-              .update(sims)
+              .update(trucks)
               .set({
-                latitude: location.latitude,
-                longitude: location.longitude,
-                locationAccuracy: location.accuracy || null,
+                country: locInfo.country,
                 lastLocationUpdate: new Date(),
                 updatedAt: new Date(),
               })
-              .where(eq(sims.id, sim.id));
-            result.locationsUpdated++;
-
-            // Store location history
-            const locationRecord: InsertSimLocationHistory = {
-              organizationId,
-              simId: sim.id,
-              truckId: sim.truckId,
-              latitude: location.latitude,
-              longitude: location.longitude,
-              accuracy: location.accuracy || null,
-              source: 'cell_tower',
-              recordedAt: new Date(),
-            };
-            await db.insert(simLocationHistory).values(locationRecord);
-
-            // Update truck location if linked
-            if (sim.truckId) {
-              await db
-                .update(trucks)
-                .set({
-                  latitude: location.latitude,
-                  longitude: location.longitude,
-                  lastLocationUpdate: new Date(),
-                  updatedAt: new Date(),
-                })
-                .where(eq(trucks.id, sim.truckId));
-              result.trucksUpdated++;
-            }
+              .where(eq(trucks.id, sim.truckId));
+            result.trucksUpdated++;
           }
-
-        } catch (error) {
-          result.errors.push(
-            `Error getting location for SIM ${sim.iccid}: ${error instanceof Error ? error.message : 'Unknown error'}`
-          );
         }
+
+      } catch (error) {
+        result.errors.push(
+          `Error calling usage-location API: ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
       }
 
       // Update sync settings timestamp

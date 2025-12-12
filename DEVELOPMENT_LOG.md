@@ -44,6 +44,36 @@ curl "https://simpro4.wirelesslogic.com/api/v3/sims/usage-location?identifiers=8
 
 ---
 
+### SIMPro Location Sync Integrated (December 12, 2025)
+
+**Feature**: Integrated the usage-location API into the location sync service.
+
+**Changes Made**:
+1. Updated `syncLocations()` method in `sim-sync-service.ts`:
+   - Now uses batch `getUsageLocation()` call instead of individual SIM lookups
+   - Stores country, network name, MCC, and MNC in sims table
+   - Updates truck country field when linked
+
+2. Added new schema fields:
+   - `sims` table: `country`, `network_name`, `mcc`, `mnc`
+   - `trucks` table: `country`
+
+**Tested Successfully**:
+```
+POST /api/v1/admin/organizations/9/sims/sync-locations
+→ {"simsProcessed":1, "locationsUpdated":1, "trucksUpdated":0}
+```
+
+**Database Verified**:
+| Device | Country | Network | MCC | MNC |
+|--------|---------|---------|-----|-----|
+| DCL-Moeck | United States | T-Mobile | 310 | 260 |
+| DCL-Carter | United States | T-Mobile | 310 | 260 |
+
+**Note**: This endpoint returns country/network-level data, not GPS coordinates. For precise location tracking, you'd need GPS data from the PowerMon devices or a different location service.
+
+---
+
 ## Previous Updates (December 11, 2025)
 
 ### Password Reset Tokens Table Migration (December 11, 2025)
