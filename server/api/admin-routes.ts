@@ -788,6 +788,34 @@ router.get("/simpro/status", adminMiddleware, async (req: Request, res: Response
   }
 });
 
+// Test the new usage-location endpoint recommended by Wireless Logic
+router.get("/simpro/test-usage-location", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const simService = getSimSyncService();
+    
+    if (!simService.isConfigured()) {
+      return res.status(503).json({
+        error: "SIMPro not configured",
+        message: "Set SIMPRO_API_CLIENT and SIMPRO_API_KEY environment variables."
+      });
+    }
+    
+    // Get optional ICCIDs from query param
+    const iccidsParam = req.query.iccids as string | undefined;
+    const iccids = iccidsParam ? iccidsParam.split(',') : undefined;
+    
+    const result = await simService.testUsageLocationEndpoint(iccids);
+    res.json({ success: true, result });
+  } catch (error: any) {
+    console.error("Error testing usage-location endpoint:", error);
+    res.status(500).json({ 
+      error: "Failed to test usage-location endpoint",
+      details: error.message,
+      response: error.response
+    });
+  }
+});
+
 router.post("/organizations/:orgId/sims/sync", adminMiddleware, async (req: Request, res: Response) => {
   try {
     const orgId = parseInt(req.params.orgId, 10);

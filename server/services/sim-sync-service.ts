@@ -77,6 +77,17 @@ export class SimSyncService {
   }
 
   /**
+   * Test the usage-location endpoint recommended by Wireless Logic
+   * This is a diagnostic method to verify the API works
+   */
+  async testUsageLocationEndpoint(iccids?: string[]): Promise<any> {
+    if (!this.client) {
+      throw new Error('SIMPro API not configured');
+    }
+    return this.client.getUsageLocation(iccids);
+  }
+
+  /**
    * Sync all SIMs from SIMPro and match to PowerMon devices
    */
   async syncSims(organizationId: number): Promise<SimSyncResult> {

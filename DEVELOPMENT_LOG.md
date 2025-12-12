@@ -4,7 +4,47 @@
 
 ---
 
-## Latest Updates (December 11, 2025)
+## Latest Updates (December 12, 2025)
+
+### SIMPro Usage-Location API Working (December 12, 2025)
+
+**Issue**: Previous location endpoint (`/sims/{iccid}/location`) returned authorization errors.
+
+**Resolution**: Wireless Logic confirmed the correct endpoint: `/api/v3/sims/usage-location`
+
+**API Details**:
+- **Endpoint**: `GET /api/v3/sims/usage-location`
+- **Parameter**: `identifiers` (required) - comma-separated ICCIDs, IMSIs, or MSISDNs
+- **Note**: Only supports Conexa-LD SIMs
+
+**Example Request**:
+```bash
+curl "https://simpro4.wirelesslogic.com/api/v3/sims/usage-location?identifiers=89444611503504517903,89444611503504616283" \
+  -H "x-api-client: $SIMPRO_API_CLIENT" \
+  -H "x-api-key: $SIMPRO_API_KEY"
+```
+
+**Example Response**:
+```json
+[
+  {"id":11091927, "iccid":"89444611503504616283", "msisdn":"883190603400853", 
+   "mnc":"260", "mcc":"310", "country":"United States", "network":"T-Mobile"},
+  {"id":10546746, "iccid":"89444611503504517903", "msisdn":"883190603571827", 
+   "mnc":"260", "mcc":"310", "country":"United States", "network":"T-Mobile"}
+]
+```
+
+**Response Fields**:
+- `country`: Country where SIM last connected
+- `network`: Mobile network operator name
+- `mcc`/`mnc`: Mobile Country Code / Mobile Network Code
+- No lat/long coordinates (this is network-level location, not GPS)
+
+**Files Updated**: `server/services/simpro-client.ts`
+
+---
+
+## Previous Updates (December 11, 2025)
 
 ### Password Reset Tokens Table Migration (December 11, 2025)
 

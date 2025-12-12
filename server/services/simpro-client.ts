@@ -198,6 +198,21 @@ export class SimProClient {
   }
 
   /**
+   * Get usage-based location for SIMs
+   * Endpoint: /api/v3/sims/usage-location
+   * NOTE: Only supports Conexa-LD SIMs!
+   * Parameter: 'identifiers' - comma-separated list of ICCIDs, IMSIs, or MSISDNs
+   */
+  async getUsageLocation(identifiers?: string[]): Promise<any> {
+    if (identifiers && identifiers.length > 0) {
+      // API expects comma-separated identifiers (ICCIDs, IMSIs, or MSISDNs)
+      return this.request<any>(`/sims/usage-location?identifiers=${identifiers.join(',')}`);
+    }
+    // If no identifiers provided, try to get all
+    return this.request<any>(`/sims/usage-location`);
+  }
+
+  /**
    * Get cell tower location using LAC and Cell ID
    * Endpoint: /api/v3/sim/cell-location
    */
