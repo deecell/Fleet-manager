@@ -44,6 +44,23 @@ curl "https://simpro4.wirelesslogic.com/api/v3/sims/usage-location?identifiers=8
 
 ---
 
+### Production Deployment: SIMPro Location Integration (December 17, 2025)
+
+**Deployed to Production**:
+1. Database schema migrated (15 new columns added to sims table, country added to trucks)
+2. SIMPro API credentials added to AWS Secrets Manager
+3. ECS task definition updated (version 72) with SIMPRO_API_CLIENT and SIMPRO_API_KEY
+4. IAM policy added for secrets access
+5. SIM records created for GTO Fast Racing and Carter Racing
+
+**Production SIM Location Data**:
+| SIM | Organization | Country | Network | MCC/MNC |
+|-----|--------------|---------|---------|---------|
+| DCL-Moeck | GTO Fast Racing | United States | AT&T Wireless | 310/410 |
+| DCL-Carter | Carter Racing | United States | T-Mobile | 310/260 |
+
+---
+
 ### SIMPro Location Sync Integrated (December 12, 2025)
 
 **Feature**: Integrated the usage-location API into the location sync service.
