@@ -79,19 +79,19 @@ resource "aws_ecs_task_definition" "main" {
             valueFrom = aws_secretsmanager_secret.admin_password.arn
           }
         ],
-        var.openai_api_key != "" ? [
+        var.enable_openai ? [
           {
             name      = "OPENAI_API_KEY"
             valueFrom = aws_secretsmanager_secret.openai_api_key[0].arn
           }
         ] : [],
-        var.eia_api_key != "" ? [
+        var.enable_eia ? [
           {
             name      = "EIA_API_KEY"
             valueFrom = aws_secretsmanager_secret.eia_api_key[0].arn
           }
         ] : [],
-        var.sendgrid_api_key != "" ? [
+        var.enable_sendgrid ? [
           {
             name      = "SENDGRID_API_KEY"
             valueFrom = aws_secretsmanager_secret.sendgrid_api_key[0].arn

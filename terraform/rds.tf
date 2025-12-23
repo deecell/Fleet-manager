@@ -9,6 +9,12 @@ resource "random_password" "db_password" {
   override_special = "!#$%&*()-_=+[]{}<>:?"
 }
 
+# Local to safely handle password selection (avoids sensitive var in conditional)
+locals {
+  # Use the provided password if enable_custom_db_password is true, otherwise use random
+  db_password = var.enable_custom_db_password ? var.db_password : random_password.db_password.result
+}
+
 # RDS PostgreSQL Instance
 resource "aws_db_instance" "main" {
   identifier     = "${local.name_prefix}-postgres"
@@ -23,7 +29,7 @@ resource "aws_db_instance" "main" {
 
   db_name  = replace(var.project_name, "-", "_")
   username = "deecell_admin"
-  password = var.db_password != "" ? var.db_password : random_password.db_password.result
+  password = local.db_password
 
   db_subnet_group_name   = aws_db_subnet_group.main.name
   vpc_security_group_ids = [aws_security_group.rds.id]
@@ -64,7 +70,7 @@ resource "aws_secretsmanager_secret" "database_url" {
 
 resource "aws_secretsmanager_secret_version" "database_url" {
   secret_id = aws_secretsmanager_secret.database_url.id
-  secret_string = "postgresql://${aws_db_instance.main.username}:${urlencode(var.db_password != "" ? var.db_password : random_password.db_password.result)}@${aws_db_instance.main.endpoint}/${aws_db_instance.main.db_name}?sslmode=require"
+  secret_string = "postgresql://${aws_db_instance.main.username}:${urlencode(local.db_password)}@${aws_db_instance.main.endpoint}/${aws_db_instance.main.db_name}?sslmode=require"
 
   depends_on = [aws_db_instance.main]
 }

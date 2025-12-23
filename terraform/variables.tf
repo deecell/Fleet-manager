@@ -175,9 +175,16 @@ variable "db_multi_az" {
 }
 
 variable "db_password" {
-  description = "Database master password"
+  description = "Database master password (only used if enable_custom_db_password is true)"
   type        = string
   sensitive   = true
+  default     = ""
+}
+
+variable "enable_custom_db_password" {
+  description = "Use custom db_password instead of auto-generated one"
+  type        = bool
+  default     = false
 }
 
 # -----------------------------------------------------------------------------
@@ -208,6 +215,12 @@ variable "eia_api_key" {
   default     = ""
 }
 
+variable "enable_eia" {
+  description = "Enable EIA API for fuel price data (requires eia_api_key)"
+  type        = bool
+  default     = false
+}
+
 variable "openai_api_key" {
   description = "OpenAI API key for fleet assistant"
   type        = string
@@ -215,11 +228,23 @@ variable "openai_api_key" {
   default     = ""
 }
 
+variable "enable_openai" {
+  description = "Enable OpenAI for fleet assistant (requires openai_api_key)"
+  type        = bool
+  default     = false
+}
+
 variable "sendgrid_api_key" {
   description = "SendGrid API key for email notifications"
   type        = string
   sensitive   = true
   default     = ""
+}
+
+variable "enable_sendgrid" {
+  description = "Enable SendGrid for email notifications (requires sendgrid_api_key)"
+  type        = bool
+  default     = false
 }
 
 variable "simpro_api_client" {
