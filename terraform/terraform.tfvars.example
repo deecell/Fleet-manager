@@ -86,8 +86,12 @@ db_multi_az              = false  # Set to true for production HA
 # eia_api_key        = ""
 # openai_api_key     = ""
 # sendgrid_api_key   = ""
-# simpro_api_client  = ""  # SIMPro API client ID for SIM location tracking
-# simpro_api_key     = ""  # SIMPro API key for SIM location tracking
+
+# SIMPro Integration for SIM location tracking
+# Set enable_simpro = true and provide both credentials
+enable_simpro       = false
+# simpro_api_client = ""  # Set via TF_VAR_simpro_api_client
+# simpro_api_key    = ""  # Set via TF_VAR_simpro_api_key
 
 # -----------------------------------------------------------------------------
 # Security & Compliance

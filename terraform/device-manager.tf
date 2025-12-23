@@ -105,16 +105,13 @@ locals {
       --output text \
       --region ${var.aws_region})
     
-    # Fetch SIMPro credentials if available
-    %{ if var.simpro_api_client != "" ~}
+    # Fetch SIMPro credentials if enabled
+    %{ if var.enable_simpro ~}
     export SIMPRO_API_CLIENT=$(aws secretsmanager get-secret-value \
       --secret-id "${aws_secretsmanager_secret.simpro_api_client[0].arn}" \
       --query 'SecretString' \
       --output text \
       --region ${var.aws_region})
-    %{ endif ~}
-    
-    %{ if var.simpro_api_key != "" ~}
     export SIMPRO_API_KEY=$(aws secretsmanager get-secret-value \
       --secret-id "${aws_secretsmanager_secret.simpro_api_key[0].arn}" \
       --query 'SecretString' \

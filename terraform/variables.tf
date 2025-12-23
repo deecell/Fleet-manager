@@ -236,6 +236,12 @@ variable "simpro_api_key" {
   default     = ""
 }
 
+variable "enable_simpro" {
+  description = "Enable SIMPro integration for SIM location tracking (requires simpro_api_client and simpro_api_key)"
+  type        = bool
+  default     = false
+}
+
 # -----------------------------------------------------------------------------
 # Security & Compliance
 # -----------------------------------------------------------------------------
