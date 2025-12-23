@@ -323,6 +323,18 @@ resource "aws_iam_policy" "github_actions" {
           "ssm:GetCommandInvocation"
         ]
         Resource = "*"
+      },
+      {
+        Sid    = "EC2Describe"
+        Effect = "Allow"
+        Action = [
+          "ec2:DescribeImages",
+          "ec2:DescribeInstances",
+          "ec2:DescribeSecurityGroups",
+          "ec2:DescribeSubnets",
+          "ec2:DescribeVpcs"
+        ]
+        Resource = "*"
       }
     ]
   })

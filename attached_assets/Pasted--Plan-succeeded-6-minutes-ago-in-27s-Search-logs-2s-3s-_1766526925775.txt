@@ -1,0 +1,2487 @@
+ Plan
+succeeded 6 minutes ago in 27s
+Search logs
+2s
+3s
+1s
+1s
+1s
+8s
+2s
+3s
+Run terraform plan -no-color -out=tfplan \
+data.aws_elb_service_account.main: Reading...
+data.aws_region.current: Reading...
+data.aws_caller_identity.current: Reading...
+data.aws_ami.ubuntu_2404: Reading...
+data.aws_region.current: Read complete after 0s [id=***]
+data.aws_elb_service_account.main: Read complete after 0s [id=033677994240]
+data.aws_caller_identity.current: Read complete after 0s [id=***]
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  + create
+
+Terraform planned the following actions, but then encountered a problem:
+
+  # aws_appautoscaling_policy.cpu will be created
+  + resource "aws_appautoscaling_policy" "cpu" {
+      + alarm_arns         = (known after apply)
+      + arn                = (known after apply)
+      + id                 = (known after apply)
+      + name               = "***-production-cpu-scaling"
+      + policy_type        = "TargetTrackingScaling"
+      + resource_id        = "service/***-production-cluster/***"
+      + scalable_dimension = "ecs:service:DesiredCount"
+      + service_namespace  = "ecs"
+
+      + target_tracking_scaling_policy_configuration {
+          + disable_scale_in   = false
+          + scale_in_cooldown  = 300
+          + scale_out_cooldown = 60
+          + target_value       = 70
+
+          + predefined_metric_specification {
+              + predefined_metric_type = "ECSServiceAverageCPUUtilization"
+            }
+        }
+    }
+
+  # aws_appautoscaling_policy.memory will be created
+  + resource "aws_appautoscaling_policy" "memory" {
+      + alarm_arns         = (known after apply)
+      + arn                = (known after apply)
+      + id                 = (known after apply)
+      + name               = "***-production-memory-scaling"
+      + policy_type        = "TargetTrackingScaling"
+      + resource_id        = "service/***-production-cluster/***"
+      + scalable_dimension = "ecs:service:DesiredCount"
+      + service_namespace  = "ecs"
+
+      + target_tracking_scaling_policy_configuration {
+          + disable_scale_in   = false
+          + scale_in_cooldown  = 300
+          + scale_out_cooldown = 60
+          + target_value       = 80
+
+          + predefined_metric_specification {
+              + predefined_metric_type = "ECSServiceAverageMemoryUtilization"
+            }
+        }
+    }
+
+  # aws_appautoscaling_target.ecs will be created
+  + resource "aws_appautoscaling_target" "ecs" {
+      + arn                = (known after apply)
+      + id                 = (known after apply)
+      + max_capacity       = 4
+      + min_capacity       = 1
+      + resource_id        = "service/***-production-cluster/***"
+      + role_arn           = (known after apply)
+      + scalable_dimension = "ecs:service:DesiredCount"
+      + service_namespace  = "ecs"
+      + tags_all           = {
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+        }
+    }
+
+  # aws_cloudtrail.main[0] will be created
+  + resource "aws_cloudtrail" "main" {
+      + arn                           = (known after apply)
+      + cloud_watch_logs_group_arn    = (known after apply)
+      + cloud_watch_logs_role_arn     = (known after apply)
+      + enable_log_file_validation    = true
+      + enable_logging                = true
+      + home_region                   = (known after apply)
+      + id                            = (known after apply)
+      + include_global_service_events = true
+      + is_multi_region_trail         = true
+      + is_organization_trail         = false
+      + name                          = "***-production-trail"
+      + s3_bucket_name                = (known after apply)
+      + sns_topic_arn                 = (known after apply)
+      + tags                          = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Terraform"   = "true"
+        }
+      + tags_all                      = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+
+      + event_selector {
+          + include_management_events = true
+          + read_write_type           = "All"
+
+          + data_resource {
+              + type   = "AWS::S3::Object"
+              + values = [
+                  + "arn:aws:s3",
+                ]
+            }
+        }
+    }
+
+  # aws_cloudwatch_log_group.cloudtrail[0] will be created
+  + resource "aws_cloudwatch_log_group" "cloudtrail" {
+      + arn               = (known after apply)
+      + id                = (known after apply)
+      + log_group_class   = (known after apply)
+      + name              = "/aws/cloudtrail/***-production"
+      + name_prefix       = (known after apply)
+      + retention_in_days = 90
+      + skip_destroy      = false
+      + tags              = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Terraform"   = "true"
+        }
+      + tags_all          = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+    }
+
+  # aws_cloudwatch_log_group.device_manager will be created
+  + resource "aws_cloudwatch_log_group" "device_manager" {
+      + arn               = (known after apply)
+      + id                = (known after apply)
+      + log_group_class   = (known after apply)
+      + name              = "/ec2/***-production/device-manager"
+      + name_prefix       = (known after apply)
+      + retention_in_days = 90
+      + skip_destroy      = false
+      + tags              = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Terraform"   = "true"
+        }
+      + tags_all          = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+    }
+
+  # aws_cloudwatch_log_group.ecs will be created
+  + resource "aws_cloudwatch_log_group" "ecs" {
+      + arn               = (known after apply)
+      + id                = (known after apply)
+      + log_group_class   = (known after apply)
+      + name              = "/ecs/***-production"
+      + name_prefix       = (known after apply)
+      + retention_in_days = 90
+      + skip_destroy      = false
+      + tags              = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Terraform"   = "true"
+        }
+      + tags_all          = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+    }
+
+  # aws_cloudwatch_log_group.vpc_flow will be created
+  + resource "aws_cloudwatch_log_group" "vpc_flow" {
+      + arn               = (known after apply)
+      + id                = (known after apply)
+      + log_group_class   = (known after apply)
+      + name              = "/aws/vpc/***-production/flow-logs"
+      + name_prefix       = (known after apply)
+      + retention_in_days = 90
+      + skip_destroy      = false
+      + tags              = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Terraform"   = "true"
+        }
+      + tags_all          = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+    }
+
+  # aws_cloudwatch_metric_alarm.alb_5xx_errors will be created
+  + resource "aws_cloudwatch_metric_alarm" "alb_5xx_errors" {
+      + actions_enabled                       = false
+      + alarm_description                     = "High 5XX error rate from targets"
+      + alarm_name                            = "***-production-alb-5xx-errors"
+      + arn                                   = (known after apply)
+      + comparison_operator                   = "GreaterThanThreshold"
+      + dimensions                            = (known after apply)
+      + evaluate_low_sample_count_percentiles = (known after apply)
+      + evaluation_periods                    = 2
+      + id                                    = (known after apply)
+      + metric_name                           = "HTTPCode_Target_5XX_Count"
+      + namespace                             = "AWS/ApplicationELB"
+      + period                                = 300
+      + statistic                             = "Sum"
+      + tags                                  = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Terraform"   = "true"
+        }
+      + tags_all                              = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + threshold                             = 10
+      + treat_missing_data                    = "notBreaching"
+    }
+
+  # aws_cloudwatch_metric_alarm.alb_unhealthy_hosts will be created
+  + resource "aws_cloudwatch_metric_alarm" "alb_unhealthy_hosts" {
+      + actions_enabled                       = false
+      + alarm_description                     = "ALB has unhealthy targets"
+      + alarm_name                            = "***-production-alb-unhealthy-hosts"
+      + arn                                   = (known after apply)
+      + comparison_operator                   = "GreaterThanThreshold"
+      + dimensions                            = (known after apply)
+      + evaluate_low_sample_count_percentiles = (known after apply)
+      + evaluation_periods                    = 2
+      + id                                    = (known after apply)
+      + metric_name                           = "UnHealthyHostCount"
+      + namespace                             = "AWS/ApplicationELB"
+      + period                                = 60
+      + statistic                             = "Average"
+      + tags                                  = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Terraform"   = "true"
+        }
+      + tags_all                              = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + threshold                             = 0
+      + treat_missing_data                    = "missing"
+    }
+
+  # aws_cloudwatch_metric_alarm.ecs_cpu will be created
+  + resource "aws_cloudwatch_metric_alarm" "ecs_cpu" {
+      + actions_enabled                       = false
+      + alarm_description                     = "ECS CPU utilization is too high"
+      + alarm_name                            = "***-production-ecs-cpu-high"
+      + arn                                   = (known after apply)
+      + comparison_operator                   = "GreaterThanThreshold"
+      + dimensions                            = {
+          + "ClusterName" = "***-production-cluster"
+          + "ServiceName" = "***"
+        }
+      + evaluate_low_sample_count_percentiles = (known after apply)
+      + evaluation_periods                    = 2
+      + id                                    = (known after apply)
+      + metric_name                           = "CPUUtilization"
+      + namespace                             = "AWS/ECS"
+      + period                                = 300
+      + statistic                             = "Average"
+      + tags                                  = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Terraform"   = "true"
+        }
+      + tags_all                              = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + threshold                             = 80
+      + treat_missing_data                    = "missing"
+    }
+
+  # aws_cloudwatch_metric_alarm.ecs_memory will be created
+  + resource "aws_cloudwatch_metric_alarm" "ecs_memory" {
+      + actions_enabled                       = false
+      + alarm_description                     = "ECS Memory utilization is too high"
+      + alarm_name                            = "***-production-ecs-memory-high"
+      + arn                                   = (known after apply)
+      + comparison_operator                   = "GreaterThanThreshold"
+      + dimensions                            = {
+          + "ClusterName" = "***-production-cluster"
+          + "ServiceName" = "***"
+        }
+      + evaluate_low_sample_count_percentiles = (known after apply)
+      + evaluation_periods                    = 2
+      + id                                    = (known after apply)
+      + metric_name                           = "MemoryUtilization"
+      + namespace                             = "AWS/ECS"
+      + period                                = 300
+      + statistic                             = "Average"
+      + tags                                  = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Terraform"   = "true"
+        }
+      + tags_all                              = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + threshold                             = 85
+      + treat_missing_data                    = "missing"
+    }
+
+  # aws_cloudwatch_metric_alarm.rds_connections will be created
+  + resource "aws_cloudwatch_metric_alarm" "rds_connections" {
+      + actions_enabled                       = false
+      + alarm_description                     = "RDS connection count is high"
+      + alarm_name                            = "***-production-rds-connections-high"
+      + arn                                   = (known after apply)
+      + comparison_operator                   = "GreaterThanThreshold"
+      + dimensions                            = (known after apply)
+      + evaluate_low_sample_count_percentiles = (known after apply)
+      + evaluation_periods                    = 2
+      + id                                    = (known after apply)
+      + metric_name                           = "DatabaseConnections"
+      + namespace                             = "AWS/RDS"
+      + period                                = 300
+      + statistic                             = "Average"
+      + tags                                  = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Terraform"   = "true"
+        }
+      + tags_all                              = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + threshold                             = 100
+      + treat_missing_data                    = "missing"
+    }
+
+  # aws_cloudwatch_metric_alarm.rds_cpu will be created
+  + resource "aws_cloudwatch_metric_alarm" "rds_cpu" {
+      + actions_enabled                       = false
+      + alarm_description                     = "RDS CPU utilization is too high"
+      + alarm_name                            = "***-production-rds-cpu-high"
+      + arn                                   = (known after apply)
+      + comparison_operator                   = "GreaterThanThreshold"
+      + dimensions                            = (known after apply)
+      + evaluate_low_sample_count_percentiles = (known after apply)
+      + evaluation_periods                    = 2
+      + id                                    = (known after apply)
+      + metric_name                           = "CPUUtilization"
+      + namespace                             = "AWS/RDS"
+      + period                                = 300
+      + statistic                             = "Average"
+      + tags                                  = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Terraform"   = "true"
+        }
+      + tags_all                              = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + threshold                             = 80
+      + treat_missing_data                    = "missing"
+    }
+
+  # aws_cloudwatch_metric_alarm.rds_storage will be created
+  + resource "aws_cloudwatch_metric_alarm" "rds_storage" {
+      + actions_enabled                       = false
+      + alarm_description                     = "RDS free storage space is low"
+      + alarm_name                            = "***-production-rds-storage-low"
+      + arn                                   = (known after apply)
+      + comparison_operator                   = "LessThanThreshold"
+      + dimensions                            = (known after apply)
+      + evaluate_low_sample_count_percentiles = (known after apply)
+      + evaluation_periods                    = 2
+      + id                                    = (known after apply)
+      + metric_name                           = "FreeStorageSpace"
+      + namespace                             = "AWS/RDS"
+      + period                                = 300
+      + statistic                             = "Average"
+      + tags                                  = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Terraform"   = "true"
+        }
+      + tags_all                              = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + threshold                             = 5368709120
+      + treat_missing_data                    = "missing"
+    }
+
+  # aws_db_instance.main will be created
+  + resource "aws_db_instance" "main" {
+      + address                               = (known after apply)
+      + allocated_storage                     = 20
+      + apply_immediately                     = false
+      + arn                                   = (known after apply)
+      + auto_minor_version_upgrade            = true
+      + availability_zone                     = (known after apply)
+      + backup_retention_period               = 1
+      + backup_target                         = (known after apply)
+      + backup_window                         = "03:00-04:00"
+      + ca_cert_identifier                    = (known after apply)
+      + character_set_name                    = (known after apply)
+      + copy_tags_to_snapshot                 = true
+      + database_insights_mode                = (known after apply)
+      + db_name                               = "deecell_fleet"
+      + db_subnet_group_name                  = "***-production-db-subnet-group"
+      + dedicated_log_volume                  = false
+      + delete_automated_backups              = false
+      + deletion_protection                   = false
+      + domain_fqdn                           = (known after apply)
+      + enabled_cloudwatch_logs_exports       = [
+          + "postgresql",
+          + "upgrade",
+        ]
+      + endpoint                              = (known after apply)
+      + engine                                = "postgres"
+      + engine_lifecycle_support              = (known after apply)
+      + engine_version                        = "15"
+      + engine_version_actual                 = (known after apply)
+      + final_snapshot_identifier             = (known after apply)
+      + hosted_zone_id                        = (known after apply)
+      + id                                    = (known after apply)
+      + identifier                            = "***-production-postgres"
+      + identifier_prefix                     = (known after apply)
+      + instance_class                        = "db.t3.micro"
+      + iops                                  = (known after apply)
+      + kms_key_id                            = (known after apply)
+      + latest_restorable_time                = (known after apply)
+      + license_model                         = (known after apply)
+      + listener_endpoint                     = (known after apply)
+      + maintenance_window                    = "mon:04:00-mon:05:00"
+      + master_user_secret                    = (known after apply)
+      + master_user_secret_kms_key_id         = (known after apply)
+      + max_allocated_storage                 = 20
+      + monitoring_interval                   = 0
+      + monitoring_role_arn                   = (known after apply)
+      + multi_az                              = false
+      + nchar_character_set_name              = (known after apply)
+      + network_type                          = (known after apply)
+      + option_group_name                     = (known after apply)
+      + parameter_group_name                  = (known after apply)
+      + password                              = (sensitive value)
+      + performance_insights_enabled          = true
+      + performance_insights_kms_key_id       = (known after apply)
+      + performance_insights_retention_period = 7
+      + port                                  = (known after apply)
+      + publicly_accessible                   = false
+      + replica_mode                          = (known after apply)
+      + replicas                              = (known after apply)
+      + resource_id                           = (known after apply)
+      + skip_final_snapshot                   = false
+      + snapshot_identifier                   = (known after apply)
+      + status                                = (known after apply)
+      + storage_encrypted                     = true
+      + storage_throughput                    = (known after apply)
+      + storage_type                          = "gp3"
+      + tags                                  = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Name"        = "***-production-postgres"
+          + "Terraform"   = "true"
+        }
+      + tags_all                              = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "***-production-postgres"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + timezone                              = (known after apply)
+      + username                              = "deecell_admin"
+      + vpc_security_group_ids                = (known after apply)
+    }
+
+  # aws_db_subnet_group.main will be created
+  + resource "aws_db_subnet_group" "main" {
+      + arn                     = (known after apply)
+      + description             = "Database subnet group for ***-production"
+      + id                      = (known after apply)
+      + name                    = "***-production-db-subnet-group"
+      + name_prefix             = (known after apply)
+      + subnet_ids              = (known after apply)
+      + supported_network_types = (known after apply)
+      + tags                    = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Terraform"   = "true"
+        }
+      + tags_all                = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + vpc_id                  = (known after apply)
+    }
+
+  # aws_ecs_cluster.main will be created
+  + resource "aws_ecs_cluster" "main" {
+      + arn      = (known after apply)
+      + id       = (known after apply)
+      + name     = "***-production-cluster"
+      + tags     = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Terraform"   = "true"
+        }
+      + tags_all = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+
+      + setting {
+          + name  = "containerInsights"
+          + value = "enabled"
+        }
+    }
+
+  # aws_ecs_cluster_capacity_providers.main will be created
+  + resource "aws_ecs_cluster_capacity_providers" "main" {
+      + capacity_providers = [
+          + "FARGATE",
+          + "FARGATE_SPOT",
+        ]
+      + cluster_name       = "***-production-cluster"
+      + id                 = (known after apply)
+
+      + default_capacity_provider_strategy {
+          + base              = 1
+          + capacity_provider = "FARGATE"
+          + weight            = 100
+        }
+    }
+
+  # aws_ecs_service.main will be created
+  + resource "aws_ecs_service" "main" {
+      + availability_zone_rebalancing      = "DISABLED"
+      + cluster                            = (known after apply)
+      + deployment_maximum_percent         = 200
+      + deployment_minimum_healthy_percent = 50
+      + desired_count                      = 2
+      + enable_ecs_managed_tags            = false
+      + enable_execute_command             = false
+      + health_check_grace_period_seconds  = 120
+      + iam_role                           = (known after apply)
+      + id                                 = (known after apply)
+      + launch_type                        = "FARGATE"
+      + name                               = "***"
+      + platform_version                   = (known after apply)
+      + scheduling_strategy                = "REPLICA"
+      + tags                               = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Terraform"   = "true"
+        }
+      + tags_all                           = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + task_definition                    = (known after apply)
+      + triggers                           = (known after apply)
+      + wait_for_steady_state              = false
+
+      + deployment_circuit_breaker {
+          + enable   = true
+          + rollback = true
+        }
+
+      + load_balancer {
+          + container_name   = "***"
+          + container_port   = 5000
+          + target_group_arn = (known after apply)
+        }
+
+      + network_configuration {
+          + assign_public_ip = false
+          + security_groups  = (known after apply)
+          + subnets          = (known after apply)
+        }
+    }
+
+  # aws_ecs_task_definition.main will be created
+  + resource "aws_ecs_task_definition" "main" {
+      + arn                      = (known after apply)
+      + arn_without_revision     = (known after apply)
+      + container_definitions    = (known after apply)
+      + cpu                      = "512"
+      + enable_fault_injection   = (known after apply)
+      + execution_role_arn       = (known after apply)
+      + family                   = "***-production"
+      + id                       = (known after apply)
+      + memory                   = "1024"
+      + network_mode             = "awsvpc"
+      + requires_compatibilities = [
+          + "FARGATE",
+        ]
+      + revision                 = (known after apply)
+      + skip_destroy             = false
+      + tags                     = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Terraform"   = "true"
+        }
+      + tags_all                 = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + task_role_arn            = (known after apply)
+      + track_latest             = false
+    }
+
+  # aws_eip.nat[0] will be created
+  + resource "aws_eip" "nat" {
+      + allocation_id        = (known after apply)
+      + arn                  = (known after apply)
+      + association_id       = (known after apply)
+      + carrier_ip           = (known after apply)
+      + customer_owned_ip    = (known after apply)
+      + domain               = "vpc"
+      + id                   = (known after apply)
+      + instance             = (known after apply)
+      + ipam_pool_id         = (known after apply)
+      + network_border_group = (known after apply)
+      + network_interface    = (known after apply)
+      + private_dns          = (known after apply)
+      + private_ip           = (known after apply)
+      + ptr_record           = (known after apply)
+      + public_dns           = (known after apply)
+      + public_ip            = (known after apply)
+      + public_ipv4_pool     = (known after apply)
+      + tags                 = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Name"        = "***-production-nat-eip-1"
+          + "Terraform"   = "true"
+        }
+      + tags_all             = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "***-production-nat-eip-1"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + vpc                  = (known after apply)
+    }
+
+  # aws_flow_log.main will be created
+  + resource "aws_flow_log" "main" {
+      + arn                      = (known after apply)
+      + iam_role_arn             = (known after apply)
+      + id                       = (known after apply)
+      + log_destination          = (known after apply)
+      + log_destination_type     = "cloud-watch-logs"
+      + log_format               = (known after apply)
+      + log_group_name           = (known after apply)
+      + max_aggregation_interval = 60
+      + tags                     = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Name"        = "***-production-vpc-flow-logs"
+          + "Terraform"   = "true"
+        }
+      + tags_all                 = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "***-production-vpc-flow-logs"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + traffic_type             = "ALL"
+      + vpc_id                   = (known after apply)
+    }
+
+  # aws_iam_access_key.github_actions will be created
+  + resource "aws_iam_access_key" "github_actions" {
+      + create_date                    = (known after apply)
+      + encrypted_secret               = (known after apply)
+      + encrypted_ses_smtp_password_v4 = (known after apply)
+      + id                             = (known after apply)
+      + key_fingerprint                = (known after apply)
+      + secret                         = (sensitive value)
+      + ses_smtp_password_v4           = (sensitive value)
+      + status                         = "Active"
+      + user                           = "***-production-github-actions"
+    }
+
+  # aws_iam_instance_profile.device_manager will be created
+  + resource "aws_iam_instance_profile" "device_manager" {
+      + arn         = (known after apply)
+      + create_date = (known after apply)
+      + id          = (known after apply)
+      + name        = "***-production-device-manager-profile"
+      + name_prefix = (known after apply)
+      + path        = "/"
+      + role        = "***-production-device-manager-role"
+      + tags_all    = {
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+        }
+      + unique_id   = (known after apply)
+    }
+
+  # aws_iam_policy.github_actions will be created
+  + resource "aws_iam_policy" "github_actions" {
+      + arn              = (known after apply)
+      + attachment_count = (known after apply)
+      + description      = "Policy for GitHub Actions CI/CD deployments"
+      + id               = (known after apply)
+      + name             = "***-production-github-actions-policy"
+      + name_prefix      = (known after apply)
+      + path             = "/"
+      + policy           = (known after apply)
+      + policy_id        = (known after apply)
+      + tags             = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Terraform"   = "true"
+        }
+      + tags_all         = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+    }
+
+  # aws_iam_role.cloudtrail[0] will be created
+  + resource "aws_iam_role" "cloudtrail" {
+      + arn                   = (known after apply)
+      + assume_role_policy    = jsonencode(
+            {
+              + Statement = [
+                  + {
+                      + Action    = "sts:AssumeRole"
+                      + Effect    = "Allow"
+                      + Principal = {
+                          + Service = "cloudtrail.amazonaws.com"
+                        }
+                    },
+                ]
+              + Version   = "2012-10-17"
+            }
+        )
+      + create_date           = (known after apply)
+      + force_detach_policies = false
+      + id                    = (known after apply)
+      + managed_policy_arns   = (known after apply)
+      + max_session_duration  = 3600
+      + name                  = "***-production-cloudtrail-role"
+      + name_prefix           = (known after apply)
+      + path                  = "/"
+      + tags                  = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Terraform"   = "true"
+        }
+      + tags_all              = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + unique_id             = (known after apply)
+    }
+
+  # aws_iam_role.device_manager will be created
+  + resource "aws_iam_role" "device_manager" {
+      + arn                   = (known after apply)
+      + assume_role_policy    = jsonencode(
+            {
+              + Statement = [
+                  + {
+                      + Action    = "sts:AssumeRole"
+                      + Effect    = "Allow"
+                      + Principal = {
+                          + Service = "ec2.amazonaws.com"
+                        }
+                    },
+                ]
+              + Version   = "2012-10-17"
+            }
+        )
+      + create_date           = (known after apply)
+      + force_detach_policies = false
+      + id                    = (known after apply)
+      + managed_policy_arns   = (known after apply)
+      + max_session_duration  = 3600
+      + name                  = "***-production-device-manager-role"
+      + name_prefix           = (known after apply)
+      + path                  = "/"
+      + tags                  = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Terraform"   = "true"
+        }
+      + tags_all              = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + unique_id             = (known after apply)
+    }
+
+  # aws_iam_role.ecs_execution will be created
+  + resource "aws_iam_role" "ecs_execution" {
+      + arn                   = (known after apply)
+      + assume_role_policy    = jsonencode(
+            {
+              + Statement = [
+                  + {
+                      + Action    = "sts:AssumeRole"
+                      + Effect    = "Allow"
+                      + Principal = {
+                          + Service = "ecs-tasks.amazonaws.com"
+                        }
+                    },
+                ]
+              + Version   = "2012-10-17"
+            }
+        )
+      + create_date           = (known after apply)
+      + force_detach_policies = false
+      + id                    = (known after apply)
+      + managed_policy_arns   = (known after apply)
+      + max_session_duration  = 3600
+      + name                  = "***-production-ecs-execution-role"
+      + name_prefix           = (known after apply)
+      + path                  = "/"
+      + tags                  = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Terraform"   = "true"
+        }
+      + tags_all              = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + unique_id             = (known after apply)
+    }
+
+  # aws_iam_role.ecs_task will be created
+  + resource "aws_iam_role" "ecs_task" {
+      + arn                   = (known after apply)
+      + assume_role_policy    = jsonencode(
+            {
+              + Statement = [
+                  + {
+                      + Action    = "sts:AssumeRole"
+                      + Effect    = "Allow"
+                      + Principal = {
+                          + Service = "ecs-tasks.amazonaws.com"
+                        }
+                    },
+                ]
+              + Version   = "2012-10-17"
+            }
+        )
+      + create_date           = (known after apply)
+      + force_detach_policies = false
+      + id                    = (known after apply)
+      + managed_policy_arns   = (known after apply)
+      + max_session_duration  = 3600
+      + name                  = "***-production-ecs-task-role"
+      + name_prefix           = (known after apply)
+      + path                  = "/"
+      + tags                  = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Terraform"   = "true"
+        }
+      + tags_all              = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + unique_id             = (known after apply)
+    }
+
+  # aws_iam_role.vpc_flow_logs will be created
+  + resource "aws_iam_role" "vpc_flow_logs" {
+      + arn                   = (known after apply)
+      + assume_role_policy    = jsonencode(
+            {
+              + Statement = [
+                  + {
+                      + Action    = "sts:AssumeRole"
+                      + Effect    = "Allow"
+                      + Principal = {
+                          + Service = "vpc-flow-logs.amazonaws.com"
+                        }
+                    },
+                ]
+              + Version   = "2012-10-17"
+            }
+        )
+      + create_date           = (known after apply)
+      + force_detach_policies = false
+      + id                    = (known after apply)
+      + managed_policy_arns   = (known after apply)
+      + max_session_duration  = 3600
+      + name                  = "***-production-vpc-flow-logs-role"
+      + name_prefix           = (known after apply)
+      + path                  = "/"
+      + tags                  = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Terraform"   = "true"
+        }
+      + tags_all              = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + unique_id             = (known after apply)
+    }
+
+  # aws_iam_role_policy.cloudtrail[0] will be created
+  + resource "aws_iam_role_policy" "cloudtrail" {
+      + id          = (known after apply)
+      + name        = "***-production-cloudtrail-policy"
+      + name_prefix = (known after apply)
+      + policy      = (known after apply)
+      + role        = (known after apply)
+    }
+
+  # aws_iam_role_policy.device_manager will be created
+  + resource "aws_iam_role_policy" "device_manager" {
+      + id          = (known after apply)
+      + name        = "***-production-device-manager-policy"
+      + name_prefix = (known after apply)
+      + policy      = (known after apply)
+      + role        = (known after apply)
+    }
+
+  # aws_iam_role_policy.ecs_execution will be created
+  + resource "aws_iam_role_policy" "ecs_execution" {
+      + id          = (known after apply)
+      + name        = "***-production-ecs-execution-policy"
+      + name_prefix = (known after apply)
+      + policy      = (known after apply)
+      + role        = (known after apply)
+    }
+
+  # aws_iam_role_policy.ecs_task will be created
+  + resource "aws_iam_role_policy" "ecs_task" {
+      + id          = (known after apply)
+      + name        = "***-production-ecs-task-policy"
+      + name_prefix = (known after apply)
+      + policy      = (known after apply)
+      + role        = (known after apply)
+    }
+
+  # aws_iam_role_policy.vpc_flow_logs will be created
+  + resource "aws_iam_role_policy" "vpc_flow_logs" {
+      + id          = (known after apply)
+      + name        = "***-production-vpc-flow-logs-policy"
+      + name_prefix = (known after apply)
+      + policy      = jsonencode(
+            {
+              + Statement = [
+                  + {
+                      + Action   = [
+                          + "logs:CreateLogStream",
+                          + "logs:PutLogEvents",
+                          + "logs:DescribeLogGroups",
+                          + "logs:DescribeLogStreams",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = "*"
+                    },
+                ]
+              + Version   = "2012-10-17"
+            }
+        )
+      + role        = (known after apply)
+    }
+
+  # aws_iam_role_policy_attachment.device_manager_ssm will be created
+  + resource "aws_iam_role_policy_attachment" "device_manager_ssm" {
+      + id         = (known after apply)
+      + policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+      + role       = "***-production-device-manager-role"
+    }
+
+  # aws_iam_user.github_actions will be created
+  + resource "aws_iam_user" "github_actions" {
+      + arn           = (known after apply)
+      + force_destroy = false
+      + id            = (known after apply)
+      + name          = "***-production-github-actions"
+      + path          = "/automation/"
+      + tags          = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Terraform"   = "true"
+        }
+      + tags_all      = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + unique_id     = (known after apply)
+    }
+
+  # aws_iam_user_policy_attachment.github_actions will be created
+  + resource "aws_iam_user_policy_attachment" "github_actions" {
+      + id         = (known after apply)
+      + policy_arn = (known after apply)
+      + user       = "***-production-github-actions"
+    }
+
+  # aws_internet_gateway.main will be created
+  + resource "aws_internet_gateway" "main" {
+      + arn      = (known after apply)
+      + id       = (known after apply)
+      + owner_id = (known after apply)
+      + tags     = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Name"        = "***-production-igw"
+          + "Terraform"   = "true"
+        }
+      + tags_all = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "***-production-igw"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + vpc_id   = (known after apply)
+    }
+
+  # aws_lb.main will be created
+  + resource "aws_lb" "main" {
+      + arn                                                          = (known after apply)
+      + arn_suffix                                                   = (known after apply)
+      + client_keep_alive                                            = 3600
+      + desync_mitigation_mode                                       = "defensive"
+      + dns_name                                                     = (known after apply)
+      + drop_invalid_header_fields                                   = false
+      + enable_deletion_protection                                   = false
+      + enable_http2                                                 = true
+      + enable_tls_version_and_cipher_suite_headers                  = false
+      + enable_waf_fail_open                                         = false
+      + enable_xff_client_port                                       = false
+      + enable_zonal_shift                                           = false
+      + enforce_security_group_inbound_rules_on_private_link_traffic = (known after apply)
+      + id                                                           = (known after apply)
+      + idle_timeout                                                 = 60
+      + internal                                                     = false
+      + ip_address_type                                              = (known after apply)
+      + load_balancer_type                                           = "application"
+      + name                                                         = "***-production-alb"
+      + name_prefix                                                  = (known after apply)
+      + preserve_host_header                                         = false
+      + security_groups                                              = (known after apply)
+      + subnets                                                      = (known after apply)
+      + tags                                                         = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Name"        = "***-production-alb"
+          + "Terraform"   = "true"
+        }
+      + tags_all                                                     = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "***-production-alb"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + vpc_id                                                       = (known after apply)
+      + xff_header_processing_mode                                   = "append"
+      + zone_id                                                      = (known after apply)
+
+      + access_logs {
+          + bucket  = (known after apply)
+          + enabled = true
+          + prefix  = "alb"
+        }
+    }
+
+  # aws_lb_listener.http will be created
+  + resource "aws_lb_listener" "http" {
+      + arn                                                                   = (known after apply)
+      + id                                                                    = (known after apply)
+      + load_balancer_arn                                                     = (known after apply)
+      + port                                                                  = 80
+      + protocol                                                              = "HTTP"
+      + routing_http_request_x_amzn_mtls_clientcert_header_name               = (known after apply)
+      + routing_http_request_x_amzn_mtls_clientcert_issuer_header_name        = (known after apply)
+      + routing_http_request_x_amzn_mtls_clientcert_leaf_header_name          = (known after apply)
+      + routing_http_request_x_amzn_mtls_clientcert_serial_number_header_name = (known after apply)
+      + routing_http_request_x_amzn_mtls_clientcert_subject_header_name       = (known after apply)
+      + routing_http_request_x_amzn_mtls_clientcert_validity_header_name      = (known after apply)
+      + routing_http_request_x_amzn_tls_cipher_suite_header_name              = (known after apply)
+      + routing_http_request_x_amzn_tls_version_header_name                   = (known after apply)
+      + routing_http_response_access_control_allow_credentials_header_value   = (known after apply)
+      + routing_http_response_access_control_allow_headers_header_value       = (known after apply)
+      + routing_http_response_access_control_allow_methods_header_value       = (known after apply)
+      + routing_http_response_access_control_allow_origin_header_value        = (known after apply)
+      + routing_http_response_access_control_expose_headers_header_value      = (known after apply)
+      + routing_http_response_access_control_max_age_header_value             = (known after apply)
+      + routing_http_response_content_security_policy_header_value            = (known after apply)
+      + routing_http_response_server_enabled                                  = (known after apply)
+      + routing_http_response_strict_transport_security_header_value          = (known after apply)
+      + routing_http_response_x_content_type_options_header_value             = (known after apply)
+      + routing_http_response_x_frame_options_header_value                    = (known after apply)
+      + ssl_policy                                                            = (known after apply)
+      + tags                                                                  = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Terraform"   = "true"
+        }
+      + tags_all                                                              = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + tcp_idle_timeout_seconds                                              = (known after apply)
+
+      + default_action {
+          + order            = (known after apply)
+          + target_group_arn = (known after apply)
+          + type             = "forward"
+        }
+    }
+
+  # aws_lb_target_group.main will be created
+  + resource "aws_lb_target_group" "main" {
+      + arn                                = (known after apply)
+      + arn_suffix                         = (known after apply)
+      + connection_termination             = (known after apply)
+      + deregistration_delay               = "300"
+      + id                                 = (known after apply)
+      + ip_address_type                    = (known after apply)
+      + lambda_multi_value_headers_enabled = false
+      + load_balancer_arns                 = (known after apply)
+      + load_balancing_algorithm_type      = (known after apply)
+      + load_balancing_anomaly_mitigation  = (known after apply)
+      + load_balancing_cross_zone_enabled  = (known after apply)
+      + name                               = "***-production-tg"
+      + name_prefix                        = (known after apply)
+      + port                               = 5000
+      + preserve_client_ip                 = (known after apply)
+      + protocol                           = "HTTP"
+      + protocol_version                   = (known after apply)
+      + proxy_protocol_v2                  = false
+      + slow_start                         = 0
+      + tags                               = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Name"        = "***-production-tg"
+          + "Terraform"   = "true"
+        }
+      + tags_all                           = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "***-production-tg"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + target_type                        = "ip"
+      + vpc_id                             = (known after apply)
+
+      + health_check {
+          + enabled             = true
+          + healthy_threshold   = 2
+          + interval            = 30
+          + matcher             = "200"
+          + path                = "/api/health"
+          + port                = "traffic-port"
+          + protocol            = "HTTP"
+          + timeout             = 5
+          + unhealthy_threshold = 3
+        }
+
+      + stickiness {
+          + cookie_duration = 86400
+          + enabled         = true
+          + type            = "lb_cookie"
+        }
+    }
+
+  # aws_nat_gateway.main[0] will be created
+  + resource "aws_nat_gateway" "main" {
+      + allocation_id                      = (known after apply)
+      + association_id                     = (known after apply)
+      + connectivity_type                  = "public"
+      + id                                 = (known after apply)
+      + network_interface_id               = (known after apply)
+      + private_ip                         = (known after apply)
+      + public_ip                          = (known after apply)
+      + secondary_private_ip_address_count = (known after apply)
+      + secondary_private_ip_addresses     = (known after apply)
+      + subnet_id                          = (known after apply)
+      + tags                               = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Name"        = "***-production-nat-1"
+          + "Terraform"   = "true"
+        }
+      + tags_all                           = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "***-production-nat-1"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+    }
+
+  # aws_route_table.database will be created
+  + resource "aws_route_table" "database" {
+      + arn              = (known after apply)
+      + id               = (known after apply)
+      + owner_id         = (known after apply)
+      + propagating_vgws = (known after apply)
+      + route            = (known after apply)
+      + tags             = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Name"        = "***-production-database-rt"
+          + "Terraform"   = "true"
+        }
+      + tags_all         = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "***-production-database-rt"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + vpc_id           = (known after apply)
+    }
+
+  # aws_route_table.private[0] will be created
+  + resource "aws_route_table" "private" {
+      + arn              = (known after apply)
+      + id               = (known after apply)
+      + owner_id         = (known after apply)
+      + propagating_vgws = (known after apply)
+      + route            = [
+          + {
+              + carrier_gateway_id         = ""
+              + cidr_block                 = "0.0.0.0/0"
+              + core_network_arn           = ""
+              + destination_prefix_list_id = ""
+              + egress_only_gateway_id     = ""
+              + gateway_id                 = ""
+              + ipv6_cidr_block            = ""
+              + local_gateway_id           = ""
+              + nat_gateway_id             = (known after apply)
+              + network_interface_id       = ""
+              + transit_gateway_id         = ""
+              + vpc_endpoint_id            = ""
+              + vpc_peering_connection_id  = ""
+            },
+        ]
+      + tags             = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Name"        = "***-production-private-rt-1"
+          + "Terraform"   = "true"
+        }
+      + tags_all         = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "***-production-private-rt-1"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + vpc_id           = (known after apply)
+    }
+
+  # aws_route_table.public will be created
+  + resource "aws_route_table" "public" {
+      + arn              = (known after apply)
+      + id               = (known after apply)
+      + owner_id         = (known after apply)
+      + propagating_vgws = (known after apply)
+      + route            = [
+          + {
+              + carrier_gateway_id         = ""
+              + cidr_block                 = "0.0.0.0/0"
+              + core_network_arn           = ""
+              + destination_prefix_list_id = ""
+              + egress_only_gateway_id     = ""
+              + gateway_id                 = (known after apply)
+              + ipv6_cidr_block            = ""
+              + local_gateway_id           = ""
+              + nat_gateway_id             = ""
+              + network_interface_id       = ""
+              + transit_gateway_id         = ""
+              + vpc_endpoint_id            = ""
+              + vpc_peering_connection_id  = ""
+            },
+        ]
+      + tags             = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Name"        = "***-production-public-rt"
+          + "Terraform"   = "true"
+        }
+      + tags_all         = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "***-production-public-rt"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + vpc_id           = (known after apply)
+    }
+
+  # aws_route_table_association.database[0] will be created
+  + resource "aws_route_table_association" "database" {
+      + id             = (known after apply)
+      + route_table_id = (known after apply)
+      + subnet_id      = (known after apply)
+    }
+
+  # aws_route_table_association.database[1] will be created
+  + resource "aws_route_table_association" "database" {
+      + id             = (known after apply)
+      + route_table_id = (known after apply)
+      + subnet_id      = (known after apply)
+    }
+
+  # aws_route_table_association.private[0] will be created
+  + resource "aws_route_table_association" "private" {
+      + id             = (known after apply)
+      + route_table_id = (known after apply)
+      + subnet_id      = (known after apply)
+    }
+
+  # aws_route_table_association.private[1] will be created
+  + resource "aws_route_table_association" "private" {
+      + id             = (known after apply)
+      + route_table_id = (known after apply)
+      + subnet_id      = (known after apply)
+    }
+
+  # aws_route_table_association.public[0] will be created
+  + resource "aws_route_table_association" "public" {
+      + id             = (known after apply)
+      + route_table_id = (known after apply)
+      + subnet_id      = (known after apply)
+    }
+
+  # aws_route_table_association.public[1] will be created
+  + resource "aws_route_table_association" "public" {
+      + id             = (known after apply)
+      + route_table_id = (known after apply)
+      + subnet_id      = (known after apply)
+    }
+
+  # aws_s3_bucket.alb_logs will be created
+  + resource "aws_s3_bucket" "alb_logs" {
+      + acceleration_status         = (known after apply)
+      + acl                         = (known after apply)
+      + arn                         = (known after apply)
+      + bucket                      = (known after apply)
+      + bucket_domain_name          = (known after apply)
+      + bucket_prefix               = (known after apply)
+      + bucket_regional_domain_name = (known after apply)
+      + force_destroy               = false
+      + hosted_zone_id              = (known after apply)
+      + id                          = (known after apply)
+      + object_lock_enabled         = (known after apply)
+      + policy                      = (known after apply)
+      + region                      = (known after apply)
+      + request_payer               = (known after apply)
+      + tags                        = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Name"        = "***-production-alb-logs"
+          + "Terraform"   = "true"
+        }
+      + tags_all                    = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "***-production-alb-logs"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + website_domain              = (known after apply)
+      + website_endpoint            = (known after apply)
+    }
+
+  # aws_s3_bucket.assets will be created
+  + resource "aws_s3_bucket" "assets" {
+      + acceleration_status         = (known after apply)
+      + acl                         = (known after apply)
+      + arn                         = (known after apply)
+      + bucket                      = (known after apply)
+      + bucket_domain_name          = (known after apply)
+      + bucket_prefix               = (known after apply)
+      + bucket_regional_domain_name = (known after apply)
+      + force_destroy               = false
+      + hosted_zone_id              = (known after apply)
+      + id                          = (known after apply)
+      + object_lock_enabled         = (known after apply)
+      + policy                      = (known after apply)
+      + region                      = (known after apply)
+      + request_payer               = (known after apply)
+      + tags                        = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Name"        = "***-production-assets"
+          + "Terraform"   = "true"
+        }
+      + tags_all                    = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "***-production-assets"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + website_domain              = (known after apply)
+      + website_endpoint            = (known after apply)
+    }
+
+  # aws_s3_bucket.cloudtrail[0] will be created
+  + resource "aws_s3_bucket" "cloudtrail" {
+      + acceleration_status         = (known after apply)
+      + acl                         = (known after apply)
+      + arn                         = (known after apply)
+      + bucket                      = (known after apply)
+      + bucket_domain_name          = (known after apply)
+      + bucket_prefix               = (known after apply)
+      + bucket_regional_domain_name = (known after apply)
+      + force_destroy               = false
+      + hosted_zone_id              = (known after apply)
+      + id                          = (known after apply)
+      + object_lock_enabled         = (known after apply)
+      + policy                      = (known after apply)
+      + region                      = (known after apply)
+      + request_payer               = (known after apply)
+      + tags                        = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Terraform"   = "true"
+        }
+      + tags_all                    = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + website_domain              = (known after apply)
+      + website_endpoint            = (known after apply)
+    }
+
+  # aws_s3_bucket.device_manager_deploy will be created
+  + resource "aws_s3_bucket" "device_manager_deploy" {
+      + acceleration_status         = (known after apply)
+      + acl                         = (known after apply)
+      + arn                         = (known after apply)
+      + bucket                      = (known after apply)
+      + bucket_domain_name          = (known after apply)
+      + bucket_prefix               = (known after apply)
+      + bucket_regional_domain_name = (known after apply)
+      + force_destroy               = false
+      + hosted_zone_id              = (known after apply)
+      + id                          = (known after apply)
+      + object_lock_enabled         = (known after apply)
+      + policy                      = (known after apply)
+      + region                      = (known after apply)
+      + request_payer               = (known after apply)
+      + tags                        = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Name"        = "***-production-device-manager-deploy"
+          + "Terraform"   = "true"
+        }
+      + tags_all                    = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "***-production-device-manager-deploy"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + website_domain              = (known after apply)
+      + website_endpoint            = (known after apply)
+    }
+
+  # aws_s3_bucket_lifecycle_configuration.alb_logs will be created
+  + resource "aws_s3_bucket_lifecycle_configuration" "alb_logs" {
+      + bucket                                 = (known after apply)
+      + expected_bucket_owner                  = (known after apply)
+      + id                                     = (known after apply)
+      + transition_default_minimum_object_size = "all_storage_classes_128K"
+
+      + rule {
+          + id     = "expire-logs"
+          + status = "Enabled"
+
+          + expiration {
+              + days                         = 90
+              + expired_object_delete_marker = false
+            }
+
+          + filter {
+              + prefix = "alb/"
+            }
+        }
+    }
+
+  # aws_s3_bucket_policy.alb_logs will be created
+  + resource "aws_s3_bucket_policy" "alb_logs" {
+      + bucket = (known after apply)
+      + id     = (known after apply)
+      + policy = (known after apply)
+    }
+
+  # aws_s3_bucket_policy.cloudtrail[0] will be created
+  + resource "aws_s3_bucket_policy" "cloudtrail" {
+      + bucket = (known after apply)
+      + id     = (known after apply)
+      + policy = (known after apply)
+    }
+
+  # aws_s3_bucket_public_access_block.alb_logs will be created
+  + resource "aws_s3_bucket_public_access_block" "alb_logs" {
+      + block_public_acls       = true
+      + block_public_policy     = true
+      + bucket                  = (known after apply)
+      + id                      = (known after apply)
+      + ignore_public_acls      = true
+      + restrict_public_buckets = true
+    }
+
+  # aws_s3_bucket_public_access_block.assets will be created
+  + resource "aws_s3_bucket_public_access_block" "assets" {
+      + block_public_acls       = true
+      + block_public_policy     = true
+      + bucket                  = (known after apply)
+      + id                      = (known after apply)
+      + ignore_public_acls      = true
+      + restrict_public_buckets = true
+    }
+
+  # aws_s3_bucket_server_side_encryption_configuration.alb_logs will be created
+  + resource "aws_s3_bucket_server_side_encryption_configuration" "alb_logs" {
+      + bucket = (known after apply)
+      + id     = (known after apply)
+
+      + rule {
+          + apply_server_side_encryption_by_default {
+              + sse_algorithm = "AES256"
+            }
+        }
+    }
+
+  # aws_s3_bucket_server_side_encryption_configuration.assets will be created
+  + resource "aws_s3_bucket_server_side_encryption_configuration" "assets" {
+      + bucket = (known after apply)
+      + id     = (known after apply)
+
+      + rule {
+          + apply_server_side_encryption_by_default {
+              + sse_algorithm = "AES256"
+            }
+        }
+    }
+
+  # aws_s3_bucket_server_side_encryption_configuration.device_manager_deploy will be created
+  + resource "aws_s3_bucket_server_side_encryption_configuration" "device_manager_deploy" {
+      + bucket = (known after apply)
+      + id     = (known after apply)
+
+      + rule {
+          + apply_server_side_encryption_by_default {
+              + sse_algorithm = "AES256"
+            }
+        }
+    }
+
+  # aws_s3_bucket_versioning.assets will be created
+  + resource "aws_s3_bucket_versioning" "assets" {
+      + bucket = (known after apply)
+      + id     = (known after apply)
+
+      + versioning_configuration {
+          + mfa_delete = (known after apply)
+          + status     = "Enabled"
+        }
+    }
+
+  # aws_s3_bucket_versioning.device_manager_deploy will be created
+  + resource "aws_s3_bucket_versioning" "device_manager_deploy" {
+      + bucket = (known after apply)
+      + id     = (known after apply)
+
+      + versioning_configuration {
+          + mfa_delete = (known after apply)
+          + status     = "Enabled"
+        }
+    }
+
+  # aws_secretsmanager_secret.admin_password will be created
+  + resource "aws_secretsmanager_secret" "admin_password" {
+      + arn                            = (known after apply)
+      + description                    = "Admin dashboard password for ***-production"
+      + force_overwrite_replica_secret = false
+      + id                             = (known after apply)
+      + name                           = (known after apply)
+      + name_prefix                    = (known after apply)
+      + policy                         = (known after apply)
+      + recovery_window_in_days        = 7
+      + tags                           = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Terraform"   = "true"
+        }
+      + tags_all                       = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+    }
+
+  # aws_secretsmanager_secret.database_url will be created
+  + resource "aws_secretsmanager_secret" "database_url" {
+      + arn                            = (known after apply)
+      + description                    = "PostgreSQL connection string for ***-production"
+      + force_overwrite_replica_secret = false
+      + id                             = (known after apply)
+      + name                           = (known after apply)
+      + name_prefix                    = (known after apply)
+      + policy                         = (known after apply)
+      + recovery_window_in_days        = 7
+      + tags                           = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Terraform"   = "true"
+        }
+      + tags_all                       = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+    }
+
+  # aws_secretsmanager_secret.session_secret will be created
+  + resource "aws_secretsmanager_secret" "session_secret" {
+      + arn                            = (known after apply)
+      + description                    = "Session encryption secret for ***-production"
+      + force_overwrite_replica_secret = false
+      + id                             = (known after apply)
+      + name                           = (known after apply)
+      + name_prefix                    = (known after apply)
+      + policy                         = (known after apply)
+      + recovery_window_in_days        = 7
+      + tags                           = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Terraform"   = "true"
+        }
+      + tags_all                       = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+    }
+
+  # aws_secretsmanager_secret_version.admin_password will be created
+  + resource "aws_secretsmanager_secret_version" "admin_password" {
+      + arn                  = (known after apply)
+      + has_secret_string_wo = (known after apply)
+      + id                   = (known after apply)
+      + secret_id            = (known after apply)
+      + secret_string        = (sensitive value)
+      + version_id           = (known after apply)
+      + version_stages       = (known after apply)
+    }
+
+  # aws_secretsmanager_secret_version.database_url will be created
+  + resource "aws_secretsmanager_secret_version" "database_url" {
+      + arn                  = (known after apply)
+      + has_secret_string_wo = (known after apply)
+      + id                   = (known after apply)
+      + secret_id            = (known after apply)
+      + secret_string        = (sensitive value)
+      + version_id           = (known after apply)
+      + version_stages       = (known after apply)
+    }
+
+  # aws_secretsmanager_secret_version.session_secret will be created
+  + resource "aws_secretsmanager_secret_version" "session_secret" {
+      + arn                  = (known after apply)
+      + has_secret_string_wo = (known after apply)
+      + id                   = (known after apply)
+      + secret_id            = (known after apply)
+      + secret_string        = (sensitive value)
+      + version_id           = (known after apply)
+      + version_stages       = (known after apply)
+    }
+
+  # aws_security_group.alb will be created
+  + resource "aws_security_group" "alb" {
+      + arn                    = (known after apply)
+      + description            = "Security group for Application Load Balancer"
+      + egress                 = [
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = "Allow all outbound"
+              + from_port        = 0
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "-1"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 0
+            },
+        ]
+      + id                     = (known after apply)
+      + ingress                = [
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = "HTTP from anywhere"
+              + from_port        = 80
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 80
+            },
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = "HTTPS from anywhere"
+              + from_port        = 443
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 443
+            },
+        ]
+      + name                   = "***-production-alb-sg"
+      + name_prefix            = (known after apply)
+      + owner_id               = (known after apply)
+      + revoke_rules_on_delete = false
+      + tags                   = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Name"        = "***-production-alb-sg"
+          + "Terraform"   = "true"
+        }
+      + tags_all               = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "***-production-alb-sg"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + vpc_id                 = (known after apply)
+    }
+
+  # aws_security_group.bastion will be created
+  + resource "aws_security_group" "bastion" {
+      + arn                    = (known after apply)
+      + description            = "Security group for bastion host"
+      + egress                 = [
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = "Allow all outbound"
+              + from_port        = 0
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "-1"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 0
+            },
+        ]
+      + id                     = (known after apply)
+      + ingress                = [
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = "SSH from specific IPs (update as needed)"
+              + from_port        = 22
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 22
+            },
+        ]
+      + name                   = "***-production-bastion-sg"
+      + name_prefix            = (known after apply)
+      + owner_id               = (known after apply)
+      + revoke_rules_on_delete = false
+      + tags                   = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Name"        = "***-production-bastion-sg"
+          + "Terraform"   = "true"
+        }
+      + tags_all               = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "***-production-bastion-sg"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + vpc_id                 = (known after apply)
+    }
+
+  # aws_security_group.device_manager will be created
+  + resource "aws_security_group" "device_manager" {
+      + arn                    = (known after apply)
+      + description            = "Security group for Device Manager EC2 instances"
+      + egress                 = [
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = "Allow all outbound"
+              + from_port        = 0
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "-1"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 0
+            },
+        ]
+      + id                     = (known after apply)
+      + ingress                = [
+          + {
+              + cidr_blocks      = [
+                  + "10.0.0.0/16",
+                ]
+              + description      = "Metrics endpoint (Prometheus)"
+              + from_port        = 3001
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 3001
+            },
+          + {
+              + cidr_blocks      = [
+                  + "10.0.0.0/16",
+                ]
+              + description      = "SSH from VPC (bastion)"
+              + from_port        = 22
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 22
+            },
+        ]
+      + name                   = "***-production-device-manager-sg"
+      + name_prefix            = (known after apply)
+      + owner_id               = (known after apply)
+      + revoke_rules_on_delete = false
+      + tags                   = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Name"        = "***-production-device-manager-sg"
+          + "Terraform"   = "true"
+        }
+      + tags_all               = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "***-production-device-manager-sg"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + vpc_id                 = (known after apply)
+    }
+
+  # aws_security_group.ecs will be created
+  + resource "aws_security_group" "ecs" {
+      + arn                    = (known after apply)
+      + description            = "Security group for ECS tasks"
+      + egress                 = [
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = "Allow all outbound"
+              + from_port        = 0
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "-1"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 0
+            },
+        ]
+      + id                     = (known after apply)
+      + ingress                = [
+          + {
+              + cidr_blocks      = []
+              + description      = "HTTP from ALB"
+              + from_port        = 5000
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = (known after apply)
+              + self             = false
+              + to_port          = 5000
+            },
+        ]
+      + name                   = "***-production-ecs-sg"
+      + name_prefix            = (known after apply)
+      + owner_id               = (known after apply)
+      + revoke_rules_on_delete = false
+      + tags                   = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Name"        = "***-production-ecs-sg"
+          + "Terraform"   = "true"
+        }
+      + tags_all               = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "***-production-ecs-sg"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + vpc_id                 = (known after apply)
+    }
+
+  # aws_security_group.rds will be created
+  + resource "aws_security_group" "rds" {
+      + arn                    = (known after apply)
+      + description            = "Security group for RDS PostgreSQL"
+      + egress                 = [
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = "Allow all outbound"
+              + from_port        = 0
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "-1"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 0
+            },
+        ]
+      + id                     = (known after apply)
+      + ingress                = [
+          + {
+              + cidr_blocks      = []
+              + description      = "PostgreSQL from Device Manager"
+              + from_port        = 5432
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = (known after apply)
+              + self             = false
+              + to_port          = 5432
+            },
+          + {
+              + cidr_blocks      = []
+              + description      = "PostgreSQL from ECS"
+              + from_port        = 5432
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = (known after apply)
+              + self             = false
+              + to_port          = 5432
+            },
+        ]
+      + name                   = "***-production-rds-sg"
+      + name_prefix            = (known after apply)
+      + owner_id               = (known after apply)
+      + revoke_rules_on_delete = false
+      + tags                   = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Name"        = "***-production-rds-sg"
+          + "Terraform"   = "true"
+        }
+      + tags_all               = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "***-production-rds-sg"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+      + vpc_id                 = (known after apply)
+    }
+
+  # aws_subnet.database[0] will be created
+  + resource "aws_subnet" "database" {
+      + arn                                            = (known after apply)
+      + assign_ipv6_address_on_creation                = false
+      + availability_zone                              = "***a"
+      + availability_zone_id                           = (known after apply)
+      + cidr_block                                     = "10.0.21.0/24"
+      + enable_dns64                                   = false
+      + enable_resource_name_dns_a_record_on_launch    = false
+      + enable_resource_name_dns_aaaa_record_on_launch = false
+      + id                                             = (known after apply)
+      + ipv6_cidr_block_association_id                 = (known after apply)
+      + ipv6_native                                    = false
+      + map_public_ip_on_launch                        = false
+      + owner_id                                       = (known after apply)
+      + private_dns_hostname_type_on_launch            = (known after apply)
+      + tags                                           = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Name"        = "***-production-database-1"
+          + "Terraform"   = "true"
+          + "Tier"        = "Database"
+        }
+      + tags_all                                       = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "***-production-database-1"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+          + "Tier"        = "Database"
+        }
+      + vpc_id                                         = (known after apply)
+    }
+
+  # aws_subnet.database[1] will be created
+  + resource "aws_subnet" "database" {
+      + arn                                            = (known after apply)
+      + assign_ipv6_address_on_creation                = false
+      + availability_zone                              = "***b"
+      + availability_zone_id                           = (known after apply)
+      + cidr_block                                     = "10.0.22.0/24"
+      + enable_dns64                                   = false
+      + enable_resource_name_dns_a_record_on_launch    = false
+      + enable_resource_name_dns_aaaa_record_on_launch = false
+      + id                                             = (known after apply)
+      + ipv6_cidr_block_association_id                 = (known after apply)
+      + ipv6_native                                    = false
+      + map_public_ip_on_launch                        = false
+      + owner_id                                       = (known after apply)
+      + private_dns_hostname_type_on_launch            = (known after apply)
+      + tags                                           = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Name"        = "***-production-database-2"
+          + "Terraform"   = "true"
+          + "Tier"        = "Database"
+        }
+      + tags_all                                       = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "***-production-database-2"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+          + "Tier"        = "Database"
+        }
+      + vpc_id                                         = (known after apply)
+    }
+
+  # aws_subnet.private[0] will be created
+  + resource "aws_subnet" "private" {
+      + arn                                            = (known after apply)
+      + assign_ipv6_address_on_creation                = false
+      + availability_zone                              = "***a"
+      + availability_zone_id                           = (known after apply)
+      + cidr_block                                     = "10.0.11.0/24"
+      + enable_dns64                                   = false
+      + enable_resource_name_dns_a_record_on_launch    = false
+      + enable_resource_name_dns_aaaa_record_on_launch = false
+      + id                                             = (known after apply)
+      + ipv6_cidr_block_association_id                 = (known after apply)
+      + ipv6_native                                    = false
+      + map_public_ip_on_launch                        = false
+      + owner_id                                       = (known after apply)
+      + private_dns_hostname_type_on_launch            = (known after apply)
+      + tags                                           = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Name"        = "***-production-private-1"
+          + "Terraform"   = "true"
+          + "Tier"        = "Private"
+        }
+      + tags_all                                       = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "***-production-private-1"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+          + "Tier"        = "Private"
+        }
+      + vpc_id                                         = (known after apply)
+    }
+
+  # aws_subnet.private[1] will be created
+  + resource "aws_subnet" "private" {
+      + arn                                            = (known after apply)
+      + assign_ipv6_address_on_creation                = false
+      + availability_zone                              = "***b"
+      + availability_zone_id                           = (known after apply)
+      + cidr_block                                     = "10.0.12.0/24"
+      + enable_dns64                                   = false
+      + enable_resource_name_dns_a_record_on_launch    = false
+      + enable_resource_name_dns_aaaa_record_on_launch = false
+      + id                                             = (known after apply)
+      + ipv6_cidr_block_association_id                 = (known after apply)
+      + ipv6_native                                    = false
+      + map_public_ip_on_launch                        = false
+      + owner_id                                       = (known after apply)
+      + private_dns_hostname_type_on_launch            = (known after apply)
+      + tags                                           = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Name"        = "***-production-private-2"
+          + "Terraform"   = "true"
+          + "Tier"        = "Private"
+        }
+      + tags_all                                       = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "***-production-private-2"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+          + "Tier"        = "Private"
+        }
+      + vpc_id                                         = (known after apply)
+    }
+
+  # aws_subnet.public[0] will be created
+  + resource "aws_subnet" "public" {
+      + arn                                            = (known after apply)
+      + assign_ipv6_address_on_creation                = false
+      + availability_zone                              = "***a"
+      + availability_zone_id                           = (known after apply)
+      + cidr_block                                     = "10.0.1.0/24"
+      + enable_dns64                                   = false
+      + enable_resource_name_dns_a_record_on_launch    = false
+      + enable_resource_name_dns_aaaa_record_on_launch = false
+      + id                                             = (known after apply)
+      + ipv6_cidr_block_association_id                 = (known after apply)
+      + ipv6_native                                    = false
+      + map_public_ip_on_launch                        = true
+      + owner_id                                       = (known after apply)
+      + private_dns_hostname_type_on_launch            = (known after apply)
+      + tags                                           = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Name"        = "***-production-public-1"
+          + "Terraform"   = "true"
+          + "Tier"        = "Public"
+        }
+      + tags_all                                       = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "***-production-public-1"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+          + "Tier"        = "Public"
+        }
+      + vpc_id                                         = (known after apply)
+    }
+
+  # aws_subnet.public[1] will be created
+  + resource "aws_subnet" "public" {
+      + arn                                            = (known after apply)
+      + assign_ipv6_address_on_creation                = false
+      + availability_zone                              = "***b"
+      + availability_zone_id                           = (known after apply)
+      + cidr_block                                     = "10.0.2.0/24"
+      + enable_dns64                                   = false
+      + enable_resource_name_dns_a_record_on_launch    = false
+      + enable_resource_name_dns_aaaa_record_on_launch = false
+      + id                                             = (known after apply)
+      + ipv6_cidr_block_association_id                 = (known after apply)
+      + ipv6_native                                    = false
+      + map_public_ip_on_launch                        = true
+      + owner_id                                       = (known after apply)
+      + private_dns_hostname_type_on_launch            = (known after apply)
+      + tags                                           = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Name"        = "***-production-public-2"
+          + "Terraform"   = "true"
+          + "Tier"        = "Public"
+        }
+      + tags_all                                       = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "***-production-public-2"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+          + "Tier"        = "Public"
+        }
+      + vpc_id                                         = (known after apply)
+    }
+
+  # aws_vpc.main will be created
+  + resource "aws_vpc" "main" {
+      + arn                                  = (known after apply)
+      + cidr_block                           = "10.0.0.0/16"
+      + default_network_acl_id               = (known after apply)
+      + default_route_table_id               = (known after apply)
+      + default_security_group_id            = (known after apply)
+      + dhcp_options_id                      = (known after apply)
+      + enable_dns_hostnames                 = true
+      + enable_dns_support                   = true
+      + enable_network_address_usage_metrics = (known after apply)
+      + id                                   = (known after apply)
+      + instance_tenancy                     = "default"
+      + ipv6_association_id                  = (known after apply)
+      + ipv6_cidr_block                      = (known after apply)
+      + ipv6_cidr_block_network_border_group = (known after apply)
+      + main_route_table_id                  = (known after apply)
+      + owner_id                             = (known after apply)
+      + tags                                 = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "Name"        = "***-production-vpc"
+          + "Terraform"   = "true"
+        }
+      + tags_all                             = {
+          + "Application" = "***"
+          + "Environment" = "production"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "***-production-vpc"
+          + "Owner"       = "Deecell Power Systems"
+          + "Project"     = "***"
+          + "Terraform"   = "true"
+        }
+    }
+
+  # random_id.suffix will be created
+  + resource "random_id" "suffix" {
+      + b64_std     = (known after apply)
+      + b64_url     = (known after apply)
+      + byte_length = 4
+      + dec         = (known after apply)
+      + hex         = (known after apply)
+      + id          = (known after apply)
+    }
+
+  # random_password.db_password will be created
+  + resource "random_password" "db_password" {
+      + bcrypt_hash      = (sensitive value)
+      + id               = (known after apply)
+      + length           = 32
+      + lower            = true
+      + min_lower        = 0
+      + min_numeric      = 0
+      + min_special      = 0
+      + min_upper        = 0
+      + number           = true
+      + numeric          = true
+      + override_special = "!#$%&*()-_=+[]{}<>:?"
+      + result           = (sensitive value)
+      + special          = true
+      + upper            = true
+    }
+
+Plan: 87 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  + alb_arn                                   = (known after apply)
+  + alb_dns_name                              = (known after apply)
+  + alb_logs_bucket_name                      = (known after apply)
+  + alb_security_group_id                     = (known after apply)
+  + alb_zone_id                               = (known after apply)
+  + application_url                           = (known after apply)
+  + assets_bucket_name                        = (known after apply)
+  + cloudtrail_bucket_name                    = (known after apply)
+  + database_endpoint                         = (known after apply)
+  + database_name                             = "deecell_fleet"
+  + database_secret_arn                       = (known after apply)
+  + database_subnet_ids                       = [
+      + (known after apply),
+      + (known after apply),
+    ]
+  + device_manager_deploy_bucket_name         = (known after apply)
+  + device_manager_log_group_name             = "/ec2/***-production/device-manager"
+  + device_manager_security_group_id          = (known after apply)
+  + ecs_cluster_arn                           = (known after apply)
+  + ecs_cluster_name                          = "***-production-cluster"
+  + ecs_log_group_name                        = "/ecs/***-production"
+  + ecs_security_group_id                     = (known after apply)
+  + ecs_service_name                          = "***"
+  + ecs_task_definition_arn                   = (known after apply)
+  + github_actions_access_key_id              = (sensitive value)
+  + github_actions_secret_access_key          = (sensitive value)
+  + health_check_url                          = (known after apply)
+  + private_subnet_ids                        = [
+      + (known after apply),
+      + (known after apply),
+    ]
+  + public_subnet_ids                         = [
+      + (known after apply),
+      + (known after apply),
+    ]
+  + rds_security_group_id                     = (known after apply)
+  + vpc_id                                    = (known after apply)
+
+Error: reading EC2 AMIs: operation error EC2: DescribeImages, https response error StatusCode: 403, RequestID: c40a20c4-f82e-4ca7-88cf-45dc3fed4d2f, api error UnauthorizedOperation: You are not authorized to perform this operation. User: arn:aws:iam::***:user/automation/***-production-github-actions is not authorized to perform: ec2:DescribeImages because no identity-based policy allows the ec2:DescribeImages action
+
+  with data.aws_ami.ubuntu_2404,
+  on device-manager.tf line 12, in data "aws_ami" "ubuntu_2404":
+  12: data "aws_ami" "ubuntu_2404" {
+
+Error: Terraform exited with code 1.
+Error: Process completed with exit code 1.
