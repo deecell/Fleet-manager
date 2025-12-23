@@ -174,8 +174,15 @@ variable "db_multi_az" {
   default     = false
 }
 
-# Note: Database password is always auto-generated for security
-# The password is stored in AWS Secrets Manager and accessible via DATABASE_URL
+# Database password is always auto-generated for security
+# This variable exists only for backward compatibility with existing CI/CD pipelines
+# It is NOT used - the password is stored in AWS Secrets Manager via DATABASE_URL
+variable "db_password" {
+  description = "UNUSED - kept for backward compatibility. Password is auto-generated."
+  type        = string
+  sensitive   = true
+  default     = ""
+}
 
 # -----------------------------------------------------------------------------
 # Application Secrets
