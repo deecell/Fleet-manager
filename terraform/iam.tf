@@ -164,9 +164,11 @@ resource "aws_iam_role_policy" "device_manager" {
         Action = [
           "secretsmanager:GetSecretValue"
         ]
-        Resource = [
-          aws_secretsmanager_secret.database_url.arn
-        ]
+        Resource = concat(
+          [aws_secretsmanager_secret.database_url.arn],
+          var.simpro_api_client != "" ? [aws_secretsmanager_secret.simpro_api_client[0].arn] : [],
+          var.simpro_api_key != "" ? [aws_secretsmanager_secret.simpro_api_key[0].arn] : []
+        )
       },
       {
         Effect = "Allow"

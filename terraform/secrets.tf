@@ -77,3 +77,35 @@ resource "aws_secretsmanager_secret_version" "sendgrid_api_key" {
   secret_id     = aws_secretsmanager_secret.sendgrid_api_key[0].id
   secret_string = var.sendgrid_api_key
 }
+
+# SIMPro API Client (optional - for SIM location tracking)
+resource "aws_secretsmanager_secret" "simpro_api_client" {
+  count                   = var.simpro_api_client != "" ? 1 : 0
+  name                    = "${local.name_prefix}/simpro-api-client-${random_id.suffix.hex}"
+  description             = "SIMPro API client ID for SIM location tracking"
+  recovery_window_in_days = var.environment == "production" ? 7 : 0
+
+  tags = local.common_tags
+}
+
+resource "aws_secretsmanager_secret_version" "simpro_api_client" {
+  count         = var.simpro_api_client != "" ? 1 : 0
+  secret_id     = aws_secretsmanager_secret.simpro_api_client[0].id
+  secret_string = var.simpro_api_client
+}
+
+# SIMPro API Key (optional - for SIM location tracking)
+resource "aws_secretsmanager_secret" "simpro_api_key" {
+  count                   = var.simpro_api_key != "" ? 1 : 0
+  name                    = "${local.name_prefix}/simpro-api-key-${random_id.suffix.hex}"
+  description             = "SIMPro API key for SIM location tracking"
+  recovery_window_in_days = var.environment == "production" ? 7 : 0
+
+  tags = local.common_tags
+}
+
+resource "aws_secretsmanager_secret_version" "simpro_api_key" {
+  count         = var.simpro_api_key != "" ? 1 : 0
+  secret_id     = aws_secretsmanager_secret.simpro_api_key[0].id
+  secret_string = var.simpro_api_key
+}

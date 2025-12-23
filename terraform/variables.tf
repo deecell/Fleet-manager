@@ -222,6 +222,20 @@ variable "sendgrid_api_key" {
   default     = ""
 }
 
+variable "simpro_api_client" {
+  description = "SIMPro API client ID for SIM location tracking"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "simpro_api_key" {
+  description = "SIMPro API key for SIM location tracking"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
 # -----------------------------------------------------------------------------
 # Security & Compliance
 # -----------------------------------------------------------------------------
