@@ -93,14 +93,22 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
 - Functions: `syncDeviceLogs()`, `syncSince()`, `getLogFileList()`
 
 ### SIMPro Integration (Truck Location Tracking)
-- **Purpose**: Track truck locations via SIM card cell tower triangulation; monitor data usage.
+- **Purpose**: Track truck locations via SIM card network-level data; monitor data usage.
 - **Provider**: Wireless Logic SIMPro platform.
 - **API**: REST API v3 at `https://simpro4.wirelesslogic.com/api/v3`.
+- **Endpoint**: `/api/v3/sims/usage-location` with `identifiers` parameter (batch ICCIDs).
 - **Authentication**: `x-api-client` and `x-api-key` headers.
 - **Linking**: SIMs matched to PowerMon devices via device_name (SIMPro custom_field1).
-- **Data Flow**: SIM location → truck.latitude/longitude → map display.
+- **Data Returned**: Country, network name, MCC/MNC (network-level, not GPS coordinates).
 - **Secrets Required**: `SIMPRO_API_CLIENT`, `SIMPRO_API_KEY`.
-- **Status**: Integration built, awaiting API credentials.
+- **Status**: ✅ LIVE in production.
+
+### SIM Location Scheduler (Automatic Polling)
+- **Purpose**: Automatically sync SIM locations every 60 seconds.
+- **File**: `server/services/sim-location-scheduler.ts`
+- **Startup**: Runs automatically when server starts via `simLocationScheduler.start()` in `server/index.ts`.
+- **Behavior**: Polls all organizations with active SIMs, updates country/network/MCC/MNC fields.
+- **Interval**: 60 seconds (1 minute).
 
 ### SIMPro Database Tables
 - `sims` - SIM cards with ICCID, MSISDN, location, linked device/truck.

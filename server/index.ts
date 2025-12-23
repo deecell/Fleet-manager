@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { runStartupMigrations } from "./startup-migrations";
+import { simLocationScheduler } from "./services/sim-location-scheduler";
 // Device simulator disabled - using real PowerMon devices via Device Manager
 // import { startDeviceSimulator } from "./services/device-simulator";
 
@@ -107,5 +108,8 @@ app.use((req, res, next) => {
     
     // Device simulator disabled - using real PowerMon devices via standalone Device Manager
     // startDeviceSimulator();
+    
+    // Start automatic SIM location polling (every 60 seconds)
+    simLocationScheduler.start();
   });
 })();

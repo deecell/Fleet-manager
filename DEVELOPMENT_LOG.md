@@ -4,7 +4,31 @@
 
 ---
 
-## Latest Updates (December 12, 2025)
+## Latest Updates (December 23, 2025)
+
+### Automatic SIM Location Polling (December 23, 2025)
+
+**Feature**: Added automatic SIM location syncing every 60 seconds.
+
+**Implementation**:
+- New file: `server/services/sim-location-scheduler.ts`
+- Scheduler starts automatically when the server starts
+- Polls all organizations with active SIMs every minute
+- Logs sync results (locations updated, errors)
+
+**How it Works**:
+1. On server startup, `simLocationScheduler.start()` is called
+2. Every 60 seconds, finds all orgs with active SIMs that have ICCIDs
+3. Calls `syncLocations()` for each organization
+4. Updates SIM records with country, network, MCC/MNC from SIMPro API
+
+**Files Added/Modified**:
+- `server/services/sim-location-scheduler.ts` (new)
+- `server/index.ts` (starts scheduler on boot)
+
+---
+
+## Previous Updates (December 12-17, 2025)
 
 ### SIMPro Usage-Location API Working (December 12, 2025)
 
