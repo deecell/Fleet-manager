@@ -2,6 +2,12 @@
 # Deecell Fleet Tracking - Device Manager EC2 Configuration
 # =============================================================================
 
+# Local variables for SIMPro secrets (safe references that work when count=0)
+locals {
+  simpro_client_arn = try(aws_secretsmanager_secret.simpro_api_client[0].arn, "")
+  simpro_key_arn    = try(aws_secretsmanager_secret.simpro_api_key[0].arn, "")
+}
+
 # Ubuntu 24.04 LTS AMI (has glibc 2.38+ required for PowerMon native addon)
 data "aws_ami" "ubuntu_2404" {
   most_recent = true
@@ -108,12 +114,12 @@ locals {
     # Fetch SIMPro credentials if enabled
     %{ if var.enable_simpro ~}
     export SIMPRO_API_CLIENT=$(aws secretsmanager get-secret-value \
-      --secret-id "${aws_secretsmanager_secret.simpro_api_client[0].arn}" \
+      --secret-id "${local.simpro_client_arn}" \
       --query 'SecretString' \
       --output text \
       --region ${var.aws_region})
     export SIMPRO_API_KEY=$(aws secretsmanager get-secret-value \
-      --secret-id "${aws_secretsmanager_secret.simpro_api_key[0].arn}" \
+      --secret-id "${local.simpro_key_arn}" \
       --query 'SecretString' \
       --output text \
       --region ${var.aws_region})

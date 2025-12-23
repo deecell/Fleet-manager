@@ -1,0 +1,59 @@
+2s
+Run terraform validate
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!! TERRAFORM CRASH !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Terraform crashed! This is always indicative of a bug within Terraform.
+Please report the crash with Terraform[1] so that we can fix this.
+
+When reporting bugs, please include your terraform version, the stack trace
+shown below, and any additional information which may help replicate the issue.
+
+[1]: https://github.com/hashicorp/terraform/issues
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!! TERRAFORM CRASH !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+value is marked, so must be unmarked first
+goroutine 310 [running]:
+runtime/debug.Stack()
+	/opt/hostedtoolcache/go/1.21.1/x64/src/runtime/debug/stack.go:24 +0x5e
+runtime/debug.PrintStack()
+	/opt/hostedtoolcache/go/1.21.1/x64/src/runtime/debug/stack.go:16 +0x13
+github.com/hashicorp/terraform/internal/logging.PanicHandler()
+	/home/runner/work/terraform/terraform/internal/logging/panic.go:58 +0x13b
+panic({0x2b92ec0?, 0x38c4c30?})
+	/opt/hostedtoolcache/go/1.21.1/x64/src/runtime/panic.go:920 +0x270
+github.com/zclconf/go-cty/cty.Value.assertUnmarked(...)
+	/home/runner/go/pkg/mod/github.com/zclconf/go-cty@v1.14.0/cty/marks.go:141
+github.com/zclconf/go-cty/cty.Value.AsString({{{0x3902720?, 0xc000012cd9?}}, {0x2e1de40?, 0xc0051eafd8?}})
+	/home/runner/go/pkg/mod/github.com/zclconf/go-cty@v1.14.0/cty/value_ops.go:1385 +0x47
+github.com/zclconf/go-cty/cty.Value.Range({{{0x3902720?, 0xc000012cd9?}}, {0x2e1de40?, 0xc0051eafd8?}})
+	/home/runner/go/pkg/mod/github.com/zclconf/go-cty@v1.14.0/cty/value_range.go:53 +0x285
+github.com/hashicorp/hcl/v2/hclsyntax.(*ConditionalExpr).Value(0xc000861b90, 0xc0051eafa8)
+	/home/runner/go/pkg/mod/github.com/hashicorp/hcl/v2@v2.18.0/hclsyntax/expression.go:745 +0xd35
+github.com/hashicorp/hcl/v2/hcldec.(*AttrSpec).decode(0xc0065d88a0, 0xc004286cf8?, {0xc000bb9260?, 0x12?, 0xc0009182f0?}, 0xc0051eafa8)
+	/home/runner/go/pkg/mod/github.com/hashicorp/hcl/v2@v2.18.0/hcldec/spec.go:214 +0x1f5
+github.com/hashicorp/hcl/v2/hcldec.ObjectSpec.decode(0xc0065b7b90, 0xc0065b7b90?, {0x0, 0x0, 0x0}, 0xc00623a0c0?)
+	/home/runner/go/pkg/mod/github.com/hashicorp/hcl/v2@v2.18.0/hcldec/spec.go:88 +0x1f7
+github.com/hashicorp/hcl/v2/hcldec.decode({0x3903ae0, 0xc004e29bc0}, {0x0, 0x0, 0x0}, 0x0?, {0x3902fb8, 0xc0065b7b90}, 0x0)
+	/home/runner/go/pkg/mod/github.com/hashicorp/hcl/v2@v2.18.0/hcldec/decode.go:24 +0x10f
+github.com/hashicorp/hcl/v2/hcldec.Decode(...)
+	/home/runner/go/pkg/mod/github.com/hashicorp/hcl/v2@v2.18.0/hcldec/public.go:18
+github.com/hashicorp/terraform/internal/lang.(*Scope).EvalBlock(0xc0049d7c20, {0x3903530, 0xc004e59dd0}, 0xc0055eb178?)
+	/home/runner/work/terraform/terraform/internal/lang/eval.go:71 +0x1ea
+github.com/hashicorp/terraform/internal/terraform.(*BuiltinEvalContext).EvaluateBlock(0xc000b06600?, {0x3902d18, 0xc000cfc000}, 0xc000881cb0?, {0x0?, 0x0?}, {{{{0x0, 0x0}}, {0x0, 0x0}}, ...})
+	/home/runner/work/terraform/terraform/internal/terraform/eval_context_builtin.go:282 +0x145
+github.com/hashicorp/terraform/internal/terraform.(*NodeValidatableResource).validateResource(0xc0009904a8, {0x391fb60, 0xc00183e2a0})
+	/home/runner/work/terraform/terraform/internal/terraform/node_resource_validate.go:372 +0x666
+github.com/hashicorp/terraform/internal/terraform.(*NodeValidatableResource).Execute(0xc0009904a8, {0x391fb60, 0xc00183e2a0}, 0x0?)
+	/home/runner/work/terraform/terraform/internal/terraform/node_resource_validate.go:52 +0x55
+github.com/hashicorp/terraform/internal/terraform.(*ContextGraphWalker).Execute(0xc006f37e60, {0x391fb60, 0xc00183e2a0}, {0x7f75debe2088, 0xc0009904a8})
+	/home/runner/work/terraform/terraform/internal/terraform/graph_walk_context.go:143 +0xbe
+github.com/hashicorp/terraform/internal/terraform.(*Graph).walk.func1({0x30d81c0, 0xc0009904a8})
+	/home/runner/work/terraform/terraform/internal/terraform/graph.go:78 +0x375
+github.com/hashicorp/terraform/internal/dag.(*Walker).walkVertex(0xc000842840, {0x30d81c0, 0xc0009904a8}, 0xc000ab4900)
+	/home/runner/work/terraform/terraform/internal/dag/walk.go:384 +0x2e5
+created by github.com/hashicorp/terraform/internal/dag.(*Walker).Update in goroutine 1
+	/home/runner/work/terraform/terraform/internal/dag/walk.go:307 +0xde8
+Error: Terraform exited with code 11.
+Error: Process completed with exit code 1.
