@@ -54,11 +54,12 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
 - **API**: `POST /api/v1/auth/login`, `POST /api/v1/auth/logout`, `GET /api/v1/auth/session`.
 - **Protected Routes**: All fleet API routes require authenticated sessions; dashboard redirects to `/login` if unauthenticated.
 
-### Device Manager (Production Application - December 1, 2025)
-- **Purpose**: Standalone application for managing PowerMon device connections and data collection.
+### Device Manager (Production Application - December 2025)
+- **Purpose**: Standalone application for managing all device polling and data collection (PowerMon devices, SIM cards, etc.).
 - **Deployment**: Designed for AWS EC2, scales independently from web app.
 - **Architecture**: Cohort-based sharding, staggered polling, batch database writes.
-- **Scale Target**: ~1,000 devices per instance, horizontally scalable to tens of thousands.
+- **Scale Target**: ~1,000 PowerMon devices per instance, horizontally scalable.
+- **Key Benefit**: Runs as a singleton to avoid duplicate API calls when web app scales.
 
 **Application Structure** (`device-manager/app/`):
 | Module | File | Purpose |
@@ -66,19 +67,35 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
 | Config | `config.js` | Environment variables, validation |
 | Logger | `logger.js` | Structured JSON logging |
 | Database | `database.js` | PostgreSQL pool, bulk inserts |
-| Connection Pool | `connection-pool.js` | Persistent device connections |
-| Polling Scheduler | `polling-scheduler.js` | 10-second staggered polling |
+| Connection Pool | `connection-pool.js` | Persistent PowerMon device connections |
+| Polling Scheduler | `polling-scheduler.js` | 10-second staggered PowerMon polling |
+| SIM Poller | `sim-poller.js` | 60-second SIM location polling via SIMPro API |
 | Batch Writer | `batch-writer.js` | Buffered bulk inserts |
 | Backfill Service | `backfill-service.js` | Gap detection, log sync |
 | Metrics | `metrics.js` | Prometheus metrics, health check |
 | Entry Point | `index.js` | Lifecycle, graceful shutdown |
 
+**Polling Intervals**:
+| Device Type | Interval | Purpose |
+|-------------|----------|---------|
+| PowerMon | 10 seconds | Real-time battery/solar data |
+| SIM Cards | 60 seconds | Network location (country, carrier) |
+
 **Key Parameters**:
-- Poll interval: 10 seconds (matches PowerMon log sample rate)
-- Cohorts: 10 (devices sharded via hash(serial) % 10)
+- PowerMon poll interval: 10 seconds (matches device log sample rate)
+- SIM poll interval: 60 seconds (1 minute)
+- Cohorts: 10 (PowerMon devices sharded via hash(serial) % 10)
 - Batch flush: 2 seconds OR 500 records
 - Gap threshold: 30 seconds (3 missed polls)
 - Metrics endpoint: `:3001/metrics`
+
+**Environment Variables**:
+| Variable | Purpose | Default |
+|----------|---------|---------|
+| `DATABASE_URL` | PostgreSQL connection | Required |
+| `SIMPRO_API_CLIENT` | SIMPro API client ID | Optional |
+| `SIMPRO_API_KEY` | SIMPro API key | Optional |
+| `POLL_INTERVAL_MS` | PowerMon poll interval | 10000 |
 
 **Native Addon** (`device-manager/build/`):
 - **Library**: `libpowermon_bin` v1.17 - Thornwave's C++ library
@@ -103,12 +120,6 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
 - **Secrets Required**: `SIMPRO_API_CLIENT`, `SIMPRO_API_KEY`.
 - **Status**: ✅ LIVE in production.
 
-### SIM Location Scheduler (Automatic Polling)
-- **Purpose**: Automatically sync SIM locations every 60 seconds.
-- **File**: `server/services/sim-location-scheduler.ts`
-- **Startup**: Runs automatically when server starts via `simLocationScheduler.start()` in `server/index.ts`.
-- **Behavior**: Polls all organizations with active SIMs, updates country/network/MCC/MNC fields.
-- **Interval**: 60 seconds (1 minute).
 
 ### SIMPro Database Tables
 - `sims` - SIM cards with ICCID, MSISDN, location, linked device/truck.

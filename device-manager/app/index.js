@@ -17,6 +17,7 @@ const { pollingScheduler } = require('./polling-scheduler');
 const batchWriter = require('./batch-writer');
 const { backfillService } = require('./backfill-service');
 const { startMetricsServer, stopMetricsServer } = require('./metrics');
+const { simPoller } = require('./sim-poller');
 
 let isShuttingDown = false;
 
@@ -63,6 +64,9 @@ async function main() {
     // Start backfill service
     backfillService.start();
 
+    // Start SIM location poller (polls every 60 seconds)
+    simPoller.start();
+
     logger.info('Device Manager started successfully', {
       devices: deviceCount,
       status: 'running',
@@ -99,6 +103,10 @@ async function shutdown(signal) {
     // 1. Stop polling scheduler (no new polls)
     pollingScheduler.stop();
     logger.info('Polling scheduler stopped');
+
+    // 1b. Stop SIM location poller
+    simPoller.stop();
+    logger.info('SIM poller stopped');
 
     // 2. Wait for active backfill operations to complete
     await backfillService.stop();

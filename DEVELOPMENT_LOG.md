@@ -6,25 +6,31 @@
 
 ## Latest Updates (December 23, 2025)
 
-### Automatic SIM Location Polling (December 23, 2025)
+### SIM Polling Moved to Device Manager (December 23, 2025)
 
-**Feature**: Added automatic SIM location syncing every 60 seconds.
+**Change**: Moved SIM location polling from web app to Device Manager for architectural consistency.
+
+**Why**:
+- Web app scaling (multiple ECS tasks) would cause duplicate API calls
+- Device Manager runs as a singleton, ensuring single source of truth
+- Consistent design pattern with PowerMon polling
+- Better observability and lifecycle management
 
 **Implementation**:
-- New file: `server/services/sim-location-scheduler.ts`
-- Scheduler starts automatically when the server starts
-- Polls all organizations with active SIMs every minute
-- Logs sync results (locations updated, errors)
+- New file: `device-manager/app/sim-poller.js`
+- Added SIMPro config to `device-manager/app/config.js`
+- Updated `device-manager/app/index.js` to start/stop SIM poller
+- Removed `simLocationScheduler` from web app `server/index.ts`
 
-**How it Works**:
-1. On server startup, `simLocationScheduler.start()` is called
-2. Every 60 seconds, finds all orgs with active SIMs that have ICCIDs
-3. Calls `syncLocations()` for each organization
-4. Updates SIM records with country, network, MCC/MNC from SIMPro API
+**Device Manager Now Handles**:
+| Device Type | Interval | Purpose |
+|-------------|----------|---------|
+| PowerMon | 10 seconds | Battery/solar data from physical devices |
+| SIM Cards | 60 seconds | Network location from SIMPro API |
 
-**Files Added/Modified**:
-- `server/services/sim-location-scheduler.ts` (new)
-- `server/index.ts` (starts scheduler on boot)
+**Environment Variables for Device Manager**:
+- `SIMPRO_API_CLIENT` - SIMPro API client ID
+- `SIMPRO_API_KEY` - SIMPro API key
 
 ---
 

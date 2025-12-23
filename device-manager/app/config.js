@@ -12,6 +12,13 @@ const config = {
     poolSize: parseInt(process.env.DB_POOL_SIZE || '10', 10),
   },
 
+  // SIMPro API configuration (for SIM location polling)
+  simpro: {
+    baseUrl: process.env.SIMPRO_BASE_URL || 'https://simpro4.wirelesslogic.com/api/v3',
+    apiClient: process.env.SIMPRO_API_CLIENT || '',
+    apiKey: process.env.SIMPRO_API_KEY || '',
+  },
+
   // Polling configuration
   polling: {
     intervalMs: parseInt(process.env.POLL_INTERVAL_MS || '10000', 10), // 10 seconds
