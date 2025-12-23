@@ -1,0 +1,49 @@
+2s
+Run terraform validate
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!! TERRAFORM CRASH !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Terraform crashed! This is always indicative of a bug within Terraform.
+Please report the crash with Terraform[1] so that we can fix this.
+
+When reporting bugs, please include your terraform version, the stack trace
+shown below, and any additional information which may help replicate the issue.
+
+[1]: https://github.com/hashicorp/terraform/issues
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!! TERRAFORM CRASH !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+value is marked, so must be unmarked first
+goroutine 450 [running]:
+runtime/debug.Stack()
+	/opt/hostedtoolcache/go/1.21.1/x64/src/runtime/debug/stack.go:24 +0x5e
+runtime/debug.PrintStack()
+	/opt/hostedtoolcache/go/1.21.1/x64/src/runtime/debug/stack.go:16 +0x13
+github.com/hashicorp/terraform/internal/logging.PanicHandler()
+	/home/runner/work/terraform/terraform/internal/logging/panic.go:58 +0x13b
+panic({0x2b92ec0?, 0x38c4c30?})
+	/opt/hostedtoolcache/go/1.21.1/x64/src/runtime/panic.go:920 +0x270
+github.com/zclconf/go-cty/cty.Value.assertUnmarked(...)
+	/home/runner/go/pkg/mod/github.com/zclconf/go-cty@v1.14.0/cty/marks.go:141
+github.com/zclconf/go-cty/cty.Value.AsString({{{0x3902720?, 0xc000134b41?}}, {0x2e1de40?, 0xc0019929d8?}})
+	/home/runner/go/pkg/mod/github.com/zclconf/go-cty@v1.14.0/cty/value_ops.go:1385 +0x47
+github.com/zclconf/go-cty/cty.Value.Range({{{0x3902720?, 0xc000134b41?}}, {0x2e1de40?, 0xc0019929d8?}})
+	/home/runner/go/pkg/mod/github.com/zclconf/go-cty@v1.14.0/cty/value_range.go:53 +0x285
+github.com/hashicorp/hcl/v2/hclsyntax.(*ConditionalExpr).Value(0xc000917d50, 0xc0019929c0)
+	/home/runner/go/pkg/mod/github.com/hashicorp/hcl/v2@v2.18.0/hclsyntax/expression.go:745 +0xd35
+github.com/hashicorp/terraform/internal/lang.(*Scope).EvalExpr(0xc00184f170, {0x3902df8?, 0xc000917d50}, {{0x3902f48?, 0x5130520?}})
+	/home/runner/work/terraform/terraform/internal/lang/eval.go:175 +0x1bd
+github.com/hashicorp/terraform/internal/terraform.(*BuiltinEvalContext).EvaluateExpr(0x49?, {0x3902df8, 0xc000917d50}, {{0x3902f48?, 0x5130520?}}, {0x0?, 0x0?})
+	/home/runner/work/terraform/terraform/internal/terraform/eval_context_builtin.go:289 +0xab
+github.com/hashicorp/terraform/internal/terraform.(*NodeLocal).Execute(0x7fd220fcd9f8?, {0x391fb60, 0xc000cbe0e0}, 0x0?)
+	/home/runner/work/terraform/terraform/internal/terraform/node_local.go:158 +0x592
+github.com/hashicorp/terraform/internal/terraform.(*ContextGraphWalker).Execute(0xc00178d200, {0x391fb60, 0xc000cbe0e0}, {0x7fd2211aec48, 0xc006c09680})
+	/home/runner/work/terraform/terraform/internal/terraform/graph_walk_context.go:143 +0xbe
+github.com/hashicorp/terraform/internal/terraform.(*Graph).walk.func1({0x2f593a0, 0xc006c09680})
+	/home/runner/work/terraform/terraform/internal/terraform/graph.go:78 +0x375
+github.com/hashicorp/terraform/internal/dag.(*Walker).walkVertex(0xc000954660, {0x2f593a0, 0xc006c09680}, 0xc0026af100)
+	/home/runner/work/terraform/terraform/internal/dag/walk.go:384 +0x2e5
+created by github.com/hashicorp/terraform/internal/dag.(*Walker).Update in goroutine 350
+	/home/runner/work/terraform/terraform/internal/dag/walk.go:307 +0xde8
+Error: Terraform exited with code 11.
+Error: Process completed with exit code 1.

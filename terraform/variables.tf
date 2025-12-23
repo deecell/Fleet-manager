@@ -174,18 +174,8 @@ variable "db_multi_az" {
   default     = false
 }
 
-variable "db_password" {
-  description = "Database master password (only used if enable_custom_db_password is true)"
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
-variable "enable_custom_db_password" {
-  description = "Use custom db_password instead of auto-generated one"
-  type        = bool
-  default     = false
-}
+# Note: Database password is always auto-generated for security
+# The password is stored in AWS Secrets Manager and accessible via DATABASE_URL
 
 # -----------------------------------------------------------------------------
 # Application Secrets

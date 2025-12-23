@@ -68,10 +68,8 @@ db_max_allocated_storage = 100
 db_backup_retention      = 7
 db_multi_az              = false  # Set to true for production HA
 
-# Database password: auto-generated unless you provide one
-# To use custom password, set enable_custom_db_password = true
-enable_custom_db_password = false
-# export TF_VAR_db_password="YourSecurePassword123!"
+# Database password is always auto-generated (32 chars, secure)
+# It's stored in AWS Secrets Manager and accessible via DATABASE_URL secret
 
 # -----------------------------------------------------------------------------
 # Application Secrets
