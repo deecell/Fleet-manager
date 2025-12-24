@@ -84,3 +84,27 @@ import {
 #   to = aws_lb_target_group.main
 #   id = "ARN_FROM_ABOVE_COMMAND"
 # }
+
+# Auto Scaling Group
+import {
+  to = aws_autoscaling_group.device_manager
+  id = "deecell-fleet-production-device-manager-asg"
+}
+
+# RDS DB Instance
+import {
+  to = aws_db_instance.main
+  id = "deecell-fleet-production-postgres"
+}
+
+# ECS Cluster
+import {
+  to = aws_ecs_cluster.main
+  id = "deecell-fleet-production"
+}
+
+# ECS Service
+import {
+  to = aws_ecs_service.main
+  id = "deecell-fleet-production/deecell-fleet"
+}
