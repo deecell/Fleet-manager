@@ -1,0 +1,101 @@
+aws_cloudwatch_log_group.cloudtrail[0]: Importing... [id=/aws/cloudtrail/deecell-fleet-production]
+aws_cloudwatch_log_group.cloudtrail[0]: Import complete [id=/aws/cloudtrail/deecell-fleet-production]
+aws_iam_user.github_actions: Importing... [id=deecell-fleet-production-github-actions]
+aws_iam_user.github_actions: Import complete [id=deecell-fleet-production-github-actions]
+aws_cloudwatch_log_group.vpc_flow: Importing... [id=/aws/vpc/deecell-fleet-production/flow-logs]
+aws_cloudwatch_log_group.vpc_flow: Import complete [id=/aws/vpc/deecell-fleet-production/flow-logs]
+aws_iam_role.cloudtrail[0]: Importing... [id=deecell-fleet-production-cloudtrail-role]
+aws_iam_role.cloudtrail[0]: Import complete [id=deecell-fleet-production-cloudtrail-role]
+aws_iam_role.vpc_flow_logs: Importing... [id=deecell-fleet-production-vpc-flow-logs-role]
+aws_iam_role.vpc_flow_logs: Import complete [id=deecell-fleet-production-vpc-flow-logs-role]
+aws_iam_role.device_manager: Importing... [id=deecell-fleet-production-device-manager-role]
+aws_iam_role.device_manager: Import complete [id=deecell-fleet-production-device-manager-role]
+aws_iam_role.ecs_task: Importing... [id=deecell-fleet-production-ecs-task-role]
+aws_iam_role.ecs_task: Import complete [id=deecell-fleet-production-ecs-task-role]
+aws_cloudtrail.main[0]: Importing... [id=deecell-fleet-production-trail]
+aws_cloudtrail.main[0]: Import complete [id=deecell-fleet-production-trail]
+random_id.suffix: Creating...
+random_password.db_password: Creating...
+random_id.suffix: Creation complete after 0s [id=Sh3ayA]
+random_password.db_password: Creation complete after 0s [id=none]
+aws_secretsmanager_secret.database_url: Creating...
+aws_vpc.main: Creating...
+aws_s3_bucket.alb_logs: Creating...
+aws_ecs_cluster.main: Creating...
+aws_iam_user.github_actions: Modifying... [id=deecell-fleet-production-github-actions]
+aws_cloudwatch_log_group.vpc_flow: Modifying... [id=/aws/vpc/deecell-fleet-production/flow-logs]
+aws_s3_bucket.assets: Creating...
+aws_cloudwatch_log_group.device_manager: Creating...
+aws_iam_role.vpc_flow_logs: Modifying... [id=deecell-fleet-production-vpc-flow-logs-role]
+aws_s3_bucket.device_manager_deploy: Creating...
+aws_iam_user.github_actions: Modifications complete after 1s [id=deecell-fleet-production-github-actions]
+aws_iam_role.device_manager: Modifying... [id=deecell-fleet-production-device-manager-role]
+aws_s3_bucket.cloudtrail[0]: Creating...
+aws_secretsmanager_secret.admin_password: Creating...
+aws_iam_role.vpc_flow_logs: Modifications complete after 1s [id=deecell-fleet-production-vpc-flow-logs-role]
+aws_cloudwatch_log_group.vpc_flow: Modifications complete after 1s [id=/aws/vpc/deecell-fleet-production/flow-logs]
+aws_iam_role.ecs_execution: Creating...
+aws_iam_role.ecs_task: Modifying... [id=deecell-fleet-production-ecs-task-role]
+aws_cloudwatch_log_group.ecs: Creating...
+aws_s3_bucket_versioning.assets: Creation complete after 2s [id=deecell-fleet-production-assets-4a1ddac8]
+aws_ecs_cluster.main: Still creating... [10s elapsed]
+aws_ecs_cluster.main: Creation complete after 11s [id=arn:aws:ecs:***:892213647605:cluster/deecell-fleet-production-cluster]
+aws_ecs_cluster_capacity_providers.main: Creating...
+aws_s3_bucket_lifecycle_configuration.alb_logs: Still creating... [10s elapsed]
+aws_ecs_cluster_capacity_providers.main: Still creating... [10s elapsed]
+aws_ecs_cluster_capacity_providers.main: Creation complete after 10s [id=deecell-fleet-production-cluster]
+aws_s3_bucket_lifecycle_configuration.alb_logs: Still creating... [20s elapsed]
+aws_s3_bucket_lifecycle_configuration.alb_logs: Still creating... [30s elapsed]
+aws_s3_bucket_lifecycle_configuration.alb_logs: Still creating... [40s elapsed]
+aws_s3_bucket_lifecycle_configuration.alb_logs: Still creating... [50s elapsed]
+aws_s3_bucket_lifecycle_configuration.alb_logs: Creation complete after 56s [id=deecell-fleet-production-alb-logs-4a1ddac8]
+╷
+│ Error: creating CloudWatch Logs Log Group (/ec2/deecell-fleet-production/device-manager): operation error CloudWatch Logs: CreateLogGroup, https response error StatusCode: 400, RequestID: 36d6094f-8f88-4e62-9cca-76aae4ad8f10, ResourceAlreadyExistsException: The specified log group already exists
+│ 
+│   with aws_cloudwatch_log_group.device_manager,
+│   on device-manager.tf line 33, in resource "aws_cloudwatch_log_group" "device_manager":
+│   33: resource "aws_cloudwatch_log_group" "device_manager" {
+│ 
+╵
+╷
+│ Error: creating CloudWatch Logs Log Group (/ecs/deecell-fleet-production): operation error CloudWatch Logs: CreateLogGroup, https response error StatusCode: 400, RequestID: f8e65ef0-39ba-4d2a-b3b2-01e41e64b6af, ResourceAlreadyExistsException: The specified log group already exists
+│ 
+│   with aws_cloudwatch_log_group.ecs,
+│   on ecs.tf line 31, in resource "aws_cloudwatch_log_group" "ecs":
+│   31: resource "aws_cloudwatch_log_group" "ecs" {
+│ 
+╵
+╷
+│ Error: creating IAM Role (deecell-fleet-production-ecs-execution-role): operation error IAM: CreateRole, https response error StatusCode: 409, RequestID: 456a1c19-545c-498b-bc2c-800b20def60f, EntityAlreadyExists: Role with name deecell-fleet-production-ecs-execution-role already exists.
+│ 
+│   with aws_iam_role.ecs_execution,
+│   on iam.tf line 9, in resource "aws_iam_role" "ecs_execution":
+│    9: resource "aws_iam_role" "ecs_execution" {
+│ 
+╵
+╷
+│ Error: creating IAM Instance Profile (deecell-fleet-production-device-manager-profile): operation error IAM: CreateInstanceProfile, https response error StatusCode: 409, RequestID: 4e0ad86d-f9e4-4728-9a84-37759971c405, EntityAlreadyExists: Instance Profile deecell-fleet-production-device-manager-profile already exists.
+│ 
+│   with aws_iam_instance_profile.device_manager,
+│   on iam.tf line 150, in resource "aws_iam_instance_profile" "device_manager":
+│  150: resource "aws_iam_instance_profile" "device_manager" {
+│ 
+╵
+╷
+│ Error: creating IAM Access Key (deecell-fleet-production-github-actions): operation error IAM: CreateAccessKey, https response error StatusCode: 409, RequestID: 0e22263d-6be2-4d2b-a963-215c1b0d5477, LimitExceeded: Cannot exceed quota for AccessKeysPerUser: 2
+│ 
+│   with aws_iam_access_key.github_actions,
+│   on iam.tf line 351, in resource "aws_iam_access_key" "github_actions":
+│  351: resource "aws_iam_access_key" "github_actions" {
+│ 
+╵
+╷
+│ Error: creating EC2 VPC: operation error EC2: CreateVpc, https response error StatusCode: 400, RequestID: 051883b0-bbdd-48d6-a182-48088e9e2fee, api error VpcLimitExceeded: The maximum number of VPCs has been reached.
+│ 
+│   with aws_vpc.main,
+│   on vpc.tf line 6, in resource "aws_vpc" "main":
+│    6: resource "aws_vpc" "main" {
+│ 
+╵
+Error: Terraform exited with code 1.
+Error: Process completed with exit code 1.
