@@ -30,11 +30,11 @@ resource "aws_db_instance" "main" {
   publicly_accessible    = false
   multi_az               = var.db_multi_az
 
-  backup_retention_period   = var.db_backup_retention
-  backup_window             = "03:00-04:00"
-  maintenance_window        = "Mon:04:00-Mon:05:00"
-  copy_tags_to_snapshot     = true
-  delete_automated_backups  = false
+  backup_retention_period  = var.db_backup_retention
+  backup_window            = "03:00-04:00"
+  maintenance_window       = "Mon:04:00-Mon:05:00"
+  copy_tags_to_snapshot    = true
+  delete_automated_backups = false
 
   skip_final_snapshot       = var.environment != "production"
   final_snapshot_identifier = "${local.name_prefix}-final-${random_id.suffix.hex}"
@@ -63,7 +63,7 @@ resource "aws_secretsmanager_secret" "database_url" {
 }
 
 resource "aws_secretsmanager_secret_version" "database_url" {
-  secret_id = aws_secretsmanager_secret.database_url.id
+  secret_id     = aws_secretsmanager_secret.database_url.id
   secret_string = "postgresql://${aws_db_instance.main.username}:${urlencode(random_password.db_password.result)}@${aws_db_instance.main.endpoint}/${aws_db_instance.main.db_name}?sslmode=require"
 
   depends_on = [aws_db_instance.main]

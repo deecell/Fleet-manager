@@ -112,7 +112,7 @@ locals {
       --region ${var.aws_region})
     
     # Fetch SIMPro credentials if enabled
-    %{ if var.enable_simpro ~}
+    %{if var.enable_simpro~}
     export SIMPRO_API_CLIENT=$(aws secretsmanager get-secret-value \
       --secret-id "${local.simpro_client_arn}" \
       --query 'SecretString' \
@@ -123,7 +123,7 @@ locals {
       --query 'SecretString' \
       --output text \
       --region ${var.aws_region})
-    %{ endif ~}
+    %{endif~}
     
     # Set other environment variables
     export NODE_ENV=production
