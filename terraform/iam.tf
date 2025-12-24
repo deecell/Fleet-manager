@@ -358,7 +358,7 @@ resource "aws_iam_user_policy_attachment" "github_actions" {
 # -----------------------------------------------------------------------------
 
 resource "aws_s3_bucket" "assets" {
-  bucket = "${local.name_prefix}-assets-${random_id.suffix.hex}"
+  bucket = "${local.name_prefix}-assets-${local.unique_suffix}"
 
   tags = merge(local.common_tags, {
     Name = "${local.name_prefix}-assets"

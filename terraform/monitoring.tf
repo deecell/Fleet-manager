@@ -230,7 +230,7 @@ resource "aws_cloudtrail" "main" {
 
 resource "aws_s3_bucket" "cloudtrail" {
   count  = var.enable_cloudtrail ? 1 : 0
-  bucket = "${local.name_prefix}-cloudtrail-${random_id.suffix.hex}"
+  bucket = "${local.name_prefix}-cloudtrail-${local.unique_suffix}"
 
   tags = local.common_tags
 }

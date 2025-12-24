@@ -37,7 +37,7 @@ resource "aws_db_instance" "main" {
   delete_automated_backups = false
 
   skip_final_snapshot       = var.environment != "production"
-  final_snapshot_identifier = "${local.name_prefix}-final-${random_id.suffix.hex}"
+  final_snapshot_identifier = "${local.name_prefix}-final-${local.unique_suffix}"
   deletion_protection       = var.enable_deletion_protection
 
   auto_minor_version_upgrade = true
@@ -55,7 +55,7 @@ resource "aws_db_instance" "main" {
 
 # Store database URL in Secrets Manager
 resource "aws_secretsmanager_secret" "database_url" {
-  name                    = "${local.name_prefix}/database-url-${random_id.suffix.hex}"
+  name                    = "${local.name_prefix}/database-url"
   description             = "PostgreSQL connection string for ${local.name_prefix}"
   recovery_window_in_days = var.environment == "production" ? 7 : 0
 

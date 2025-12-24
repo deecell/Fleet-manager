@@ -39,7 +39,7 @@ resource "aws_cloudwatch_log_group" "device_manager" {
 
 # S3 bucket for Device Manager deployment artifacts
 resource "aws_s3_bucket" "device_manager_deploy" {
-  bucket = "${local.name_prefix}-device-manager-deploy-${random_id.suffix.hex}"
+  bucket = "${local.name_prefix}-device-manager-deploy-${local.unique_suffix}"
 
   tags = merge(local.common_tags, {
     Name = "${local.name_prefix}-device-manager-deploy"

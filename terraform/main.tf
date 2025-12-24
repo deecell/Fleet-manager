@@ -10,17 +10,13 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
-    random = {
-      source  = "hashicorp/random"
-      version = "~> 3.5"
-    }
   }
 
   # Remote state configuration - uncomment after S3 bucket is created
   # backend "s3" {
   #   bucket         = "deecell-terraform-state"
   #   key            = "production/terraform.tfstate"
-  #   region         = "us-east-1"
+  #   region         = "us-east-2"
   #   encrypt        = true
   #   dynamodb_table = "deecell-terraform-locks"
   # }
@@ -39,20 +35,17 @@ provider "aws" {
   }
 }
 
-# Random suffix for unique resource names
-resource "random_id" "suffix" {
-  byte_length = 4
-}
-
 # Data sources
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
 # Local variables
 locals {
-  name_prefix = "${var.project_name}-${var.environment}"
-  account_id  = data.aws_caller_identity.current.account_id
-  region      = data.aws_region.current.name
+  name_prefix   = "${var.project_name}-${var.environment}"
+  account_id    = data.aws_caller_identity.current.account_id
+  region        = data.aws_region.current.name
+  # Deterministic unique suffix using last 8 chars of account ID
+  unique_suffix = substr(local.account_id, -8, 8)
 
   common_tags = {
     Application = var.project_name

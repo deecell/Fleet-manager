@@ -4,7 +4,7 @@
 
 # Application Load Balancer
 resource "aws_lb" "main" {
-  name               = "dcl-fleet-prod-alb-${random_id.suffix.hex}"
+  name               = "${local.name_prefix}-alb"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb.id]
@@ -23,9 +23,9 @@ resource "aws_lb" "main" {
   })
 }
 
-# ALB Target Group (name max 32 chars)
+# ALB Target Group (uses name_prefix for create_before_destroy compatibility)
 resource "aws_lb_target_group" "main" {
-  name        = "dcl-fleet-prod-tg-${random_id.suffix.hex}"
+  name_prefix = "dcl-tg-"
   port        = var.container_port
   protocol    = "HTTP"
   vpc_id      = aws_vpc.main.id
@@ -131,7 +131,7 @@ resource "aws_acm_certificate_validation" "main" {
 
 # S3 Bucket for ALB Access Logs
 resource "aws_s3_bucket" "alb_logs" {
-  bucket = "${local.name_prefix}-alb-logs-${random_id.suffix.hex}"
+  bucket = "${local.name_prefix}-alb-logs-${local.unique_suffix}"
 
   tags = merge(local.common_tags, {
     Name = "${local.name_prefix}-alb-logs"
