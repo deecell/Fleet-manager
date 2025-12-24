@@ -1,0 +1,50 @@
+Annotations
+2 errors
+Terraform Apply
+failed now in 24s
+Search logs
+4s
+3s
+1s
+1s
+8s
+1s
+3s
+│   on secrets.tf line 6, in resource "aws_secretsmanager_secret" "session_secret":
+│    6: resource "aws_secretsmanager_secret" "session_secret" {
+│ 
+╵
+╷
+│ Error: creating Secrets Manager Secret (deecell-fleet-production/admin-password-04fce46b): operation error Secrets Manager: CreateSecret, https response error StatusCode: 400, RequestID: fc484e81-d06a-4601-8e8d-a5a09f0c259c, api error AccessDeniedException: User: arn:aws:iam::892213647605:user/automation/deecell-fleet-production-github-actions is not authorized to perform: secretsmanager:CreateSecret on resource: deecell-fleet-production/admin-password-04fce46b because no identity-based policy allows the secretsmanager:CreateSecret action
+│ 
+│   with aws_secretsmanager_secret.admin_password,
+│   on secrets.tf line 20, in resource "aws_secretsmanager_secret" "admin_password":
+│   20: resource "aws_secretsmanager_secret" "admin_password" {
+│ 
+╵
+╷
+│ Error: creating EC2 VPC: operation error EC2: CreateVpc, https response error StatusCode: 403, RequestID: 390ad241-ec6b-4023-b2ac-dd0577920d3e, api error UnauthorizedOperation: You are not authorized to perform this operation. User: arn:aws:iam::892213647605:user/automation/deecell-fleet-production-github-actions is not authorized to perform: ec2:CreateVpc on resource: arn:aws:ec2:***:892213647605:vpc/* because no identity-based policy allows the ec2:CreateVpc action. Encoded authorization failure message: t_En_58kyqJFUMUBz3mzjrv1X79gzLyiET9ya7A7ZcawIQxXta2wykWnRtko1WsrTmCHiKt83XJPzydz_PvV9kPYQ6_ne_16fdbE4jRFpHdZA-M0xB4jP8TOGK-7na6Q5dNKiuUAX2kKsrsSWMUZRSeFz_ZNhUh1Jr-ey2ckul8bJBpNo64_QBvrCkJ58rG51XabPYbICVxrDhx8Kcy2Gz0wXhmvEg0hHvIqZvF9pojcXuAL8RwJ5PQ_27ylTSIoAJwHVUSNV6kJcCCsdgjh013Tn1hc7iZBA7ZnY0V1JhmIWMesaVhk-QNTevWaU4i9uEzkflw_pL82LdUJliJ_HtClWao60bO8oeeO4fiD5uxh54K9nQr6eTOnQsEa-MYhw9wLZBmwPQFWr92pOUTxDem1K0el7on2k2HqrWlf3TsAOw2nNCsmPeGbop5Qb095yJIFC8icEW6DEf324uzhHFYecEe8aQwj3AenJj90ww7DDoGlUZ7YD-d0ZnFUb447xDQe64KskRLCUb6REDmDmthBbopseTCBZFTwEwGzKhxfYx7kC3NjGi8H8DSL
+│ 
+│   with aws_vpc.main,
+│   on vpc.tf line 6, in resource "aws_vpc" "main":
+│    6: resource "aws_vpc" "main" {
+│ 
+╵
+╷
+│ Error: creating CloudWatch Logs Log Group (/aws/vpc/deecell-fleet-production/flow-logs): operation error CloudWatch Logs: CreateLogGroup, https response error StatusCode: 400, RequestID: 28b571ab-e520-4d1d-ba70-1dfcdddc9f8e, api error AccessDeniedException: User: arn:aws:iam::892213647605:user/automation/deecell-fleet-production-github-actions is not authorized to perform: logs:CreateLogGroup on resource: arn:aws:logs:***:892213647605:log-group:/aws/vpc/deecell-fleet-production/flow-logs:log-stream: because no identity-based policy allows the logs:CreateLogGroup action
+│ 
+│   with aws_cloudwatch_log_group.vpc_flow,
+│   on vpc.tf line 172, in resource "aws_cloudwatch_log_group" "vpc_flow":
+│  172: resource "aws_cloudwatch_log_group" "vpc_flow" {
+│ 
+╵
+╷
+│ Error: creating IAM Role (deecell-fleet-production-vpc-flow-logs-role): operation error IAM: CreateRole, https response error StatusCode: 403, RequestID: e1f4fb6a-7e27-4ce8-9e04-072b50fac0aa, api error AccessDenied: User: arn:aws:iam::892213647605:user/automation/deecell-fleet-production-github-actions is not authorized to perform: iam:CreateRole on resource: arn:aws:iam::892213647605:role/deecell-fleet-production-vpc-flow-logs-role because no identity-based policy allows the iam:CreateRole action
+│ 
+│   with aws_iam_role.vpc_flow_logs,
+│   on vpc.tf line 179, in resource "aws_iam_role" "vpc_flow_logs":
+│  179: resource "aws_iam_role" "vpc_flow_logs" {
+│ 
+╵
+Error: Terraform exited with code 1.
+Error: Process completed with exit code 1.
