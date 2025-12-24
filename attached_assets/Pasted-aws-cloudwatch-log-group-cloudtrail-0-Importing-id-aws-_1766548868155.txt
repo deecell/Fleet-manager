@@ -1,0 +1,238 @@
+aws_cloudwatch_log_group.cloudtrail[0]: Importing... [id=/aws/cloudtrail/deecell-fleet-production]
+aws_cloudwatch_log_group.cloudtrail[0]: Import complete [id=/aws/cloudtrail/deecell-fleet-production]
+aws_cloudwatch_log_group.vpc_flow: Importing... [id=/aws/vpc/deecell-fleet-production/flow-logs]
+aws_cloudwatch_log_group.vpc_flow: Import complete [id=/aws/vpc/deecell-fleet-production/flow-logs]
+aws_iam_user.github_actions: Importing... [id=deecell-fleet-production-github-actions]
+aws_iam_user.github_actions: Import complete [id=deecell-fleet-production-github-actions]
+aws_iam_role.ecs_task: Importing... [id=deecell-fleet-production-ecs-task-role]
+aws_iam_role.ecs_task: Import complete [id=deecell-fleet-production-ecs-task-role]
+aws_iam_role.vpc_flow_logs: Importing... [id=deecell-fleet-production-vpc-flow-logs-role]
+aws_iam_role.vpc_flow_logs: Import complete [id=deecell-fleet-production-vpc-flow-logs-role]
+aws_iam_role.cloudtrail[0]: Importing... [id=deecell-fleet-production-cloudtrail-role]
+aws_iam_role.cloudtrail[0]: Import complete [id=deecell-fleet-production-cloudtrail-role]
+aws_iam_role.device_manager: Importing... [id=deecell-fleet-production-device-manager-role]
+aws_iam_role.device_manager: Import complete [id=deecell-fleet-production-device-manager-role]
+random_password.db_password: Creating...
+random_id.suffix: Creating...
+random_id.suffix: Creation complete after 0s [id=DYy0Wg]
+random_password.db_password: Creation complete after 1s [id=none]
+aws_iam_role.cloudtrail[0]: Modifying... [id=deecell-fleet-production-cloudtrail-role]
+aws_cloudwatch_log_group.device_manager: Creating...
+aws_s3_bucket.assets: Creating...
+aws_s3_bucket.alb_logs: Creating...
+aws_iam_role.ecs_execution: Creating...
+aws_secretsmanager_secret.database_url: Creating...
+aws_s3_bucket.cloudtrail[0]: Creating...
+aws_vpc.main: Creating...
+aws_iam_user.github_actions: Modifying... [id=deecell-fleet-production-github-actions]
+aws_iam_role.vpc_flow_logs: Modifying... [id=deecell-fleet-production-vpc-flow-logs-role]
+aws_iam_role.ecs_task: Modifying... [id=deecell-fleet-production-ecs-task-role]
+aws_iam_user.github_actions: Modifications complete after 0s [id=deecell-fleet-production-github-actions]
+aws_secretsmanager_secret.admin_password: Creating...
+aws_s3_bucket.device_manager_deploy: Creating...
+aws_iam_role.vpc_flow_logs: Modifications complete after 0s [id=deecell-fleet-production-vpc-flow-logs-role]
+aws_secretsmanager_secret.session_secret: Creating...
+aws_iam_role.cloudtrail[0]: Modifications complete after 0s [id=deecell-fleet-production-cloudtrail-role]
+aws_cloudwatch_log_group.vpc_flow: Modifying... [id=/aws/vpc/deecell-fleet-production/flow-logs]
+aws_secretsmanager_secret.database_url: Creation complete after 0s [id=arn:aws:secretsmanager:***:892213647605:secret:deecell-fleet-production/database-url-0d8cb45a-eLa9qb]
+aws_ecs_cluster.main: Creating...
+aws_iam_role.ecs_task: Modifications complete after 0s [id=deecell-fleet-production-ecs-task-role]
+aws_cloudwatch_log_group.ecs: Creating...
+aws_secretsmanager_secret.admin_password: Creation complete after 0s [id=arn:aws:secretsmanager:***:892213647605:secret:deecell-fleet-production/admin-password-0d8cb45a-rVaEwL]
+aws_iam_role.device_manager: Modifying... [id=deecell-fleet-production-device-manager-role]
+aws_cloudwatch_log_group.cloudtrail[0]: Modifying... [id=/aws/cloudtrail/deecell-fleet-production]
+aws_secretsmanager_secret.session_secret: Creation complete after 0s [id=arn:aws:secretsmanager:***:892213647605:secret:deecell-fleet-production/session-secret-0d8cb45a-9JrtSD]
+aws_iam_access_key.github_actions: Creating...
+aws_cloudwatch_log_group.vpc_flow: Modifications complete after 1s [id=/aws/vpc/deecell-fleet-production/flow-logs]
+aws_iam_role_policy.vpc_flow_logs: Creating...
+aws_iam_role.device_manager: Modifications complete after 1s [id=deecell-fleet-production-device-manager-role]
+aws_secretsmanager_secret_version.session_secret: Creating...
+aws_secretsmanager_secret_version.admin_password: Creating...
+aws_cloudwatch_log_group.cloudtrail[0]: Modifications complete after 1s [id=/aws/cloudtrail/deecell-fleet-production]
+aws_iam_instance_profile.device_manager: Creating...
+aws_iam_role_policy_attachment.device_manager_ssm: Creating...
+aws_secretsmanager_secret_version.admin_password: Creation complete after 0s [id=arn:aws:secretsmanager:***:892213647605:secret:deecell-fleet-production/admin-password-0d8cb45a-rVaEwL|terraform-20251224035714533900000004]
+aws_iam_role_policy.cloudtrail[0]: Creating...
+aws_secretsmanager_secret_version.session_secret: Creation complete after 0s [id=arn:aws:secretsmanager:***:892213647605:secret:deecell-fleet-production/session-secret-0d8cb45a-9JrtSD|terraform-20251224035714534300000005]
+aws_iam_role_policy.vpc_flow_logs: Creation complete after 0s [id=deecell-fleet-production-vpc-flow-logs-role:deecell-fleet-production-vpc-flow-logs-policy]
+aws_iam_role_policy_attachment.device_manager_ssm: Creation complete after 0s [id=deecell-fleet-production-device-manager-role-20251224035714742700000006]
+aws_iam_role_policy.cloudtrail[0]: Creation complete after 0s [id=deecell-fleet-production-cloudtrail-role:deecell-fleet-production-cloudtrail-policy]
+aws_s3_bucket.cloudtrail[0]: Creation complete after 1s [id=deecell-fleet-production-cloudtrail-0d8cb45a]
+aws_s3_bucket_policy.cloudtrail[0]: Creating...
+aws_cloudtrail.main[0]: Creating...
+aws_s3_bucket.assets: Creation complete after 1s [id=deecell-fleet-production-assets-0d8cb45a]
+aws_s3_bucket_public_access_block.assets: Creating...
+aws_iam_role_policy.ecs_task: Creating...
+aws_s3_bucket_server_side_encryption_configuration.assets: Creating...
+aws_s3_bucket_versioning.assets: Creating...
+aws_s3_bucket.alb_logs: Creation complete after 1s [id=deecell-fleet-production-alb-logs-0d8cb45a]
+aws_s3_bucket_lifecycle_configuration.alb_logs: Creating...
+aws_s3_bucket.device_manager_deploy: Creation complete after 1s [id=deecell-fleet-production-device-manager-deploy-0d8cb45a]
+aws_s3_bucket_server_side_encryption_configuration.alb_logs: Creating...
+aws_s3_bucket_public_access_block.alb_logs: Creating...
+aws_iam_role_policy.ecs_task: Creation complete after 0s [id=deecell-fleet-production-ecs-task-role:deecell-fleet-production-ecs-task-policy]
+aws_s3_bucket_policy.alb_logs: Creating...
+aws_s3_bucket_policy.cloudtrail[0]: Creation complete after 1s [id=deecell-fleet-production-cloudtrail-0d8cb45a]
+aws_s3_bucket_server_side_encryption_configuration.device_manager_deploy: Creating...
+aws_s3_bucket_server_side_encryption_configuration.assets: Creation complete after 1s [id=deecell-fleet-production-assets-0d8cb45a]
+aws_s3_bucket_versioning.device_manager_deploy: Creating...
+aws_s3_bucket_public_access_block.assets: Creation complete after 1s [id=deecell-fleet-production-assets-0d8cb45a]
+aws_iam_role_policy.device_manager: Creating...
+aws_s3_bucket_public_access_block.alb_logs: Creation complete after 1s [id=deecell-fleet-production-alb-logs-0d8cb45a]
+aws_s3_bucket_server_side_encryption_configuration.device_manager_deploy: Creation complete after 0s [id=deecell-fleet-production-device-manager-deploy-0d8cb45a]
+aws_iam_role_policy.device_manager: Creation complete after 0s [id=deecell-fleet-production-device-manager-role:deecell-fleet-production-device-manager-policy]
+aws_s3_bucket_server_side_encryption_configuration.alb_logs: Creation complete after 1s [id=deecell-fleet-production-alb-logs-0d8cb45a]
+aws_s3_bucket_policy.alb_logs: Creation complete after 1s [id=deecell-fleet-production-alb-logs-0d8cb45a]
+aws_s3_bucket_versioning.assets: Creation complete after 2s [id=deecell-fleet-production-assets-0d8cb45a]
+aws_s3_bucket_versioning.device_manager_deploy: Creation complete after 1s [id=deecell-fleet-production-device-manager-deploy-0d8cb45a]
+aws_vpc.main: Still creating... [10s elapsed]
+aws_ecs_cluster.main: Still creating... [10s elapsed]
+aws_ecs_cluster.main: Creation complete after 11s [id=arn:aws:ecs:***:892213647605:cluster/deecell-fleet-production-cluster]
+aws_ecs_cluster_capacity_providers.main: Creating...
+aws_s3_bucket_lifecycle_configuration.alb_logs: Still creating... [10s elapsed]
+aws_vpc.main: Creation complete after 12s [id=vpc-0a72d185e161d48ce]
+aws_internet_gateway.main: Creating...
+aws_subnet.private[0]: Creating...
+aws_subnet.public[0]: Creating...
+aws_flow_log.main: Creating...
+aws_subnet.private[1]: Creating...
+aws_route_table.database: Creating...
+aws_lb_target_group.main: Creating...
+aws_security_group.alb: Creating...
+aws_subnet.public[1]: Creating...
+aws_flow_log.main: Creation complete after 0s [id=fl-0c858e8d92e706138]
+aws_security_group.device_manager: Creating...
+aws_internet_gateway.main: Creation complete after 0s [id=igw-0fe796f8a6ede9575]
+aws_subnet.database[1]: Creating...
+aws_route_table.database: Creation complete after 0s [id=rtb-0474bdbd7f6f22812]
+aws_security_group.bastion: Creating...
+aws_subnet.private[1]: Creation complete after 1s [id=subnet-0b5434f1b9b1a0f51]
+aws_subnet.database[0]: Creating...
+aws_subnet.database[1]: Creation complete after 1s [id=subnet-07be7e4a6162464a8]
+aws_eip.nat[0]: Creating...
+aws_subnet.database[0]: Creation complete after 0s [id=subnet-030c5d62f6184d0d3]
+aws_route_table.public: Creating...
+aws_eip.nat[0]: Creation complete after 1s [id=eipalloc-02d217170d4e35e2f]
+aws_db_subnet_group.main: Creating...
+aws_route_table.public: Creation complete after 1s [id=rtb-00ddf844cefa4145a]
+aws_route_table_association.database[1]: Creating...
+aws_route_table_association.database[0]: Creating...
+aws_security_group.alb: Creation complete after 3s [id=sg-0f4fa88fd22817b47]
+aws_security_group.ecs: Creating...
+aws_security_group.device_manager: Creation complete after 3s [id=sg-0c1b3a07f9dc58275]
+aws_route_table_association.database[1]: Creation complete after 1s [id=rtbassoc-0dd4c40a928aefe9c]
+aws_route_table_association.database[0]: Creation complete after 1s [id=rtbassoc-075cbaaa691de46f7]
+aws_security_group.bastion: Creation complete after 3s [id=sg-07e0ff5b718b6f65d]
+aws_subnet.private[0]: Creation complete after 3s [id=subnet-0ea694da2fa4e5bb3]
+aws_security_group.ecs: Creation complete after 2s [id=sg-06fb8bb89400d988a]
+aws_security_group.rds: Creating...
+aws_security_group.rds: Creation complete after 3s [id=sg-035558dc4e77355f9]
+aws_ecs_cluster_capacity_providers.main: Still creating... [10s elapsed]
+aws_ecs_cluster_capacity_providers.main: Creation complete after 10s [id=deecell-fleet-production-cluster]
+aws_s3_bucket_lifecycle_configuration.alb_logs: Still creating... [20s elapsed]
+aws_subnet.public[0]: Still creating... [10s elapsed]
+aws_subnet.public[1]: Still creating... [10s elapsed]
+aws_subnet.public[0]: Creation complete after 11s [id=subnet-007d8a2fe603c109e]
+aws_subnet.public[1]: Creation complete after 11s [id=subnet-08326fdf86dc7b69c]
+aws_route_table_association.public[1]: Creating...
+aws_route_table_association.public[0]: Creating...
+aws_nat_gateway.main[0]: Creating...
+aws_lb.main: Creating...
+aws_route_table_association.public[1]: Creation complete after 0s [id=rtbassoc-099c06a5c3d0e7b89]
+aws_route_table_association.public[0]: Creation complete after 0s [id=rtbassoc-0f88402c2ece7bdc5]
+aws_s3_bucket_lifecycle_configuration.alb_logs: Still creating... [30s elapsed]
+aws_nat_gateway.main[0]: Still creating... [10s elapsed]
+aws_s3_bucket_lifecycle_configuration.alb_logs: Still creating... [40s elapsed]
+aws_nat_gateway.main[0]: Still creating... [20s elapsed]
+aws_s3_bucket_lifecycle_configuration.alb_logs: Still creating... [50s elapsed]
+aws_nat_gateway.main[0]: Still creating... [30s elapsed]
+aws_s3_bucket_lifecycle_configuration.alb_logs: Creation complete after 56s [id=deecell-fleet-production-alb-logs-0d8cb45a]
+aws_nat_gateway.main[0]: Still creating... [40s elapsed]
+aws_nat_gateway.main[0]: Still creating... [50s elapsed]
+aws_nat_gateway.main[0]: Still creating... [1m0s elapsed]
+aws_nat_gateway.main[0]: Still creating... [1m10s elapsed]
+aws_nat_gateway.main[0]: Still creating... [1m20s elapsed]
+aws_nat_gateway.main[0]: Still creating... [1m30s elapsed]
+aws_nat_gateway.main[0]: Still creating... [1m40s elapsed]
+aws_nat_gateway.main[0]: Still creating... [1m50s elapsed]
+aws_nat_gateway.main[0]: Creation complete after 1m54s [id=nat-00dd0a83fed41c4db]
+aws_route_table.private[0]: Creating...
+aws_route_table.private[0]: Creation complete after 1s [id=rtb-02a3a165a95158197]
+aws_route_table_association.private[1]: Creating...
+aws_route_table_association.private[0]: Creating...
+aws_route_table_association.private[1]: Creation complete after 1s [id=rtbassoc-0d480f45100256e14]
+aws_route_table_association.private[0]: Creation complete after 1s [id=rtbassoc-0ccd9753da1257af2]
+╷
+│ Error: ELBv2 Load Balancer (deecell-fleet-production-alb) already exists
+│ 
+│   with aws_lb.main,
+│   on alb.tf line 6, in resource "aws_lb" "main":
+│    6: resource "aws_lb" "main" {
+│ 
+╵
+╷
+│ Error: ELBv2 Target Group (deecell-fleet-production-tg) already exists
+│ 
+│   with aws_lb_target_group.main,
+│   on alb.tf line 27, in resource "aws_lb_target_group" "main":
+│   27: resource "aws_lb_target_group" "main" {
+│ 
+╵
+╷
+│ Error: creating CloudWatch Logs Log Group (/ec2/deecell-fleet-production/device-manager): operation error CloudWatch Logs: CreateLogGroup, https response error StatusCode: 400, RequestID: 2c5a95d5-d28c-4f8c-847d-939814519f0c, ResourceAlreadyExistsException: The specified log group already exists
+│ 
+│   with aws_cloudwatch_log_group.device_manager,
+│   on device-manager.tf line 33, in resource "aws_cloudwatch_log_group" "device_manager":
+│   33: resource "aws_cloudwatch_log_group" "device_manager" {
+│ 
+╵
+╷
+│ Error: creating CloudWatch Logs Log Group (/ecs/deecell-fleet-production): operation error CloudWatch Logs: CreateLogGroup, https response error StatusCode: 400, RequestID: f27d8b84-1f58-42d0-9ea8-163a4fe3e89e, ResourceAlreadyExistsException: The specified log group already exists
+│ 
+│   with aws_cloudwatch_log_group.ecs,
+│   on ecs.tf line 31, in resource "aws_cloudwatch_log_group" "ecs":
+│   31: resource "aws_cloudwatch_log_group" "ecs" {
+│ 
+╵
+╷
+│ Error: creating IAM Role (deecell-fleet-production-ecs-execution-role): operation error IAM: CreateRole, https response error StatusCode: 409, RequestID: 13b9fe28-dcd6-41c7-9643-aeb04b0b5065, EntityAlreadyExists: Role with name deecell-fleet-production-ecs-execution-role already exists.
+│ 
+│   with aws_iam_role.ecs_execution,
+│   on iam.tf line 9, in resource "aws_iam_role" "ecs_execution":
+│    9: resource "aws_iam_role" "ecs_execution" {
+│ 
+╵
+╷
+│ Error: creating IAM Instance Profile (deecell-fleet-production-device-manager-profile): operation error IAM: CreateInstanceProfile, https response error StatusCode: 409, RequestID: 2afb3639-1a40-4bae-80d1-ffc4d3689b6d, EntityAlreadyExists: Instance Profile deecell-fleet-production-device-manager-profile already exists.
+│ 
+│   with aws_iam_instance_profile.device_manager,
+│   on iam.tf line 150, in resource "aws_iam_instance_profile" "device_manager":
+│  150: resource "aws_iam_instance_profile" "device_manager" {
+│ 
+╵
+╷
+│ Error: creating IAM Access Key (deecell-fleet-production-github-actions): operation error IAM: CreateAccessKey, https response error StatusCode: 409, RequestID: 87de5f63-7c2f-43c3-bdd6-e27a7bc133d2, LimitExceeded: Cannot exceed quota for AccessKeysPerUser: 2
+│ 
+│   with aws_iam_access_key.github_actions,
+│   on iam.tf line 351, in resource "aws_iam_access_key" "github_actions":
+│  351: resource "aws_iam_access_key" "github_actions" {
+│ 
+╵
+╷
+│ Error: creating CloudTrail Trail (deecell-fleet-production-trail): operation error CloudTrail: CreateTrail, https response error StatusCode: 400, RequestID: 213fc5c1-c9fc-4e60-a246-1612fae3e9c2, TrailAlreadyExistsException: Trail deecell-fleet-production-trail already exists for customer: 892213647605
+│ 
+│   with aws_cloudtrail.main[0],
+│   on monitoring.tf line 207, in resource "aws_cloudtrail" "main":
+│  207: resource "aws_cloudtrail" "main" {
+│ 
+╵
+╷
+│ Error: creating RDS DB Subnet Group (deecell-fleet-production-db-subnet-group): operation error RDS: CreateDBSubnetGroup, https response error StatusCode: 400, RequestID: 695ff17b-fa56-4aa8-a4a9-87e3a6c89091, DBSubnetGroupAlreadyExists: The DB subnet group 'deecell-fleet-production-db-subnet-group' already exists.
+│ 
+│   with aws_db_subnet_group.main,
+│   on vpc.tf line 150, in resource "aws_db_subnet_group" "main":
+│  150: resource "aws_db_subnet_group" "main" {
+│ 
+╵
+Error: Terraform exited with code 1.
+Error: Process completed with exit code 1.
