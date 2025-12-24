@@ -38,9 +38,3 @@ import {
   to = aws_cloudwatch_log_group.vpc_flow
   id = "/aws/vpc/deecell-fleet-production/flow-logs"
 }
-
-# Load Balancer
-import {
-  to = aws_lb.main
-  id = "arn:aws:elasticloadbalancing:us-east-2:892213647605:loadbalancer/app/deecell-fleet-production-alb/unknown"
-}
