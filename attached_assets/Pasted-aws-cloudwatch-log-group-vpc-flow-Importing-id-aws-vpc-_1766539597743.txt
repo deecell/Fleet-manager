@@ -1,0 +1,80 @@
+aws_cloudwatch_log_group.vpc_flow: Importing... [id=/aws/vpc/deecell-fleet-production/flow-logs]
+aws_cloudwatch_log_group.vpc_flow: Import complete [id=/aws/vpc/deecell-fleet-production/flow-logs]
+aws_cloudwatch_log_group.cloudtrail[0]: Importing... [id=/aws/cloudtrail/deecell-fleet-production]
+aws_cloudwatch_log_group.cloudtrail[0]: Import complete [id=/aws/cloudtrail/deecell-fleet-production]
+aws_iam_role.vpc_flow_logs: Importing... [id=deecell-fleet-production-vpc-flow-logs-role]
+aws_iam_role.vpc_flow_logs: Import complete [id=deecell-fleet-production-vpc-flow-logs-role]
+aws_iam_role.cloudtrail[0]: Importing... [id=deecell-fleet-production-cloudtrail-role]
+aws_iam_role.cloudtrail[0]: Import complete [id=deecell-fleet-production-cloudtrail-role]
+aws_db_subnet_group.main: Importing... [id=deecell-fleet-production-db-subnet-group]
+aws_db_subnet_group.main: Import complete [id=deecell-fleet-production-db-subnet-group]
+random_id.suffix: Creating...
+random_id.suffix: Creation complete after 0s [id=q7d31Q]
+random_password.db_password: Creating...
+random_password.db_password: Creation complete after 0s [id=none]
+aws_iam_user.github_actions: Creating...
+aws_vpc.main: Creating...
+aws_cloudwatch_log_group.device_manager: Creating...
+aws_secretsmanager_secret.session_secret: Creating...
+aws_iam_role.ecs_task: Creating...
+aws_iam_role.device_manager: Creating...
+aws_s3_bucket.assets: Creating...
+aws_cloudwatch_log_group.vpc_flow: Modifying... [id=/aws/vpc/deecell-fleet-production/flow-logs]
+aws_s3_bucket.alb_logs: Creating...
+aws_s3_bucket.cloudtrail[0]: Creating...
+aws_iam_role.vpc_flow_logs: Modifying... [id=deecell-fleet-production-vpc-flow-logs-role]
+aws_s3_bucket.device_manager_deploy: Creating...
+aws_cloudwatch_log_group.cloudtrail[0]: Modifying... [id=/aws/cloudtrail/deecell-fleet-production]
+aws_iam_role.cloudtrail[0]: Modifying... [id=deecell-fleet-production-cloudtrail-role]
+aws_cloudwatch_log_group.vpc_flow: Modifications complete after 1s [id=/aws/vpc/deecell-fleet-production/flow-logs]
+aws_cloudwatch_log_group.ecs: Creating...
+aws_secretsmanager_secret.session_secret: Creation complete after 1s [id=arn:aws:secretsmanager:***:892213647605:secret:deecell-fleet-production/session-secret-abb777d5-iyBj6b]
+aws_secretsmanager_secret.database_url: Creating...
+aws_cloudwatch_log_group.cloudtrail[0]: Modifications complete after 0s [id=/aws/cloudtrail/deecell-fleet-production]
+aws_secretsmanager_secret.admin_password: Creating...
+aws_iam_role.ecs_execution: Creating...
+aws_iam_role.vpc_flow_logs: Modifications complete after 0s [id=deecell-fleet-production-vpc-flow-logs-role]
+aws_ecs_cluster.main: Creating...
+aws_secretsmanager_secret_version.session_secret: Creating...
+aws_iam_role.cloudtrail[0]: Modifications complete after 0s [id=deecell-fleet-production-cloudtrail-role]
+│ Error: creating IAM Role (deecell-fleet-production-ecs-task-role): operation error IAM: CreateRole, https response error StatusCode: 409, RequestID: 645ec2e8-33f7-4d5c-b6a1-9f6407c5b016, EntityAlreadyExists: Role with name deecell-fleet-production-ecs-task-role already exists.
+│ 
+│   with aws_iam_role.ecs_task,
+│   on iam.tf line 70, in resource "aws_iam_role" "ecs_task":
+│   70: resource "aws_iam_role" "ecs_task" {
+│ 
+╵
+╷
+│ Error: creating IAM Role (deecell-fleet-production-device-manager-role): operation error IAM: CreateRole, https response error StatusCode: 409, RequestID: 59055942-12c9-4553-9fdb-2a5658f0d113, EntityAlreadyExists: Role with name deecell-fleet-production-device-manager-role already exists.
+│ 
+│   with aws_iam_role.device_manager,
+│   on iam.tf line 133, in resource "aws_iam_role" "device_manager":
+│  133: resource "aws_iam_role" "device_manager" {
+│ 
+╵
+╷
+│ Error: creating IAM User (deecell-fleet-production-github-actions): operation error IAM: CreateUser, https response error StatusCode: 409, RequestID: f50bc4c4-80a9-4856-ba4b-f793110db05d, EntityAlreadyExists: User with name deecell-fleet-production-github-actions already exists.
+│ 
+│   with aws_iam_user.github_actions,
+│   on iam.tf line 233, in resource "aws_iam_user" "github_actions":
+│  233: resource "aws_iam_user" "github_actions" {
+│ 
+╵
+╷
+│ Error: creating CloudTrail Trail (deecell-fleet-production-trail): operation error CloudTrail: CreateTrail, https response error StatusCode: 400, RequestID: 8c20b99e-6dae-4a24-bedc-e75e2aa379e7, TrailAlreadyExistsException: Trail deecell-fleet-production-trail already exists for customer: 892213647605
+│ 
+│   with aws_cloudtrail.main[0],
+│   on monitoring.tf line 207, in resource "aws_cloudtrail" "main":
+│  207: resource "aws_cloudtrail" "main" {
+│ 
+╵
+╷
+│ Error: updating RDS DB Subnet Group (deecell-fleet-production-db-subnet-group): operation error RDS: ModifyDBSubnetGroup, https response error StatusCode: 400, RequestID: 48161c3d-3660-4b70-8fb1-cc603205e12d, api error InvalidParameterValue: The new Subnets are not in the same Vpc as the existing subnet group
+│ 
+│   with aws_db_subnet_group.main,
+│   on vpc.tf line 150, in resource "aws_db_subnet_group" "main":
+│  150: resource "aws_db_subnet_group" "main" {
+│ 
+╵
+Error: Terraform exited with code 1.
+Error: Process completed with exit code 1.

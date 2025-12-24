@@ -11,10 +11,8 @@ import {
   id = "deecell-fleet-production-vpc-flow-logs-role"
 }
 
-import {
-  to = aws_db_subnet_group.main
-  id = "deecell-fleet-production-db-subnet-group"
-}
+# NOTE: Removed aws_db_subnet_group.main - needs to be deleted manually
+# because it references subnets from a previous VPC that no longer exists
 
 import {
   to = aws_cloudwatch_log_group.cloudtrail[0]
@@ -24,4 +22,25 @@ import {
 import {
   to = aws_iam_role.cloudtrail[0]
   id = "deecell-fleet-production-cloudtrail-role"
+}
+
+# Additional imports discovered from second run
+import {
+  to = aws_iam_role.ecs_task
+  id = "deecell-fleet-production-ecs-task-role"
+}
+
+import {
+  to = aws_iam_role.device_manager
+  id = "deecell-fleet-production-device-manager-role"
+}
+
+import {
+  to = aws_iam_user.github_actions
+  id = "deecell-fleet-production-github-actions"
+}
+
+import {
+  to = aws_cloudtrail.main[0]
+  id = "deecell-fleet-production-trail"
 }
