@@ -130,17 +130,18 @@ output "device_manager_security_group_id" {
 # IAM Outputs
 # -----------------------------------------------------------------------------
 
-output "github_actions_access_key_id" {
-  description = "Access Key ID for GitHub Actions (store securely!)"
-  value       = aws_iam_access_key.github_actions.id
-  sensitive   = true
-}
-
-output "github_actions_secret_access_key" {
-  description = "Secret Access Key for GitHub Actions (store securely!)"
-  value       = aws_iam_access_key.github_actions.secret
-  sensitive   = true
-}
+# Access key outputs - SKIPPED: Using existing access keys already in GitHub secrets
+# output "github_actions_access_key_id" {
+#   description = "Access Key ID for GitHub Actions (store securely!)"
+#   value       = aws_iam_access_key.github_actions.id
+#   sensitive   = true
+# }
+# 
+# output "github_actions_secret_access_key" {
+#   description = "Secret Access Key for GitHub Actions (store securely!)"
+#   value       = aws_iam_access_key.github_actions.secret
+#   sensitive   = true
+# }
 
 # -----------------------------------------------------------------------------
 # SSL/TLS Outputs

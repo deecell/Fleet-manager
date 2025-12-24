@@ -1,0 +1,65 @@
+aws_cloudwatch_metric_alarm.alb_5xx_errors: Creation complete after 0s [id=deecell-fleet-production-alb-5xx-errors]
+╷
+│ Error: ELBv2 Target Group (deecell-fleet-production-tg) already exists
+│ 
+│   with aws_lb_target_group.main,
+│   on alb.tf line 27, in resource "aws_lb_target_group" "main":
+│   27: resource "aws_lb_target_group" "main" {
+│ 
+╵
+╷
+│ Error: creating CloudWatch Logs Log Group (/ec2/deecell-fleet-production/device-manager): operation error CloudWatch Logs: CreateLogGroup, https response error StatusCode: 400, RequestID: e598b40b-d638-4c08-835b-240b92e21916, ResourceAlreadyExistsException: The specified log group already exists
+│ 
+│   with aws_cloudwatch_log_group.device_manager,
+│   on device-manager.tf line 33, in resource "aws_cloudwatch_log_group" "device_manager":
+│   33: resource "aws_cloudwatch_log_group" "device_manager" {
+│ 
+╵
+╷
+│ Error: creating CloudWatch Logs Log Group (/ecs/deecell-fleet-production): operation error CloudWatch Logs: CreateLogGroup, https response error StatusCode: 400, RequestID: 1c90fff0-c5b2-4adc-86ac-28721291a0e3, ResourceAlreadyExistsException: The specified log group already exists
+│ 
+│   with aws_cloudwatch_log_group.ecs,
+│   on ecs.tf line 31, in resource "aws_cloudwatch_log_group" "ecs":
+│   31: resource "aws_cloudwatch_log_group" "ecs" {
+│ 
+╵
+╷
+│ Error: creating IAM Role (deecell-fleet-production-ecs-execution-role): operation error IAM: CreateRole, https response error StatusCode: 409, RequestID: 2a90187b-3820-43de-806d-ef7b7af93228, EntityAlreadyExists: Role with name deecell-fleet-production-ecs-execution-role already exists.
+│ 
+│   with aws_iam_role.ecs_execution,
+│   on iam.tf line 9, in resource "aws_iam_role" "ecs_execution":
+│    9: resource "aws_iam_role" "ecs_execution" {
+│ 
+╵
+╷
+│ Error: creating IAM Instance Profile (deecell-fleet-production-device-manager-profile): operation error IAM: CreateInstanceProfile, https response error StatusCode: 409, RequestID: 099ab005-021d-4b76-91ce-bd1b3f56ba3d, EntityAlreadyExists: Instance Profile deecell-fleet-production-device-manager-profile already exists.
+│ 
+│   with aws_iam_instance_profile.device_manager,
+│   on iam.tf line 150, in resource "aws_iam_instance_profile" "device_manager":
+│  150: resource "aws_iam_instance_profile" "device_manager" {
+│ 
+╵
+╷
+│ Error: creating IAM Access Key (deecell-fleet-production-github-actions): operation error IAM: CreateAccessKey, https response error StatusCode: 409, RequestID: e694a3a2-668c-4753-aa1e-34ed5829d979, LimitExceeded: Cannot exceed quota for AccessKeysPerUser: 2
+│ 
+│   with aws_iam_access_key.github_actions,
+│   on iam.tf line 351, in resource "aws_iam_access_key" "github_actions":
+│  351: resource "aws_iam_access_key" "github_actions" {
+│ 
+╵
+╷
+│ Error: creating CloudTrail Trail (deecell-fleet-production-trail): operation error CloudTrail: CreateTrail, https response error StatusCode: 400, RequestID: b2de2315-ac92-4408-8daa-a0adf003116c, TrailAlreadyExistsException: Trail deecell-fleet-production-trail already exists for customer: 892213647605
+│ 
+│   with aws_cloudtrail.main[0],
+│   on monitoring.tf line 207, in resource "aws_cloudtrail" "main":
+│  207: resource "aws_cloudtrail" "main" {
+│ 
+╵
+╷
+│ Error: creating RDS DB Subnet Group (deecell-fleet-production-db-subnet-group): operation error RDS: CreateDBSubnetGroup, https response error StatusCode: 400, RequestID: db5a33a6-2a36-48ba-9a37-6226348e50d6, DBSubnetGroupAlreadyExists: The DB subnet group 'deecell-fleet-production-db-subnet-group' already exists.
+│ 
+│   with aws_db_subnet_group.main,
+│   on vpc.tf line 150, in resource "aws_db_subnet_group" "main":
+│  150: resource "aws_db_subnet_group" "main" {
+│ 
+╵

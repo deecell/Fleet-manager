@@ -38,3 +38,46 @@ import {
   to = aws_cloudwatch_log_group.vpc_flow
   id = "/aws/vpc/deecell-fleet-production/flow-logs"
 }
+
+# Additional CloudWatch Log Groups
+import {
+  to = aws_cloudwatch_log_group.device_manager
+  id = "/ec2/deecell-fleet-production/device-manager"
+}
+
+import {
+  to = aws_cloudwatch_log_group.ecs
+  id = "/ecs/deecell-fleet-production"
+}
+
+# ECS Execution Role
+import {
+  to = aws_iam_role.ecs_execution
+  id = "deecell-fleet-production-ecs-execution-role"
+}
+
+# Instance Profile
+import {
+  to = aws_iam_instance_profile.device_manager
+  id = "deecell-fleet-production-device-manager-profile"
+}
+
+# CloudTrail
+import {
+  to = aws_cloudtrail.main[0]
+  id = "deecell-fleet-production-trail"
+}
+
+# DB Subnet Group
+import {
+  to = aws_db_subnet_group.main
+  id = "deecell-fleet-production-db-subnet-group"
+}
+
+# Target Group - Need to get ARN from AWS Console
+# Run: aws elbv2 describe-target-groups --names deecell-fleet-production-tg --query 'TargetGroups[0].TargetGroupArn' --output text
+# Then uncomment and update the ID below
+# import {
+#   to = aws_lb_target_group.main
+#   id = "ARN_FROM_ABOVE_COMMAND"
+# }

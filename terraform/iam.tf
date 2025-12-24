@@ -347,10 +347,11 @@ resource "aws_iam_user_policy_attachment" "github_actions" {
   policy_arn = aws_iam_policy.github_actions.arn
 }
 
-# Access key for GitHub Actions (store this securely!)
-resource "aws_iam_access_key" "github_actions" {
-  user = aws_iam_user.github_actions.name
-}
+# Access key for GitHub Actions - SKIPPED: User already has 2 access keys (AWS limit)
+# The existing access keys are already configured in GitHub secrets
+# resource "aws_iam_access_key" "github_actions" {
+#   user = aws_iam_user.github_actions.name
+# }
 
 # -----------------------------------------------------------------------------
 # Assets S3 Bucket
