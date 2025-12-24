@@ -41,9 +41,10 @@ data "aws_region" "current" {}
 
 # Local variables
 locals {
-  name_prefix   = "${var.project_name}-${var.environment}"
-  account_id    = data.aws_caller_identity.current.account_id
-  region        = data.aws_region.current.name
+  name_prefix = "${var.project_name}-${var.environment}"
+  account_id  = data.aws_caller_identity.current.account_id
+  region      = data.aws_region.current.name
+
   # Deterministic unique suffix using last 8 chars of account ID
   unique_suffix = substr(local.account_id, -8, 8)
 
