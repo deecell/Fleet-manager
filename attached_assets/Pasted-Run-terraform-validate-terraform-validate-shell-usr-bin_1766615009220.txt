@@ -1,0 +1,85 @@
+Run terraform validate
+  terraform validate
+  shell: /usr/bin/bash -e {0}
+  env:
+    TF_VERSION: 1.6.0
+    AWS_REGION: ***
+    TF_CLI_ARGS_plan: -lock-timeout=5m
+    TF_CLI_ARGS_apply: -lock-timeout=5m
+    TERRAFORM_CLI_PATH: /home/runner/work/_temp/4349cfb4-6add-40ca-ba14-44d2ab87aba9
+    AWS_DEFAULT_REGION: ***
+    AWS_ACCESS_KEY_ID: ***
+    AWS_SECRET_ACCESS_KEY: ***
+╷
+│ Error: "name_prefix" cannot be longer than 6 characters
+│ 
+│   with aws_lb_target_group.main,
+│   on alb.tf line 28, in resource "aws_lb_target_group" "main":
+│   28:   name_prefix = "dcl-tg-"
+│ 
+╵
+╷
+│ Error: Reference to undeclared resource
+│ 
+│   on secrets.tf line 7, in resource "aws_secretsmanager_secret" "session_secret":
+│    7:   name                    = "${local.name_prefix}/session-secret-${random_id.suffix.hex}"
+│ 
+│ A managed resource "random_id" "suffix" has not been declared in the root
+│ module.
+╵
+╷
+│ Error: Reference to undeclared resource
+│ 
+│   on secrets.tf line 21, in resource "aws_secretsmanager_secret" "admin_password":
+│   21:   name                    = "${local.name_prefix}/admin-password-${random_id.suffix.hex}"
+│ 
+│ A managed resource "random_id" "suffix" has not been declared in the root
+│ module.
+╵
+╷
+│ Error: Reference to undeclared resource
+│ 
+│   on secrets.tf line 36, in resource "aws_secretsmanager_secret" "eia_api_key":
+│   36:   name                    = "${local.name_prefix}/eia-api-key-${random_id.suffix.hex}"
+│ 
+│ A managed resource "random_id" "suffix" has not been declared in the root
+│ module.
+╵
+╷
+│ Error: Reference to undeclared resource
+│ 
+│   on secrets.tf line 52, in resource "aws_secretsmanager_secret" "openai_api_key":
+│   52:   name                    = "${local.name_prefix}/openai-api-key-${random_id.suffix.hex}"
+│ 
+│ A managed resource "random_id" "suffix" has not been declared in the root
+│ module.
+╵
+╷
+│ Error: Reference to undeclared resource
+│ 
+│   on secrets.tf line 68, in resource "aws_secretsmanager_secret" "sendgrid_api_key":
+│   68:   name                    = "${local.name_prefix}/sendgrid-api-key-${random_id.suffix.hex}"
+│ 
+│ A managed resource "random_id" "suffix" has not been declared in the root
+│ module.
+╵
+╷
+│ Error: Reference to undeclared resource
+│ 
+│   on secrets.tf line 84, in resource "aws_secretsmanager_secret" "simpro_api_client":
+│   84:   name                    = "${local.name_prefix}/simpro-api-client-${random_id.suffix.hex}"
+│ 
+│ A managed resource "random_id" "suffix" has not been declared in the root
+│ module.
+╵
+╷
+│ Error: Reference to undeclared resource
+│ 
+│   on secrets.tf line 100, in resource "aws_secretsmanager_secret" "simpro_api_key":
+│  100:   name                    = "${local.name_prefix}/simpro-api-key-${random_id.suffix.hex}"
+│ 
+│ A managed resource "random_id" "suffix" has not been declared in the root
+│ module.
+╵
+Error: Terraform exited with code 1.
+Error: Process completed with exit code 1.

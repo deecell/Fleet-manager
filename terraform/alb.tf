@@ -25,7 +25,7 @@ resource "aws_lb" "main" {
 
 # ALB Target Group (uses name_prefix for create_before_destroy compatibility)
 resource "aws_lb_target_group" "main" {
-  name_prefix = "dcl-tg-"
+  name_prefix = "dcltg-"
   port        = var.container_port
   protocol    = "HTTP"
   vpc_id      = aws_vpc.main.id
