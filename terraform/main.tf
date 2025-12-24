@@ -12,14 +12,14 @@ terraform {
     }
   }
 
-  # Remote state configuration - uncomment after S3 bucket is created
-  # backend "s3" {
-  #   bucket         = "deecell-terraform-state"
-  #   key            = "production/terraform.tfstate"
-  #   region         = "us-east-2"
-  #   encrypt        = true
-  #   dynamodb_table = "deecell-terraform-locks"
-  # }
+  # Remote state configuration
+  backend "s3" {
+    bucket         = "deecell-terraform-state"
+    key            = "production/terraform.tfstate"
+    region         = "us-east-2"
+    encrypt        = true
+    dynamodb_table = "deecell-terraform-locks"
+  }
 }
 
 provider "aws" {
