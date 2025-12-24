@@ -146,9 +146,9 @@ resource "aws_route_table_association" "database" {
   route_table_id = aws_route_table.database.id
 }
 
-# DB Subnet Group
+# DB Subnet Group (new name to avoid conflict with old VPC resources)
 resource "aws_db_subnet_group" "main" {
-  name        = "${local.name_prefix}-db-subnet-group"
+  name        = "dcl-fleet-prod-dbsn-${random_id.suffix.hex}"
   description = "Database subnet group for ${local.name_prefix}"
   subnet_ids  = aws_subnet.database[*].id
 

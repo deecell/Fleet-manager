@@ -68,10 +68,13 @@ import {
   id = "deecell-fleet-production-trail"
 }
 
-# DB Subnet Group
+# DB Subnet Group - DELETE FROM AWS CONSOLE (bound to old VPC, can't be imported)
+# aws rds delete-db-subnet-group --db-subnet-group-name deecell-fleet-production-db-subnet-group
+
+# IAM Policy for GitHub Actions
 import {
-  to = aws_db_subnet_group.main
-  id = "deecell-fleet-production-db-subnet-group"
+  to = aws_iam_policy.github_actions
+  id = "arn:aws:iam::892213647605:policy/deecell-fleet-production-github-actions-policy"
 }
 
 # Target Group - Need to get ARN from AWS Console

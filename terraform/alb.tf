@@ -4,7 +4,7 @@
 
 # Application Load Balancer
 resource "aws_lb" "main" {
-  name               = "${local.name_prefix}-alb"
+  name               = "dcl-fleet-prod-alb-${random_id.suffix.hex}"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb.id]
@@ -23,9 +23,9 @@ resource "aws_lb" "main" {
   })
 }
 
-# ALB Target Group
+# ALB Target Group (name max 32 chars)
 resource "aws_lb_target_group" "main" {
-  name        = "${local.name_prefix}-tg-${random_id.suffix.hex}"
+  name        = "dcl-fleet-prod-tg-${random_id.suffix.hex}"
   port        = var.container_port
   protocol    = "HTTP"
   vpc_id      = aws_vpc.main.id
