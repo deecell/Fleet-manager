@@ -4,7 +4,30 @@
 
 ---
 
-## Latest Updates (December 23, 2025)
+## Latest Updates (December 27, 2025)
+
+### AWS Redeployment & DNS Configuration (December 27, 2025)
+
+**Changes**:
+- Updated GitHub secrets with `deecell-terraform` IAM credentials
+- Added `domain_name=app.deecell.com` to Terraform workflow for ACM certificate creation
+- Restored RDS database from snapshot (`deecell-fleet-production-final-backup`)
+- Updated Namecheap DNS to point to new ALB
+
+**Certificate Validation**: ACM requires DNS CNAME records for validation. Added to Namecheap manually.
+
+---
+
+## Backlog / Roadmap
+
+| Priority | Item | Description |
+|----------|------|-------------|
+| Medium | **Route 53 Migration** | Move DNS from Namecheap to AWS Route 53 for full Terraform automation of ACM certificate validation |
+| Low | GitHub OIDC | Migrate from IAM access keys to OIDC for keyless GitHub Actions authentication |
+
+---
+
+## Previous Updates (December 23, 2025)
 
 ### SIM Polling Moved to Device Manager (December 23, 2025)
 
