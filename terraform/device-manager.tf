@@ -87,8 +87,8 @@ locals {
     /tmp/aws/install
     rm -rf /tmp/aws /tmp/awscliv2.zip
 
-    # Install Bluetooth library (required for PowerMon native addon to load)
-    apt-get install -y libbluetooth-dev
+    # Install Bluetooth and D-Bus libraries (required for PowerMon native addon)
+    apt-get install -y libbluetooth-dev libdbus-1-dev
 
     # Install CloudWatch Agent
     wget -q https://amazoncloudwatch-agent.s3.amazonaws.com/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb -O /tmp/amazon-cloudwatch-agent.deb
