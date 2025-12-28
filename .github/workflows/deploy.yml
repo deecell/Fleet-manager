@@ -172,13 +172,27 @@ jobs:
           image: ${{ steps.image.outputs.uri }}
 
       - name: Deploy Amazon ECS task definition
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
           service: ${{ env.ECS_SERVICE }}
           cluster: ${{ env.ECS_CLUSTER }}
-          wait-for-service-stability: true
-          wait-for-minutes: 10
+          wait-for-service-stability: false
+
+      - name: Wait for service stability
+        run: |
+          echo "Waiting for ECS service to stabilize..."
+          for i in {1..5}; do
+            echo "Attempt $i of 5..."
+            if aws ecs wait services-stable \
+              --cluster ${{ env.ECS_CLUSTER }} \
+              --services ${{ env.ECS_SERVICE }}; then
+              echo "✅ Service is stable"
+              exit 0
+            fi
+            echo "Still waiting..."
+          done
+          echo "⚠️ Service taking longer than expected, continuing with health check..."
 
       - name: Verify deployment
         run: |

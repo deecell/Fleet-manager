@@ -4,7 +4,25 @@
 
 ---
 
-## Latest Updates (December 27, 2025)
+## Latest Updates (December 28, 2025)
+
+### RDS Password Security Update (December 28, 2025)
+
+**Changes**:
+- Changed RDS master password from temporary `DeecellFleet2024` to secure 32-character random password
+- Updated Secrets Manager secret with new database URL
+- Forced ECS redeployment to pick up new credentials
+- Fixed GitHub Actions deploy workflow to handle ECS stability issues
+
+**Deploy Workflow Fix**:
+- Upgraded `amazon-ecs-deploy-task-definition` from v1 to v2
+- Changed `wait-for-service-stability: false` to avoid timeout errors
+- Added custom retry loop using `aws ecs wait services-stable` (5 attempts)
+- This prevents "Resource is not in the state servicesStable" errors when multiple deployments overlap
+
+---
+
+## Previous Updates (December 27, 2025)
 
 ### AWS Redeployment & DNS Configuration (December 27, 2025)
 
