@@ -13,22 +13,6 @@ const logger = require('./logger');
 let pool = null;
 
 /**
- * Get connection URL with SSL mode fixed
- * Strips any existing sslmode and lets us control SSL via options
- */
-function getConnectionUrl() {
-  let url = config.database.url;
-  if (!url) return url;
-  
-  // Remove any sslmode parameter from the URL to prevent conflicts
-  url = url.replace(/[?&]sslmode=[^&]*/gi, '');
-  // Clean up any double && or trailing ?
-  url = url.replace(/&&/g, '&').replace(/\?&/g, '?').replace(/[?&]$/g, '');
-  
-  return url;
-}
-
-/**
  * Initialize the database connection pool
  */
 function initDatabase() {
@@ -36,8 +20,17 @@ function initDatabase() {
     return pool;
   }
 
-  const connectionUrl = getConnectionUrl();
-  logger.info('Using SSL encryption for database connection');
+  // Parse the connection URL and force our SSL settings
+  const url = new URL(config.database.url);
+  
+  // Remove sslmode from search params - we'll control SSL via pool options
+  url.searchParams.delete('sslmode');
+  
+  const connectionUrl = url.toString();
+  logger.info('Database connection configured', { 
+    host: url.hostname,
+    database: url.pathname.slice(1)
+  });
 
   pool = new Pool({
     connectionString: connectionUrl,
