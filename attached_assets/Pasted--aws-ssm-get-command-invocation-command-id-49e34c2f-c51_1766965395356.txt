@@ -1,0 +1,27 @@
+~ $ aws ssm get-command-invocation \
+>   --command-id "49e34c2f-c518-48e8-8f4b-157f3fcf2ebd" \
+>   --instance-id "i-00af605282c2f8fa2" \
+>   --region us-east-2
+{
+    "CommandId": "49e34c2f-c518-48e8-8f4b-157f3fcf2ebd",
+    "InstanceId": "i-00af605282c2f8fa2",
+    "Comment": "",
+    "DocumentName": "AWS-RunShellScript",
+    "DocumentVersion": "$DEFAULT",
+    "PluginName": "aws:runShellScript",
+    "ResponseCode": 0,
+    "ExecutionStartDateTime": "2025-12-28T23:42:45.427Z",
+    "ExecutionElapsedTime": "PT0.035S",
+    "ExecutionEndDateTime": "2025-12-28T23:42:45.427Z",
+    "Status": "Success",
+    "StatusDetails": "Success",
+    "StandardOutputContent": "Dec 28 23:33:07 ip-10-0-12-89 start.sh[27783]: {\"timestamp\":\"2025-12-28T23:33:07.084Z\",\"level\":\"info\",\"message\":\"Device disconnected\",\"service\":\"device-manager\",\"deviceId\":5,\"serial\":\"B051375C222A5334\",\"cohort\":4,\"reason\":2}\nDec 28 23:33:07 ip-10-0-12-89 start.sh[27783]: {\"timestamp\":\"2025-12-28T23:33:07.084Z\",\"level\":\"info\",\"message\":\"Scheduling reconnect\",\"service\":\"device-manager\",\"deviceId\":5,\"serial\":\"B051375C222A5334\",\"cohort\":4,\"attempt\":1,\"delayMs\":1000}\nDec 28 23:33:07 ip-10-0-12-89 start.sh[27783]: {\"timestamp\":\"2025-12-28T23:33:07.108Z\",\"level\":\"info\",\"message\":\"Device disconnected\",\"service\":\"device-manager\",\"deviceId\":3,\"serial\":\"A3A5B30EA9B3FF98\",\"cohort\":4,\"reason\":2}\nDec 28 23:33:07 ip-10-0-12-89 start.sh[27783]: {\"timestamp\":\"2025-12-28T23:33:07.108Z\",\"level\":\"info\",\"message\":\"Scheduling reconnect\",\"service\":\"device-manager\",\"deviceId\":3,\"serial\":\"A3A5B30EA9B3FF98\",\"cohort\":4,\"attempt\":1,\"delayMs\":1000}\nDec 28 23:33:08 ip-10-0-12-89 start.sh[27783]: {\"timestamp\":\"2025-12-28T23:33:08.085Z\",\"level\":\"info\",\"message\":\"Connecting to device\",\"service\":\"device-manager\",\"deviceId\":5,\"serial\":\"B051375C222A5334\",\"cohort\":4}\nDec 28 23:33:08 ip-10-0-12-89 start.sh[27783]: {\"timestamp\":\"2025-12-28T23:33:08.167Z\",\"level\":\"info\",\"message\":\"Connecting to device\",\"service\":\"device-manager\",\"deviceId\":3,\"serial\":\"A3A5B30EA9B3FF98\",\"cohort\":4}\nDec 28 23:33:08 ip-10-0-12-89 start.sh[27783]: {\"timestamp\":\"2025-12-28T23:33:08.172Z\",\"level\":\"info\",\"message\":\"Connected successfully\",\"service\":\"device-manager\",\"deviceId\":5,\"serial\":\"B051375C222A5334\",\"cohort\":4}\nDec 28 23:33:08 ip-10-0-12-89 start.sh[27783]: {\"timestamp\":\"2025-12-28T23:33:08.175Z\",\"level\":\"info\",\"message\":\"Connected successfully\",\"service\":\"device-manager\",\"deviceId\":3,\"serial\":\"A3A5B30EA9B3FF98\",\"cohort\":4}\nDec 28 23:33:08 ip-10-0-12-89 start.sh[27783]: {\"timestamp\":\"2025-12-28T23:33:08.607Z\",\"level\":\"info\",\"message\":\"Fetched device info from PowerMon\",\"service\":\"device-manager\",\"deviceId\":3,\"serial\":\"A3A5B30EA9B3FF98\",\"cohort\":4,\"serialNumber\":\"A3A5B30EA9B3FF98\",\"firmwareVersion\":\"1.32\",\"hardwareRevision\":\"PowerMon-W\",\"deviceName\":\"DCL-Moeck\"}\nDec 28 23:33:08 ip-10-0-12-89 start.sh[27783]: {\"timestamp\":\"2025-12-28T23:33:08.609Z\",\"level\":\"info\",\"message\":\"Updated device info\",\"service\":\"device-manager\",\"deviceId\":3,\"serialNumber\":\"A3A5B30EA9B3FF98\",\"firmwareVersion\":\"1.32\",\"hardwareRevision\":\"PowerMon-W\",\"deviceName\":\"DCL-Moeck\"}\n",
+    "StandardOutputUrl": "",
+    "StandardErrorContent": "",
+    "StandardErrorUrl": "",
+    "CloudWatchOutputConfig": {
+        "CloudWatchLogGroupName": "",
+        "CloudWatchOutputEnabled": false
+    }
+}
+~ $
