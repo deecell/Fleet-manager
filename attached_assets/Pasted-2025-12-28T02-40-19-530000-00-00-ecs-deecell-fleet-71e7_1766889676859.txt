@@ -1,0 +1,29 @@
+2025-12-28T02:40:19.530000+00:00 ecs/deecell-fleet/71e75c95bcd74468939e38812781cc7e Failed to create database: error: password authentication failed for user "deecell_admin"
+2025-12-28T02:40:19.530000+00:00 ecs/deecell-fleet/71e75c95bcd74468939e38812781cc7e     at Parser.parseErrorMessage (/app/node_modules/pg-protocol/dist/parser.js:285:98)
+2025-12-28T02:40:19.530000+00:00 ecs/deecell-fleet/71e75c95bcd74468939e38812781cc7e     at Parser.handlePacket (/app/node_modules/pg-protocol/dist/parser.js:122:29)
+2025-12-28T02:40:19.530000+00:00 ecs/deecell-fleet/71e75c95bcd74468939e38812781cc7e     at Parser.parse (/app/node_modules/pg-protocol/dist/parser.js:35:38)
+2025-12-28T02:40:19.530000+00:00 ecs/deecell-fleet/71e75c95bcd74468939e38812781cc7e     at TLSSocket.<anonymous> (/app/node_modules/pg-protocol/dist/index.js:11:42)
+2025-12-28T02:40:19.530000+00:00 ecs/deecell-fleet/71e75c95bcd74468939e38812781cc7e     at TLSSocket.emit (node:events:524:28)
+2025-12-28T02:40:19.530000+00:00 ecs/deecell-fleet/71e75c95bcd74468939e38812781cc7e     at addChunk (node:internal/streams/readable:561:12)
+2025-12-28T02:40:19.530000+00:00 ecs/deecell-fleet/71e75c95bcd74468939e38812781cc7e     at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+2025-12-28T02:40:19.530000+00:00 ecs/deecell-fleet/71e75c95bcd74468939e38812781cc7e     at Readable.push (node:internal/streams/readable:392:5)
+2025-12-28T02:40:19.530000+00:00 ecs/deecell-fleet/71e75c95bcd74468939e38812781cc7e     at TLSWrap.onStreamRead (node:internal/stream_base_commons:191:23) {
+2025-12-28T02:40:19.530000+00:00 ecs/deecell-fleet/71e75c95bcd74468939e38812781cc7e   length: 109,
+2025-12-28T02:40:19.530000+00:00 ecs/deecell-fleet/71e75c95bcd74468939e38812781cc7e   severity: 'FATAL',
+2025-12-28T02:40:19.530000+00:00 ecs/deecell-fleet/71e75c95bcd74468939e38812781cc7e   code: '28P01',
+2025-12-28T02:40:19.530000+00:00 ecs/deecell-fleet/71e75c95bcd74468939e38812781cc7e   detail: undefined,
+2025-12-28T02:40:19.530000+00:00 ecs/deecell-fleet/71e75c95bcd74468939e38812781cc7e   hint: undefined,
+2025-12-28T02:40:19.530000+00:00 ecs/deecell-fleet/71e75c95bcd74468939e38812781cc7e   position: undefined,
+2025-12-28T02:40:19.530000+00:00 ecs/deecell-fleet/71e75c95bcd74468939e38812781cc7e   internalPosition: undefined,
+2025-12-28T02:40:19.530000+00:00 ecs/deecell-fleet/71e75c95bcd74468939e38812781cc7e   internalQuery: undefined,
+2025-12-28T02:40:19.530000+00:00 ecs/deecell-fleet/71e75c95bcd74468939e38812781cc7e   where: undefined,
+2025-12-28T02:40:19.530000+00:00 ecs/deecell-fleet/71e75c95bcd74468939e38812781cc7e   schema: undefined,
+2025-12-28T02:40:19.530000+00:00 ecs/deecell-fleet/71e75c95bcd74468939e38812781cc7e   table: undefined,
+2025-12-28T02:40:19.530000+00:00 ecs/deecell-fleet/71e75c95bcd74468939e38812781cc7e   column: undefined,
+2025-12-28T02:40:19.530000+00:00 ecs/deecell-fleet/71e75c95bcd74468939e38812781cc7e   dataType: undefined,
+2025-12-28T02:40:19.530000+00:00 ecs/deecell-fleet/71e75c95bcd74468939e38812781cc7e   constraint: undefined,
+2025-12-28T02:40:19.530000+00:00 ecs/deecell-fleet/71e75c95bcd74468939e38812781cc7e   file: 'auth.c',
+2025-12-28T02:40:19.530000+00:00 ecs/deecell-fleet/71e75c95bcd74468939e38812781cc7e   line: '337',
+2025-12-28T02:40:19.530000+00:00 ecs/deecell-fleet/71e75c95bcd74468939e38812781cc7e   routine: 'auth_failed'
+2025-12-28T02:40:19.530000+00:00 ecs/deecell-fleet/71e75c95bcd74468939e38812781cc7e }
+2025-12-28T02:40:19.535000+00:00 ecs/deecell-fleet/71e75c95bcd74468939e38812781cc7e 2:40:19 AM [express] GET /api/health 200 in 19ms :: {"status":"ok","rds":"disconnected","s3Bucket":"…
