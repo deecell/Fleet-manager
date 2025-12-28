@@ -1,0 +1,32 @@
+~ $ aws ssm get-command-invocation \
+>   --command-id df6b2b5f-9a07-496e-b115-2082887f4ece \
+>   --instance-id i-00af605282c2f8fa2 \
+>   --region us-east-2 \
+>   --query 'StandardOutputContent' \
+>   --output text
+● device-manager.service - Deecell Device Manager
+     Loaded: loaded (/etc/systemd/system/device-manager.service; enabled; preset: enabled)
+     Active: active (running) since Sun 2025-12-28 23:15:50 UTC; 914ms ago
+   Main PID: 24915 (start.sh)
+      Tasks: 3 (limit: 1008)
+     Memory: 51.8M (peak: 56.2M)
+        CPU: 863ms
+     CGroup: /system.slice/device-manager.service
+             ├─24915 /bin/bash /opt/device-manager/start.sh
+             └─24916 aws secretsmanager get-secret-value --secret-id arn:aws:secretsmanager:us-east-2:892213647605:secret:deecell-fleet-production/database-url-pDVG5g --query SecretString --output text --region us-east-2
+
+Dec 28 23:15:40 ip-10-0-12-89 systemd[1]: device-manager.service: Consumed 1.043s CPU time.
+Dec 28 23:15:50 ip-10-0-12-89 systemd[1]: device-manager.service: Scheduled restart job, restart counter is at 67.
+Dec 28 23:15:50 ip-10-0-12-89 systemd[1]: Started device-manager.service - Deecell Device Manager.
+Dec 28 23:15:40 ip-10-0-12-89 start.sh[24884]: {"timestamp":"2025-12-28T23:15:40.127Z","level":"info","message":"Database pool initialized","service":"device-manager","poolSize":10}
+Dec 28 23:15:40 ip-10-0-12-89 start.sh[24884]: {"timestamp":"2025-12-28T23:15:40.127Z","level":"info","message":"Database initialized","service":"device-manager"}
+Dec 28 23:15:40 ip-10-0-12-89 start.sh[24884]: {"timestamp":"2025-12-28T23:15:40.127Z","level":"info","message":"Initializing connection pool","service":"device-manager"}
+Dec 28 23:15:40 ip-10-0-12-89 start.sh[24884]: {"timestamp":"2025-12-28T23:15:40.182Z","level":"error","message":"Query failed","service":"device-manager","error":"self-signed certificate in certificate chain","query":"\n    SELECT \n      d.id as device_id,\n      d.organization_id,\n      d.serial_number,\n      d.device"}
+Dec 28 23:15:40 ip-10-0-12-89 start.sh[24884]: {"timestamp":"2025-12-28T23:15:40.182Z","level":"error","message":"Failed to start Device Manager","service":"device-manager","error":"self-signed certificate in certificate chain"}
+Dec 28 23:15:40 ip-10-0-12-89 systemd[1]: device-manager.service: Main process exited, code=exited, status=1/FAILURE
+Dec 28 23:15:40 ip-10-0-12-89 systemd[1]: device-manager.service: Failed with result 'exit-code'.
+Dec 28 23:15:40 ip-10-0-12-89 systemd[1]: device-manager.service: Consumed 1.043s CPU time.
+Dec 28 23:15:50 ip-10-0-12-89 systemd[1]: device-manager.service: Scheduled restart job, restart counter is at 67.
+Dec 28 23:15:50 ip-10-0-12-89 systemd[1]: Started device-manager.service - Deecell Device Manager.
+
+~ $
