@@ -189,12 +189,20 @@ jobs:
       - name: Package Device Manager
         run: |
           cd device-manager
+          
+          # Generate package-lock.json if missing
+          if [ ! -f package-lock.json ]; then
+            echo "Generating package-lock.json..."
+            npm install --package-lock-only
+          fi
+          
           mkdir -p package
           cp -r app package/
           cp -r lib package/
           cp -r src package/
           cp -r build package/ 2>/dev/null || echo "No pre-built binaries"
           cp package.json package/
+          cp package-lock.json package/
           cp binding.gyp package/
           echo "{\"version\": \"${{ github.sha }}\", \"built\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" > package/version.json
           cd package
