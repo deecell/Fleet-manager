@@ -11,11 +11,7 @@ on:
     paths:
       - 'device-manager/**'
       - '.github/workflows/deploy-device-manager.yml'
-  # Also run after main deploy completes (ensures fresh deploys include device manager)
-  workflow_run:
-    workflows: ["Deploy to AWS"]
-    types: [completed]
-    branches: [main]
+  # Manual trigger for fresh infrastructure or forced deploys
   workflow_dispatch:
     inputs:
       force_deploy:
@@ -39,8 +35,6 @@ jobs:
   build:
     name: Build Package
     runs-on: ubuntu-latest
-    # Skip if triggered by failed workflow_run
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
 
     outputs:
       artifact_key: ${{ steps.upload.outputs.artifact_key }}
