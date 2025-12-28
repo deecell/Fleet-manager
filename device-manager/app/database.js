@@ -462,6 +462,7 @@ async function upsertDeviceSnapshot(snapshot) {
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, NOW())
     ON CONFLICT (device_id) 
     DO UPDATE SET
+      truck_id = $3,
       voltage1 = $4,
       voltage2 = $5,
       current = $6,
