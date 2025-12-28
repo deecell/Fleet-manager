@@ -190,10 +190,10 @@ jobs:
         run: |
           cd device-manager
           
-          # Generate package-lock.json if missing
+          # Generate package-lock.json if missing (skip scripts to avoid native build)
           if [ ! -f package-lock.json ]; then
             echo "Generating package-lock.json..."
-            npm install --package-lock-only
+            npm install --package-lock-only --ignore-scripts
           fi
           
           mkdir -p package
