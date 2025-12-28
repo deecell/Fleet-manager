@@ -153,7 +153,7 @@ resource "aws_ecs_service" "main" {
   }
 
   depends_on = [
-    aws_lb_target_group.main,
+    aws_lb_listener.http,
     aws_iam_role_policy.ecs_execution
   ]
 
