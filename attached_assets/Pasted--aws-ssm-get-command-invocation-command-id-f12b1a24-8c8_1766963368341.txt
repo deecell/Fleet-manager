@@ -1,0 +1,56 @@
+~ $ aws ssm get-command-invocation \
+>   --command-id f12b1a24-8c8d-4775-badb-b2aa23e2ec75 \
+>   --instance-id i-00af605282c2f8fa2 \
+>   --region us-east-2 \
+>   --query 'StandardOutputContent' \
+>   --output text
+Dec 28 23:08:03 ip-10-0-12-89 start.sh[23338]: {"timestamp":"2025-12-28T23:08:03.263Z","level":"info","message":"Database pool initialized","service":"device-manager","poolSize":10}
+Dec 28 23:08:03 ip-10-0-12-89 start.sh[23338]: {"timestamp":"2025-12-28T23:08:03.263Z","level":"info","message":"Database initialized","service":"device-manager"}
+Dec 28 23:08:03 ip-10-0-12-89 start.sh[23338]: {"timestamp":"2025-12-28T23:08:03.264Z","level":"info","message":"Initializing connection pool","service":"device-manager"}
+Dec 28 23:08:03 ip-10-0-12-89 start.sh[23338]: {"timestamp":"2025-12-28T23:08:03.320Z","level":"error","message":"Query failed","service":"device-manager","error":"self-signed certificate in certificate chain","query":"\n    SELECT \n      d.id as device_id,\n      d.organization_id,\n      d.serial_number,\n      d.device"}
+Dec 28 23:08:03 ip-10-0-12-89 start.sh[23338]: {"timestamp":"2025-12-28T23:08:03.320Z","level":"error","message":"Failed to start Device Manager","service":"device-manager","error":"self-signed certificate in certificate chain"}
+Dec 28 23:08:03 ip-10-0-12-89 systemd[1]: device-manager.service: Main process exited, code=exited, status=1/FAILURE
+Dec 28 23:08:03 ip-10-0-12-89 systemd[1]: device-manager.service: Failed with result 'exit-code'.
+Dec 28 23:08:03 ip-10-0-12-89 systemd[1]: device-manager.service: Consumed 1.154s CPU time.
+Dec 28 23:08:13 ip-10-0-12-89 systemd[1]: device-manager.service: Scheduled restart job, restart counter is at 27.
+Dec 28 23:08:13 ip-10-0-12-89 systemd[1]: Started device-manager.service - Deecell Device Manager.
+Dec 28 23:08:14 ip-10-0-12-89 start.sh[23368]: {"timestamp":"2025-12-28T23:08:14.388Z","level":"info","message":"PowerMon addon loaded successfully","service":"device-manager"}
+Dec 28 23:08:14 ip-10-0-12-89 start.sh[23368]: {"timestamp":"2025-12-28T23:08:14.393Z","level":"info","message":"Device Manager starting","service":"device-manager","pollInterval":10000,"cohorts":10,"batchFlushInterval":2000}
+Dec 28 23:08:14 ip-10-0-12-89 start.sh[23368]: {"timestamp":"2025-12-28T23:08:14.393Z","level":"info","message":"Configuration validated","service":"device-manager"}
+Dec 28 23:08:14 ip-10-0-12-89 start.sh[23368]: {"timestamp":"2025-12-28T23:08:14.393Z","level":"info","message":"Using AWS RDS CA certificate bundle for SSL","service":"device-manager","path":"/opt/device-manager/certs/rds-ca-bundle.pem"}
+Dec 28 23:08:14 ip-10-0-12-89 start.sh[23368]: {"timestamp":"2025-12-28T23:08:14.394Z","level":"info","message":"Database pool initialized","service":"device-manager","poolSize":10}
+Dec 28 23:08:14 ip-10-0-12-89 start.sh[23368]: {"timestamp":"2025-12-28T23:08:14.394Z","level":"info","message":"Database initialized","service":"device-manager"}
+Dec 28 23:08:14 ip-10-0-12-89 start.sh[23368]: {"timestamp":"2025-12-28T23:08:14.395Z","level":"info","message":"Initializing connection pool","service":"device-manager"}
+Dec 28 23:08:14 ip-10-0-12-89 start.sh[23368]: {"timestamp":"2025-12-28T23:08:14.450Z","level":"error","message":"Query failed","service":"device-manager","error":"self-signed certificate in certificate chain","query":"\n    SELECT \n      d.id as device_id,\n      d.organization_id,\n      d.serial_number,\n      d.device"}
+Dec 28 23:08:14 ip-10-0-12-89 start.sh[23368]: {"timestamp":"2025-12-28T23:08:14.450Z","level":"error","message":"Failed to start Device Manager","service":"device-manager","error":"self-signed certificate in certificate chain"}
+Dec 28 23:08:14 ip-10-0-12-89 systemd[1]: device-manager.service: Main process exited, code=exited, status=1/FAILURE
+Dec 28 23:08:14 ip-10-0-12-89 systemd[1]: device-manager.service: Failed with result 'exit-code'.
+Dec 28 23:08:14 ip-10-0-12-89 systemd[1]: device-manager.service: Consumed 1.045s CPU time.
+Dec 28 23:08:24 ip-10-0-12-89 systemd[1]: device-manager.service: Scheduled restart job, restart counter is at 28.
+Dec 28 23:08:24 ip-10-0-12-89 systemd[1]: Started device-manager.service - Deecell Device Manager.
+Dec 28 23:08:25 ip-10-0-12-89 start.sh[23398]: {"timestamp":"2025-12-28T23:08:25.662Z","level":"info","message":"PowerMon addon loaded successfully","service":"device-manager"}
+Dec 28 23:08:25 ip-10-0-12-89 start.sh[23398]: {"timestamp":"2025-12-28T23:08:25.667Z","level":"info","message":"Device Manager starting","service":"device-manager","pollInterval":10000,"cohorts":10,"batchFlushInterval":2000}
+Dec 28 23:08:25 ip-10-0-12-89 start.sh[23398]: {"timestamp":"2025-12-28T23:08:25.667Z","level":"info","message":"Configuration validated","service":"device-manager"}
+Dec 28 23:08:25 ip-10-0-12-89 start.sh[23398]: {"timestamp":"2025-12-28T23:08:25.667Z","level":"info","message":"Using AWS RDS CA certificate bundle for SSL","service":"device-manager","path":"/opt/device-manager/certs/rds-ca-bundle.pem"}
+Dec 28 23:08:25 ip-10-0-12-89 start.sh[23398]: {"timestamp":"2025-12-28T23:08:25.668Z","level":"info","message":"Database pool initialized","service":"device-manager","poolSize":10}
+Dec 28 23:08:25 ip-10-0-12-89 start.sh[23398]: {"timestamp":"2025-12-28T23:08:25.668Z","level":"info","message":"Database initialized","service":"device-manager"}
+Dec 28 23:08:25 ip-10-0-12-89 start.sh[23398]: {"timestamp":"2025-12-28T23:08:25.668Z","level":"info","message":"Initializing connection pool","service":"device-manager"}
+Dec 28 23:08:25 ip-10-0-12-89 start.sh[23398]: {"timestamp":"2025-12-28T23:08:25.724Z","level":"error","message":"Query failed","service":"device-manager","error":"self-signed certificate in certificate chain","query":"\n    SELECT \n      d.id as device_id,\n      d.organization_id,\n      d.serial_number,\n      d.device"}
+Dec 28 23:08:25 ip-10-0-12-89 start.sh[23398]: {"timestamp":"2025-12-28T23:08:25.724Z","level":"error","message":"Failed to start Device Manager","service":"device-manager","error":"self-signed certificate in certificate chain"}
+Dec 28 23:08:25 ip-10-0-12-89 systemd[1]: device-manager.service: Main process exited, code=exited, status=1/FAILURE
+Dec 28 23:08:25 ip-10-0-12-89 systemd[1]: device-manager.service: Failed with result 'exit-code'.
+Dec 28 23:08:25 ip-10-0-12-89 systemd[1]: device-manager.service: Consumed 1.058s CPU time.
+Dec 28 23:08:35 ip-10-0-12-89 systemd[1]: device-manager.service: Scheduled restart job, restart counter is at 29.
+Dec 28 23:08:35 ip-10-0-12-89 systemd[1]: Started device-manager.service - Deecell Device Manager.
+Dec 28 23:08:36 ip-10-0-12-89 start.sh[23431]: {"timestamp":"2025-12-28T23:08:36.922Z","level":"info","message":"PowerMon addon loaded successfully","service":"device-manager"}
+Dec 28 23:08:36 ip-10-0-12-89 start.sh[23431]: {"timestamp":"2025-12-28T23:08:36.927Z","level":"info","message":"Device Manager starting","service":"device-manager","pollInterval":10000,"cohorts":10,"batchFlushInterval":2000}
+Dec 28 23:08:36 ip-10-0-12-89 start.sh[23431]: {"timestamp":"2025-12-28T23:08:36.927Z","level":"info","message":"Configuration validated","service":"device-manager"}
+Dec 28 23:08:36 ip-10-0-12-89 start.sh[23431]: {"timestamp":"2025-12-28T23:08:36.927Z","level":"info","message":"Using AWS RDS CA certificate bundle for SSL","service":"device-manager","path":"/opt/device-manager/certs/rds-ca-bundle.pem"}
+Dec 28 23:08:36 ip-10-0-12-89 start.sh[23431]: {"timestamp":"2025-12-28T23:08:36.932Z","level":"info","message":"Database pool initialized","service":"device-manager","poolSize":10}
+Dec 28 23:08:36 ip-10-0-12-89 start.sh[23431]: {"timestamp":"2025-12-28T23:08:36.933Z","level":"info","message":"Database initialized","service":"device-manager"}
+Dec 28 23:08:36 ip-10-0-12-89 start.sh[23431]: {"timestamp":"2025-12-28T23:08:36.933Z","level":"info","message":"Initializing connection pool","service":"device-manager"}
+Dec 28 23:08:36 ip-10-0-12-89 start.sh[23431]: {"timestamp":"2025-12-28T23:08:36.990Z","level":"error","message":"Query failed","service":"device-manager","error":"self-signed certificate in certificate chain","query":"\n    SELECT \n      d.id as device_id,\n      d.organization_id,\n      d.serial_number,\n      d.device"}
+Dec 28 23:08:36 ip-10-0-12-89 start.sh[23431]: {"timestamp":"2025-12-28T23:08:36.990Z","level":"error","message":"Failed to start Device Manager","service":"device-manager","error":"self-signed certificate in certificate chain"}
+Dec 28 23:08:36 ip-10-0-12-89 systemd[1]: device-manager.service: Main process exited, code=exited, status=1/FAILURE
+Dec 28 23:08:36 ip-10-0-12-89 systemd[1]: device-manager.service: Failed with result 'exit-code'.
+Dec 28 23:08:36 ip-10-0-12-89 systemd[1]: device-manager.service: Consumed 1.075s CPU time.
