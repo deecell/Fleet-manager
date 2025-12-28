@@ -1,0 +1,120 @@
+cd device-manager
+  cd device-manager
+  
+  # Generate package-lock.json if missing
+  if [ ! -f package-lock.json ]; then
+    echo "Generating package-lock.json..."
+    npm install --package-lock-only
+  fi
+  
+  # Create package directory
+  mkdir -p package
+  
+  # Copy application files
+  cp -r app package/
+  cp -r lib package/
+  cp -r src package/
+  cp -r build package/ 2>/dev/null || echo "No pre-built binaries"
+  cp package.json package/
+  cp package-lock.json package/
+  cp binding.gyp package/
+  
+  # Create version info
+  echo "{\"version\": \"6b20161c72f1b76b5a8fdb634470cce4f11cb848\", \"built\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\", \"branch\": \"main\"}" > package/version.json
+  
+  # Create deployment zip
+  cd package
+  zip -r ../device-manager-6b20161c72f1b76b5a8fdb634470cce4f11cb848.zip .
+  cd ..
+  
+  # Also create 'latest' zip
+  cp device-manager-6b20161c72f1b76b5a8fdb634470cce4f11cb848.zip device-manager-latest.zip
+  
+  echo "Package created:"
+  ls -la *.zip
+  shell: /usr/bin/bash -e {0}
+  env:
+    AWS_REGION: ***
+    DEVICE_MANAGER_BUCKET: ***
+    ASG_NAME: deecell-fleet-production-device-manager-asg
+Generating package-lock.json...
+
+> @deecell/device-manager@1.0.0 install
+> node-gyp rebuild
+
+gyp info it worked if it ends with ok
+gyp info using node-gyp@10.1.0
+gyp info using node@20.19.6 | linux | x64
+gyp info find Python using Python version 3.12.3 found at "/usr/bin/python3"
+
+gyp http GET https://nodejs.org/download/release/v20.19.6/node-v20.19.6-headers.tar.gz
+gyp http 200 https://nodejs.org/download/release/v20.19.6/node-v20.19.6-headers.tar.gz
+gyp http GET https://nodejs.org/download/release/v20.19.6/SHASUMS256.txt
+gyp http 200 https://nodejs.org/download/release/v20.19.6/SHASUMS256.txt
+gyp info spawn /usr/bin/python3
+gyp info spawn args [
+gyp info spawn args '/opt/hostedtoolcache/node/20.19.6/x64/lib/node_modules/npm/node_modules/node-gyp/gyp/gyp_main.py',
+gyp info spawn args 'binding.gyp',
+gyp info spawn args '-f',
+gyp info spawn args 'make',
+gyp info spawn args '-I',
+gyp info spawn args '/home/runner/work/Fleet-manager/Fleet-manager/device-manager/build/config.gypi',
+gyp info spawn args '-I',
+gyp info spawn args '/opt/hostedtoolcache/node/20.19.6/x64/lib/node_modules/npm/node_modules/node-gyp/addon.gypi',
+gyp info spawn args '-I',
+gyp info spawn args '/home/runner/.cache/node-gyp/20.19.6/include/node/common.gypi',
+gyp info spawn args '-Dlibrary=shared_library',
+gyp info spawn args '-Dvisibility=default',
+gyp info spawn args '-Dnode_root_dir=/home/runner/.cache/node-gyp/20.19.6',
+gyp info spawn args '-Dnode_gyp_dir=/opt/hostedtoolcache/node/20.19.6/x64/lib/node_modules/npm/node_modules/node-gyp',
+gyp info spawn args '-Dnode_lib_file=/home/runner/.cache/node-gyp/20.19.6/<(target_arch)/node.lib',
+gyp info spawn args '-Dmodule_root_dir=/home/runner/work/Fleet-manager/Fleet-manager/device-manager',
+gyp info spawn args '-Dnode_engine=v8',
+gyp info spawn args '--depth=.',
+gyp info spawn args '--no-parallel',
+gyp info spawn args '--generator-output',
+gyp info spawn args 'build',
+gyp info spawn args '-Goutput_dir=.'
+gyp info spawn args ]
+node:internal/modules/cjs/loader:1210
+  throw err;
+  ^
+
+Error: Cannot find module 'node-addon-api'
+Require stack:
+- /home/runner/work/Fleet-manager/Fleet-manager/device-manager/[eval]
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Module._load (node:internal/modules/cjs/loader:1038:27)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+    at [eval]:1:1
+    at runScriptInThisContext (node:internal/vm:209:10)
+    at node:internal/process/execution:118:14
+    at [eval]-wrapper:6:24
+    at runScript (node:internal/process/execution:101:62)
+    at evalScript (node:internal/process/execution:133:3) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/runner/work/Fleet-manager/Fleet-manager/device-manager/[eval]'
+  ]
+}
+
+Node.js v20.19.6
+gyp: Call to 'node -p "require('node-addon-api').include"' returned exit status 1 while in binding.gyp. while trying to load binding.gyp
+gyp ERR! configure error 
+gyp ERR! stack Error: `gyp` failed with exit code: 1
+gyp ERR! stack at ChildProcess.<anonymous> (/opt/hostedtoolcache/node/20.19.6/x64/lib/node_modules/npm/node_modules/node-gyp/lib/configure.js:297:18)
+gyp ERR! stack at ChildProcess.emit (node:events:524:28)
+gyp ERR! stack at ChildProcess._handle.onexit (node:internal/child_process:293:12)
+gyp ERR! System Linux 6.11.0-1018-azure
+gyp ERR! command "/opt/hostedtoolcache/node/20.19.6/x64/bin/node" "/opt/hostedtoolcache/node/20.19.6/x64/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js" "rebuild"
+gyp ERR! cwd /home/runner/work/Fleet-manager/Fleet-manager/device-manager
+gyp ERR! node -v v20.19.6
+gyp ERR! node-gyp -v v10.1.0
+gyp ERR! not ok 
+npm error code 1
+npm error path /home/runner/work/Fleet-manager/Fleet-manager/device-manager
+npm error command failed
+npm error command sh -c node-gyp rebuild
+npm error A complete log of this run can be found in: /home/runner/.npm/_logs/2025-12-28T22_53_50_958Z-debug-0.log
+Error: Process completed with exit code 1.
