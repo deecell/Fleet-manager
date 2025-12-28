@@ -6,6 +6,23 @@
 
 ## Latest Updates (December 28, 2025)
 
+### Device Manager Deployment Fixed (December 28, 2025)
+
+**Issue**: Device Manager EC2 instance was running but application was never deployed. Native addon build was failing.
+
+**Root Causes**:
+1. GitHub Actions workflow wasn't generating `package-lock.json` for device-manager
+2. EC2 instance missing `libdbus-1-dev` library required for PowerMon native addon
+
+**Fixes Applied**:
+1. Updated `deploy-device-manager.yml` and `deploy-all.yml` to generate `package-lock.json` with `--ignore-scripts` flag
+2. Installed `libdbus-1-dev` on existing EC2 instance via SSM command
+3. Updated `terraform/device-manager.tf` user_data to include `libdbus-1-dev` for future instances
+
+**Deployment Verified**: Package `device-manager-94e1c311...` successfully deployed to EC2.
+
+---
+
 ### RDS Password Security Update (December 28, 2025)
 
 **Changes**:
