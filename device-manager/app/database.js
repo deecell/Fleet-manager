@@ -13,20 +13,19 @@ const logger = require('./logger');
 let pool = null;
 
 /**
- * Get SSL configuration for database connection
- * Uses SSL encryption without strict certificate verification
- * (Connection is still encrypted, runs within VPC)
+ * Get connection URL with SSL mode fixed
+ * Strips any existing sslmode and lets us control SSL via options
  */
-function getSslConfig() {
-  // Use SSL encryption without strict CA verification
-  // This is acceptable because:
-  // 1. Connection is within AWS VPC (private network)
-  // 2. RDS endpoint is authenticated via security groups
-  // 3. Traffic is still encrypted with TLS
-  logger.info('Using SSL encryption for database connection');
-  return {
-    rejectUnauthorized: false
-  };
+function getConnectionUrl() {
+  let url = config.database.url;
+  if (!url) return url;
+  
+  // Remove any sslmode parameter from the URL to prevent conflicts
+  url = url.replace(/[?&]sslmode=[^&]*/gi, '');
+  // Clean up any double && or trailing ?
+  url = url.replace(/&&/g, '&').replace(/\?&/g, '?').replace(/[?&]$/g, '');
+  
+  return url;
 }
 
 /**
@@ -37,12 +36,17 @@ function initDatabase() {
     return pool;
   }
 
+  const connectionUrl = getConnectionUrl();
+  logger.info('Using SSL encryption for database connection');
+
   pool = new Pool({
-    connectionString: config.database.url,
+    connectionString: connectionUrl,
     max: config.database.poolSize,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 10000,
-    ssl: getSslConfig()
+    ssl: {
+      rejectUnauthorized: false
+    }
   });
 
   pool.on('error', (err) => {

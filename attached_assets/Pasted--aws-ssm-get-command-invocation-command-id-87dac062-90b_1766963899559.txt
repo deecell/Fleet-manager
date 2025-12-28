@@ -1,0 +1,102 @@
+~ $ aws ssm get-command-invocation \
+>   --command-id 87dac062-90b0-4fce-8513-161cc6a74591 \
+>   --instance-id i-00af605282c2f8fa2 \
+>   --region us-east-2 \
+>   --query 'StandardOutputContent' \
+>   --output text
+Fetching deployment artifact from S3...
+Completed 256.0 KiB/2.2 MiB (2.8 MiB/s) with 1 file(s) remaining^MCompleted 512.0 KiB/2.2 MiB (5.4 MiB/s) with 1 file(s) remaining^MCompleted 768.0 KiB/2.2 MiB (8.0 MiB/s) with 1 file(s) remaining^MCompleted 1.0 MiB/2.2 MiB (10.5 MiB/s) with 1 file(s) remaining ^MCompleted 1.2 MiB/2.2 MiB (12.9 MiB/s) with 1 file(s) remaining ^MCompleted 1.5 MiB/2.2 MiB (15.4 MiB/s) with 1 file(s) remaining ^MCompleted 1.8 MiB/2.2 MiB (17.8 MiB/s) with 1 file(s) remaining ^MCompleted 2.0 MiB/2.2 MiB (20.1 MiB/s) with 1 file(s) remaining ^MCompleted 2.2 MiB/2.2 MiB (21.9 MiB/s) with 1 file(s) remaining ^Mdownload: s3://deecell-fleet-production-device-manager-deploy-13647605/device-manager-latest.zip to ../../../../tmp/device-manager.zip
+Extracting artifact...
+Archive:  /tmp/device-manager.zip
+  inflating: binding.gyp             
+  inflating: lib/bridge-client.d.ts  
+  inflating: lib/index.ts            
+  inflating: lib/log-sync.js         
+  inflating: lib/index.d.ts          
+  inflating: lib/index.js            
+  inflating: lib/bridge-client.js    
+  inflating: package-lock.json       
+  inflating: app/sim-poller.js       
+  inflating: app/metrics.js          
+  inflating: app/logger.js           
+  inflating: app/polling-scheduler.js  
+  inflating: app/config.js           
+  inflating: app/batch-writer.js     
+  inflating: app/database.js         
+  inflating: app/connection-pool.js  
+  inflating: app/backfill-service.js  
+  inflating: app/index.js            
+  inflating: package.json            
+  inflating: build/config.gypi       
+  inflating: build/binding.Makefile  
+  inflating: build/Release/powermon_addon.node  
+  inflating: build/Release/.deps/Release/powermon_addon.node.d  
+  inflating: build/Release/.deps/Release/obj.target/powermon_addon.node.d  
+  inflating: build/Release/.deps/Release/obj.target/powermon_addon/src/addon.o.d  
+  inflating: build/Release/.deps/Release/obj.target/powermon_addon/src/powermon_wrapper.o.d  
+  inflating: build/Release/obj.target/powermon_addon.node  
+  inflating: build/Release/obj.target/powermon_addon/src/powermon_wrapper.o  
+  inflating: build/Release/obj.target/powermon_addon/src/addon.o  
+  inflating: build/powermon_addon.target.mk  
+  inflating: build/Makefile          
+  inflating: version.json            
+  inflating: src/powermon_wrapper.cpp  
+  inflating: src/addon.cpp           
+  inflating: src/powermon_bridge.cpp  
+  inflating: src/powermon_wrapper.h  
+  inflating: libpowermon_bin/inc/powermon_scanner.h  
+  inflating: libpowermon_bin/inc/powermon_log.h  
+  inflating: libpowermon_bin/inc/powermon_config.h  
+  inflating: libpowermon_bin/inc/powermon.h  
+  inflating: libpowermon_bin/inc/powermon_schedule.h  
+  inflating: libpowermon_bin/powermon_lib.a  
+  inflating: libpowermon_bin/examples/scan.cpp  
+  inflating: libpowermon_bin/examples/connect.cpp  
+  inflating: libpowermon_bin/examples/Makefile.scan  
+  inflating: libpowermon_bin/examples/build.mk  
+  inflating: libpowermon_bin/examples/Makefile  
+  inflating: libpowermon_bin/examples/Makefile.connect  
+  inflating: libpowermon_bin/powermon_libd.lib  
+  inflating: libpowermon_bin/powermon_lib.lib  
+  inflating: libpowermon_bin/powermon_lib_pic.a  
+  inflating: libpowermon_bin/powermon_lib_rpi64_pic.a  
+  inflating: libpowermon_bin/powermon_lib_rpi64.a  
+Installing dependencies...
+
+> @deecell/device-manager@1.0.0 install
+> node-gyp rebuild
+
+
+make: Entering directory '/opt/device-manager/build'
+  CXX(target) Release/obj.target/powermon_addon/src/addon.o
+  CXX(target) Release/obj.target/powermon_addon/src/powermon_wrapper.o
+  SOLINK_MODULE(target) Release/obj.target/powermon_addon.node
+  COPY Release/powermon_addon.node
+make: Leaving directory '/opt/device-manager/build'
+
+added 15 packages, and audited 16 packages in 5s
+
+found 0 vulnerabilities
+Building native addon for this platform...
+rebuilt dependencies successfully
+Verifying native addon...
+-rwxr-xr-x 2 root root 417056 Dec 28 23:17 build/Release/powermon_addon.node
+Restarting service...
+Deployment complete!
+Dec 28 23:17:21 ip-10-0-12-89 systemd[1]: Stopped device-manager.service - Deecell Device Manager.
+Dec 28 23:17:21 ip-10-0-12-89 systemd[1]: device-manager.service: Consumed 1.105s CPU time.
+Dec 28 23:17:21 ip-10-0-12-89 systemd[1]: Started device-manager.service - Deecell Device Manager.
+Dec 28 23:17:23 ip-10-0-12-89 start.sh[25412]: {"timestamp":"2025-12-28T23:17:23.056Z","level":"info","message":"PowerMon addon loaded successfully","service":"device-manager"}
+Dec 28 23:17:23 ip-10-0-12-89 start.sh[25412]: {"timestamp":"2025-12-28T23:17:23.061Z","level":"info","message":"Device Manager starting","service":"device-manager","pollInterval":10000,"cohorts":10,"batchFlushInterval":2000}
+Dec 28 23:17:23 ip-10-0-12-89 start.sh[25412]: {"timestamp":"2025-12-28T23:17:23.061Z","level":"info","message":"Configuration validated","service":"device-manager"}
+Dec 28 23:17:23 ip-10-0-12-89 start.sh[25412]: {"timestamp":"2025-12-28T23:17:23.061Z","level":"info","message":"Using SSL encryption for database connection","service":"device-manager"}
+Dec 28 23:17:23 ip-10-0-12-89 start.sh[25412]: {"timestamp":"2025-12-28T23:17:23.061Z","level":"info","message":"Database pool initialized","service":"device-manager","poolSize":10}
+Dec 28 23:17:23 ip-10-0-12-89 start.sh[25412]: {"timestamp":"2025-12-28T23:17:23.061Z","level":"info","message":"Database initialized","service":"device-manager"}
+Dec 28 23:17:23 ip-10-0-12-89 start.sh[25412]: {"timestamp":"2025-12-28T23:17:23.062Z","level":"info","message":"Initializing connection pool","service":"device-manager"}
+Dec 28 23:17:23 ip-10-0-12-89 start.sh[25412]: {"timestamp":"2025-12-28T23:17:23.118Z","level":"error","message":"Query failed","service":"device-manager","error":"self-signed certificate in certificate chain","query":"\n    SELECT \n      d.id as device_id,\n      d.organization_id,\n      d.serial_number,\n      d.device"}
+Dec 28 23:17:23 ip-10-0-12-89 start.sh[25412]: {"timestamp":"2025-12-28T23:17:23.118Z","level":"error","message":"Failed to start Device Manager","service":"device-manager","error":"self-signed certificate in certificate chain"}
+Dec 28 23:17:23 ip-10-0-12-89 systemd[1]: device-manager.service: Main process exited, code=exited, status=1/FAILURE
+Dec 28 23:17:23 ip-10-0-12-89 systemd[1]: device-manager.service: Failed with result 'exit-code'.
+Dec 28 23:17:23 ip-10-0-12-89 systemd[1]: device-manager.service: Consumed 1.078s CPU time.
+
+~ $
