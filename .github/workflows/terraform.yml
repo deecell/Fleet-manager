@@ -1,21 +1,26 @@
 # =============================================================================
 # Deecell Fleet Tracking - Terraform Infrastructure Pipeline
-# Triggers on changes to terraform/ directory
+# 
+# DISABLED: Infrastructure changes are now managed manually via AWS CloudShell
+# for improved security (no admin-level permissions in CI/CD).
+#
+# See SETUP-NOTES.md for instructions on running Terraform manually.
 # =============================================================================
 
-name: Terraform
+name: Terraform (Disabled)
 
 on:
-  workflow_dispatch:  # Allow manual trigger
-  push:
-    branches: [main]
-    paths:
-      - 'terraform/**'
-      - '.github/workflows/terraform.yml'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'terraform/**'
+  workflow_dispatch:  # Keep manual trigger for reference only
+  # DISABLED - Terraform now runs manually via CloudShell
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - 'terraform/**'
+  #     - '.github/workflows/terraform.yml'
+  # pull_request:
+  #   branches: [main]
+  #   paths:
+  #     - 'terraform/**'
 
 env:
   TF_VERSION: '1.6.0'

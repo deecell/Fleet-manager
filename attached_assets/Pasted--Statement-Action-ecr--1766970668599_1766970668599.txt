@@ -1,0 +1,114 @@
+{
+    "Statement": [
+        {
+            "Action": [
+                "ecr:*"
+            ],
+            "Effect": "Allow",
+            "Resource": "*",
+            "Sid": "ECR"
+        },
+        {
+            "Action": [
+                "ecs:Describe*",
+                "ecs:List*",
+                "ecs:RegisterTaskDefinition",
+                "ecs:UpdateService",
+                "ecs:DeregisterTaskDefinition"
+            ],
+            "Effect": "Allow",
+            "Resource": "*",
+            "Sid": "ECS"
+        },
+        {
+            "Action": [
+                "iam:PassRole"
+            ],
+            "Effect": "Allow",
+            "Resource": [
+                "arn:aws:iam::892213647605:role/deecell-fleet-production-ecs-execution-role",
+                "arn:aws:iam::892213647605:role/deecell-fleet-production-ecs-task-role"
+            ],
+            "Sid": "PassRole"
+        },
+        {
+            "Action": [
+                "elasticloadbalancing:Describe*"
+            ],
+            "Effect": "Allow",
+            "Resource": "*",
+            "Sid": "ELB"
+        },
+        {
+            "Action": [
+                "secretsmanager:GetSecretValue"
+            ],
+            "Effect": "Allow",
+            "Resource": [
+                "arn:aws:secretsmanager:us-east-2:892213647605:secret:deecell-fleet-production/database-url-pDVG5g"
+            ],
+            "Sid": "SecretsGet"
+        },
+        {
+            "Action": [
+                "secretsmanager:ListSecrets"
+            ],
+            "Effect": "Allow",
+            "Resource": "*",
+            "Sid": "SecretsList"
+        },
+        {
+            "Action": [
+                "logs:Get*",
+                "logs:Describe*"
+            ],
+            "Effect": "Allow",
+            "Resource": "*",
+            "Sid": "Logs"
+        },
+        {
+            "Action": [
+                "s3:PutObject",
+                "s3:GetObject",
+                "s3:ListBucket"
+            ],
+            "Effect": "Allow",
+            "Resource": [
+                "arn:aws:s3:::deecell-fleet-production-device-manager-deploy-13647605",
+                "arn:aws:s3:::deecell-fleet-production-device-manager-deploy-13647605/*"
+            ],
+            "Sid": "DeviceManagerS3"
+        },
+        {
+            "Action": [
+                "autoscaling:DescribeAutoScalingGroups"
+            ],
+            "Effect": "Allow",
+            "Resource": "*",
+            "Sid": "DeviceManagerASG"
+        },
+        {
+            "Action": [
+                "ssm:SendCommand",
+                "ssm:ListCommandInvocations",
+                "ssm:GetCommandInvocation"
+            ],
+            "Effect": "Allow",
+            "Resource": "*",
+            "Sid": "DeviceManagerSSM"
+        },
+        {
+            "Action": [
+                "ec2:DescribeImages",
+                "ec2:DescribeInstances",
+                "ec2:DescribeSecurityGroups",
+                "ec2:DescribeSubnets",
+                "ec2:DescribeVpcs"
+            ],
+            "Effect": "Allow",
+            "Resource": "*",
+            "Sid": "EC2Describe"
+        }
+    ],
+    "Version": "2012-10-17"
+}
