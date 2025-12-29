@@ -1,7 +1,10 @@
 # =============================================================================
 # Deecell Fleet Tracking - Full Deployment Pipeline
-# Runs Terraform, then Deploy to AWS, then Deploy Device Manager
-# Use for fresh infrastructure or complete redeployments
+# Deploys Web App (ECS) and Device Manager (EC2)
+#
+# NOTE: Terraform is DISABLED in this workflow for security.
+# Run infrastructure changes manually via AWS CloudShell.
+# See SETUP-NOTES.md for instructions.
 # =============================================================================
 
 name: Deploy All
@@ -10,18 +13,18 @@ on:
   workflow_dispatch:
     inputs:
       run_terraform:
-        description: 'Run Terraform first (infrastructure changes)'
-        required: true
+        description: 'DISABLED - Run Terraform via CloudShell instead'
+        required: false
         type: boolean
-        default: true
+        default: false
       terraform_action:
-        description: 'Terraform action (only if run_terraform is true)'
+        description: 'DISABLED - See SETUP-NOTES.md'
         required: false
         type: choice
         options:
-          - apply
           - plan
-        default: apply
+          - apply
+        default: plan
 
 permissions:
   contents: read
