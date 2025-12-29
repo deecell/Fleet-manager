@@ -159,3 +159,59 @@ Always review the plan carefully. If resources show as deleted unexpectedly, che
 1. You're on the correct AWS account (892213647605)
 2. You're in the correct region (us-east-2)
 3. State file hasn't been corrupted
+
+---
+
+## IAM Cleanup (One-Time)
+
+After switching to CloudShell for Terraform, clean up unused IAM resources:
+
+### Step 1: Delete Unused Policy
+
+1. Go to **IAM → Policies** in AWS Console
+2. Search for `DeecellGitHubActionsPolicy` (the manually created one, not the Terraform-managed one)
+3. If it exists and has **0 attached entities**, delete it
+
+### Step 2: Remove Terraform State Permissions (Optional)
+
+The GitHub Actions policy (`deecell-fleet-production-github-actions-policy`) may still have Terraform-related permissions. These can be removed since Terraform no longer runs via GitHub Actions:
+
+**Permissions to keep** (needed for app deployments):
+- `ecr:*` - Container image push/pull
+- `ecs:*` - ECS service updates
+- `ssm:*` - EC2 command execution
+- `secretsmanager:GetSecretValue` - Read database URL
+- `logs:*` - CloudWatch logs
+- `s3:*` on deployment bucket - Device Manager artifacts
+- `iam:PassRole` - ECS task execution
+
+**Permissions that could be removed** (only needed for Terraform):
+- S3 access to `terraform-state-*` bucket (if separate from deployment bucket)
+- DynamoDB access to `terraform-locks` table
+- Any `iam:*` beyond PassRole
+
+**Note**: The current policy is minimal and may already be optimized. Only modify if you see excess permissions.
+
+### Step 3: Verify Deployments Still Work
+
+After any IAM changes, trigger a test deployment:
+1. Make a small change to any file (not in terraform/ or device-manager/)
+2. Push to main
+3. Check GitHub Actions → "Deploy to AWS" workflow succeeds
+
+---
+
+## AWS Resources Reference
+
+| Resource | ARN/ID |
+|----------|--------|
+| AWS Account | `892213647605` |
+| Region | `us-east-2` |
+| ECR Repository | `deecell-fleet` |
+| ECS Cluster | `deecell-fleet-production-cluster` |
+| ECS Service | `deecell-fleet` |
+| ALB | `deecell-fleet-production-alb` |
+| RDS Instance | `deecell-fleet-production-postgres` |
+| S3 Terraform State | `deecell-fleet-terraform-state-892213647605` |
+| IAM User (CI/CD) | `deecell-terraform` |
+| Domain | `app.deecell.com` |

@@ -4,7 +4,35 @@
 
 ---
 
-## Latest Updates (December 28, 2025)
+## Latest Updates (December 29, 2025)
+
+### IAM Security Improvements & CloudShell Setup (December 29, 2025)
+
+**Changes**:
+1. **Disabled automatic Terraform in GitHub Actions** - Terraform now runs manually via AWS CloudShell for better security (no admin-level permissions in CI/CD)
+2. **Created SETUP-NOTES.md** - Comprehensive guide for running Terraform manually including:
+   - One-time CloudShell setup commands
+   - Step-by-step infrastructure change process
+   - Secret retrieval commands
+   - IAM cleanup instructions
+   - AWS resources reference table
+3. **Documented IAM cleanup steps** - Instructions to remove unused policies:
+   - `DeecellGitHubActionsPolicy` (manually created, unused)
+   - Terraform state permissions (optional, S3/DynamoDB for terraform state)
+
+**Benefits**:
+- GitHub Actions IAM user no longer needs admin access
+- Least-privilege principle applied to CI/CD
+- Infrastructure changes require explicit console login
+- Audit trail through CloudShell history
+
+**Files Changed**:
+- `.github/workflows/terraform.yml` - Disabled automatic triggers
+- `SETUP-NOTES.md` - New file with complete setup/cleanup guide
+
+---
+
+## Previous Updates (December 28, 2025)
 
 ### Device Manager Deployment Fixed (December 28, 2025)
 
