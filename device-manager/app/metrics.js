@@ -132,6 +132,90 @@ function generateHealthCheck() {
 }
 
 /**
+ * Generate detailed health check with snapshot write verification
+ */
+function generateDetailedHealthCheck() {
+  const poolStats = connectionPool.getStats();
+  const schedulerStats = pollingScheduler.getStats();
+  const writerStats = batchWriter.getStats();
+
+  // Use recentSnapshotFailures (rolling window) instead of cumulative total
+  const recentFailures = writerStats.recentSnapshotFailures || 0;
+  
+  // Snapshot writes are healthy if no recent failures
+  const snapshotWriteHealthy = recentFailures === 0;
+  
+  // Check if snapshots were written recently (within last 2 minutes)
+  // Only consider this a problem if devices are connected AND snapshots are pending
+  const lastSnapshotAge = writerStats.lastSnapshotWriteTime 
+    ? (Date.now() - new Date(writerStats.lastSnapshotWriteTime).getTime()) / 1000
+    : null;
+  const snapshotsRecent = lastSnapshotAge !== null && lastSnapshotAge < 120;
+  
+  // Only flag stale writes if we have connected devices AND pending snapshots
+  const hasPendingWork = (writerStats.pendingSnapshots || 0) > 0 || poolStats.connected > 0;
+  const staleWriteIssue = !snapshotsRecent && hasPendingWork && writerStats.snapshotsWritten > 0;
+
+  const healthy = 
+    schedulerStats.isRunning && 
+    writerStats.isRunning &&
+    snapshotWriteHealthy &&
+    writerStats.currentQueueSize < config.batchWriter.maxQueueSize * 0.9;
+
+  return {
+    status: healthy ? 'healthy' : 'degraded',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    components: {
+      connectionPool: {
+        status: poolStats.connected > 0 ? 'ok' : 'warning',
+        devices: poolStats.totalDevices,
+        connected: poolStats.connected,
+        disconnected: poolStats.disconnected,
+        reconnecting: poolStats.reconnecting,
+      },
+      pollingScheduler: {
+        status: schedulerStats.isRunning ? 'ok' : 'error',
+        isRunning: schedulerStats.isRunning,
+        totalPolls: schedulerStats.totalPolls,
+        successfulPolls: schedulerStats.successfulPolls,
+        failedPolls: schedulerStats.failedPolls,
+        skippedPolls: schedulerStats.skippedPolls || 0,
+        activePolls: schedulerStats.activePolls || 0,
+        successRate: schedulerStats.totalPolls > 0 
+          ? ((schedulerStats.successfulPolls / schedulerStats.totalPolls) * 100).toFixed(1) + '%'
+          : 'N/A',
+        averagePollDurationMs: schedulerStats.averagePollDurationMs?.toFixed(2) || 0,
+      },
+      batchWriter: {
+        status: writerStats.isRunning ? 'ok' : 'error',
+        isRunning: writerStats.isRunning,
+        queueSize: writerStats.currentQueueSize,
+        pendingSnapshots: writerStats.pendingSnapshots,
+        totalMeasurementsWritten: writerStats.totalWritten,
+        totalBatches: writerStats.totalBatches,
+        failedBatches: writerStats.failedBatches,
+        lastFlushTime: writerStats.lastFlushTime,
+      },
+      snapshotWrites: {
+        status: snapshotWriteHealthy && !staleWriteIssue ? 'ok' : (recentFailures > 0 ? 'error' : 'warning'),
+        totalWritten: writerStats.snapshotsWritten || 0,
+        recentFailures: recentFailures,
+        pendingRetry: writerStats.pendingSnapshots || 0,
+        lastWriteTime: writerStats.lastSnapshotWriteTime,
+        lastWriteAgeSeconds: lastSnapshotAge !== null ? Math.round(lastSnapshotAge) : null,
+        writesRecent: snapshotsRecent,
+        issue: recentFailures > 0 
+          ? `${recentFailures} recent snapshot write failures - check logs for details` 
+          : (staleWriteIssue 
+              ? 'No recent snapshot writes - devices may not be connected'
+              : null),
+      },
+    },
+  };
+}
+
+/**
  * Start the metrics/health server
  */
 function startMetricsServer() {
@@ -141,6 +225,12 @@ function startMetricsServer() {
       res.end(generateMetrics());
     } else if (req.url === config.server.healthPath) {
       const health = generateHealthCheck();
+      const statusCode = health.status === 'healthy' ? 200 : 503;
+      res.writeHead(statusCode, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(health, null, 2));
+    } else if (req.url === '/health/detailed' || req.url === '/health/snapshots') {
+      // Detailed health check with snapshot write verification
+      const health = generateDetailedHealthCheck();
       const statusCode = health.status === 'healthy' ? 200 : 503;
       res.writeHead(statusCode, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(health, null, 2));
@@ -180,4 +270,5 @@ module.exports = {
   stopMetricsServer,
   generateMetrics,
   generateHealthCheck,
+  generateDetailedHealthCheck,
 };

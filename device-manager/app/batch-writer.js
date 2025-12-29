@@ -23,6 +23,10 @@ class BatchWriter {
       queueHighWaterMark: 0,
       lastFlushTime: null,
       averageFlushDurationMs: 0,
+      // Snapshot-specific stats
+      snapshotsWritten: 0,
+      recentSnapshotFailures: 0, // Rolling window - resets on successful batch
+      lastSnapshotWriteTime: null,
     };
   }
 
@@ -137,14 +141,53 @@ class BatchWriter {
         await db.bulkInsertMeasurements(measurements);
       }
 
-      // Update snapshots (one at a time for now, could be optimized)
+      // Update snapshots (one at a time, with individual error handling)
+      // Track successful device IDs without mutating the map during iteration
+      let snapshotSuccessCount = 0;
+      let snapshotFailCount = 0;
+      const successfulDeviceIds = [];
+      
       for (const snapshot of snapshots) {
-        await db.upsertDeviceSnapshot(snapshot);
+        try {
+          await db.upsertDeviceSnapshot(snapshot);
+          snapshotSuccessCount++;
+          this.stats.snapshotsWritten++;
+          this.stats.lastSnapshotWriteTime = new Date();
+          // Track for later removal
+          successfulDeviceIds.push(snapshot.deviceId);
+        } catch (snapshotErr) {
+          snapshotFailCount++;
+          // Only increment recent failures (rolling window approach)
+          this.stats.recentSnapshotFailures = (this.stats.recentSnapshotFailures || 0) + 1;
+          logger.error('Snapshot upsert failed - will retry', {
+            deviceId: snapshot.deviceId,
+            truckId: snapshot.truckId,
+            error: snapshotErr.message
+          });
+          // Keep failed snapshot in queue for retry
+        }
+      }
+      
+      // Remove successful snapshots from queue after iteration
+      for (const deviceId of successfulDeviceIds) {
+        this.snapshotQueue.delete(deviceId);
+      }
+      
+      // Reset recent failures on successful batch (rolling window)
+      if (snapshotSuccessCount > 0 && snapshotFailCount === 0) {
+        this.stats.recentSnapshotFailures = 0;
+      }
+      
+      if (snapshotFailCount > 0) {
+        logger.warn('Some snapshots failed to write', { 
+          success: snapshotSuccessCount, 
+          failed: snapshotFailCount,
+          pendingRetry: this.snapshotQueue.size
+        });
       }
 
-      // SUCCESS: Now safe to remove flushed items from queue
+      // SUCCESS: Now safe to remove flushed measurements from queue
       this.measurementQueue.splice(0, measurementsToFlush);
-      this.snapshotQueue.clear();
 
       this.stats.totalWritten += measurements.length;
       this.stats.totalBatches++;

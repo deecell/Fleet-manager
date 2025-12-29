@@ -6,6 +6,45 @@
 
 ## Latest Updates (December 29, 2025)
 
+### Device Manager Snapshot Error Logging & Health Check (December 29, 2025)
+
+**Issue**: Admin page showed device "last seen" as current, but fleet dashboard showed stale data from Dec 21.
+
+**Root Cause Analysis**: 
+- Device Manager updates `power_mon_devices.last_seen_at` on successful polls (Admin page uses this)
+- Device Manager also should update `device_snapshots.updated_at` (Fleet dashboard uses this)
+- If `upsertDeviceSnapshot()` was failing silently, only admin page would show current data
+
+**Improvements Made**:
+
+1. **Enhanced Error Logging in `upsertDeviceSnapshot()`**:
+   - Added upfront validation for required fields (deviceId, organizationId)
+   - Wrapped database query in try-catch with comprehensive error details
+   - Logs PostgreSQL error code, detail, constraint, table, and column on failure
+   - Added success logging with device/truck IDs
+
+2. **Individual Snapshot Error Handling in Batch Writer**:
+   - Previously, one failed snapshot would fail the entire batch
+   - Now handles each snapshot individually - successful ones are removed from queue
+   - Failed snapshots stay in queue for retry
+   - Uses rolling window for failure tracking (resets on successful batch)
+
+3. **New Health Check Endpoints**:
+   - Added `/health/detailed` and `/health/snapshots` endpoints
+   - Shows snapshot-specific stats: total written, recent failures, pending retry
+   - Shows last write time and age in seconds
+   - Detects issues: high failure rate or stale writes when devices connected
+
+**Files Changed**:
+- `device-manager/app/database.js` - Enhanced error logging
+- `device-manager/app/batch-writer.js` - Individual snapshot handling, rolling window stats
+- `device-manager/app/metrics.js` - New detailed health check endpoint
+
+**To Debug the Issue**:
+After deployment, check `https://<device-manager-ip>:3001/health/detailed` to see snapshot write status, or check CloudWatch logs for "upsertDeviceSnapshot" errors.
+
+---
+
 ### IAM Security Improvements & CloudShell Setup (December 29, 2025)
 
 **Changes**:

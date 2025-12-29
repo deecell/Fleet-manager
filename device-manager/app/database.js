@@ -339,6 +339,22 @@ const PARKED_VOLTAGE_THRESHOLD = 13.0;
  * Also tracks parked status and accumulates parked time
  */
 async function upsertDeviceSnapshot(snapshot) {
+  // Validate required fields upfront
+  if (!snapshot.deviceId) {
+    logger.error('upsertDeviceSnapshot: Missing deviceId', { snapshot });
+    throw new Error('deviceId is required for snapshot upsert');
+  }
+  if (!snapshot.organizationId) {
+    logger.error('upsertDeviceSnapshot: Missing organizationId', { deviceId: snapshot.deviceId });
+    throw new Error('organizationId is required for snapshot upsert');
+  }
+  
+  logger.debug('upsertDeviceSnapshot: Starting', { 
+    deviceId: snapshot.deviceId, 
+    truckId: snapshot.truckId,
+    organizationId: snapshot.organizationId 
+  });
+  
   const now = new Date();
   const todayDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
   const currentMonth = todayDate.substring(0, 7); // YYYY-MM
@@ -456,58 +472,79 @@ async function upsertDeviceSnapshot(snapshot) {
     });
   }
   
-  await query(`
-    INSERT INTO device_snapshots 
-      (organization_id, device_id, truck_id, voltage1, voltage2, current, power, temperature, soc, energy, charge, runtime, rssi, power_status_string, is_parked, parked_since, driving_since, today_parked_minutes, parked_date, month_parked_minutes, parked_month, recorded_at, updated_at)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, NOW())
-    ON CONFLICT (device_id) 
-    DO UPDATE SET
-      truck_id = $3,
-      voltage1 = $4,
-      voltage2 = $5,
-      current = $6,
-      power = $7,
-      temperature = $8,
-      soc = $9,
-      energy = $10,
-      charge = $11,
-      runtime = $12,
-      rssi = $13,
-      power_status_string = $14,
-      is_parked = $15,
-      parked_since = $16,
-      driving_since = $17,
-      today_parked_minutes = $18,
-      parked_date = $19,
-      month_parked_minutes = $20,
-      parked_month = $21,
-      recorded_at = $22,
-      updated_at = NOW()
-  `, [
-    snapshot.organizationId,
-    snapshot.deviceId,
-    snapshot.truckId,
-    snapshot.voltage1,
-    snapshot.voltage2,
-    snapshot.current,
-    snapshot.power,
-    snapshot.temperature,
-    snapshot.soc,
-    snapshot.energy,
-    snapshot.charge,
-    snapshot.runtime,
-    snapshot.rssi || null,
-    snapshot.powerStatusString || null,
-    isParked,
-    parkedSince,
-    drivingSince,
-    Math.round(todayParkedMinutes), // Must be integer for database column
-    todayDate,
-    Math.round(baseMonthMinutes), // Completed days only (MTD = this + todayParkedMinutes)
-    currentMonth,
-    snapshot.recordedAt,
-  ]);
-  
+  try {
+    await query(`
+      INSERT INTO device_snapshots 
+        (organization_id, device_id, truck_id, voltage1, voltage2, current, power, temperature, soc, energy, charge, runtime, rssi, power_status_string, is_parked, parked_since, driving_since, today_parked_minutes, parked_date, month_parked_minutes, parked_month, recorded_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, NOW())
+      ON CONFLICT (device_id) 
+      DO UPDATE SET
+        truck_id = $3,
+        voltage1 = $4,
+        voltage2 = $5,
+        current = $6,
+        power = $7,
+        temperature = $8,
+        soc = $9,
+        energy = $10,
+        charge = $11,
+        runtime = $12,
+        rssi = $13,
+        power_status_string = $14,
+        is_parked = $15,
+        parked_since = $16,
+        driving_since = $17,
+        today_parked_minutes = $18,
+        parked_date = $19,
+        month_parked_minutes = $20,
+        parked_month = $21,
+        recorded_at = $22,
+        updated_at = NOW()
+    `, [
+      snapshot.organizationId,
+      snapshot.deviceId,
+      snapshot.truckId,
+      snapshot.voltage1,
+      snapshot.voltage2,
+      snapshot.current,
+      snapshot.power,
+      snapshot.temperature,
+      snapshot.soc,
+      snapshot.energy,
+      snapshot.charge,
+      snapshot.runtime,
+      snapshot.rssi || null,
+      snapshot.powerStatusString || null,
+      isParked,
+      parkedSince,
+      drivingSince,
+      Math.round(todayParkedMinutes), // Must be integer for database column
+      todayDate,
+      Math.round(baseMonthMinutes), // Completed days only (MTD = this + todayParkedMinutes)
+      currentMonth,
+      snapshot.recordedAt,
+    ]);
+    
+    logger.debug('upsertDeviceSnapshot: Success', { 
+      deviceId: snapshot.deviceId, 
+      truckId: snapshot.truckId,
+      isParked,
+      todayParkedMinutes: Math.round(todayParkedMinutes)
+    });
+  } catch (err) {
+    logger.error('upsertDeviceSnapshot: Database error', {
+      deviceId: snapshot.deviceId,
+      truckId: snapshot.truckId,
+      organizationId: snapshot.organizationId,
+      error: err.message,
+      code: err.code,
+      detail: err.detail,
+      constraint: err.constraint,
+      table: err.table,
+      column: err.column
+    });
+    throw err; // Re-throw so caller knows it failed
+  }
 }
 
 /**
