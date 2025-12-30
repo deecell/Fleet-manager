@@ -183,6 +183,11 @@ class DeviceConnection {
                   backoffMinutes: UNSTABLE_BACKOFF_MS / 60000,
                   resetAt: new Date(this.circuitResetAt).toISOString()
                 });
+                
+                // Persist unstable status to database immediately
+                // This ensures the device is skipped on process restart
+                db.markDeviceUnstable(this.deviceId)
+                  .catch(err => this.log.error('Failed to mark device unstable in database', { error: err.message }));
               }
             }
             

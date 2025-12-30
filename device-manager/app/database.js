@@ -319,6 +319,22 @@ async function markDeviceStale(deviceId) {
 }
 
 /**
+ * Mark device as unstable (circuit breaker triggered)
+ * Called when the in-memory circuit breaker opens to persist the status
+ * This ensures the device is skipped on process restart
+ */
+async function markDeviceUnstable(deviceId) {
+  logger.warn('Marking device as unstable in database', { deviceId });
+  await query(`
+    UPDATE power_mon_devices 
+    SET 
+      connection_status = 'unstable',
+      updated_at = NOW()
+    WHERE id = $1
+  `, [deviceId]);
+}
+
+/**
  * Get devices needing backfill
  */
 async function getDevicesNeedingBackfill(limit = 5) {
@@ -643,6 +659,7 @@ module.exports = {
   markDeviceDisconnected,
   markDeviceReporting,
   markDeviceStale,
+  markDeviceUnstable,
   updateDeviceInfo,
   getDevicesNeedingBackfill,
   updateBackfillProgress,
