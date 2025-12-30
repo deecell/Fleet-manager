@@ -6,6 +6,45 @@
 
 ## Latest Updates (December 30, 2025)
 
+### Production Schema Migration Completed (December 30, 2025)
+
+**Issue**: Production RDS schema was out of sync with the repo schema. Drizzle-kit push was blocked because:
+1. Production had columns not in repo (`users.name`, `sims.carrier`, `sims.data_usage_bytes`, `sims.data_limit_bytes`, `schema_version` table)
+2. Repo had new dual-status columns not in production
+
+**Solution**: Direct SQL migration via EC2 → RDS (bypassing drizzle-kit's destructive changes)
+
+**Key Learnings**:
+- **CloudShell CANNOT reach RDS** - RDS is in private subnet, CloudShell runs outside VPC
+- **Use EC2 via SSM** - Device Manager EC2 is in VPC and can reach RDS
+- **Direct SQL is simpler** - For schema drift, `ALTER TABLE ADD COLUMN IF NOT EXISTS` is safer than drizzle-kit
+
+**Migration Method**:
+```bash
+# From CloudShell - connect to EC2 via SSM
+INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=*device-manager*" --query '...')
+aws ssm start-session --target $INSTANCE_ID
+# From EC2 - connect to RDS
+psql "postgresql://deecell_admin:***@deecell-fleet-production-postgres.../deecell_fleet"
+# Run ALTER TABLE statements with IF NOT EXISTS
+```
+
+**Columns Added to Production**:
+- `power_mon_devices.last_reported_at` - When device last sent measurement data
+- `power_mon_devices.connection_status` - online/offline/unstable
+- `power_mon_devices.data_status` - reporting/stale/no_data
+- `power_mon_devices.last_disconnect_reason` - Disconnect reason code
+- `power_mon_devices.consecutive_disconnects` - Counter for unstable detection
+- `savings_config.default_fuel_price_per_gallon`, `use_live_fuel_prices`
+
+**Tables Created**:
+- `data_migrations`, `polling_settings`, `sim_sync_settings`, `sim_usage_history`
+
+**Schema Preserved** (already in production, now added to repo):
+- `users.name`, `sims.carrier`, `sims.data_usage_bytes`, `sims.data_limit_bytes`, `schema_version` table
+
+---
+
 ### Device State Tracking Improvements (December 30, 2025)
 
 **Issue**: Device Manager couldn't distinguish between "device reachable" and "device sending data". A device like DCL-Moeck-Shop with firmware 0.2 would connect but immediately disconnect (reason:2), appearing as "online" because `last_seen_at` updated, but never recording measurement data.
