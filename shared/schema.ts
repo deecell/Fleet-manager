@@ -28,6 +28,7 @@ export const users = pgTable("users", {
     .references(() => organizations.id, { onDelete: "cascade" }),
   email: text("email").notNull(),
   passwordHash: text("password_hash"),
+  name: text("name"),
   firstName: text("first_name"),
   lastName: text("last_name"),
   profilePictureUrl: text("profile_picture_url"),
@@ -431,11 +432,14 @@ export const sims = pgTable("sims", {
   locationAccuracy: real("location_accuracy"),
   country: text("country"),
   networkName: text("network_name"),
+  carrier: text("carrier"),
   mcc: text("mcc"),
   mnc: text("mnc"),
   lastLocationUpdate: timestamp("last_location_update"),
   dataUsedMb: real("data_used_mb").default(0),
   dataLimitMb: real("data_limit_mb"),
+  dataUsageBytes: bigint("data_usage_bytes", { mode: "number" }),
+  dataLimitBytes: bigint("data_limit_bytes", { mode: "number" }),
   lastUsageUpdate: timestamp("last_usage_update"),
   lastSyncAt: timestamp("last_sync_at"),
   isActive: boolean("is_active").default(true),
@@ -753,6 +757,15 @@ export const legacyNotificationSchema = z.object({
 });
 
 export type LegacyNotification = z.infer<typeof legacyNotificationSchema>;
+
+// =============================================================================
+// SCHEMA VERSION (legacy - preserving production data)
+// =============================================================================
+export const schemaVersion = pgTable("schema_version", {
+  id: serial("id").primaryKey(),
+  version: integer("version").notNull(),
+  appliedAt: timestamp("applied_at").defaultNow(),
+});
 
 // =============================================================================
 // ALERT TYPE CONSTANTS

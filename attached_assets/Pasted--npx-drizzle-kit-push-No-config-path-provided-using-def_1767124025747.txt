@@ -1,0 +1,47 @@
+$ npx drizzle-kit push
+No config path provided, using default 'drizzle.config.ts'
+Reading config file '/tmp/schema-update/drizzle.config.ts'
+Using 'pg' driver for database querying
+[✓] Pulling schema from database...
++ data_migrations table will be created
++ polling_settings table will be created
+ERROR
+$ ^[^[
+sh: 28:  not found
+$ 
+$ 
+$ npx drizzle-kit push
+No config path provided, using default 'drizzle.config.ts'
+Reading config file '/tmp/schema-update/drizzle.config.ts'
+Using 'pg' driver for database querying
+[✓] Pulling schema from database...
++ data_migrations table will be created
++ polling_settings table will be created
++ sim_sync_settings table will be created
++ sim_usage_history table will be created
+--- all table conflicts resolved ---
+
+
++ default_fuel_price_per_gallon column will be created
+
++ use_live_fuel_prices column will be created
+--- all columns conflicts in savings_config table resolved ---
+
+· You're about to add organizations_slug_unique unique constraint to the table, which contains 9 items. If this statement fails, you will receive an error from the database. Do you want to truncate organizations table?
+
+· You're about to add power_mon_devices_serial_number_unique unique constraint to the table, which contains 9 items. If this statement fails, you will receive an error from the database. Do you want to truncate power_mon_devices table?
+
+· You're about to add sims_iccid_unique unique constraint to the table, which contains 2 items. If this statement fails, you will receive an error from the database. Do you want to truncate sims table?
+
+ Warning  Found data-loss statements:
+· You're about to delete schema_version table with 1 items
+· You're about to delete name column in users table with 8 items
+· You're about to delete carrier column in sims table with 2 items
+· You're about to delete data_usage_bytes column in sims table with 2 items
+· You're about to delete data_limit_bytes column in sims table with 2 items
+
+THIS ACTION WILL CAUSE DATA LOSS AND CANNOT BE REVERTED
+
+Do you still want to push changes?
+❯ No, abort
+  Yes, I want to remove 1 table, remove 4 columns, 
