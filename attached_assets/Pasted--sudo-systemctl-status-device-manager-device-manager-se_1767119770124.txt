@@ -1,0 +1,22 @@
+$ sudo systemctl status device-manager
+● device-manager.service - Deecell Device Manager
+     Loaded: loaded (/etc/systemd/system/device-manager.service; enabled; preset: enabled)
+     Active: active (running) since Tue 2025-12-30 18:35:55 UTC; 5s ago
+   Main PID: 530034 (node)
+      Tasks: 27 (limit: 1008)
+     Memory: 17.0M (peak: 55.9M)
+        CPU: 1.205s
+     CGroup: /system.slice/device-manager.service
+             └─530034 node app/index.js
+
+Dec 30 18:35:59 ip-10-0-12-89 start.sh[530034]: {"timestamp":"2025-12-30T18:35:59.824Z","level":"info","message":"Connecting to device","service":"device-manager","deviceId":4,"serial":"1982A3044D3599E2","cohort":9}
+Dec 30 18:35:59 ip-10-0-12-89 start.sh[530034]: {"timestamp":"2025-12-30T18:35:59.832Z","level":"info","message":"Connected successfully","service":"device-manager","deviceId":4,"serial":"1982A3044D3599E2","cohort":9}
+Dec 30 18:35:59 ip-10-0-12-89 start.sh[530034]: {"timestamp":"2025-12-30T18:35:59.835Z","level":"info","message":"Device disconnected","service":"device-manager","deviceId":4,"serial":"1982A3044D3599E2","cohort":9,"reason":2}
+Dec 30 18:35:59 ip-10-0-12-89 start.sh[530034]: {"timestamp":"2025-12-30T18:35:59.835Z","level":"info","message":"Scheduling reconnect","service":"device-manager","deviceId":4,"serial":"1982A3044D3599E2","cohort":9,"attempt":1,"delayMs":1000}
+Dec 30 18:35:59 ip-10-0-12-89 start.sh[530034]: {"timestamp":"2025-12-30T18:35:59.837Z","level":"warn","message":"Error fetching device info","service":"device-manager","deviceId":4,"serial":"1982A3044D3599E2","cohort":9,"error":"Not connected"}
+Dec 30 18:36:00 ip-10-0-12-89 start.sh[530034]: {"timestamp":"2025-12-30T18:36:00.798Z","level":"info","message":"Truck parked - accumulating time","service":"device-manager","deviceId":7,"voltage2":0.03809315711259842,"todayParkedMinutes":1116,"m>
+Dec 30 18:36:00 ip-10-0-12-89 start.sh[530034]: {"timestamp":"2025-12-30T18:36:00.835Z","level":"info","message":"Connecting to device","service":"device-manager","deviceId":4,"serial":"1982A3044D3599E2","cohort":9}
+Dec 30 18:36:00 ip-10-0-12-89 start.sh[530034]: {"timestamp":"2025-12-30T18:36:00.843Z","level":"info","message":"Connected successfully","service":"device-manager","deviceId":4,"serial":"1982A3044D3599E2","cohort":9}
+Dec 30 18:36:00 ip-10-0-12-89 start.sh[530034]: {"timestamp":"2025-12-30T18:36:00.848Z","level":"info","message":"Device disconnected","service":"device-manager","deviceId":4,"serial":"1982A3044D3599E2","cohort":9,"reason":2}
+Dec 30 18:36:00 ip-10-0-12-89 start.sh[530034]: {"timestamp":"2025-12-30T18:36:00.848Z","level":"info","message":"Scheduling reconnect","service":"device-manager","deviceId":4,"serial":"1982A3044D3599E2","cohort":9,"attempt":1,"delayMs":1000}
+lines 1-20/20 (END)
