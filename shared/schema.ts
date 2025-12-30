@@ -96,6 +96,8 @@ export const trucks = pgTable("trucks", {
 // =============================================================================
 // POWER MON DEVICES (1:1 with truck)
 // =============================================================================
+// Connection Status: ONLINE (reachable), OFFLINE (can't reach), UNSTABLE (connect/disconnect loop)
+// Data Status: REPORTING (receiving data), STALE (connected but no data), NO_DATA (offline, no data expected)
 export const powerMonDevices = pgTable("power_mon_devices", {
   id: serial("id").primaryKey(),
   organizationId: integer("organization_id")
@@ -113,6 +115,11 @@ export const powerMonDevices = pgTable("power_mon_devices", {
   numberOfBatteries: integer("number_of_batteries"),
   status: text("status").default("offline"),
   lastSeenAt: timestamp("last_seen_at"),
+  lastReportedAt: timestamp("last_reported_at"),
+  connectionStatus: text("connection_status").default("offline"),
+  dataStatus: text("data_status").default("no_data"),
+  lastDisconnectReason: integer("last_disconnect_reason"),
+  consecutiveDisconnects: integer("consecutive_disconnects").default(0),
   assignedAt: timestamp("assigned_at"),
   unassignedAt: timestamp("unassigned_at"),
   isActive: boolean("is_active").default(true),
@@ -123,6 +130,7 @@ export const powerMonDevices = pgTable("power_mon_devices", {
   truckIdx: index("device_truck_idx").on(table.truckId),
   serialIdx: index("device_serial_idx").on(table.serialNumber),
   statusIdx: index("device_status_idx").on(table.organizationId, table.status),
+  connectionStatusIdx: index("device_connection_status_idx").on(table.organizationId, table.connectionStatus),
 }));
 
 // =============================================================================
