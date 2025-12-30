@@ -15,7 +15,8 @@
 1. **Database Query Filter** - `getActiveDevices()` now excludes devices with `connection_status = 'unstable'`
 2. **Rapid Disconnect Detection** - Tracks disconnects within 5 seconds of connect
 3. **In-Memory Circuit Breaker** - Opens after 5 rapid disconnects, 5-minute backoff
-4. **Auto-Marking** - Devices are marked `unstable` in database after 5 consecutive disconnects
+4. **Persistent Status** - When circuit breaker opens, immediately marks device as `unstable` in database via `markDeviceUnstable()`
+5. **Auto-Marking** - Devices also marked `unstable` in database after 5 consecutive disconnects
 
 **Key Constants** (connection-pool.js):
 ```javascript
@@ -24,13 +25,20 @@ const MAX_RAPID_DISCONNECTS = 5;              // Opens circuit after 5 rapid dis
 const UNSTABLE_BACKOFF_MS = 5 * 60 * 1000;   // 5 minute cooldown
 ```
 
-**Off-by-One Fix**: Changed `consecutive_disconnects >= 4` to `consecutive_disconnects + 1 >= 5` to correctly mark devices as unstable on the 5th disconnect (not 6th).
+**Test Results**: 
+- Circuit breaker correctly detects rapid disconnects (device connects for only 2ms before disconnecting)
+- Logs "Circuit breaker OPEN" after 5 rapid disconnects
+- Skips reconnection attempts while circuit is open
+- **Limitation**: Native C++ library crashes so fast that async database call may not complete before process death
+- **Workaround**: Keep problematic firmware 0.2 devices disabled (`is_active = false`) until firmware upgrade
 
-**Deployment**: Deployed via `./scripts/deploy-to-aws.sh` to EC2 instance. Device Manager now runs stable, processing 9 active devices without crash loops.
+**Long-term Fix Needed**:
+- Upgrade DCL-Moeck-Shop firmware from 0.2 to 1.18+ to fix the rapid disconnect issue
+- Consider adding a startup check that skips devices with recent crashes
 
 **Files Changed**:
-- `device-manager/app/database.js` - Added unstable filter to query, fixed off-by-one
-- `device-manager/app/connection-pool.js` - Circuit breaker constants and logic
+- `device-manager/app/database.js` - Added `markDeviceUnstable()`, unstable filter in query, off-by-one fix
+- `device-manager/app/connection-pool.js` - Circuit breaker constants, detection logic, persistent status
 
 ---
 
