@@ -13,29 +13,6 @@ const logger = require('./logger');
 let pool = null;
 
 /**
- * Get SSL configuration for database connection
- * Uses AWS RDS CA bundle if available, otherwise falls back to basic SSL
- */
-function getSslConfig() {
-  const rdsCaBundle = process.env.RDS_CA_BUNDLE;
-  
-  if (rdsCaBundle && fs.existsSync(rdsCaBundle)) {
-    logger.info('Using AWS RDS CA certificate bundle for SSL', { path: rdsCaBundle });
-    return {
-      rejectUnauthorized: true,
-      ca: fs.readFileSync(rdsCaBundle).toString()
-    };
-  }
-  
-  // Fallback for development or when certificate not available
-  // Note: rejectUnauthorized: false is less secure but allows connection
-  logger.warn('RDS CA bundle not found, using basic SSL (less secure)');
-  return {
-    rejectUnauthorized: false
-  };
-}
-
-/**
  * Initialize the database connection pool
  */
 function initDatabase() {
@@ -43,12 +20,26 @@ function initDatabase() {
     return pool;
   }
 
+  // Parse the connection URL and force our SSL settings
+  const url = new URL(config.database.url);
+  
+  // Remove sslmode from search params - we'll control SSL via pool options
+  url.searchParams.delete('sslmode');
+  
+  const connectionUrl = url.toString();
+  logger.info('Database connection configured', { 
+    host: url.hostname,
+    database: url.pathname.slice(1)
+  });
+
   pool = new Pool({
-    connectionString: config.database.url,
+    connectionString: connectionUrl,
     max: config.database.poolSize,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 10000,
-    ssl: getSslConfig()
+    ssl: {
+      rejectUnauthorized: false
+    }
   });
 
   pool.on('error', (err) => {
@@ -101,6 +92,8 @@ async function getActiveDevicesWithCredentials() {
       d.device_name,
       d.truck_id,
       d.status,
+      d.connection_status as device_connection_status,
+      d.consecutive_disconnects,
       c.applink_url,
       c.connection_key,
       c.access_key,
@@ -113,8 +106,22 @@ async function getActiveDevicesWithCredentials() {
     INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = true
     LEFT JOIN device_sync_status s ON s.device_id = d.id
     WHERE d.is_active = true
+      AND (d.connection_status IS NULL OR d.connection_status != 'unstable')
     ORDER BY d.id
   `);
+  
+  // Log any skipped unstable devices for visibility
+  const skippedResult = await query(`
+    SELECT serial_number, device_name, consecutive_disconnects 
+    FROM power_mon_devices 
+    WHERE is_active = true AND connection_status = 'unstable'
+  `);
+  if (skippedResult.rows.length > 0) {
+    logger.warn('Skipping unstable devices (circuit breaker)', { 
+      devices: skippedResult.rows.map(d => d.device_name || d.serial_number)
+    });
+  }
+  
   return result.rows;
 }
 
@@ -170,6 +177,7 @@ async function upsertDeviceSyncStatus(deviceId, orgId, cohortId) {
 
 /**
  * Mark device as connected
+ * Resets consecutive disconnects since we established a stable connection
  */
 async function markDeviceConnected(deviceId) {
   await query(`
@@ -184,7 +192,12 @@ async function markDeviceConnected(deviceId) {
   
   await query(`
     UPDATE power_mon_devices 
-    SET status = 'online', last_seen_at = NOW(), updated_at = NOW()
+    SET 
+      status = 'online', 
+      last_seen_at = NOW(), 
+      connection_status = 'online',
+      consecutive_disconnects = 0,
+      updated_at = NOW()
     WHERE id = $1
   `, [deviceId]);
 }
@@ -230,8 +243,12 @@ async function updateDeviceInfo(deviceId, deviceInfo) {
 
 /**
  * Mark device as disconnected and record gap start
+ * Tracks disconnect reason and consecutive disconnects for stability detection
+ * @param {number} deviceId - Device ID
+ * @param {Date} lastSuccessfulPoll - Last successful poll timestamp
+ * @param {number} disconnectReason - Disconnect reason code from PowerMon (optional)
  */
-async function markDeviceDisconnected(deviceId, lastSuccessfulPoll) {
+async function markDeviceDisconnected(deviceId, lastSuccessfulPoll, disconnectReason = null) {
   await query(`
     UPDATE device_sync_status 
     SET 
@@ -246,10 +263,58 @@ async function markDeviceDisconnected(deviceId, lastSuccessfulPoll) {
     WHERE device_id = $1
   `, [deviceId, lastSuccessfulPoll]);
   
+  // Update power_mon_devices with disconnect info
+  // Increment consecutive_disconnects to detect unstable connections
+  // Use consecutive_disconnects + 1 >= 5 to mark as unstable on the 5th disconnect
+  // (checking post-increment value to avoid off-by-one error)
   await query(`
     UPDATE power_mon_devices 
-    SET status = 'offline', updated_at = NOW()
+    SET 
+      status = 'offline', 
+      connection_status = CASE 
+        WHEN consecutive_disconnects + 1 >= 5 THEN 'unstable' 
+        ELSE 'offline' 
+      END,
+      data_status = CASE 
+        WHEN connection_status = 'online' AND data_status = 'reporting' THEN 'stale'
+        ELSE 'no_data'
+      END,
+      last_disconnect_reason = COALESCE($2, last_disconnect_reason),
+      consecutive_disconnects = consecutive_disconnects + 1,
+      updated_at = NOW()
     WHERE id = $1
+  `, [deviceId, disconnectReason]);
+}
+
+/**
+ * Mark device as receiving data (reporting)
+ * Called when we successfully receive measurement data
+ */
+async function markDeviceReporting(deviceId) {
+  const now = new Date();
+  await query(`
+    UPDATE power_mon_devices 
+    SET 
+      last_reported_at = $2,
+      data_status = 'reporting',
+      connection_status = 'online',
+      consecutive_disconnects = 0,
+      updated_at = $2
+    WHERE id = $1
+  `, [deviceId, now]);
+}
+
+/**
+ * Mark device data as stale (connected but no data)
+ * Called when device is connected but hasn't sent data for a threshold period
+ */
+async function markDeviceStale(deviceId) {
+  await query(`
+    UPDATE power_mon_devices 
+    SET 
+      data_status = 'stale',
+      updated_at = NOW()
+    WHERE id = $1 AND connection_status = 'online'
   `, [deviceId]);
 }
 
@@ -348,6 +413,22 @@ const PARKED_VOLTAGE_THRESHOLD = 13.0;
  * Also tracks parked status and accumulates parked time
  */
 async function upsertDeviceSnapshot(snapshot) {
+  // Validate required fields upfront
+  if (!snapshot.deviceId) {
+    logger.error('upsertDeviceSnapshot: Missing deviceId', { snapshot });
+    throw new Error('deviceId is required for snapshot upsert');
+  }
+  if (!snapshot.organizationId) {
+    logger.error('upsertDeviceSnapshot: Missing organizationId', { deviceId: snapshot.deviceId });
+    throw new Error('organizationId is required for snapshot upsert');
+  }
+  
+  logger.debug('upsertDeviceSnapshot: Starting', { 
+    deviceId: snapshot.deviceId, 
+    truckId: snapshot.truckId,
+    organizationId: snapshot.organizationId 
+  });
+  
   const now = new Date();
   const todayDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
   const currentMonth = todayDate.substring(0, 7); // YYYY-MM
@@ -465,57 +546,79 @@ async function upsertDeviceSnapshot(snapshot) {
     });
   }
   
-  await query(`
-    INSERT INTO device_snapshots 
-      (organization_id, device_id, truck_id, voltage1, voltage2, current, power, temperature, soc, energy, charge, runtime, rssi, power_status_string, is_parked, parked_since, driving_since, today_parked_minutes, parked_date, month_parked_minutes, parked_month, recorded_at, updated_at)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, NOW())
-    ON CONFLICT (device_id) 
-    DO UPDATE SET
-      voltage1 = $4,
-      voltage2 = $5,
-      current = $6,
-      power = $7,
-      temperature = $8,
-      soc = $9,
-      energy = $10,
-      charge = $11,
-      runtime = $12,
-      rssi = $13,
-      power_status_string = $14,
-      is_parked = $15,
-      parked_since = $16,
-      driving_since = $17,
-      today_parked_minutes = $18,
-      parked_date = $19,
-      month_parked_minutes = $20,
-      parked_month = $21,
-      recorded_at = $22,
-      updated_at = NOW()
-  `, [
-    snapshot.organizationId,
-    snapshot.deviceId,
-    snapshot.truckId,
-    snapshot.voltage1,
-    snapshot.voltage2,
-    snapshot.current,
-    snapshot.power,
-    snapshot.temperature,
-    snapshot.soc,
-    snapshot.energy,
-    snapshot.charge,
-    snapshot.runtime,
-    snapshot.rssi || null,
-    snapshot.powerStatusString || null,
-    isParked,
-    parkedSince,
-    drivingSince,
-    Math.round(todayParkedMinutes), // Must be integer for database column
-    todayDate,
-    Math.round(baseMonthMinutes), // Completed days only (MTD = this + todayParkedMinutes)
-    currentMonth,
-    snapshot.recordedAt,
-  ]);
-  
+  try {
+    await query(`
+      INSERT INTO device_snapshots 
+        (organization_id, device_id, truck_id, voltage1, voltage2, current, power, temperature, soc, energy, charge, runtime, rssi, power_status_string, is_parked, parked_since, driving_since, today_parked_minutes, parked_date, month_parked_minutes, parked_month, recorded_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, NOW())
+      ON CONFLICT (device_id) 
+      DO UPDATE SET
+        truck_id = $3,
+        voltage1 = $4,
+        voltage2 = $5,
+        current = $6,
+        power = $7,
+        temperature = $8,
+        soc = $9,
+        energy = $10,
+        charge = $11,
+        runtime = $12,
+        rssi = $13,
+        power_status_string = $14,
+        is_parked = $15,
+        parked_since = $16,
+        driving_since = $17,
+        today_parked_minutes = $18,
+        parked_date = $19,
+        month_parked_minutes = $20,
+        parked_month = $21,
+        recorded_at = $22,
+        updated_at = NOW()
+    `, [
+      snapshot.organizationId,
+      snapshot.deviceId,
+      snapshot.truckId,
+      snapshot.voltage1,
+      snapshot.voltage2,
+      snapshot.current,
+      snapshot.power,
+      snapshot.temperature,
+      snapshot.soc,
+      snapshot.energy,
+      snapshot.charge,
+      snapshot.runtime,
+      snapshot.rssi || null,
+      snapshot.powerStatusString || null,
+      isParked,
+      parkedSince,
+      drivingSince,
+      Math.round(todayParkedMinutes), // Must be integer for database column
+      todayDate,
+      Math.round(baseMonthMinutes), // Completed days only (MTD = this + todayParkedMinutes)
+      currentMonth,
+      snapshot.recordedAt,
+    ]);
+    
+    logger.debug('upsertDeviceSnapshot: Success', { 
+      deviceId: snapshot.deviceId, 
+      truckId: snapshot.truckId,
+      isParked,
+      todayParkedMinutes: Math.round(todayParkedMinutes)
+    });
+  } catch (err) {
+    logger.error('upsertDeviceSnapshot: Database error', {
+      deviceId: snapshot.deviceId,
+      truckId: snapshot.truckId,
+      organizationId: snapshot.organizationId,
+      error: err.message,
+      code: err.code,
+      detail: err.detail,
+      constraint: err.constraint,
+      table: err.table,
+      column: err.column
+    });
+    throw err; // Re-throw so caller knows it failed
+  }
 }
 
 /**
@@ -538,6 +641,8 @@ module.exports = {
   upsertDeviceSyncStatus,
   markDeviceConnected,
   markDeviceDisconnected,
+  markDeviceReporting,
+  markDeviceStale,
   updateDeviceInfo,
   getDevicesNeedingBackfill,
   updateBackfillProgress,

@@ -44,6 +44,11 @@ if (process.env.SIMULATION_MODE === 'true' || process.env.SIMULATION_MODE === '1
 /**
  * Connection state for a single device
  */
+// Circuit breaker configuration
+const RAPID_DISCONNECT_THRESHOLD_MS = 5000; // Disconnect within 5s of connect = rapid
+const MAX_RAPID_DISCONNECTS = 5; // After 5 rapid disconnects, mark as unstable
+const UNSTABLE_BACKOFF_MS = 300000; // 5 minutes backoff for unstable devices
+
 class DeviceConnection {
   constructor(deviceInfo) {
     this.deviceId = deviceInfo.device_id;
@@ -62,11 +67,34 @@ class DeviceConnection {
     this.reconnectAttempts = 0;
     this.reconnectTimer = null;
     
+    // Circuit breaker state
+    this.lastConnectedAt = null; // Track when connection was established
+    this.rapidDisconnectCount = deviceInfo.consecutive_disconnects || 0;
+    this.isCircuitOpen = false; // If true, don't try to connect
+    this.circuitResetAt = null; // When to try again
+    
     this.log = logger.child({ 
       deviceId: this.deviceId, 
       serial: this.serialNumber,
       cohort: this.cohortId 
     });
+  }
+  
+  /**
+   * Check if this device should be skipped due to circuit breaker
+   */
+  shouldSkipConnection() {
+    if (!this.isCircuitOpen) return false;
+    
+    // Check if cooldown has passed
+    if (this.circuitResetAt && Date.now() > this.circuitResetAt) {
+      this.log.info('Circuit breaker reset, will attempt reconnection');
+      this.isCircuitOpen = false;
+      this.circuitResetAt = null;
+      return false;
+    }
+    
+    return true;
   }
 
   /**
@@ -80,6 +108,15 @@ class DeviceConnection {
 
     if (this.status === 'connected') {
       return Promise.resolve(true);
+    }
+    
+    // Circuit breaker check
+    if (this.shouldSkipConnection()) {
+      this.log.debug('Skipping connection - circuit breaker open', {
+        rapidDisconnects: this.rapidDisconnectCount,
+        resetAt: this.circuitResetAt
+      });
+      return Promise.resolve(false);
     }
 
     this.status = 'connecting';
@@ -112,6 +149,7 @@ class DeviceConnection {
             this.status = 'connected';
             this.consecutiveFailures = 0;
             this.reconnectAttempts = 0;
+            this.lastConnectedAt = Date.now(); // Track connection time for rapid disconnect detection
             this.log.info('Connected successfully');
             
             await db.markDeviceConnected(this.deviceId);
@@ -123,14 +161,57 @@ class DeviceConnection {
           },
           onDisconnect: (reason) => {
             clearTimeout(timeout);
+            
+            // Check for rapid disconnect (disconnect within threshold of connect)
+            const isRapidDisconnect = this.lastConnectedAt && 
+              (Date.now() - this.lastConnectedAt) < RAPID_DISCONNECT_THRESHOLD_MS;
+            
+            if (isRapidDisconnect) {
+              this.rapidDisconnectCount++;
+              this.log.warn('Rapid disconnect detected', { 
+                reason, 
+                rapidDisconnects: this.rapidDisconnectCount,
+                connectionDurationMs: Date.now() - this.lastConnectedAt
+              });
+              
+              // Check if we should open the circuit breaker
+              if (this.rapidDisconnectCount >= MAX_RAPID_DISCONNECTS) {
+                this.isCircuitOpen = true;
+                this.circuitResetAt = Date.now() + UNSTABLE_BACKOFF_MS;
+                this.log.error('Circuit breaker OPEN - too many rapid disconnects', {
+                  rapidDisconnects: this.rapidDisconnectCount,
+                  backoffMinutes: UNSTABLE_BACKOFF_MS / 60000,
+                  resetAt: new Date(this.circuitResetAt).toISOString()
+                });
+              }
+            }
+            
             if (this.status === 'connecting') {
               this.log.warn('Connection failed during connect', { reason });
               this.status = 'disconnected';
+              // Track disconnect reason even during connection phase
+              db.markDeviceDisconnected(this.deviceId, this.lastSuccessfulPollAt, reason)
+                .catch(err => this.log.error('Failed to update disconnect status', { error: err.message }));
               resolve(false);
             } else {
-              this.log.info('Device disconnected', { reason });
+              this.log.info('Device disconnected', { reason, isRapidDisconnect });
               this.status = 'disconnected';
-              this.scheduleReconnect();
+              // Track disconnect reason for state analysis
+              db.markDeviceDisconnected(this.deviceId, this.lastSuccessfulPollAt, reason)
+                .then(() => {
+                  // Use longer backoff if circuit breaker is open
+                  if (this.isCircuitOpen) {
+                    this.log.info('Skipping reconnect - circuit breaker open');
+                  } else {
+                    this.scheduleReconnect();
+                  }
+                })
+                .catch(err => {
+                  this.log.error('Failed to update disconnect status', { error: err.message });
+                  if (!this.isCircuitOpen) {
+                    this.scheduleReconnect();
+                  }
+                });
             }
           }
         });

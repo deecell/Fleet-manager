@@ -92,6 +92,8 @@ async function getActiveDevicesWithCredentials() {
       d.device_name,
       d.truck_id,
       d.status,
+      d.connection_status as device_connection_status,
+      d.consecutive_disconnects,
       c.applink_url,
       c.connection_key,
       c.access_key,
@@ -104,8 +106,22 @@ async function getActiveDevicesWithCredentials() {
     INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = true
     LEFT JOIN device_sync_status s ON s.device_id = d.id
     WHERE d.is_active = true
+      AND (d.connection_status IS NULL OR d.connection_status != 'unstable')
     ORDER BY d.id
   `);
+  
+  // Log any skipped unstable devices for visibility
+  const skippedResult = await query(`
+    SELECT serial_number, device_name, consecutive_disconnects 
+    FROM power_mon_devices 
+    WHERE is_active = true AND connection_status = 'unstable'
+  `);
+  if (skippedResult.rows.length > 0) {
+    logger.warn('Skipping unstable devices (circuit breaker)', { 
+      devices: skippedResult.rows.map(d => d.device_name || d.serial_number)
+    });
+  }
+  
   return result.rows;
 }
 
@@ -249,12 +265,14 @@ async function markDeviceDisconnected(deviceId, lastSuccessfulPoll, disconnectRe
   
   // Update power_mon_devices with disconnect info
   // Increment consecutive_disconnects to detect unstable connections
+  // Use consecutive_disconnects + 1 >= 5 to mark as unstable on the 5th disconnect
+  // (checking post-increment value to avoid off-by-one error)
   await query(`
     UPDATE power_mon_devices 
     SET 
       status = 'offline', 
       connection_status = CASE 
-        WHEN consecutive_disconnects >= 4 THEN 'unstable' 
+        WHEN consecutive_disconnects + 1 >= 5 THEN 'unstable' 
         ELSE 'offline' 
       END,
       data_status = CASE 
