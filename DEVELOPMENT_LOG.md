@@ -6,6 +6,28 @@
 
 ## Latest Updates (December 30, 2025)
 
+### Fixed Device Manager Crash Loop (December 30, 2025)
+
+**Issue**: Device Manager was crash-looping every ~19 seconds, preventing snapshot data from being saved. Several devices showed "No Data" despite being online.
+
+**Root Cause**: DCL-Moeck-Shop (firmware 0.2) repeatedly failed to connect with "Not connected" errors. After multiple retries, the native PowerMon C++ library (`libpowermon_bin`) crashed with:
+```
+terminate called without an active exception
+Main process exited, code=dumped, status=6/ABRT
+```
+
+**Solution**: Disabled the problematic device from polling:
+```sql
+UPDATE power_mon_devices SET is_active = false WHERE serial_number = '1982A3044D3599E2';
+sudo systemctl restart device-manager
+```
+
+**Result**: Device Manager now runs stable. All 9 active devices show "Online + Reporting" with current timestamps.
+
+**Long-term Fix Needed**: Upgrade DCL-Moeck-Shop firmware from 0.2 to 1.18+ to fix the connection issue. Then re-enable with `is_active = true`.
+
+---
+
 ### Fixed Replit Git Authentication (December 30, 2025)
 
 **Issue**: Git push from Replit failing with "Failed to authenticate with the remote" error.
