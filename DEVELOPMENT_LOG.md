@@ -6,6 +6,34 @@
 
 ## Latest Updates (December 30, 2025)
 
+### Implemented Circuit Breaker for Unstable Devices (December 30, 2025)
+
+**Goal**: Prevent one problematic device from crashing the entire Device Manager.
+
+**Solution**: Multi-layer circuit breaker pattern:
+
+1. **Database Query Filter** - `getActiveDevices()` now excludes devices with `connection_status = 'unstable'`
+2. **Rapid Disconnect Detection** - Tracks disconnects within 5 seconds of connect
+3. **In-Memory Circuit Breaker** - Opens after 5 rapid disconnects, 5-minute backoff
+4. **Auto-Marking** - Devices are marked `unstable` in database after 5 consecutive disconnects
+
+**Key Constants** (connection-pool.js):
+```javascript
+const RAPID_DISCONNECT_THRESHOLD_MS = 5000;  // 5 seconds
+const MAX_RAPID_DISCONNECTS = 5;              // Opens circuit after 5 rapid disconnects
+const UNSTABLE_BACKOFF_MS = 5 * 60 * 1000;   // 5 minute cooldown
+```
+
+**Off-by-One Fix**: Changed `consecutive_disconnects >= 4` to `consecutive_disconnects + 1 >= 5` to correctly mark devices as unstable on the 5th disconnect (not 6th).
+
+**Deployment**: Deployed via `./scripts/deploy-to-aws.sh` to EC2 instance. Device Manager now runs stable, processing 9 active devices without crash loops.
+
+**Files Changed**:
+- `device-manager/app/database.js` - Added unstable filter to query, fixed off-by-one
+- `device-manager/app/connection-pool.js` - Circuit breaker constants and logic
+
+---
+
 ### Fixed Device Manager Crash Loop (December 30, 2025)
 
 **Issue**: Device Manager was crash-looping every ~19 seconds, preventing snapshot data from being saved. Several devices showed "No Data" despite being online.
