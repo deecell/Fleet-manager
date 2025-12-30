@@ -126,11 +126,20 @@ class DeviceConnection {
             if (this.status === 'connecting') {
               this.log.warn('Connection failed during connect', { reason });
               this.status = 'disconnected';
+              // Track disconnect reason even during connection phase
+              db.markDeviceDisconnected(this.deviceId, this.lastSuccessfulPollAt, reason)
+                .catch(err => this.log.error('Failed to update disconnect status', { error: err.message }));
               resolve(false);
             } else {
               this.log.info('Device disconnected', { reason });
               this.status = 'disconnected';
-              this.scheduleReconnect();
+              // Track disconnect reason for state analysis
+              db.markDeviceDisconnected(this.deviceId, this.lastSuccessfulPollAt, reason)
+                .then(() => this.scheduleReconnect())
+                .catch(err => {
+                  this.log.error('Failed to update disconnect status', { error: err.message });
+                  this.scheduleReconnect();
+                });
             }
           }
         });

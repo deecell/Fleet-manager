@@ -155,6 +155,8 @@ class BatchWriter {
           this.stats.lastSnapshotWriteTime = new Date();
           // Track for later removal
           successfulDeviceIds.push(snapshot.deviceId);
+          // Mark device as reporting (connected + receiving data)
+          await db.markDeviceReporting(snapshot.deviceId);
         } catch (snapshotErr) {
           snapshotFailCount++;
           // Only increment recent failures (rolling window approach)
