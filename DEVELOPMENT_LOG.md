@@ -4,7 +4,57 @@
 
 ---
 
-## Latest Updates (December 29, 2025)
+## Latest Updates (December 30, 2025)
+
+### Device State Tracking Improvements (December 30, 2025)
+
+**Issue**: Device Manager couldn't distinguish between "device reachable" and "device sending data". A device like DCL-Moeck-Shop with firmware 0.2 would connect but immediately disconnect (reason:2), appearing as "online" because `last_seen_at` updated, but never recording measurement data.
+
+**Solution**: Implemented dual-status tracking system:
+
+1. **Connection Status** - Can we reach the device?
+   - `online` - Device is connected
+   - `offline` - Can't reach device (in transit, dead zone, powered off)
+   - `unstable` - Rapid connect/disconnect loop (5+ consecutive disconnects)
+
+2. **Data Status** - Is the device sending data?
+   - `reporting` - Connected AND receiving measurement data
+   - `stale` - Connected but NOT receiving data (like DCL-Moeck-Shop)
+   - `no_data` - Offline, no data expected
+
+**Schema Changes** (`power_mon_devices` table):
+- Added `last_reported_at` - Timestamp when we last received actual measurement data
+- Added `connection_status` - ONLINE, OFFLINE, UNSTABLE
+- Added `data_status` - REPORTING, STALE, NO_DATA  
+- Added `last_disconnect_reason` - Reason code from PowerMon (e.g., 2)
+- Added `consecutive_disconnects` - Count to detect unstable connections
+
+**Device Manager Changes**:
+- `markDeviceConnected()` - Now resets `consecutive_disconnects` and sets `connection_status = 'online'`
+- `markDeviceDisconnected()` - Now tracks disconnect reason, increments consecutive disconnects, marks as 'unstable' after 5+ rapid disconnects
+- `markDeviceReporting()` - New function called when measurement data is successfully saved
+- Updated `connection-pool.js` to pass disconnect reason code to database
+
+**Admin UI Changes** (`DevicesPage.tsx`):
+- Replaced single "Status" column with "Connection" and "Data Status" columns
+- Added "Last Reported" column (when we last got data, vs "Last Seen" which is just connectivity)
+- Color-coded badges: green (online/reporting), orange (unstable/stale), red/gray (offline/no_data)
+
+**Benefits**:
+- Fleet operators can now distinguish between "can't reach truck" vs "truck reachable but device not sending data"
+- Unstable devices (firmware issues) are clearly flagged for investigation
+- Last Reported vs Last Seen helps identify devices that connect but fail to send data
+
+**Files Changed**:
+- `shared/schema.ts` - Added new columns to `power_mon_devices`
+- `device-manager/app/database.js` - Added `markDeviceReporting()`, `markDeviceStale()`, updated existing functions
+- `device-manager/app/connection-pool.js` - Pass disconnect reason to database
+- `device-manager/app/batch-writer.js` - Call `markDeviceReporting()` on successful data save
+- `client/src/pages/admin/DevicesPage.tsx` - Updated UI with new status columns
+
+---
+
+## Previous Updates (December 29, 2025)
 
 ### Device Manager Snapshot Error Logging & Health Check (December 29, 2025)
 

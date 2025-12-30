@@ -277,9 +277,11 @@ export default function DevicesPage() {
                     <TableHead>Serial Number</TableHead>
                     <TableHead>Device Name</TableHead>
                     <TableHead>Firmware</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>Connection</TableHead>
+                    <TableHead>Data Status</TableHead>
                     <TableHead>Assigned Truck</TableHead>
                     <TableHead>Last Seen</TableHead>
+                    <TableHead>Last Reported</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -291,14 +293,33 @@ export default function DevicesPage() {
                       <TableCell className="text-muted-foreground">{device.firmwareVersion || "-"}</TableCell>
                       <TableCell>
                         <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md border text-xs font-medium ${
-                          device.status === "online" 
+                          device.connectionStatus === "online" 
                             ? "bg-[rgba(0,201,80,0.14)] border-[#00c950] text-[#00953b]" 
+                            : device.connectionStatus === "unstable"
+                            ? "bg-[rgba(255,165,0,0.14)] border-[#ffa500] text-[#cc8400]"
                             : "bg-[rgba(255,9,0,0.14)] border-[#ff0900] text-[#ff0900]"
                         }`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${
-                            device.status === "online" ? "bg-[#00c950]" : "bg-[#ff0900]"
+                            device.connectionStatus === "online" ? "bg-[#00c950]" 
+                              : device.connectionStatus === "unstable" ? "bg-[#ffa500]"
+                              : "bg-[#ff0900]"
                           }`} />
-                          {device.status === "online" ? "Online" : "Offline"}
+                          {device.connectionStatus === "online" ? "Online" 
+                            : device.connectionStatus === "unstable" ? "Unstable"
+                            : "Offline"}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md border text-xs font-medium ${
+                          device.dataStatus === "reporting" 
+                            ? "bg-[rgba(0,201,80,0.14)] border-[#00c950] text-[#00953b]" 
+                            : device.dataStatus === "stale"
+                            ? "bg-[rgba(255,165,0,0.14)] border-[#ffa500] text-[#cc8400]"
+                            : "bg-[rgba(128,128,128,0.14)] border-[#808080] text-[#666666]"
+                        }`}>
+                          {device.dataStatus === "reporting" ? "Reporting" 
+                            : device.dataStatus === "stale" ? "Stale"
+                            : "No Data"}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -312,6 +333,9 @@ export default function DevicesPage() {
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {device.lastSeenAt ? new Date(device.lastSeenAt).toLocaleString() : "-"}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {device.lastReportedAt ? new Date(device.lastReportedAt).toLocaleString() : "-"}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button
