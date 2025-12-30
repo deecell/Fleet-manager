@@ -1,0 +1,11 @@
+$ sudo journalctl -u device-manager -n 500 | grep -i "snapshot\|measurement\|flush"
+Dec 30 22:22:58 ip-10-0-12-89 start.sh[587731]: {"timestamp":"2025-12-30T22:22:58.256Z","level":"info","message":"Batch writer started","service":"device-manager","flushIntervalMs":2000,"maxBatchSize":500}
+Dec 30 22:23:17 ip-10-0-12-89 start.sh[587833]: {"timestamp":"2025-12-30T22:23:17.679Z","level":"info","message":"Device Manager starting","service":"device-manager","pollInterval":10000,"cohorts":10,"batchFlushInterval":2000}
+Dec 30 22:23:17 ip-10-0-12-89 start.sh[587833]: {"timestamp":"2025-12-30T22:23:17.781Z","level":"info","message":"Batch writer started","service":"device-manager","flushIntervalMs":2000,"maxBatchSize":500}
+Dec 30 22:23:36 ip-10-0-12-89 start.sh[587938]: {"timestamp":"2025-12-30T22:23:36.157Z","level":"info","message":"Device Manager starting","service":"device-manager","pollInterval":10000,"cohorts":10,"batchFlushInterval":2000}
+Dec 30 22:23:36 ip-10-0-12-89 start.sh[587938]: {"timestamp":"2025-12-30T22:23:36.253Z","level":"info","message":"Batch writer started","service":"device-manager","flushIntervalMs":2000,"maxBatchSize":500}
+Dec 30 22:23:55 ip-10-0-12-89 start.sh[588037]: {"timestamp":"2025-12-30T22:23:55.661Z","level":"info","message":"Device Manager starting","service":"device-manager","pollInterval":10000,"cohorts":10,"batchFlushInterval":2000}
+Dec 30 22:23:55 ip-10-0-12-89 start.sh[588037]: {"timestamp":"2025-12-30T22:23:55.764Z","level":"info","message":"Batch writer started","service":"device-manager","flushIntervalMs":2000,"maxBatchSize":500}
+Dec 30 22:24:15 ip-10-0-12-89 start.sh[588137]: {"timestamp":"2025-12-30T22:24:15.139Z","level":"info","message":"Device Manager starting","service":"device-manager","pollInterval":10000,"cohorts":10,"batchFlushInterval":2000}
+Dec 30 22:24:15 ip-10-0-12-89 start.sh[588137]: {"timestamp":"2025-12-30T22:24:15.240Z","level":"info","message":"Batch writer started","service":"device-manager","flushIntervalMs":2000,"maxBatchSize":500}
+$ 
