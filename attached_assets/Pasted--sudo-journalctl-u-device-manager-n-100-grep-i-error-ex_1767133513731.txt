@@ -1,0 +1,12 @@
+$ sudo journalctl -u device-manager -n 100 | grep -i "error\|exit\|crash\|fatal\|fail\|exception"
+Dec 30 22:24:54 ip-10-0-12-89 start.sh[588340]: {"timestamp":"2025-12-30T22:24:54.376Z","level":"info","message":"Connection results","service":"device-manager","success":10,"failed":0}
+Dec 30 22:24:55 ip-10-0-12-89 start.sh[588340]: {"timestamp":"2025-12-30T22:24:55.302Z","level":"warn","message":"Error fetching device info","service":"device-manager","deviceId":4,"serial":"1982A3044D3599E2","cohort":9,"error":"Not connected"}
+Dec 30 22:24:56 ip-10-0-12-89 start.sh[588340]: {"timestamp":"2025-12-30T22:24:56.337Z","level":"warn","message":"Error fetching device info","service":"device-manager","deviceId":4,"serial":"1982A3044D3599E2","cohort":9,"error":"Not connected"}
+Dec 30 22:24:57 ip-10-0-12-89 start.sh[588340]: {"timestamp":"2025-12-30T22:24:57.351Z","level":"warn","message":"Error fetching device info","service":"device-manager","deviceId":4,"serial":"1982A3044D3599E2","cohort":9,"error":"Not connected"}
+Dec 30 22:24:58 ip-10-0-12-89 start.sh[588340]: {"timestamp":"2025-12-30T22:24:58.369Z","level":"warn","message":"Error fetching device info","service":"device-manager","deviceId":4,"serial":"1982A3044D3599E2","cohort":9,"error":"Not connected"}
+Dec 30 22:24:59 ip-10-0-12-89 start.sh[588340]: {"timestamp":"2025-12-30T22:24:59.380Z","level":"warn","message":"Error fetching device info","service":"device-manager","deviceId":4,"serial":"1982A3044D3599E2","cohort":9,"error":"Not connected"}
+Dec 30 22:25:00 ip-10-0-12-89 start.sh[588340]: {"timestamp":"2025-12-30T22:25:00.394Z","level":"warn","message":"Error fetching device info","service":"device-manager","deviceId":4,"serial":"1982A3044D3599E2","cohort":9,"error":"Not connected"}
+Dec 30 22:25:01 ip-10-0-12-89 start.sh[588340]: terminate called without an active exception
+Dec 30 22:25:01 ip-10-0-12-89 systemd[1]: device-manager.service: Main process exited, code=dumped, status=6/ABRT
+Dec 30 22:25:01 ip-10-0-12-89 systemd[1]: device-manager.service: Failed with result 'core-dump'.
+$ 
