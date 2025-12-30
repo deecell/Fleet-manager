@@ -161,6 +161,7 @@ async function upsertDeviceSyncStatus(deviceId, orgId, cohortId) {
 
 /**
  * Mark device as connected
+ * Resets consecutive disconnects since we established a stable connection
  */
 async function markDeviceConnected(deviceId) {
   await query(`
@@ -175,7 +176,12 @@ async function markDeviceConnected(deviceId) {
   
   await query(`
     UPDATE power_mon_devices 
-    SET status = 'online', last_seen_at = NOW(), updated_at = NOW()
+    SET 
+      status = 'online', 
+      last_seen_at = NOW(), 
+      connection_status = 'online',
+      consecutive_disconnects = 0,
+      updated_at = NOW()
     WHERE id = $1
   `, [deviceId]);
 }
@@ -221,8 +227,12 @@ async function updateDeviceInfo(deviceId, deviceInfo) {
 
 /**
  * Mark device as disconnected and record gap start
+ * Tracks disconnect reason and consecutive disconnects for stability detection
+ * @param {number} deviceId - Device ID
+ * @param {Date} lastSuccessfulPoll - Last successful poll timestamp
+ * @param {number} disconnectReason - Disconnect reason code from PowerMon (optional)
  */
-async function markDeviceDisconnected(deviceId, lastSuccessfulPoll) {
+async function markDeviceDisconnected(deviceId, lastSuccessfulPoll, disconnectReason = null) {
   await query(`
     UPDATE device_sync_status 
     SET 
@@ -237,10 +247,56 @@ async function markDeviceDisconnected(deviceId, lastSuccessfulPoll) {
     WHERE device_id = $1
   `, [deviceId, lastSuccessfulPoll]);
   
+  // Update power_mon_devices with disconnect info
+  // Increment consecutive_disconnects to detect unstable connections
   await query(`
     UPDATE power_mon_devices 
-    SET status = 'offline', updated_at = NOW()
+    SET 
+      status = 'offline', 
+      connection_status = CASE 
+        WHEN consecutive_disconnects >= 4 THEN 'unstable' 
+        ELSE 'offline' 
+      END,
+      data_status = CASE 
+        WHEN connection_status = 'online' AND data_status = 'reporting' THEN 'stale'
+        ELSE 'no_data'
+      END,
+      last_disconnect_reason = COALESCE($2, last_disconnect_reason),
+      consecutive_disconnects = consecutive_disconnects + 1,
+      updated_at = NOW()
     WHERE id = $1
+  `, [deviceId, disconnectReason]);
+}
+
+/**
+ * Mark device as receiving data (reporting)
+ * Called when we successfully receive measurement data
+ */
+async function markDeviceReporting(deviceId) {
+  const now = new Date();
+  await query(`
+    UPDATE power_mon_devices 
+    SET 
+      last_reported_at = $2,
+      data_status = 'reporting',
+      connection_status = 'online',
+      consecutive_disconnects = 0,
+      updated_at = $2
+    WHERE id = $1
+  `, [deviceId, now]);
+}
+
+/**
+ * Mark device data as stale (connected but no data)
+ * Called when device is connected but hasn't sent data for a threshold period
+ */
+async function markDeviceStale(deviceId) {
+  await query(`
+    UPDATE power_mon_devices 
+    SET 
+      data_status = 'stale',
+      updated_at = NOW()
+    WHERE id = $1 AND connection_status = 'online'
   `, [deviceId]);
 }
 
@@ -567,6 +623,8 @@ module.exports = {
   upsertDeviceSyncStatus,
   markDeviceConnected,
   markDeviceDisconnected,
+  markDeviceReporting,
+  markDeviceStale,
   updateDeviceInfo,
   getDevicesNeedingBackfill,
   updateBackfillProgress,
