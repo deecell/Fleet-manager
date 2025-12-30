@@ -6,6 +6,31 @@
 
 ## Latest Updates (December 30, 2025)
 
+### Fixed Replit Git Authentication (December 30, 2025)
+
+**Issue**: Git push from Replit failing with "Failed to authenticate with the remote" error.
+
+**Root Cause**: The git remote URL had a stale GitHub PAT embedded directly in it:
+```
+https://deecell:ghp_OLDTOKEN...@github.com/deecell/Fleet-manager.git
+```
+When the PAT was regenerated, this embedded token became invalid.
+
+**Solution**: Remove the embedded token from the remote URL:
+```bash
+git remote set-url origin https://github.com/deecell/Fleet-manager.git
+git push origin main
+```
+
+Replit then used its OAuth connection (which was still "Active") to authenticate instead of the stale embedded token.
+
+**Lesson Learned**: 
+- Never embed tokens directly in git remote URLs
+- Use Replit's OAuth connection for authentication (auto-refreshes)
+- If git auth breaks, check `git remote -v` for embedded credentials
+
+---
+
 ### Production Schema Migration Completed (December 30, 2025)
 
 **Issue**: Production RDS schema was out of sync with the repo schema. Drizzle-kit push was blocked because:
