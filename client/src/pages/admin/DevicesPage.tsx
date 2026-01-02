@@ -350,11 +350,11 @@ export default function DevicesPage() {
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="cursor-pointer select-none hover:bg-muted/50"
+                      className="cursor-pointer select-none hover:bg-muted/50 text-center"
                       onClick={() => handleSort("firmwareVersion")}
                       data-testid="sort-firmware"
                     >
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center justify-center gap-1">
                         Firmware
                         {sortField === "firmwareVersion" ? (
                           sortDirection === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
@@ -428,7 +428,7 @@ export default function DevicesPage() {
                     <TableRow key={device.id} data-testid={`row-device-${device.id}`}>
                       <TableCell className="font-mono text-sm">{device.serialNumber}</TableCell>
                       <TableCell className="text-muted-foreground">{device.deviceName || "-"}</TableCell>
-                      <TableCell className="text-muted-foreground">{device.firmwareVersion || "-"}</TableCell>
+                      <TableCell className="text-muted-foreground text-center">{device.firmwareVersion || "-"}</TableCell>
                       <TableCell>
                         <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md border text-xs font-medium ${
                           device.connectionStatus === "online" 
