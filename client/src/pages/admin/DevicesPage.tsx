@@ -42,7 +42,7 @@ import {
   useCreateDeviceCredential,
   useUpdateDeviceCredential,
 } from "@/lib/admin-api";
-import { Plus, Pencil, Cpu, Link2, Unlink, Key } from "lucide-react";
+import { Plus, Pencil, Cpu, Link2, Unlink, Key, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import type { PowerMonDevice } from "@shared/schema";
 
 export default function DevicesPage() {
@@ -81,6 +81,18 @@ export default function DevicesPage() {
     numberOfBatteries: "2",
     status: "offline",
   });
+
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
 
   const resetForm = () => {
     setFormData({
@@ -200,8 +212,39 @@ export default function DevicesPage() {
   };
 
   const organizations = orgsData?.organizations || [];
-  const devices = devicesData?.devices || [];
+  const rawDevices = devicesData?.devices || [];
   const allTrucks = allTrucksData?.trucks || [];
+
+  const devices = [...rawDevices].sort((a, b) => {
+    if (!sortField) return 0;
+    let aVal: string | number | null = null;
+    let bVal: string | number | null = null;
+    
+    switch (sortField) {
+      case "deviceName":
+        aVal = a.deviceName?.toLowerCase() || "";
+        bVal = b.deviceName?.toLowerCase() || "";
+        break;
+      case "serialNumber":
+        aVal = a.serialNumber?.toLowerCase() || "";
+        bVal = b.serialNumber?.toLowerCase() || "";
+        break;
+      case "firmwareVersion":
+        aVal = a.firmwareVersion || "";
+        bVal = b.firmwareVersion || "";
+        break;
+      case "connectionStatus":
+        aVal = a.connectionStatus || "";
+        bVal = b.connectionStatus || "";
+        break;
+      default:
+        return 0;
+    }
+    
+    if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
+    if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
+    return 0;
+  });
   const trucks = selectedOrgId ? (trucksData?.trucks || []) : allTrucks;
   const unassignedTrucks = trucks.filter(t => !devices.some(d => d.truckId === t.id));
   
@@ -275,7 +318,20 @@ export default function DevicesPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Serial Number</TableHead>
-                    <TableHead>Device Name</TableHead>
+                    <TableHead 
+                      className="cursor-pointer select-none hover:bg-muted/50"
+                      onClick={() => handleSort("deviceName")}
+                      data-testid="sort-device-name"
+                    >
+                      <div className="flex items-center gap-1">
+                        Device Name
+                        {sortField === "deviceName" ? (
+                          sortDirection === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                        ) : (
+                          <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
+                        )}
+                      </div>
+                    </TableHead>
                     <TableHead>Firmware</TableHead>
                     <TableHead>Connection</TableHead>
                     <TableHead>Data Status</TableHead>
