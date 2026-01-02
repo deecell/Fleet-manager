@@ -379,11 +379,11 @@ export default function DevicesPage() {
                     </TableHead>
                     <TableHead>Data Status</TableHead>
                     <TableHead 
-                      className="cursor-pointer select-none hover:bg-muted/50"
+                      className="cursor-pointer select-none hover:bg-muted/50 text-center"
                       onClick={() => handleSort("assignedTruck")}
                       data-testid="sort-assigned-truck"
                     >
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center justify-center gap-1">
                         Assigned Truck
                         {sortField === "assignedTruck" ? (
                           sortDirection === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
@@ -460,7 +460,7 @@ export default function DevicesPage() {
                             : "No Data"}
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-center">
                         {device.truckId ? (
                           <Badge variant="outline">
                             {trucks.find(t => t.id === device.truckId)?.truckNumber || `Truck #${device.truckId}`}
