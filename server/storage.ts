@@ -150,6 +150,7 @@ export interface IStorage {
     onlineDevices: number;
     offlineDevices: number;
     activeAlerts: number;
+    totalStoredPower: number;
   }>;
 
   // Password Reset Tokens

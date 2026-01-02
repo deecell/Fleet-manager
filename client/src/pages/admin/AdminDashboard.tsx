@@ -1,7 +1,7 @@
 import { AdminLayout } from "@/components/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAdminStats } from "@/lib/admin-api";
-import { Building2, Truck, Cpu, Users, AlertTriangle, Wifi, WifiOff, Layers } from "lucide-react";
+import { Building2, Truck, Cpu, Users, AlertTriangle, Wifi, WifiOff, Layers, Zap } from "lucide-react";
 
 export default function AdminDashboard() {
   const { data, isLoading } = useAdminStats();
@@ -31,39 +31,68 @@ export default function AdminDashboard() {
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[...Array(8)].map((_, i) => (
-              <Card key={i} className="animate-pulse">
-                <CardHeader className="pb-2">
-                  <div className="h-4 bg-muted rounded w-24" />
-                </CardHeader>
-                <CardContent>
-                  <div className="h-8 bg-muted rounded w-16" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {statCards.map((stat) => {
-              const Icon = stat.icon;
-              return (
-                <Card key={stat.label} className="hover-elevate">
-                  <CardHeader className="flex flex-row items-center justify-between pb-2 gap-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                      {stat.label}
-                    </CardTitle>
-                    <Icon className={`h-5 w-5 ${stat.color}`} />
+          <>
+            <Card className="mb-6 animate-pulse bg-gradient-to-r from-primary/5 to-primary/10">
+              <CardContent className="py-6">
+                <div className="h-6 bg-muted rounded w-32 mb-2" />
+                <div className="h-12 bg-muted rounded w-48" />
+              </CardContent>
+            </Card>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[...Array(8)].map((_, i) => (
+                <Card key={i} className="animate-pulse">
+                  <CardHeader className="pb-2">
+                    <div className="h-4 bg-muted rounded w-24" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold" data-testid={`text-stat-${stat.label.toLowerCase().replace(/\s/g, '-')}`}>
-                      {stat.value.toLocaleString()}
-                    </div>
+                    <div className="h-8 bg-muted rounded w-16" />
                   </CardContent>
                 </Card>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <>
+            <Card className="mb-6 bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
+              <CardContent className="py-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">Total Stored Power</p>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-4xl font-bold text-primary" data-testid="text-stat-total-stored-power">
+                        {((stats?.totalStoredPower ?? 0) / 1000).toFixed(1)}
+                      </span>
+                      <span className="text-lg text-muted-foreground">kWh</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">Combined battery capacity across all trucks</p>
+                  </div>
+                  <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Zap className="h-8 w-8 text-primary" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {statCards.map((stat) => {
+                const Icon = stat.icon;
+                return (
+                  <Card key={stat.label} className="hover-elevate">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2 gap-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">
+                        {stat.label}
+                      </CardTitle>
+                      <Icon className={`h-5 w-5 ${stat.color}`} />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-3xl font-bold" data-testid={`text-stat-${stat.label.toLowerCase().replace(/\s/g, '-')}`}>
+                        {stat.value.toLocaleString()}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </>
         )}
 
         <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">

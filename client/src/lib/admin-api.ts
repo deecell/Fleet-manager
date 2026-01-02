@@ -18,6 +18,7 @@ interface AdminStatsResponse {
     onlineDevices: number;
     offlineDevices: number;
     activeAlerts: number;
+    totalStoredPower: number;
   };
 }
 

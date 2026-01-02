@@ -790,6 +790,7 @@ export class DbStorage {
     onlineDevices: number;
     offlineDevices: number;
     activeAlerts: number;
+    totalStoredPower: number;
   }> {
     const [orgCount] = await db.select({
       count: sql<number>`count(*)::int`
@@ -817,6 +818,18 @@ export class DbStorage {
       count: sql<number>`count(*)::int`
     }).from(alerts).where(eq(alerts.status, 'active'));
 
+    const storedPowerResult = await db.execute<{ total: number }>(sql`
+      SELECT COALESCE(SUM(
+        CASE WHEN d.battery_voltage IS NOT NULL AND d.battery_ah IS NOT NULL AND d.number_of_batteries IS NOT NULL AND ds.soc IS NOT NULL
+        THEN d.battery_voltage * d.battery_ah * d.number_of_batteries * (ds.soc / 100.0)
+        ELSE 0 END
+      ), 0)::real as total
+      FROM power_mon_devices d
+      LEFT JOIN device_snapshots ds ON ds.device_id = d.id
+      WHERE d.is_active = true
+    `);
+    const storedPowerRow = storedPowerResult.rows[0] as { total: number } | undefined;
+
     return {
       totalOrganizations: orgCount?.count ?? 0,
       totalFleets: fleetCount?.count ?? 0,
@@ -826,6 +839,7 @@ export class DbStorage {
       onlineDevices: deviceStats?.online ?? 0,
       offlineDevices: deviceStats?.offline ?? 0,
       activeAlerts: alertCount?.count ?? 0,
+      totalStoredPower: storedPowerRow?.total ?? 0,
     };
   }
 
