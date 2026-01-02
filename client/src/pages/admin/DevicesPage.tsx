@@ -420,7 +420,7 @@ export default function DevicesPage() {
                         )}
                       </div>
                     </TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="text-center">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -475,7 +475,7 @@ export default function DevicesPage() {
                       <TableCell className="text-muted-foreground">
                         {device.lastReportedAt ? new Date(device.lastReportedAt).toLocaleString() : "-"}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-center">
                         <Button
                           variant="ghost"
                           size="icon"
