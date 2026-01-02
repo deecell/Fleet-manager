@@ -42,7 +42,7 @@ import {
   useCreateDeviceCredential,
   useUpdateDeviceCredential,
 } from "@/lib/admin-api";
-import { Plus, Pencil, Cpu, Link2, Unlink, Key, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, Pencil, Cpu, Link2, Unlink, Key, ArrowUpDown, ArrowUp, ArrowDown, Search } from "lucide-react";
 import type { PowerMonDevice } from "@shared/schema";
 
 export default function DevicesPage() {
@@ -84,6 +84,7 @@ export default function DevicesPage() {
 
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleSort = (field: string) => {
     if (sortField === field) {
@@ -215,12 +216,26 @@ export default function DevicesPage() {
   const rawDevices = devicesData?.devices || [];
   const allTrucks = allTrucksData?.trucks || [];
 
+  const filteredDevices = rawDevices.filter((device) => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    const truckNumber = device.truckId 
+      ? allTrucks.find(t => t.id === device.truckId)?.truckNumber?.toLowerCase() || ""
+      : "";
+    return (
+      device.serialNumber?.toLowerCase().includes(query) ||
+      device.deviceName?.toLowerCase().includes(query) ||
+      device.firmwareVersion?.toLowerCase().includes(query) ||
+      truckNumber.includes(query)
+    );
+  });
+
   const getTruckNumber = (truckId: number | null) => {
     if (!truckId) return "";
     return allTrucks.find(t => t.id === truckId)?.truckNumber?.toLowerCase() || "";
   };
 
-  const devices = [...rawDevices].sort((a, b) => {
+  const devices = [...filteredDevices].sort((a, b) => {
     if (!sortField) return 0;
     let aVal: string | number | Date | null = null;
     let bVal: string | number | Date | null = null;
@@ -294,24 +309,37 @@ export default function DevicesPage() {
 
         <Card className="mb-6">
           <CardContent className="p-4">
-            <div className="flex items-center gap-4">
-              <Label htmlFor="org-select" className="whitespace-nowrap">Organization:</Label>
-              <Select 
-                value={selectedOrgId?.toString() || "all"} 
-                onValueChange={(v) => setSelectedOrgId(v === "all" ? undefined : parseInt(v))}
-              >
-                <SelectTrigger className="w-64" data-testid="select-organization">
-                  <SelectValue placeholder="All organizations" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All organizations</SelectItem>
-                  {organizations.map((org) => (
-                    <SelectItem key={org.id} value={org.id.toString()}>
-                      {org.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <Label htmlFor="org-select" className="whitespace-nowrap">Organization:</Label>
+                <Select 
+                  value={selectedOrgId?.toString() || "all"} 
+                  onValueChange={(v) => setSelectedOrgId(v === "all" ? undefined : parseInt(v))}
+                >
+                  <SelectTrigger className="w-64" data-testid="select-organization">
+                    <SelectValue placeholder="All organizations" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All organizations</SelectItem>
+                    {organizations.map((org) => (
+                      <SelectItem key={org.id} value={org.id.toString()}>
+                        {org.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="relative w-[293px]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-[#9c9ca7]" />
+                <input
+                  type="text"
+                  placeholder="Search for something"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full h-10 pl-10 pr-4 bg-white border border-[#ebeef2] rounded-lg text-sm text-neutral-950 placeholder:text-[#9c9ca7] focus:outline-none focus:ring-1 focus:ring-[#ebeef2]"
+                  data-testid="input-search-devices"
+                />
+              </div>
             </div>
           </CardContent>
         </Card>
