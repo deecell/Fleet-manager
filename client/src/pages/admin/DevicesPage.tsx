@@ -215,10 +215,15 @@ export default function DevicesPage() {
   const rawDevices = devicesData?.devices || [];
   const allTrucks = allTrucksData?.trucks || [];
 
+  const getTruckNumber = (truckId: number | null) => {
+    if (!truckId) return "";
+    return allTrucks.find(t => t.id === truckId)?.truckNumber?.toLowerCase() || "";
+  };
+
   const devices = [...rawDevices].sort((a, b) => {
     if (!sortField) return 0;
-    let aVal: string | number | null = null;
-    let bVal: string | number | null = null;
+    let aVal: string | number | Date | null = null;
+    let bVal: string | number | Date | null = null;
     
     switch (sortField) {
       case "deviceName":
@@ -236,6 +241,18 @@ export default function DevicesPage() {
       case "connectionStatus":
         aVal = a.connectionStatus || "";
         bVal = b.connectionStatus || "";
+        break;
+      case "assignedTruck":
+        aVal = getTruckNumber(a.truckId);
+        bVal = getTruckNumber(b.truckId);
+        break;
+      case "lastSeenAt":
+        aVal = a.lastSeenAt ? new Date(a.lastSeenAt).getTime() : 0;
+        bVal = b.lastSeenAt ? new Date(b.lastSeenAt).getTime() : 0;
+        break;
+      case "lastReportedAt":
+        aVal = a.lastReportedAt ? new Date(a.lastReportedAt).getTime() : 0;
+        bVal = b.lastReportedAt ? new Date(b.lastReportedAt).getTime() : 0;
         break;
       default:
         return 0;
@@ -332,12 +349,77 @@ export default function DevicesPage() {
                         )}
                       </div>
                     </TableHead>
-                    <TableHead>Firmware</TableHead>
-                    <TableHead>Connection</TableHead>
+                    <TableHead 
+                      className="cursor-pointer select-none hover:bg-muted/50"
+                      onClick={() => handleSort("firmwareVersion")}
+                      data-testid="sort-firmware"
+                    >
+                      <div className="flex items-center gap-1">
+                        Firmware
+                        {sortField === "firmwareVersion" ? (
+                          sortDirection === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                        ) : (
+                          <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer select-none hover:bg-muted/50"
+                      onClick={() => handleSort("connectionStatus")}
+                      data-testid="sort-connection"
+                    >
+                      <div className="flex items-center gap-1">
+                        Connection
+                        {sortField === "connectionStatus" ? (
+                          sortDirection === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                        ) : (
+                          <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
+                        )}
+                      </div>
+                    </TableHead>
                     <TableHead>Data Status</TableHead>
-                    <TableHead>Assigned Truck</TableHead>
-                    <TableHead>Last Seen</TableHead>
-                    <TableHead>Last Reported</TableHead>
+                    <TableHead 
+                      className="cursor-pointer select-none hover:bg-muted/50"
+                      onClick={() => handleSort("assignedTruck")}
+                      data-testid="sort-assigned-truck"
+                    >
+                      <div className="flex items-center gap-1">
+                        Assigned Truck
+                        {sortField === "assignedTruck" ? (
+                          sortDirection === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                        ) : (
+                          <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer select-none hover:bg-muted/50"
+                      onClick={() => handleSort("lastSeenAt")}
+                      data-testid="sort-last-seen"
+                    >
+                      <div className="flex items-center gap-1">
+                        Last Seen
+                        {sortField === "lastSeenAt" ? (
+                          sortDirection === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                        ) : (
+                          <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer select-none hover:bg-muted/50"
+                      onClick={() => handleSort("lastReportedAt")}
+                      data-testid="sort-last-reported"
+                    >
+                      <div className="flex items-center gap-1">
+                        Last Reported
+                        {sortField === "lastReportedAt" ? (
+                          sortDirection === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                        ) : (
+                          <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
+                        )}
+                      </div>
+                    </TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
