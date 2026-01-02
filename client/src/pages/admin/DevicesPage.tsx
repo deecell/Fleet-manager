@@ -504,43 +504,45 @@ export default function DevicesPage() {
                         {device.lastReportedAt ? new Date(device.lastReportedAt).toLocaleString() : "-"}
                       </TableCell>
                       <TableCell className="text-center">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openEdit(device)}
-                          data-testid={`button-edit-device-${device.id}`}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openCredentials(device)}
-                          data-testid={`button-credentials-device-${device.id}`}
-                          title="Manage PowerMon URL"
-                        >
-                          <Key className="h-4 w-4 text-purple-600" />
-                        </Button>
-                        {device.truckId ? (
+                        <div className="flex flex-wrap min-[1440px]:flex-nowrap items-center justify-center gap-0">
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleUnassign(device)}
-                            data-testid={`button-unassign-device-${device.id}`}
+                            onClick={() => openEdit(device)}
+                            data-testid={`button-edit-device-${device.id}`}
                           >
-                            <Unlink className="h-4 w-4 text-orange-600" />
+                            <Pencil className="h-4 w-4" />
                           </Button>
-                        ) : (
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => setAssigningDevice(device)}
-                            disabled={allTrucks.filter(t => t.organizationId === device.organizationId && !devices.some(d => d.truckId === t.id)).length === 0}
-                            data-testid={`button-assign-device-${device.id}`}
+                            onClick={() => openCredentials(device)}
+                            data-testid={`button-credentials-device-${device.id}`}
+                            title="Manage PowerMon URL"
                           >
-                            <Link2 className="h-4 w-4 text-blue-600" />
+                            <Key className="h-4 w-4 text-purple-600" />
                           </Button>
-                        )}
+                          {device.truckId ? (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleUnassign(device)}
+                              data-testid={`button-unassign-device-${device.id}`}
+                            >
+                              <Unlink className="h-4 w-4 text-orange-600" />
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setAssigningDevice(device)}
+                              disabled={allTrucks.filter(t => t.organizationId === device.organizationId && !devices.some(d => d.truckId === t.id)).length === 0}
+                              data-testid={`button-assign-device-${device.id}`}
+                            >
+                              <Link2 className="h-4 w-4 text-blue-600" />
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
