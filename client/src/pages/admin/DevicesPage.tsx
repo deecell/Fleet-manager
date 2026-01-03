@@ -42,8 +42,23 @@ import {
   useCreateDeviceCredential,
   useUpdateDeviceCredential,
 } from "@/lib/admin-api";
-import { Plus, Pencil, Cpu, Link2, Unlink, Key, ArrowUpDown, ArrowUp, ArrowDown, Search } from "lucide-react";
+import { Plus, Pencil, Cpu, Link2, Unlink, Key, Search } from "lucide-react";
 import type { PowerMonDevice } from "@shared/schema";
+
+function SortIcon({ direction }: { direction: "asc" | "desc" | null }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5">
+      <g opacity={direction === "desc" ? "1" : "0.4"}>
+        <path d="M12.2507 9.3335L9.91732 11.6668L7.58398 9.3335" stroke="currentColor" strokeWidth="1.16667" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M9.91602 11.6668V2.3335" stroke="currentColor" strokeWidth="1.16667" strokeLinecap="round" strokeLinejoin="round"/>
+      </g>
+      <g opacity={direction === "asc" ? "1" : "0.4"}>
+        <path d="M1.75 4.66659L4.08333 2.33325L6.41667 4.66659" stroke="currentColor" strokeWidth="1.16667" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M4.08398 2.3335V11.6668" stroke="currentColor" strokeWidth="1.16667" strokeLinecap="round" strokeLinejoin="round"/>
+      </g>
+    </svg>
+  );
+}
 
 export default function DevicesPage() {
   const { toast } = useToast();
@@ -370,11 +385,7 @@ export default function DevicesPage() {
                     >
                       <div className="flex items-center gap-1">
                         Device Name
-                        {sortField === "deviceName" ? (
-                          sortDirection === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
-                        ) : (
-                          <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
-                        )}
+                        <SortIcon direction={sortField === "deviceName" ? sortDirection : null} />
                       </div>
                     </TableHead>
                     <TableHead 
@@ -384,11 +395,7 @@ export default function DevicesPage() {
                     >
                       <div className="flex items-center justify-center gap-1">
                         Firmware
-                        {sortField === "firmwareVersion" ? (
-                          sortDirection === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
-                        ) : (
-                          <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
-                        )}
+                        <SortIcon direction={sortField === "firmwareVersion" ? sortDirection : null} />
                       </div>
                     </TableHead>
                     <TableHead 
@@ -398,11 +405,7 @@ export default function DevicesPage() {
                     >
                       <div className="flex items-center gap-1">
                         Connection
-                        {sortField === "connectionStatus" ? (
-                          sortDirection === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
-                        ) : (
-                          <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
-                        )}
+                        <SortIcon direction={sortField === "connectionStatus" ? sortDirection : null} />
                       </div>
                     </TableHead>
                     <TableHead>Data Status</TableHead>
@@ -413,11 +416,7 @@ export default function DevicesPage() {
                     >
                       <div className="flex items-center justify-center gap-1">
                         Assigned Truck
-                        {sortField === "assignedTruck" ? (
-                          sortDirection === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
-                        ) : (
-                          <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
-                        )}
+                        <SortIcon direction={sortField === "assignedTruck" ? sortDirection : null} />
                       </div>
                     </TableHead>
                     <TableHead 
@@ -427,11 +426,7 @@ export default function DevicesPage() {
                     >
                       <div className="flex items-center gap-1">
                         Last Seen
-                        {sortField === "lastSeenAt" ? (
-                          sortDirection === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
-                        ) : (
-                          <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
-                        )}
+                        <SortIcon direction={sortField === "lastSeenAt" ? sortDirection : null} />
                       </div>
                     </TableHead>
                     <TableHead 
@@ -441,11 +436,7 @@ export default function DevicesPage() {
                     >
                       <div className="flex items-center gap-1">
                         Last Reported
-                        {sortField === "lastReportedAt" ? (
-                          sortDirection === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
-                        ) : (
-                          <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
-                        )}
+                        <SortIcon direction={sortField === "lastReportedAt" ? sortDirection : null} />
                       </div>
                     </TableHead>
                     <TableHead className="text-center">Actions</TableHead>
