@@ -33,6 +33,7 @@ export const users = pgTable("users", {
   lastName: text("last_name"),
   profilePictureUrl: text("profile_picture_url"),
   role: text("role").default("user"),
+  assignedTruckId: integer("assigned_truck_id"),
   isActive: boolean("is_active").default(true),
   lastLoginAt: timestamp("last_login_at"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -40,6 +41,7 @@ export const users = pgTable("users", {
 }, (table) => ({
   emailOrgIdx: uniqueIndex("user_email_org_idx").on(table.email, table.organizationId),
   orgIdx: index("user_org_idx").on(table.organizationId),
+  assignedTruckIdx: index("user_assigned_truck_idx").on(table.assignedTruckId),
 }));
 
 // =============================================================================
