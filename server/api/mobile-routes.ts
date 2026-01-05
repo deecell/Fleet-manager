@@ -11,7 +11,7 @@ router.get("/my-truck", requireAuth, async (req: Request, res: Response) => {
 
     const user = await storage.getUser(organizationId, userId);
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ error: "Not found" });
     }
 
     if (!user.assignedTruckId) {
@@ -23,11 +23,11 @@ router.get("/my-truck", requireAuth, async (req: Request, res: Response) => {
 
     const truck = await storage.getTruck(organizationId, user.assignedTruckId);
     if (!truck) {
-      return res.status(404).json({ error: "Assigned truck not found" });
+      return res.status(404).json({ error: "Not found" });
     }
 
     const device = await storage.getDeviceByTruck(organizationId, truck.id);
-    const snapshot = await storage.getSnapshotByTruck(organizationId, truck.id);
+    const snapshot = device ? await storage.getSnapshotByTruck(organizationId, truck.id) : null;
 
     const temperatureFahrenheit = snapshot?.temperature != null 
       ? (snapshot.temperature * 9/5) + 32 
@@ -41,6 +41,7 @@ router.get("/my-truck", requireAuth, async (req: Request, res: Response) => {
         model: truck.model,
         year: truck.year,
         status: truck.status,
+        isActive: truck.isActive,
       },
       device: device ? {
         id: device.id,
@@ -83,12 +84,24 @@ router.get("/my-truck/history", requireAuth, async (req: Request, res: Response)
 
     const user = await storage.getUser(organizationId, userId);
     if (!user || !user.assignedTruckId) {
-      return res.status(404).json({ error: "No truck assigned" });
+      return res.status(404).json({ error: "Not found" });
     }
 
-    const device = await storage.getDeviceByTruck(organizationId, user.assignedTruckId);
+    const truck = await storage.getTruck(organizationId, user.assignedTruckId);
+    if (!truck) {
+      return res.status(404).json({ error: "Not found" });
+    }
+
+    const device = await storage.getDeviceByTruck(organizationId, truck.id);
+    
     if (!device) {
-      return res.status(404).json({ error: "No device found for truck" });
+      return res.json({
+        deviceId: null,
+        truckId: truck.id,
+        hours: parseInt(req.query.hours as string) || 24,
+        measurements: [],
+        count: 0,
+      });
     }
 
     const hours = parseInt(req.query.hours as string) || 24;
@@ -110,7 +123,7 @@ router.get("/my-truck/history", requireAuth, async (req: Request, res: Response)
 
     res.json({
       deviceId: device.id,
-      truckId: user.assignedTruckId,
+      truckId: truck.id,
       hours,
       measurements: formattedMeasurements,
       count: formattedMeasurements.length,
