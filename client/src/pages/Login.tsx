@@ -135,6 +135,15 @@ export default function Login() {
           <div className="mt-6 text-center text-sm text-muted-foreground">
             <p>Need access? Contact your administrator.</p>
           </div>
+          <div className="mt-4 text-center">
+            <Link 
+              href="/admin/login" 
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              data-testid="link-admin-login"
+            >
+              Admin Login
+            </Link>
+          </div>
         </CardContent>
       </Card>
       </div>
