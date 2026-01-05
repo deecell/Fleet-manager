@@ -33,6 +33,7 @@ import {
   useAdminOrganizations,
   useAdminUsers,
   useAdminTrucks,
+  useAllAdminTrucks,
   useCreateUser,
   useUpdateUser,
   useDeleteUser,
@@ -48,6 +49,7 @@ export default function UsersPage() {
   const [selectedOrgId, setSelectedOrgId] = useState<number | undefined>();
   const { data: usersData, isLoading } = useAdminUsers(selectedOrgId);
   const { data: trucksData } = useAdminTrucks(selectedOrgId);
+  const { data: allTrucksData } = useAllAdminTrucks();
   const createUser = useCreateUser();
   const updateUser = useUpdateUser();
   const deleteUser = useDeleteUser();
@@ -70,7 +72,10 @@ export default function UsersPage() {
     sendWelcome: true,
   });
 
-  const trucks = trucksData?.trucks || [];
+  // Use org-specific trucks when an org is selected, otherwise use all trucks
+  const trucks = selectedOrgId 
+    ? (trucksData?.trucks || [])
+    : (allTrucksData?.trucks || []);
 
   const resetForm = () => {
     setFormData({
