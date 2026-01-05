@@ -751,6 +751,34 @@ router.delete("/users/:id", adminMiddleware, async (req: Request, res: Response)
   }
 });
 
+router.patch("/users/:id/assign-truck", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const orgId = req.query.orgId ? parseInt(req.query.orgId as string, 10) : undefined;
+    if (!orgId) {
+      return res.status(400).json({ error: "Organization ID required" });
+    }
+    
+    const { truckId } = req.body;
+    
+    if (truckId !== null && truckId !== undefined) {
+      const truck = await storage.getTruck(orgId, truckId);
+      if (!truck) {
+        return res.status(404).json({ error: "Truck not found" });
+      }
+    }
+    
+    const user = await storage.updateUser(orgId, id, { assignedTruckId: truckId ?? null });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.json({ user });
+  } catch (error) {
+    console.error("Error assigning truck to user:", error);
+    res.status(500).json({ error: "Failed to assign truck" });
+  }
+});
+
 router.get("/stats", adminMiddleware, async (req: Request, res: Response) => {
   try {
     const stats = await storage.getAdminStats();

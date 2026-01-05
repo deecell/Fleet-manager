@@ -430,6 +430,21 @@ export function useDeleteUser() {
   });
 }
 
+export function useAssignTruckToUser() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ userId, orgId, truckId }: { userId: number; orgId: number; truckId: number | null }) =>
+      adminFetch<UserResponse>(`/api/v1/admin/users/${userId}/assign-truck?orgId=${orgId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ truckId }),
+      }),
+    onSuccess: (_, { orgId }) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/organizations", orgId, "users"] });
+    },
+  });
+}
+
 interface CredentialResponse {
   credential: DeviceCredential;
 }

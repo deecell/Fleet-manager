@@ -32,27 +32,33 @@ import { useToast } from "@/hooks/use-toast";
 import {
   useAdminOrganizations,
   useAdminUsers,
+  useAdminTrucks,
   useCreateUser,
   useUpdateUser,
   useDeleteUser,
+  useAssignTruckToUser,
 } from "@/lib/admin-api";
-import { Plus, Pencil, Trash2, Users, Mail } from "lucide-react";
+import { Plus, Pencil, Trash2, Users, Mail, Truck } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import type { User } from "@shared/schema";
+import type { User, Truck as TruckType } from "@shared/schema";
 
 export default function UsersPage() {
   const { toast } = useToast();
   const { data: orgsData } = useAdminOrganizations();
   const [selectedOrgId, setSelectedOrgId] = useState<number | undefined>();
   const { data: usersData, isLoading } = useAdminUsers(selectedOrgId);
+  const { data: trucksData } = useAdminTrucks(selectedOrgId);
   const createUser = useCreateUser();
   const updateUser = useUpdateUser();
   const deleteUser = useDeleteUser();
+  const assignTruck = useAssignTruckToUser();
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<User | null>(null);
   const [createOrgId, setCreateOrgId] = useState<number | undefined>();
+  const [assigningUser, setAssigningUser] = useState<User | null>(null);
+  const [selectedTruckId, setSelectedTruckId] = useState<string>("none");
 
   const [formData, setFormData] = useState({
     email: "",
@@ -63,6 +69,8 @@ export default function UsersPage() {
     password: "",
     sendWelcome: true,
   });
+
+  const trucks = trucksData?.trucks || [];
 
   const resetForm = () => {
     setFormData({
@@ -126,6 +134,34 @@ export default function UsersPage() {
     } catch (error) {
       toast({ title: "Failed to delete user", variant: "destructive" });
     }
+  };
+
+  const handleAssignTruck = async () => {
+    if (!assigningUser) return;
+    try {
+      const truckId = selectedTruckId === "none" ? null : parseInt(selectedTruckId, 10);
+      await assignTruck.mutateAsync({ 
+        userId: assigningUser.id, 
+        orgId: assigningUser.organizationId,
+        truckId 
+      });
+      toast({ title: truckId ? "Truck assigned successfully" : "Truck unassigned successfully" });
+      setAssigningUser(null);
+      setSelectedTruckId("none");
+    } catch (error) {
+      toast({ title: "Failed to assign truck", variant: "destructive" });
+    }
+  };
+
+  const openAssignTruck = (user: User) => {
+    setAssigningUser(user);
+    setSelectedTruckId(user.assignedTruckId?.toString() || "none");
+  };
+
+  const getTruckDisplay = (truckId: number | null | undefined) => {
+    if (!truckId) return null;
+    const truck = trucks.find(t => t.id === truckId);
+    return truck ? truck.truckNumber : `#${truckId}`;
   };
 
   const openEdit = (user: User) => {
@@ -246,6 +282,7 @@ export default function UsersPage() {
                     <TableHead>Name</TableHead>
                     <TableHead>Role</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Assigned Truck</TableHead>
                     <TableHead>Last Login</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -282,10 +319,28 @@ export default function UsersPage() {
                           </Badge>
                         )}
                       </TableCell>
+                      <TableCell>
+                        {getTruckDisplay(user.assignedTruckId) ? (
+                          <Badge variant="outline" className="font-mono">
+                            {getTruckDisplay(user.assignedTruckId)}
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-muted-foreground">
                         {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : "Never"}
                       </TableCell>
                       <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => openAssignTruck(user)}
+                          title="Assign Truck"
+                          data-testid={`button-assign-truck-${user.id}`}
+                        >
+                          <Truck className="h-4 w-4" />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -540,6 +595,50 @@ export default function UsersPage() {
               </Button>
               <Button variant="destructive" onClick={handleDelete} disabled={deleteUser.isPending} data-testid="button-confirm-delete">
                 {deleteUser.isPending ? "Deleting..." : "Delete"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={!!assigningUser} onOpenChange={() => setAssigningUser(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Assign Truck</DialogTitle>
+              <DialogDescription>
+                Assign a truck to {assigningUser?.email} for the mobile app.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="assign-truck">Truck</Label>
+                <Select value={selectedTruckId} onValueChange={setSelectedTruckId}>
+                  <SelectTrigger data-testid="select-assign-truck">
+                    <SelectValue placeholder="Select a truck" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No truck assigned</SelectItem>
+                    {trucks.map((truck) => (
+                      <SelectItem key={truck.id} value={truck.id.toString()}>
+                        {truck.truckNumber} - {truck.make} {truck.model}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  This truck will appear in the driver's mobile app
+                </p>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setAssigningUser(null)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleAssignTruck} 
+                disabled={assignTruck.isPending}
+                data-testid="button-submit-assign-truck"
+              >
+                {assignTruck.isPending ? "Saving..." : "Save"}
               </Button>
             </DialogFooter>
           </DialogContent>
