@@ -376,16 +376,16 @@ export function useUnassignDevice() {
 }
 
 export function useAdminUsers(orgId?: number) {
-  if (orgId) {
-    return useQuery<UsersResponse>({
-      queryKey: ["/api/v1/admin/organizations", orgId, "users"],
-      queryFn: () => adminFetch(`/api/v1/admin/organizations/${orgId}/users`),
-      enabled: !!orgId,
-    });
-  }
+  const queryKey = orgId 
+    ? ["/api/v1/admin/organizations", orgId, "users"]
+    : ["/api/v1/admin/users"];
+  const url = orgId 
+    ? `/api/v1/admin/organizations/${orgId}/users`
+    : "/api/v1/admin/users";
+  
   return useQuery<UsersResponse>({
-    queryKey: ["/api/v1/admin/users"],
-    queryFn: () => adminFetch("/api/v1/admin/users"),
+    queryKey,
+    queryFn: () => adminFetch(url),
   });
 }
 
@@ -399,6 +399,7 @@ export function useCreateUser() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/organizations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/stats"] });
     },
   });
@@ -414,6 +415,7 @@ export function useUpdateUser() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/organizations"] });
     },
   });
 }
@@ -425,6 +427,7 @@ export function useDeleteUser() {
       adminFetch(`/api/v1/admin/users/${id}?orgId=${orgId}`, { method: "DELETE" }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/organizations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/stats"] });
     },
   });
