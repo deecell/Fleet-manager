@@ -138,7 +138,7 @@ export default function Login() {
           <div className="mt-4 text-center">
             <Link 
               href="/admin/login" 
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm hover:text-foreground transition-colors text-[#FA4B1E]"
               data-testid="link-admin-login"
             >
               Admin Login
