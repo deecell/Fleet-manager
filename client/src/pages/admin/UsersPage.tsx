@@ -279,6 +279,7 @@ export default function UsersPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Email</TableHead>
+                    {!selectedOrgId && <TableHead>Organization</TableHead>}
                     <TableHead>Name</TableHead>
                     <TableHead>Role</TableHead>
                     <TableHead>Status</TableHead>
@@ -291,6 +292,11 @@ export default function UsersPage() {
                   {users.map((user) => (
                     <TableRow key={user.id} data-testid={`row-user-${user.id}`}>
                       <TableCell className="font-medium">{user.email}</TableCell>
+                      {!selectedOrgId && (
+                        <TableCell className="text-muted-foreground">
+                          {organizations.find(o => o.id === user.organizationId)?.name || "-"}
+                        </TableCell>
+                      )}
                       <TableCell className="text-muted-foreground">
                         {[user.firstName, user.lastName].filter(Boolean).join(" ") || "-"}
                       </TableCell>
