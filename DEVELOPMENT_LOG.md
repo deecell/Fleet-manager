@@ -4,7 +4,85 @@
 
 ---
 
-## Latest Updates (December 30, 2025)
+## Latest Updates (January 5, 2026)
+
+### Mobile API for iOS Driver App (January 5, 2026)
+
+**Feature**: Created a dedicated mobile API for truck drivers to monitor their assigned truck's real-time data from an iOS app.
+
+**New Endpoints**:
+- `GET /api/v1/mobile/my-truck` - Returns the driver's assigned truck with live data
+- `GET /api/v1/mobile/my-truck/history?hours=24` - Returns measurement history for charts
+
+**Response Format** (`/my-truck`):
+```json
+{
+  "truck": {
+    "id": 1,
+    "truckNumber": "DCL-Carter",
+    "make": "Peterbilt",
+    "model": "579",
+    "year": 2023,
+    "status": "in-service"
+  },
+  "device": {
+    "id": 1,
+    "deviceName": "DCL-Carter",
+    "serialNumber": "...",
+    "connectionStatus": "online",
+    "dataStatus": "reporting",
+    "lastSeenAt": "2026-01-05T18:00:00Z",
+    "lastReportedAt": "2026-01-05T18:00:00Z"
+  },
+  "liveData": {
+    "voltage1": 27.5,
+    "voltage2": 14.2,
+    "soc": 85.3,
+    "powerKw": 1.2,
+    "energyKwh": 45.6,
+    "temperatureC": 25.0,
+    "temperatureF": 77.0,
+    "current": 12.5,
+    "isParked": false,
+    "recordedAt": "2026-01-05T18:00:00Z"
+  }
+}
+```
+
+**Schema Changes**:
+- Added `assigned_truck_id` column to `users` table
+- Added index `user_assigned_truck_idx` for efficient lookups
+
+**Driver Assignment**:
+To assign a driver to a truck, update the user record:
+```sql
+UPDATE users SET assigned_truck_id = <truck_id> WHERE id = <user_id>;
+```
+
+**Authentication**: Uses existing session-based auth (same as web app login).
+
+**iOS Integration Notes**:
+- Temperature provided in both Celsius and Fahrenheit
+- Power converted to kW for display
+- All timestamps in ISO 8601 format
+- History endpoint supports configurable time range (hours parameter)
+
+**Files Changed**:
+- `shared/schema.ts` - Added `assignedTruckId` column to users table
+- `server/api/mobile-routes.ts` - New file with mobile API endpoints
+- `server/routes.ts` - Registered mobile routes at `/api/v1/mobile`
+
+**Production Deployment Required**:
+1. Add column to production database:
+   ```sql
+   ALTER TABLE users ADD COLUMN IF NOT EXISTS assigned_truck_id integer;
+   CREATE INDEX IF NOT EXISTS user_assigned_truck_idx ON users (assigned_truck_id);
+   ```
+2. Deploy new app version to ECS
+
+---
+
+## Previous Updates (December 30, 2025)
 
 ### Implemented Circuit Breaker for Unstable Devices (December 30, 2025)
 
