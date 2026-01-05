@@ -9,6 +9,7 @@ import adminRoutes from "./api/admin-routes";
 import authRoutes from "./api/auth-routes";
 import assistantRoutes from "./api/assistant-routes";
 import migrationRoutes from "./api/migration-routes";
+import mobileRoutes from "./api/mobile-routes";
 import MemoryStore from "memorystore";
 
 const MemoryStoreSession = MemoryStore(session);
@@ -82,6 +83,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register Migration API routes (secured with Bearer token)
   app.use("/api/v1/migrate", migrationRoutes);
+
+  // Register Mobile API routes (for iOS/Android driver app)
+  app.use("/api/v1/mobile", mobileRoutes);
 
   // Health check endpoint
   app.get("/api/health", async (req: Request, res: Response) => {
