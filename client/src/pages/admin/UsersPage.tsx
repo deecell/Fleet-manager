@@ -628,11 +628,13 @@ export default function UsersPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">No truck assigned</SelectItem>
-                    {trucks.map((truck) => (
-                      <SelectItem key={truck.id} value={truck.id.toString()}>
-                        {truck.truckNumber} - {truck.make} {truck.model}
-                      </SelectItem>
-                    ))}
+                    {trucks
+                      .filter((truck) => truck.organizationId === assigningUser?.organizationId)
+                      .map((truck) => (
+                        <SelectItem key={truck.id} value={truck.id.toString()}>
+                          {truck.truckNumber} - {truck.make} {truck.model}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground mt-1">
