@@ -1,0 +1,22 @@
+$ sudo systemctl status device-manager
+● device-manager.service - Deecell Device Manager
+     Loaded: loaded (/etc/systemd/system/device-manager.service; enabled; preset: enabled)
+     Active: active (running) since Wed 2026-01-07 20:35:06 UTC; 27s ago
+   Main PID: 9480 (node)
+      Tasks: 13 (limit: 1008)
+     Memory: 14.6M (peak: 56.5M)
+        CPU: 1.219s
+     CGroup: /system.slice/device-manager.service
+             └─9480 node app/index.js
+
+Jan 07 20:35:07 ip-10-0-12-126 start.sh[9480]: {"timestamp":"2026-01-07T20:35:07.973Z","level":"info","message":"Connected successfully","service":"device-manager","deviceId":12,"serial":"A93B7B8CC0D672FE","cohort":8}
+Jan 07 20:35:07 ip-10-0-12-126 start.sh[9480]: {"timestamp":"2026-01-07T20:35:07.980Z","level":"info","message":"Connection results","service":"device-manager","success":1,"failed":0}
+Jan 07 20:35:07 ip-10-0-12-126 start.sh[9480]: {"timestamp":"2026-01-07T20:35:07.980Z","level":"info","message":"Starting polling scheduler","service":"device-manager","intervalMs":10000,"cohorts":10,"tickDurationMs":1000}
+Jan 07 20:35:07 ip-10-0-12-126 start.sh[9480]: {"timestamp":"2026-01-07T20:35:07.980Z","level":"info","message":"Backfill service started","service":"device-manager","gapThresholdMs":30000,"maxConcurrent":5}
+Jan 07 20:35:07 ip-10-0-12-126 start.sh[9480]: {"timestamp":"2026-01-07T20:35:07.980Z","level":"warn","message":"SIMPro API credentials not configured, SIM polling disabled","service":"device-manager"}
+Jan 07 20:35:07 ip-10-0-12-126 start.sh[9480]: {"timestamp":"2026-01-07T20:35:07.980Z","level":"info","message":"Device Manager started successfully","service":"device-manager","devices":1,"status":"running"}
+Jan 07 20:35:09 ip-10-0-12-126 start.sh[9480]: {"timestamp":"2026-01-07T20:35:09.140Z","level":"info","message":"Fetched device info from PowerMon","service":"device-manager","deviceId":12,"serial":"A93B7B8CC0D672FE","cohort":8,"serialNumber":"A93>
+Jan 07 20:35:09 ip-10-0-12-126 start.sh[9480]: {"timestamp":"2026-01-07T20:35:09.143Z","level":"info","message":"Updated device info","service":"device-manager","deviceId":12,"serialNumber":"A93B7B8CC0D672FE","firmwareVersion":"1.33","hardwareRevi>
+Jan 07 20:35:19 ip-10-0-12-126 start.sh[9480]: {"timestamp":"2026-01-07T20:35:19.927Z","level":"info","message":"Truck parked - accumulating time","service":"device-manager","deviceId":12,"voltage2":0.042700376361608505,"todayParkedMinutes":1235,">
+Jan 07 20:35:29 ip-10-0-12-126 start.sh[9480]: {"timestamp":"2026-01-07T20:35:29.941Z","level":"info","message":"Truck parked - accumulating time","service":"device-manager","deviceId":12,"voltage2":0.042034562677145004,"todayParkedMinutes":1235,">
+lines 1-20/20 (END)
