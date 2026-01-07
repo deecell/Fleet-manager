@@ -1,0 +1,52 @@
+$ sudo -u ubuntu /opt/device-manager/deploy.sh
+Fetching deployment artifact from S3...
+download: s3://deecell-fleet-production-device-manager-deploy-13647605/device-manager-latest.zip to ../../../../home/ubuntu/device-manager.zip
+Extracting artifact...
+Archive:  /home/ubuntu/device-manager.zip
+  inflating: binding.gyp             
+  inflating: lib/bridge-client.d.ts  
+  inflating: lib/index.ts            
+  inflating: lib/log-sync.js         
+  inflating: lib/index.d.ts          
+  inflating: lib/index.js            
+  inflating: lib/bridge-client.js    
+  inflating: package-lock.json       
+  inflating: app/sim-poller.js       
+  inflating: app/metrics.js          
+  inflating: app/logger.js           
+  inflating: app/polling-scheduler.js  
+  inflating: app/config.js           
+  inflating: app/batch-writer.js     
+  inflating: app/database.js         
+  inflating: app/connection-pool.js  
+  inflating: app/backfill-service.js  
+  inflating: app/index.js            
+  inflating: package.json            
+  inflating: build/config.gypi       
+  inflating: build/binding.Makefile  
+  inflating: build/Release/powermon_addon.node  
+  inflating: build/Release/.deps/Release/powermon_addon.node.d  
+  inflating: build/Release/.deps/Release/obj.target/powermon_addon.node.d  
+  inflating: build/Release/.deps/Release/obj.target/powermon_addon/src/addon.o.d  
+  inflating: build/Release/.deps/Release/obj.target/powermon_addon/src/powermon_wrapper.o.d  
+  inflating: build/Release/obj.target/powermon_addon.node  
+  inflating: build/Release/obj.target/powermon_addon/src/powermon_wrapper.o  
+  inflating: build/Release/obj.target/powermon_addon/src/addon.o  
+  inflating: build/powermon_addon.target.mk  
+  inflating: build/Makefile          
+  inflating: version.json            
+  inflating: src/powermon_wrapper.cpp  
+  inflating: src/addon.cpp           
+  inflating: src/powermon_bridge.cpp  
+  inflating: src/powermon_wrapper.h  
+Installing dependencies (using pre-built native addon)...
+npm warn config only Use `--omit=dev` to omit dev dependencies from the install.
+
+added 15 packages, and audited 16 packages in 1s
+
+found 0 vulnerabilities
+Verifying native addon...
+-rwxr-xr-x 1 ubuntu ubuntu 413056 Jan  7 19:20 build/Release/powermon_addon.node
+Restarting service...
+Deployment complete!
+$
