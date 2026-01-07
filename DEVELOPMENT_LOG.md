@@ -6,6 +6,47 @@
 
 ## Latest Updates (January 7, 2026)
 
+### SendGrid Email Configuration for AWS Production (January 7, 2026)
+
+**Issue**: Welcome emails were not being sent in production because the SENDGRID_API_KEY was not configured in AWS.
+
+**Solution**: Added SendGrid API key to AWS Secrets Manager and updated ECS configuration:
+
+1. **Created Secret in AWS Secrets Manager**:
+   ```bash
+   aws secretsmanager create-secret \
+     --name "deecell-fleet-production/sendgrid-api-key" \
+     --secret-string "$(cat /path/to/key.txt)" \
+     --region us-east-2
+   ```
+
+2. **Updated IAM Policy**: Added the SendGrid secret ARN to the ECS execution role's allowed secrets:
+   ```bash
+   aws iam put-role-policy \
+     --role-name deecell-fleet-production-ecs-execution-role \
+     --policy-name deecell-fleet-production-ecs-execution-policy \
+     --policy-document file:///tmp/updated-policy.json
+   ```
+
+3. **Created New Task Definition (revision 116)**: Added SENDGRID_API_KEY to the secrets array referencing the Secrets Manager ARN.
+
+4. **Forced New Deployment**:
+   ```bash
+   aws ecs update-service --cluster deecell-fleet-production-cluster \
+     --service deecell-fleet --task-definition deecell-fleet-production:116 \
+     --force-new-deployment --region us-east-2
+   ```
+
+**Key AWS Resources**:
+- Secret ARN: `arn:aws:secretsmanager:us-east-2:892213647605:secret:deecell-fleet-production/sendgrid-api-key-HRu3fw`
+- ECS Cluster: `deecell-fleet-production-cluster`
+- ECS Service: `deecell-fleet`
+- Task Definition: `deecell-fleet-production:116`
+
+**Verification**: Welcome emails now send successfully when creating new users with "Send welcome email" checked.
+
+---
+
 ### Circuit Breaker Recovery Implementation (January 7, 2026)
 
 **Issue**: Devices marked as "unstable" by the circuit breaker were stuck indefinitely - they would never automatically recover and attempt reconnection.
