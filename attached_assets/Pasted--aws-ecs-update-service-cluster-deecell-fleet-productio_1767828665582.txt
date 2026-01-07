@@ -1,0 +1,635 @@
+~ $ aws ecs update-service --cluster deecell-fleet-production-cluster --service deecell-fleet --task-definition deecell-fleet-production:116 --force-new-deployment --region us-east-2
+{
+    "service": {
+        "serviceArn": "arn:aws:ecs:us-east-2:892213647605:service/deecell-fleet-production-cluster/deecell-fleet",
+        "serviceName": "deecell-fleet",
+        "clusterArn": "arn:aws:ecs:us-east-2:892213647605:cluster/deecell-fleet-production-cluster",
+        "loadBalancers": [
+            {
+                "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-2:892213647605:targetgroup/dcltg-20251224225245578000000009/64e07a1118151673",
+                "containerName": "deecell-fleet",
+                "containerPort": 5000
+            }
+        ],
+        "serviceRegistries": [],
+        "status": "ACTIVE",
+        "desiredCount": 1,
+        "runningCount": 1,
+        "pendingCount": 0,
+        "launchType": "FARGATE",
+        "platformVersion": "LATEST",
+        "platformFamily": "Linux",
+        "taskDefinition": "arn:aws:ecs:us-east-2:892213647605:task-definition/deecell-fleet-production:116",
+        "deploymentConfiguration": {
+            "deploymentCircuitBreaker": {
+                "enable": true,
+                "rollback": true
+            },
+            "maximumPercent": 200,
+            "minimumHealthyPercent": 50,
+            "strategy": "ROLLING",
+            "bakeTimeInMinutes": 0
+        },
+        "deployments": [
+            {
+                "id": "ecs-svc/8385843707491956036",
+                "status": "PRIMARY",
+                "taskDefinition": "arn:aws:ecs:us-east-2:892213647605:task-definition/deecell-fleet-production:116",
+                "desiredCount": 0,
+                "pendingCount": 0,
+                "runningCount": 0,
+                "failedTasks": 0,
+                "createdAt": "2026-01-07T23:29:43.194000+00:00",
+                "updatedAt": "2026-01-07T23:29:43.194000+00:00",
+                "launchType": "FARGATE",
+                "platformVersion": "1.4.0",
+                "platformFamily": "Linux",
+                "networkConfiguration": {
+                    "awsvpcConfiguration": {
+                        "subnets": [
+                            "subnet-072a4185663692c3b",
+                            "subnet-04a416d42fb962cd4"
+                        ],
+                        "securityGroups": [
+                            "sg-0b4cb7ddb504da33d"
+                        ],
+                        "assignPublicIp": "DISABLED"
+                    }
+                },
+                "rolloutState": "IN_PROGRESS",
+                "rolloutStateReason": "ECS deployment ecs-svc/8385843707491956036 in progress."
+            },
+            {
+                "id": "ecs-svc/3823894882493824495",
+                "status": "ACTIVE",
+                "taskDefinition": "arn:aws:ecs:us-east-2:892213647605:task-definition/deecell-fleet-production:115",
+                "desiredCount": 1,
+                "pendingCount": 0,
+                "runningCount": 1,
+                "failedTasks": 0,
+                "createdAt": "2026-01-07T20:58:29.519000+00:00",
+                "updatedAt": "2026-01-07T21:01:10.825000+00:00",
+                "launchType": "FARGATE",
+                "platformVersion": "1.4.0",
+                "platformFamily": "Linux",
+                "networkConfiguration": {
+                    "awsvpcConfiguration": {
+                        "subnets": [
+                            "subnet-072a4185663692c3b",
+                            "subnet-04a416d42fb962cd4"
+                        ],
+                        "securityGroups": [
+                            "sg-0b4cb7ddb504da33d"
+                        ],
+                        "assignPublicIp": "DISABLED"
+                    }
+                },
+                "rolloutState": "COMPLETED",
+                "rolloutStateReason": "ECS deployment ecs-svc/3823894882493824495 completed."
+            }
+        ],
+        "roleArn": "arn:aws:iam::892213647605:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS",
+        "events": [
+            {
+                "id": "5280fe24-9429-4e28-aca5-3cbf25ab2a84",
+                "createdAt": "2026-01-07T21:01:10.830000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "9b63e31d-6d66-4932-aa9f-ce64d9304737",
+                "createdAt": "2026-01-07T21:01:10.829000+00:00",
+                "message": "(service deecell-fleet) (deployment ecs-svc/3823894882493824495) deployment completed."
+            },
+            {
+                "id": "9419339b-1969-437d-a553-f709a49357a3",
+                "createdAt": "2026-01-07T21:00:17.744000+00:00",
+                "message": "(service deecell-fleet, taskSet ecs-svc/2490716014962221667) has begun draining connections on 1 tasks."
+            },
+            {
+                "id": "739a0dc3-9abc-4d29-82e8-927224cd14ca",
+                "createdAt": "2026-01-07T21:00:17.721000+00:00",
+                "message": "(service deecell-fleet) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:892213647605:targetgroup/dcltg-20251224225245578000000009/64e07a1118151673)"
+            },
+            {
+                "id": "8e4db333-07c4-40bf-9eca-2eb1e3a7d509",
+                "createdAt": "2026-01-07T21:00:08.358000+00:00",
+                "message": "(service deecell-fleet) has stopped 1 running tasks: (task b414433609cd4a99a9a964900afa984d)."
+            },
+            {
+                "id": "b673fbfc-90ce-4e26-a9a3-b39a5f9e8ba4",
+                "createdAt": "2026-01-07T20:59:36.811000+00:00",
+                "message": "(service deecell-fleet) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:892213647605:targetgroup/dcltg-20251224225245578000000009/64e07a1118151673)"
+            },
+            {
+                "id": "71433cb5-e6a2-4879-b97c-dac75c2d8247",
+                "createdAt": "2026-01-07T20:58:55.795000+00:00",
+                "message": "(service deecell-fleet) has started 1 tasks: (task 9fa2adfd7fe048a8bd30a12b2e43ac66)."
+            },
+            {
+                "id": "f1b278eb-6d6d-45e4-b49d-9232eee8e455",
+                "createdAt": "2026-01-07T18:52:34.823000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "6aca9a1d-aff7-45c6-8788-0fffb21c43f9",
+                "createdAt": "2026-01-07T15:43:05.829000+00:00",
+                "message": "IAM trust relationship has been misconfigured or changed, and ECS can no longer maintain your (service deecell-fleet). Please reconfigure your IAM role. \nFailure Context: Role: (arn:aws:iam::892213647605:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS)\nMore info: https://docs.aws.amazon.com/en_us/AmazonECS/latest/developerguide/service-event-messages-list.html."
+            },
+            {
+                "id": "a6c09cd1-2249-4256-afee-13249ae208e6",
+                "createdAt": "2026-01-07T09:33:02.716000+00:00",
+                "message": "IAM trust relationship has been misconfigured or changed, and ECS can no longer maintain your (service deecell-fleet). Please reconfigure your IAM role. \nFailure Context: Role: (arn:aws:iam::892213647605:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS)\nMore info: https://docs.aws.amazon.com/en_us/AmazonECS/latest/developerguide/service-event-messages-list.html."
+            },
+            {
+                "id": "3b795d8b-138e-42dd-aa9e-d6bcd5a1b24f",
+                "createdAt": "2026-01-07T09:25:36.421000+00:00",
+                "message": "(service deecell-fleet) failed to describe target health on (target-group arn:aws:elasticloadbalancing:us-east-2:892213647605:targetgroup/dcltg-20251224225245578000000009/64e07a1118151673) with (error The security token included in the request is invalid.)"
+            },
+            {
+                "id": "5cddda8e-6280-47cc-9c74-15923bc1258f",
+                "createdAt": "2026-01-07T05:36:59.931000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "d7cb68df-b915-4866-b442-111a0564fcb3",
+                "createdAt": "2026-01-06T23:36:18.903000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "4dafd958-9ce8-469a-a808-3452364394be",
+                "createdAt": "2026-01-06T17:36:03.383000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "ec971c83-2a3c-4c57-9550-75f7885d7779",
+                "createdAt": "2026-01-06T11:35:37.297000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "3c6f1df0-073b-4969-aa9b-5d5295c6c1f9",
+                "createdAt": "2026-01-06T05:35:09.152000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "39d7d70c-ca25-40c1-8089-be1ce7a4c74c",
+                "createdAt": "2026-01-05T23:34:55.048000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "46d4e671-4e35-4181-ab8e-53dfb92da664",
+                "createdAt": "2026-01-05T23:34:55.047000+00:00",
+                "message": "(service deecell-fleet) (deployment ecs-svc/2490716014962221667) deployment completed."
+            },
+            {
+                "id": "51d38da7-5e4b-4e68-b122-01a60b269a07",
+                "createdAt": "2026-01-05T23:34:02.612000+00:00",
+                "message": "(service deecell-fleet, taskSet ecs-svc/0259882596426237802) has begun draining connections on 1 tasks."
+            },
+            {
+                "id": "71a16040-100f-467b-900e-6b266be3024a",
+                "createdAt": "2026-01-05T23:34:02.608000+00:00",
+                "message": "(service deecell-fleet) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:892213647605:targetgroup/dcltg-20251224225245578000000009/64e07a1118151673)"
+            },
+            {
+                "id": "891e3a21-bc27-481c-90b1-986e935a8ef5",
+                "createdAt": "2026-01-05T23:33:52.121000+00:00",
+                "message": "(service deecell-fleet) has stopped 1 running tasks: (task 89304c2a7e36439b902bed1763747f15)."
+            },
+            {
+                "id": "08ab9870-e153-4c75-8a57-4552f4d38b83",
+                "createdAt": "2026-01-05T23:33:11.137000+00:00",
+                "message": "(service deecell-fleet) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:892213647605:targetgroup/dcltg-20251224225245578000000009/64e07a1118151673)"
+            },
+            {
+                "id": "f55dcd26-14a2-445c-b60e-075116f637dd",
+                "createdAt": "2026-01-05T23:32:40.291000+00:00",
+                "message": "(service deecell-fleet) has started 1 tasks: (task b414433609cd4a99a9a964900afa984d)."
+            },
+            {
+                "id": "c8f9c34e-21f1-4d2d-995f-a8960ef0f485",
+                "createdAt": "2026-01-05T23:23:30.902000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "53565892-f87d-4162-9b0e-46e2dc61c1c2",
+                "createdAt": "2026-01-05T23:23:30.901000+00:00",
+                "message": "(service deecell-fleet) (deployment ecs-svc/0259882596426237802) deployment completed."
+            },
+            {
+                "id": "ffc4b0b5-6927-42c2-b068-b423be34448d",
+                "createdAt": "2026-01-05T23:22:38.024000+00:00",
+                "message": "(service deecell-fleet, taskSet ecs-svc/3702298104962376356) has begun draining connections on 1 tasks."
+            },
+            {
+                "id": "8e450bc7-a63d-477d-9138-b5291fb82111",
+                "createdAt": "2026-01-05T23:22:38.020000+00:00",
+                "message": "(service deecell-fleet) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:892213647605:targetgroup/dcltg-20251224225245578000000009/64e07a1118151673)"
+            },
+            {
+                "id": "8ab8050c-7d06-4642-9c95-1ac77f82ce24",
+                "createdAt": "2026-01-05T23:22:27.810000+00:00",
+                "message": "(service deecell-fleet) has stopped 1 running tasks: (task 0f48c6233c914182b45e665e59626183)."
+            },
+            {
+                "id": "b2df1184-5bf6-4a6a-a15d-ae1f0b4e5018",
+                "createdAt": "2026-01-05T23:21:46.927000+00:00",
+                "message": "(service deecell-fleet) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:892213647605:targetgroup/dcltg-20251224225245578000000009/64e07a1118151673)"
+            },
+            {
+                "id": "f4ae7d53-218e-42be-bbee-bda4f5719ca4",
+                "createdAt": "2026-01-05T23:21:15.824000+00:00",
+                "message": "(service deecell-fleet) has started 1 tasks: (task 89304c2a7e36439b902bed1763747f15)."
+            },
+            {
+                "id": "401ec907-f4e4-464d-8f54-d8270c3f3b74",
+                "createdAt": "2026-01-05T23:12:05.432000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "8c73882a-7716-4350-bb27-1fe8b221f2b9",
+                "createdAt": "2026-01-05T23:12:05.431000+00:00",
+                "message": "(service deecell-fleet) (deployment ecs-svc/3702298104962376356) deployment completed."
+            },
+            {
+                "id": "c3ef4f73-85bc-4167-8cee-c381a4ee16bd",
+                "createdAt": "2026-01-05T23:11:04.075000+00:00",
+                "message": "(service deecell-fleet, taskSet ecs-svc/6380657441632122984) has begun draining connections on 1 tasks."
+            },
+            {
+                "id": "ebd81543-9668-489b-84e0-5a151d07e06b",
+                "createdAt": "2026-01-05T23:11:04.071000+00:00",
+                "message": "(service deecell-fleet) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:892213647605:targetgroup/dcltg-20251224225245578000000009/64e07a1118151673)"
+            },
+            {
+                "id": "9c43781b-98f3-4300-8319-63e53f8e573f",
+                "createdAt": "2026-01-05T23:10:53.309000+00:00",
+                "message": "(service deecell-fleet) has stopped 1 running tasks: (task 5d2e7e47fe8c4362933735830d46e2b5)."
+            },
+            {
+                "id": "be0ffd60-deff-44fa-9e26-ed76cea9ee06",
+                "createdAt": "2026-01-05T23:10:11.879000+00:00",
+                "message": "(service deecell-fleet) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:892213647605:targetgroup/dcltg-20251224225245578000000009/64e07a1118151673)"
+            },
+            {
+                "id": "ed1ba459-4fe6-4b29-82d1-ae405fff9a97",
+                "createdAt": "2026-01-05T23:09:41.822000+00:00",
+                "message": "(service deecell-fleet) has started 1 tasks: (task 0f48c6233c914182b45e665e59626183)."
+            },
+            {
+                "id": "3335ebd1-8b74-4be4-b23d-8942aa973a52",
+                "createdAt": "2026-01-05T22:54:49.274000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "994ae3bc-4d69-462d-992a-dc7360aeb95f",
+                "createdAt": "2026-01-05T22:54:49.273000+00:00",
+                "message": "(service deecell-fleet) (deployment ecs-svc/6380657441632122984) deployment completed."
+            },
+            {
+                "id": "75d0979c-6462-43aa-8359-13379f2ae408",
+                "createdAt": "2026-01-05T22:53:47.481000+00:00",
+                "message": "(service deecell-fleet, taskSet ecs-svc/2473020116390024013) has begun draining connections on 1 tasks."
+            },
+            {
+                "id": "32651fa0-5c50-4161-8fd9-a4d15e092806",
+                "createdAt": "2026-01-05T22:53:47.456000+00:00",
+                "message": "(service deecell-fleet) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:892213647605:targetgroup/dcltg-20251224225245578000000009/64e07a1118151673)"
+            },
+            {
+                "id": "5c07cd3b-4491-46cc-b7d0-97ef0bfa95d2",
+                "createdAt": "2026-01-05T22:53:37.345000+00:00",
+                "message": "(service deecell-fleet) has stopped 1 running tasks: (task f9e27d445dde4c6d901bf17cabdb93f1)."
+            },
+            {
+                "id": "91b2d8f3-8680-4906-9c97-3b18b689641e",
+                "createdAt": "2026-01-05T22:52:55.519000+00:00",
+                "message": "(service deecell-fleet) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:892213647605:targetgroup/dcltg-20251224225245578000000009/64e07a1118151673)"
+            },
+            {
+                "id": "a7a6a050-8cc7-408c-80e2-cb749a366c80",
+                "createdAt": "2026-01-05T22:52:25.270000+00:00",
+                "message": "(service deecell-fleet) has started 1 tasks: (task 5d2e7e47fe8c4362933735830d46e2b5)."
+            },
+            {
+                "id": "65106fae-cefc-481a-89dc-c90282a82a1f",
+                "createdAt": "2026-01-05T21:32:34.590000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "9994645b-d0fe-46e8-b22c-b63e3a0c0957",
+                "createdAt": "2026-01-05T15:32:08.413000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "28da37fa-9087-4748-8aff-e44c559ed6c2",
+                "createdAt": "2026-01-05T09:31:48.784000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "218477a6-b4cc-49ba-9ee6-3cfcb3ebf76c",
+                "createdAt": "2026-01-05T03:31:25.148000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "c71b3f3f-0c49-43f7-b055-ec9e4af73333",
+                "createdAt": "2026-01-04T21:31:05.189000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "978b738e-325f-4a90-a3dd-4728c700edde",
+                "createdAt": "2026-01-04T15:30:56.101000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "49fdaff2-32d0-4cd2-b97e-0c7b9488ad49",
+                "createdAt": "2026-01-04T09:30:43.308000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "b0a431ca-c09c-4c1c-9e3f-f506858f7468",
+                "createdAt": "2026-01-04T03:30:40.383000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "6df349b8-2968-45e5-b313-203af28095f6",
+                "createdAt": "2026-01-03T21:30:01.613000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "89c0d1f3-b2e7-4e39-aac8-ffc31b9dfd1d",
+                "createdAt": "2026-01-03T15:29:37.498000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "2d9d1ca3-28fd-4f3c-92a4-9d28536ef3a3",
+                "createdAt": "2026-01-03T09:29:36.027000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "3ef0238b-1333-43fe-be06-a3a7550ea3c2",
+                "createdAt": "2026-01-03T03:29:26.193000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "63def30a-e86e-4748-bc38-970c03cfbf58",
+                "createdAt": "2026-01-03T03:29:26.192000+00:00",
+                "message": "(service deecell-fleet) (deployment ecs-svc/2473020116390024013) deployment completed."
+            },
+            {
+                "id": "e87e1246-781e-4929-a5d2-26f4a7da9a30",
+                "createdAt": "2026-01-03T03:28:35.740000+00:00",
+                "message": "(service deecell-fleet, taskSet ecs-svc/6712935079523597255) has begun draining connections on 1 tasks."
+            },
+            {
+                "id": "6352e67e-3444-464b-92aa-e62e92fa6917",
+                "createdAt": "2026-01-03T03:28:35.736000+00:00",
+                "message": "(service deecell-fleet) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:892213647605:targetgroup/dcltg-20251224225245578000000009/64e07a1118151673)"
+            },
+            {
+                "id": "4a67f36b-325f-4909-843e-1b0357350ae7",
+                "createdAt": "2026-01-03T03:28:24.553000+00:00",
+                "message": "(service deecell-fleet) has stopped 1 running tasks: (task 5b3d9ff7071545999dce7a4f1b352282)."
+            },
+            {
+                "id": "67c5e5c3-6599-4583-9f0d-decd471225fd",
+                "createdAt": "2026-01-03T03:27:44.950000+00:00",
+                "message": "(service deecell-fleet) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:892213647605:targetgroup/dcltg-20251224225245578000000009/64e07a1118151673)"
+            },
+            {
+                "id": "00c6a901-6d98-4e2e-ae9e-63125aaae7d6",
+                "createdAt": "2026-01-03T03:27:15.261000+00:00",
+                "message": "(service deecell-fleet) has started 1 tasks: (task f9e27d445dde4c6d901bf17cabdb93f1)."
+            },
+            {
+                "id": "5424d6e2-93b7-46fc-b72f-4eb33e51962a",
+                "createdAt": "2026-01-03T03:14:35.841000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "0dbcccf2-79fd-4f58-ba6f-b1ed991bcfa1",
+                "createdAt": "2026-01-03T03:14:35.840000+00:00",
+                "message": "(service deecell-fleet) (deployment ecs-svc/6712935079523597255) deployment completed."
+            },
+            {
+                "id": "6976b282-1188-4a9e-8a4b-4bc3dbd94357",
+                "createdAt": "2026-01-03T03:13:44.284000+00:00",
+                "message": "(service deecell-fleet, taskSet ecs-svc/5717868850740963886) has begun draining connections on 1 tasks."
+            },
+            {
+                "id": "e4c7c7cf-5ae9-4077-83be-79cedfd972ed",
+                "createdAt": "2026-01-03T03:13:44.280000+00:00",
+                "message": "(service deecell-fleet) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:892213647605:targetgroup/dcltg-20251224225245578000000009/64e07a1118151673)"
+            },
+            {
+                "id": "0bce79fa-8dfa-4707-b10d-e3f596f539cf",
+                "createdAt": "2026-01-03T03:13:34.782000+00:00",
+                "message": "(service deecell-fleet) has stopped 1 running tasks: (task 7a015998f8044be9a05cf5e1c379d0c4)."
+            },
+            {
+                "id": "f89bfc3f-e91e-4454-8e8d-097c1908f8ca",
+                "createdAt": "2026-01-03T03:12:55.060000+00:00",
+                "message": "(service deecell-fleet) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:892213647605:targetgroup/dcltg-20251224225245578000000009/64e07a1118151673)"
+            },
+            {
+                "id": "2c6782ef-b819-491f-8e4c-8f07af5de6cf",
+                "createdAt": "2026-01-03T03:12:25.343000+00:00",
+                "message": "(service deecell-fleet) has started 1 tasks: (task 5b3d9ff7071545999dce7a4f1b352282)."
+            },
+            {
+                "id": "13489c47-dad6-4e3f-b007-cea9f0f06c90",
+                "createdAt": "2026-01-02T23:23:08.667000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "2f47546f-8c61-4bc3-abf0-3608c330def0",
+                "createdAt": "2026-01-02T17:22:45.201000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "2f65a1dd-1aae-48ab-bf14-dadb9ed19758",
+                "createdAt": "2026-01-02T11:22:18.911000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "df6c9fab-1a5a-4edb-b254-fec3484cd0ce",
+                "createdAt": "2026-01-02T05:21:33.958000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "887504d7-a338-4df5-b67a-083ac4be215b",
+                "createdAt": "2026-01-01T23:20:56.736000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "0f78d1da-4049-44f2-beb9-e2a05c33906f",
+                "createdAt": "2026-01-01T17:20:17.946000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "748dd3e6-3ebd-497f-9a15-25b3b6b7df7a",
+                "createdAt": "2026-01-01T11:20:15.054000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "970983e3-92ab-4273-85d1-e86731fe24f0",
+                "createdAt": "2026-01-01T05:20:09.105000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "f51e2ccf-3644-4309-b282-8cef3b004223",
+                "createdAt": "2025-12-31T23:19:59.530000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "7c37e519-241a-499b-9140-d7d8fbea6cd6",
+                "createdAt": "2025-12-31T17:19:54.374000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "61a2afc3-84f9-465f-9840-bb3895e7d8a6",
+                "createdAt": "2025-12-31T11:19:34.274000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "635a7f48-16f2-430e-9279-4afe65897128",
+                "createdAt": "2025-12-31T05:18:59.999000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "8d919eae-87f5-4ee8-876c-79481144fab5",
+                "createdAt": "2025-12-30T23:18:34.255000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "6a84d89c-351a-4b0a-9768-296bb19e54b1",
+                "createdAt": "2025-12-30T23:18:34.253000+00:00",
+                "message": "(service deecell-fleet) (deployment ecs-svc/5717868850740963886) deployment completed."
+            },
+            {
+                "id": "64d416d5-ba05-4a76-99ae-34510ae976ec",
+                "createdAt": "2025-12-30T23:17:32.985000+00:00",
+                "message": "(service deecell-fleet, taskSet ecs-svc/7368811084313756084) has begun draining connections on 1 tasks."
+            },
+            {
+                "id": "0057fa30-a313-4049-88b5-4617db523e90",
+                "createdAt": "2025-12-30T23:17:32.980000+00:00",
+                "message": "(service deecell-fleet) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:892213647605:targetgroup/dcltg-20251224225245578000000009/64e07a1118151673)"
+            },
+            {
+                "id": "6ab841a3-e8e1-4d51-a08a-ae6d715a69dc",
+                "createdAt": "2025-12-30T23:17:23.421000+00:00",
+                "message": "(service deecell-fleet) has stopped 1 running tasks: (task 2862daa961e6488186434e7cc8b24cc6)."
+            },
+            {
+                "id": "39f68f8e-77b3-4842-b9e8-e5dd433acb6b",
+                "createdAt": "2025-12-30T23:16:43.637000+00:00",
+                "message": "(service deecell-fleet) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:892213647605:targetgroup/dcltg-20251224225245578000000009/64e07a1118151673)"
+            },
+            {
+                "id": "64d6afa2-9fef-419f-9efa-7f2445b929b9",
+                "createdAt": "2025-12-30T23:16:13.199000+00:00",
+                "message": "(service deecell-fleet) has started 1 tasks: (task 7a015998f8044be9a05cf5e1c379d0c4)."
+            },
+            {
+                "id": "14007674-8795-49ef-9e6f-666cbcdc9261",
+                "createdAt": "2025-12-30T22:00:09.563000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "09fad46f-1cdd-4bed-9ba8-f72c956de5fc",
+                "createdAt": "2025-12-30T22:00:09.562000+00:00",
+                "message": "(service deecell-fleet) (deployment ecs-svc/7368811084313756084) deployment completed."
+            },
+            {
+                "id": "bd0edcc3-b845-4ddc-bd0d-f44bfbcadec2",
+                "createdAt": "2025-12-30T21:59:09.086000+00:00",
+                "message": "(service deecell-fleet, taskSet ecs-svc/6050225447845253163) has begun draining connections on 1 tasks."
+            },
+            {
+                "id": "9a2ac01d-d01f-45b7-8687-845e3be46afe",
+                "createdAt": "2025-12-30T21:59:09.083000+00:00",
+                "message": "(service deecell-fleet) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:892213647605:targetgroup/dcltg-20251224225245578000000009/64e07a1118151673)"
+            },
+            {
+                "id": "f63d2fdd-167f-48cf-8a5b-f25883782a93",
+                "createdAt": "2025-12-30T21:58:59.314000+00:00",
+                "message": "(service deecell-fleet) has stopped 1 running tasks: (task b7d31dd3a8254c5b9da2e8f663d30ee2)."
+            },
+            {
+                "id": "99bb79d9-d775-4990-90e5-c7ec6fd28c60",
+                "createdAt": "2025-12-30T21:58:19.607000+00:00",
+                "message": "(service deecell-fleet) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:892213647605:targetgroup/dcltg-20251224225245578000000009/64e07a1118151673)"
+            },
+            {
+                "id": "35bb53ff-dab1-4158-80f0-da5e8b947598",
+                "createdAt": "2025-12-30T21:57:49.333000+00:00",
+                "message": "(service deecell-fleet) has started 1 tasks: (task 2862daa961e6488186434e7cc8b24cc6)."
+            },
+            {
+                "id": "bbf6ed51-51f1-403b-85b8-7bff7a31e206",
+                "createdAt": "2025-12-30T16:35:43.288000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "00ab318c-1dd3-47ed-a10f-a8af979b4745",
+                "createdAt": "2025-12-30T10:35:04.450000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "975254c1-64b8-4ff7-8132-2eb8868a45ee",
+                "createdAt": "2025-12-30T04:34:37.871000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "d8587f4f-5713-4abc-a851-9687941142b5",
+                "createdAt": "2025-12-29T22:34:37.601000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            },
+            {
+                "id": "9b137e5d-f2bd-4ba1-8750-1a6734fc4112",
+                "createdAt": "2025-12-29T16:34:06.038000+00:00",
+                "message": "(service deecell-fleet) has reached a steady state."
+            }
+        ],
+        "createdAt": "2025-12-24T22:56:08.764000+00:00",
+        "currentServiceRevisions": [
+            {
+                "arn": "arn:aws:ecs:us-east-2:892213647605:service-revision/deecell-fleet-production-cluster/deecell-fleet/8385843707491956036",
+                "requestedTaskCount": 0,
+                "runningTaskCount": 0,
+                "pendingTaskCount": 0
+            },
+            {
+                "arn": "arn:aws:ecs:us-east-2:892213647605:service-revision/deecell-fleet-production-cluster/deecell-fleet/3823894882493824495",
+                "requestedTaskCount": 1,
+                "runningTaskCount": 1,
+                "pendingTaskCount": 0
+            }
+        ],
+        "placementConstraints": [],
+        "placementStrategy": [],
+        "networkConfiguration": {
+            "awsvpcConfiguration": {
+                "subnets": [
+                    "subnet-072a4185663692c3b",
+                    "subnet-04a416d42fb962cd4"
+                ],
+                "securityGroups": [
+                    "sg-0b4cb7ddb504da33d"
+                ],
+                "assignPublicIp": "DISABLED"
+            }
+        },
+        "healthCheckGracePeriodSeconds": 120,
+        "schedulingStrategy": "REPLICA",
+        "deploymentController": {
+            "type": "ECS"
+        },
+        "createdBy": "arn:aws:iam::892213647605:user/automation/deecell-fleet-production-github-actions",
+        "enableECSManagedTags": false,
+        "propagateTags": "NONE",
+        "enableExecuteCommand": false,
+        "availabilityZoneRebalancing": "DISABLED",
+        "resourceManagementType": "CUSTOMER"
+    }
+}
