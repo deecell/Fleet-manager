@@ -1,0 +1,93 @@
+~ $ aws logs tail /ecs/deecell-fleet-production --since 10m --region us-east-2 | grep -v "health" | grep -i "POST\|user\|email\|admin"
+2026-01-07T23:35:55.177000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:36:14.000000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:36:14.189000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:36:25.160000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:36:44.045000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:36:44.220000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:36:55.159000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:37:14.070000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:37:14.237000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:37:25.157000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:37:44.100000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:37:44.264000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:37:55.176000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:38:14.124000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:38:14.293000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:38:25.170000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:38:44.136000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:38:44.321000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:38:55.179000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:39:14.165000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:39:14.326000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:39:25.160000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:39:44.184000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:39:44.353000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:39:47.970000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:39:54.021000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:39:54.058000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:39:55.160000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:40:14.205000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:40:14.370000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:40:15.730000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:40:24.037000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:40:24.043000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:40:25.161000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:40:44.216000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:40:44.372000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:40:45.749000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:40:54.058000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:40:54.068000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:40:55.166000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:41:15.727000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:41:24.071000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:41:24.075000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:41:25.160000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:41:45.251000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 11:41:45 PM [express] DELETE /api/v1/admin/users/12 401 in 4ms :: {"error":"Unauthorized","message":"…
+2026-01-07T23:41:45.623000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 11:41:45 PM [express] GET /api/v1/admin/session 200 in 2ms :: {"isAdmin":false}
+2026-01-07T23:41:45.725000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:41:46.763000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 11:41:46 PM [express] POST /api/v1/admin/login 200 in 3ms :: {"success":true,"message":"Admin login s…
+2026-01-07T23:41:46.837000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 11:41:46 PM [express] GET /api/v1/admin/session 200 in 3ms :: {"isAdmin":true,"email":"admin"}
+2026-01-07T23:41:46.922000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 11:41:46 PM [express] GET /api/v1/admin/stats 200 in 44ms :: {"stats":{"totalOrganizations":9,"totalF…
+2026-01-07T23:41:49.252000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 11:41:49 PM [express] GET /api/v1/admin/organizations 304 in 7ms :: {"organizations":[{"id":8,"name":…
+2026-01-07T23:41:49.254000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 11:41:49 PM [express] GET /api/v1/admin/trucks 304 in 5ms :: {"trucks":[{"id":3,"organizationId":3,"f…
+2026-01-07T23:41:49.277000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 11:41:49 PM [express] GET /api/v1/admin/users 304 in 30ms :: {"users":[{"id":2,"organizationId":2,"em…
+2026-01-07T23:41:51.861000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 11:41:51 PM [express] DELETE /api/v1/admin/users/12 200 in 16ms :: {"success":true}
+2026-01-07T23:41:51.938000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 11:41:51 PM [express] GET /api/v1/admin/users 200 in 4ms :: {"users":[{"id":2,"organizationId":2,"ema…
+2026-01-07T23:41:51.941000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 11:41:51 PM [express] GET /api/v1/admin/organizations 304 in 6ms :: {"organizations":[{"id":8,"name":…
+2026-01-07T23:41:54.078000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:41:54.105000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:41:55.159000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:42:15.727000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:42:24.093000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:42:24.130000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:42:25.177000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:42:45.728000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:42:49.198000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 11:42:49 PM [express] POST /api/v1/admin/organizations/2/users 201 in 148ms :: {"user":{"id":13,"orga…
+2026-01-07T23:42:49.276000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 11:42:49 PM [express] GET /api/v1/admin/users 200 in 4ms :: {"users":[{"id":2,"organizationId":2,"ema…
+2026-01-07T23:42:49.300000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 11:42:49 PM [express] GET /api/v1/admin/organizations 304 in 26ms :: {"organizations":[{"id":8,"name"…
+2026-01-07T23:42:54.116000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:42:54.159000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:42:55.160000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:43:15.744000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:43:24.147000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:43:24.187000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:43:25.184000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:43:45.728000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:43:54.177000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:43:54.207000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:43:55.176000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:44:15.737000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:44:24.197000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:44:24.233000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:44:25.160000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:44:45.729000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:44:54.222000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:44:54.264000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:44:55.190000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:45:15.728000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:45:24.252000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:45:24.301000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+2026-01-07T23:45:25.159000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:45:45.726000+00:00 ecs/deecell-fleet/41828c3637cf46fcaebb280dc6f46db8 RDS PostgreSQL connection successful
+~ $
