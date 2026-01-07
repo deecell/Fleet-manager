@@ -1,0 +1,336 @@
+~ $ aws logs tail /ecs/deecell-fleet-production --since 10m --region us-east-2
+2026-01-07T22:54:42.156000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:54:42.159000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:54:42.160000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:54:42 PM [express] GET /api/health 200 in 26ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T22:54:42.201000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:54:42.203000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:54:42.204000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:54:42 PM [express] GET /api/health 200 in 22ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T22:54:55.157000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:54:55.158000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:54:55.159000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:54:55 PM [express] GET /api/health 200 in 19ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T22:55:12.175000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:55:12.176000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:55:12.177000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:55:12 PM [express] GET /api/health 200 in 19ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T22:55:12.213000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:55:12.214000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:55:12.215000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:55:12 PM [express] GET /api/health 200 in 19ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T22:55:25.160000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:55:25.161000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:55:25.164000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:55:25 PM [express] GET /api/health 200 in 22ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T22:55:42.313000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:55:42.318000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:55:42.319000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:55:42 PM [express] GET /api/health 200 in 101ms :: {"status":"ok","rds":"connected","s3Bucket":"no…
+2026-01-07T22:55:42.320000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:55:42.323000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:55:42.323000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:55:42 PM [express] GET /api/health 200 in 143ms :: {"status":"ok","rds":"connected","s3Bucket":"no…
+2026-01-07T22:55:55.158000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:55:55.160000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:55:55.161000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:55:55 PM [express] GET /api/health 200 in 21ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T22:56:12.226000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:56:12.226000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:56:12.226000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:56:12 PM [express] GET /api/health 200 in 23ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T22:56:12.265000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:56:12.266000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:56:12.267000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:56:12 PM [express] GET /api/health 200 in 20ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T22:56:25.162000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:56:25.163000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:56:25.165000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:56:25 PM [express] GET /api/health 200 in 24ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T22:56:42.229000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:56:42.233000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:56:42.234000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:56:42 PM [express] GET /api/health 200 in 24ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T22:56:42.265000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:56:42.266000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:56:42.267000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:56:42 PM [express] GET /api/health 200 in 17ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T22:56:55.160000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:56:55.162000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:56:55.165000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:56:55 PM [express] GET /api/health 200 in 21ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T22:57:12.244000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:57:12.246000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:57:12.247000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:57:12 PM [express] GET /api/health 200 in 20ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T22:57:12.296000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:57:12.297000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:57:12.298000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:57:12 PM [express] GET /api/health 200 in 19ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T22:57:25.154000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:57:25.156000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:57:25.159000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:57:25 PM [express] GET /api/health 200 in 19ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T22:57:42.275000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:57:42.277000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:57:42.278000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:57:42 PM [express] GET /api/health 200 in 20ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T22:57:42.323000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:57:42.327000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:57:42.328000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:57:42 PM [express] GET /api/health 200 in 21ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T22:57:55.158000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:57:55.160000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:57:55.162000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:57:55 PM [express] GET /api/health 200 in 21ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T22:58:12.282000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:58:12.284000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:58:12.285000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:58:12 PM [express] GET /api/health 200 in 19ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T22:58:12.355000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:58:12.357000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:58:12.357000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:58:12 PM [express] GET /api/health 200 in 19ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T22:58:25.154000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:58:25.156000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:58:25.157000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:58:25 PM [express] GET /api/health 200 in 20ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T22:58:42.296000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:58:42.297000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:58:42.298000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:58:42 PM [express] GET /api/health 200 in 25ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T22:58:42.385000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:58:42.386000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:58:42.387000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:58:42 PM [express] GET /api/health 200 in 19ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T22:58:55.176000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:58:55.178000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:58:55.180000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:58:55 PM [express] GET /api/health 200 in 20ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T22:58:56.525000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:58:56 PM [express] GET /api/v1/admin/session 304 in 3ms :: {"isAdmin":true,"email":"admin"}
+2026-01-07T22:58:56.596000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:58:56 PM [express] GET /api/v1/admin/organizations 304 in 80ms :: {"organizations":[{"id":8,"name"…
+2026-01-07T22:58:56.598000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:58:56 PM [express] GET /api/v1/admin/devices 200 in 74ms :: {"devices":[{"id":4,"organizationId":2…
+2026-01-07T22:58:56.600000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:58:56 PM [express] GET /api/v1/admin/trucks 304 in 73ms :: {"trucks":[{"id":3,"organizationId":3,"…
+2026-01-07T22:59:03.311000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Error listing all users: error: column "assigned_truck_id" does not exist
+2026-01-07T22:59:03.311000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66     at /app/node_modules/pg-pool/index.js:45:11
+2026-01-07T22:59:03.311000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2026-01-07T22:59:03.311000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66     at async file:///app/node_modules/drizzle-orm/node-postgres/session.js:83:22
+2026-01-07T22:59:03.311000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66     at async file:///app/dist/index.js:4694:20 {
+2026-01-07T22:59:03.311000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   length: 118,
+2026-01-07T22:59:03.311000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   severity: 'ERROR',
+2026-01-07T22:59:03.311000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   code: '42703',
+2026-01-07T22:59:03.311000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   detail: undefined,
+2026-01-07T22:59:03.311000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   hint: undefined,
+2026-01-07T22:59:03.311000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   position: '125',
+2026-01-07T22:59:03.311000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   internalPosition: undefined,
+2026-01-07T22:59:03.311000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   internalQuery: undefined,
+2026-01-07T22:59:03.311000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   where: undefined,
+2026-01-07T22:59:03.311000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   schema: undefined,
+2026-01-07T22:59:03.311000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   table: undefined,
+2026-01-07T22:59:03.311000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   column: undefined,
+2026-01-07T22:59:03.311000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   dataType: undefined,
+2026-01-07T22:59:03.311000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   constraint: undefined,
+2026-01-07T22:59:03.311000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   file: 'parse_relation.c',
+2026-01-07T22:59:03.311000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   line: '3675',
+2026-01-07T22:59:03.311000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   routine: 'errorMissingColumn'
+2026-01-07T22:59:03.311000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 }
+2026-01-07T22:59:03.316000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:59:03 PM [express] GET /api/v1/admin/users 500 in 15ms :: {"error":"Failed to list users"}
+2026-01-07T22:59:10.172000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:59:10 PM [express] GET /api/v1/admin/organizations/3/fleets 200 in 5ms :: {"fleets":[{"id":2,"orga…
+2026-01-07T22:59:11.444000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:59:11 PM [express] GET /api/v1/admin/organizations/2/fleets 304 in 3ms :: {"fleets":[{"id":1,"orga…
+2026-01-07T22:59:12.319000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:59:12.320000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:59:12.325000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:59:12 PM [express] GET /api/health 200 in 19ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T22:59:12.416000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:59:12.418000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:59:12.419000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:59:12 PM [express] GET /api/health 200 in 18ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T22:59:12.913000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Error listing all users: error: column "assigned_truck_id" does not exist
+2026-01-07T22:59:12.913000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66     at /app/node_modules/pg-pool/index.js:45:11
+2026-01-07T22:59:12.913000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2026-01-07T22:59:12.913000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66     at async file:///app/node_modules/drizzle-orm/node-postgres/session.js:83:22
+2026-01-07T22:59:12.913000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66     at async file:///app/dist/index.js:4694:20 {
+2026-01-07T22:59:12.913000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   length: 118,
+2026-01-07T22:59:12.913000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   severity: 'ERROR',
+2026-01-07T22:59:12.913000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   code: '42703',
+2026-01-07T22:59:12.913000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   detail: undefined,
+2026-01-07T22:59:12.913000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   hint: undefined,
+2026-01-07T22:59:12.913000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   position: '125',
+2026-01-07T22:59:12.913000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   internalPosition: undefined,
+2026-01-07T22:59:12.913000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   internalQuery: undefined,
+2026-01-07T22:59:12.913000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   where: undefined,
+2026-01-07T22:59:12.913000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   schema: undefined,
+2026-01-07T22:59:12.913000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   table: undefined,
+2026-01-07T22:59:12.913000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   column: undefined,
+2026-01-07T22:59:12.913000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   dataType: undefined,
+2026-01-07T22:59:12.913000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   constraint: undefined,
+2026-01-07T22:59:12.913000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   file: 'parse_relation.c',
+2026-01-07T22:59:12.913000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   line: '3675',
+2026-01-07T22:59:12.913000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   routine: 'errorMissingColumn'
+2026-01-07T22:59:12.913000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 }
+2026-01-07T22:59:12.914000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:59:12 PM [express] GET /api/v1/admin/users 500 in 3ms :: {"error":"Failed to list users"}
+2026-01-07T22:59:17.422000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:59:17 PM [express] GET /api/v1/admin/organizations/2/trucks 304 in 3ms :: {"trucks":[{"id":1,"orga…
+2026-01-07T22:59:18.930000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Error listing all users: error: column "assigned_truck_id" does not exist
+2026-01-07T22:59:18.930000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66     at /app/node_modules/pg-pool/index.js:45:11
+2026-01-07T22:59:18.930000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2026-01-07T22:59:18.930000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66     at async file:///app/node_modules/drizzle-orm/node-postgres/session.js:83:22
+2026-01-07T22:59:18.930000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66     at async file:///app/dist/index.js:4694:20 {
+2026-01-07T22:59:18.930000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   length: 118,
+2026-01-07T22:59:18.930000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   severity: 'ERROR',
+2026-01-07T22:59:18.930000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   code: '42703',
+2026-01-07T22:59:18.930000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   detail: undefined,
+2026-01-07T22:59:18.930000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   hint: undefined,
+2026-01-07T22:59:18.930000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   position: '125',
+2026-01-07T22:59:18.930000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   internalPosition: undefined,
+2026-01-07T22:59:18.930000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   internalQuery: undefined,
+2026-01-07T22:59:18.930000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   where: undefined,
+2026-01-07T22:59:18.930000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   schema: undefined,
+2026-01-07T22:59:18.930000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   table: undefined,
+2026-01-07T22:59:18.930000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   column: undefined,
+2026-01-07T22:59:18.930000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   dataType: undefined,
+2026-01-07T22:59:18.930000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   constraint: undefined,
+2026-01-07T22:59:18.930000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   file: 'parse_relation.c',
+2026-01-07T22:59:18.930000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   line: '3675',
+2026-01-07T22:59:18.930000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   routine: 'errorMissingColumn'
+2026-01-07T22:59:18.930000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 }
+2026-01-07T22:59:18.931000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:59:18 PM [express] GET /api/v1/admin/users 500 in 2ms :: {"error":"Failed to list users"}
+2026-01-07T22:59:25.157000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:59:25.158000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:59:25.161000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:59:25 PM [express] GET /api/health 200 in 19ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T22:59:42.347000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:59:42.357000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:59:42.357000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:59:42 PM [express] GET /api/health 200 in 29ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T22:59:42.429000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:59:42.430000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:59:42.432000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:59:42 PM [express] GET /api/health 200 in 19ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T22:59:55.174000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T22:59:55.176000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T22:59:55.177000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 10:59:55 PM [express] GET /api/health 200 in 19ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T23:00:12.350000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T23:00:12.352000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:00:12.354000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 11:00:12 PM [express] GET /api/health 200 in 20ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T23:00:12.437000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T23:00:12.439000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:00:12.440000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 11:00:12 PM [express] GET /api/health 200 in 19ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T23:00:25.161000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T23:00:25.162000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:00:25.166000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 11:00:25 PM [express] GET /api/health 200 in 24ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T23:00:42.402000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T23:00:42.405000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:00:42.406000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 11:00:42 PM [express] GET /api/health 200 in 44ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T23:00:42.469000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T23:00:42.471000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:00:42.472000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 11:00:42 PM [express] GET /api/health 200 in 41ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T23:00:55.177000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T23:00:55.179000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:00:55.180000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 11:00:55 PM [express] GET /api/health 200 in 20ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T23:00:56.130000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Error creating user: error: column "assigned_truck_id" of relation "users" does not exist
+2026-01-07T23:00:56.130000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66     at /app/node_modules/pg-pool/index.js:45:11
+2026-01-07T23:00:56.130000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2026-01-07T23:00:56.130000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66     at async file:///app/node_modules/drizzle-orm/node-postgres/session.js:83:22
+2026-01-07T23:00:56.130000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66     at async DbStorage.createUser (file:///app/dist/index.js:1245:20)
+2026-01-07T23:00:56.130000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66     at async file:///app/dist/index.js:4715:18 {
+2026-01-07T23:00:56.130000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   length: 136,
+2026-01-07T23:00:56.130000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   severity: 'ERROR',
+2026-01-07T23:00:56.130000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   code: '42703',
+2026-01-07T23:00:56.130000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   detail: undefined,
+2026-01-07T23:00:56.130000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   hint: undefined,
+2026-01-07T23:00:56.130000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   position: '139',
+2026-01-07T23:00:56.130000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   internalPosition: undefined,
+2026-01-07T23:00:56.130000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   internalQuery: undefined,
+2026-01-07T23:00:56.130000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   where: undefined,
+2026-01-07T23:00:56.130000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   schema: undefined,
+2026-01-07T23:00:56.130000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   table: undefined,
+2026-01-07T23:00:56.130000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   column: undefined,
+2026-01-07T23:00:56.130000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   dataType: undefined,
+2026-01-07T23:00:56.130000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   constraint: undefined,
+2026-01-07T23:00:56.130000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   file: 'parse_target.c',
+2026-01-07T23:00:56.130000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   line: '1080',
+2026-01-07T23:00:56.130000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   routine: 'checkInsertTargets'
+2026-01-07T23:00:56.130000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 }
+2026-01-07T23:00:56.132000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 11:00:56 PM [express] POST /api/v1/admin/organizations/2/users 500 in 112ms :: {"error":"Failed to cr…
+2026-01-07T23:01:12.384000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T23:01:12.385000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:01:12.386000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 11:01:12 PM [express] GET /api/health 200 in 19ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T23:01:12.478000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T23:01:12.480000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:01:12.480000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 11:01:12 PM [express] GET /api/health 200 in 18ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T23:01:18.527000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Error creating user: error: column "assigned_truck_id" of relation "users" does not exist
+2026-01-07T23:01:18.527000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66     at /app/node_modules/pg-pool/index.js:45:11
+2026-01-07T23:01:18.527000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2026-01-07T23:01:18.527000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66     at async file:///app/node_modules/drizzle-orm/node-postgres/session.js:83:22
+2026-01-07T23:01:18.527000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66     at async DbStorage.createUser (file:///app/dist/index.js:1245:20)
+2026-01-07T23:01:18.527000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66     at async file:///app/dist/index.js:4715:18 {
+2026-01-07T23:01:18.527000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   length: 136,
+2026-01-07T23:01:18.527000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   severity: 'ERROR',
+2026-01-07T23:01:18.527000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   code: '42703',
+2026-01-07T23:01:18.527000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   detail: undefined,
+2026-01-07T23:01:18.527000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   hint: undefined,
+2026-01-07T23:01:18.527000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   position: '139',
+2026-01-07T23:01:18.527000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   internalPosition: undefined,
+2026-01-07T23:01:18.527000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   internalQuery: undefined,
+2026-01-07T23:01:18.527000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   where: undefined,
+2026-01-07T23:01:18.527000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   schema: undefined,
+2026-01-07T23:01:18.527000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   table: undefined,
+2026-01-07T23:01:18.527000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   column: undefined,
+2026-01-07T23:01:18.527000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   dataType: undefined,
+2026-01-07T23:01:18.527000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   constraint: undefined,
+2026-01-07T23:01:18.527000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   file: 'parse_target.c',
+2026-01-07T23:01:18.527000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   line: '1080',
+2026-01-07T23:01:18.527000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   routine: 'checkInsertTargets'
+2026-01-07T23:01:18.527000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 }
+2026-01-07T23:01:18.528000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 11:01:18 PM [express] POST /api/v1/admin/organizations/2/users 500 in 135ms :: {"error":"Failed to cr…
+2026-01-07T23:01:25.155000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T23:01:25.156000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:01:25.158000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 11:01:25 PM [express] GET /api/health 200 in 19ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T23:01:42.400000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T23:01:42.403000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:01:42.404000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 11:01:42 PM [express] GET /api/health 200 in 21ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T23:01:42.483000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T23:01:42.484000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:01:42.486000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 11:01:42 PM [express] GET /api/health 200 in 19ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T23:01:55.023000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Error creating user: error: column "assigned_truck_id" of relation "users" does not exist
+2026-01-07T23:01:55.023000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66     at /app/node_modules/pg-pool/index.js:45:11
+2026-01-07T23:01:55.023000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2026-01-07T23:01:55.023000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66     at async file:///app/node_modules/drizzle-orm/node-postgres/session.js:83:22
+2026-01-07T23:01:55.023000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66     at async DbStorage.createUser (file:///app/dist/index.js:1245:20)
+2026-01-07T23:01:55.023000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66     at async file:///app/dist/index.js:4715:18 {
+2026-01-07T23:01:55.023000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   length: 136,
+2026-01-07T23:01:55.023000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   severity: 'ERROR',
+2026-01-07T23:01:55.023000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   code: '42703',
+2026-01-07T23:01:55.023000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   detail: undefined,
+2026-01-07T23:01:55.023000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   hint: undefined,
+2026-01-07T23:01:55.023000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   position: '139',
+2026-01-07T23:01:55.023000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   internalPosition: undefined,
+2026-01-07T23:01:55.023000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   internalQuery: undefined,
+2026-01-07T23:01:55.023000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   where: undefined,
+2026-01-07T23:01:55.023000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   schema: undefined,
+2026-01-07T23:01:55.023000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   table: undefined,
+2026-01-07T23:01:55.023000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   column: undefined,
+2026-01-07T23:01:55.023000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   dataType: undefined,
+2026-01-07T23:01:55.023000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   constraint: undefined,
+2026-01-07T23:01:55.023000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   file: 'parse_target.c',
+2026-01-07T23:01:55.023000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   line: '1080',
+2026-01-07T23:01:55.023000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66   routine: 'checkInsertTargets'
+2026-01-07T23:01:55.023000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 }
+2026-01-07T23:01:55.024000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 11:01:55 PM [express] POST /api/v1/admin/organizations/2/users 500 in 135ms :: {"error":"Failed to cr…
+2026-01-07T23:01:55.173000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T23:01:55.174000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:01:55.179000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 11:01:55 PM [express] GET /api/health 200 in 20ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T23:02:12.430000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T23:02:12.431000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:02:12.432000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 11:02:12 PM [express] GET /api/health 200 in 22ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T23:02:12.496000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T23:02:12.497000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:02:12.498000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 11:02:12 PM [express] GET /api/health 200 in 18ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T23:02:25.162000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T23:02:25.164000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:02:25.169000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 11:02:25 PM [express] GET /api/health 200 in 20ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T23:02:42.436000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T23:02:42.437000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:02:42.438000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 11:02:42 PM [express] GET /api/health 200 in 18ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T23:02:42.518000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T23:02:42.520000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:02:42.520000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 11:02:42 PM [express] GET /api/health 200 in 19ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T23:02:55.181000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T23:02:55.182000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:02:55.185000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 11:02:55 PM [express] GET /api/health 200 in 27ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T23:03:12.451000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T23:03:12.452000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:03:12.453000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 11:03:12 PM [express] GET /api/health 200 in 19ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T23:03:12.541000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T23:03:12.543000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:03:12.544000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 11:03:12 PM [express] GET /api/health 200 in 19ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T23:03:25.158000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T23:03:25.160000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:03:25.161000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 11:03:25 PM [express] GET /api/health 200 in 20ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T23:03:42.478000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T23:03:42.481000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:03:42.482000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 11:03:42 PM [express] GET /api/health 200 in 21ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T23:03:42.572000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T23:03:42.573000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:03:42.574000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 11:03:42 PM [express] GET /api/health 200 in 18ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T23:03:55.158000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T23:03:55.159000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:03:55.162000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 11:03:55 PM [express] GET /api/health 200 in 21ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T23:04:12.482000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T23:04:12.485000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:04:12.485000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 11:04:12 PM [express] GET /api/health 200 in 20ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T23:04:12.592000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T23:04:12.593000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:04:12.594000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 11:04:12 PM [express] GET /api/health 200 in 18ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+2026-01-07T23:04:25.156000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 Database "deecell_fleet" already exists
+2026-01-07T23:04:25.157000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 RDS PostgreSQL connection successful
+2026-01-07T23:04:25.159000+00:00 ecs/deecell-fleet/9fa2adfd7fe048a8bd30a12b2e43ac66 11:04:25 PM [express] GET /api/health 200 in 19ms :: {"status":"ok","rds":"connected","s3Bucket":"not…
+~ $
