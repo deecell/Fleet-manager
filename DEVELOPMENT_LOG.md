@@ -6,6 +6,49 @@
 
 ## Latest Updates (January 7, 2026)
 
+### Circuit Breaker Recovery Implementation (January 7, 2026)
+
+**Issue**: Devices marked as "unstable" by the circuit breaker were stuck indefinitely - they would never automatically recover and attempt reconnection.
+
+**Root Cause**: The circuit breaker correctly detected rapid disconnects and marked devices as unstable, but there was no scheduler to attempt recovery after the backoff period expired.
+
+**Solution**: Implemented automatic recovery for unstable devices:
+
+1. **New Schema Column**: Added `marked_unstable_at` timestamp to track when devices became unstable
+2. **Database Functions**: 
+   - `getUnstableDevicesReadyForRecovery(backoffMs)` - finds devices that have been unstable longer than the backoff period
+   - `markDeviceUnstable(deviceId)` - sets timestamp when marking unstable
+   - Updated `markDeviceConnected` to reset `marked_unstable_at` to NULL on successful reconnection
+3. **Recovery Scheduler**: Runs every 5 minutes to:
+   - Query for unstable devices past their 5-minute backoff
+   - Attempt reconnection for each
+   - If successful, device returns to normal polling
+   - If failed, restarts the 5-minute backoff timer
+
+**Files Changed**:
+- `shared/schema.ts` - Added `markedUnstableAt` column
+- `device-manager/app/database.js` - Added recovery functions
+- `device-manager/app/connection-pool.js` - Added `recoverUnstableDevices()` method
+- `device-manager/app/index.js` - Added periodic recovery scheduler
+
+**Production Migration Required**:
+```bash
+psql "$DATABASE_URL" -c "ALTER TABLE power_mon_devices ADD COLUMN IF NOT EXISTS marked_unstable_at TIMESTAMP WITH TIME ZONE;"
+```
+
+### Production Database Migration Documentation (January 7, 2026)
+
+**Added**: Comprehensive "Production Database Schema Migrations" section to `device-manager/DEPLOYMENT.md` covering:
+- Step-by-step guide to run migrations on AWS RDS
+- How to connect to EC2 via SSM
+- How to install psql on Ubuntu
+- How to export DATABASE_URL from Secrets Manager
+- Example SQL commands for common operations
+- Best practices table (do's and don'ts)
+- Quick reference checklist
+
+---
+
 ### Device Manager EC2 Manual Bootstrap (January 7, 2026)
 
 **Context**: After AWS account suspension and recovery, the Device Manager EC2 instance was terminated. A new instance was launched but GitHub Actions deployment failed with "deploy.sh not found" because the fresh instance wasn't bootstrapped.

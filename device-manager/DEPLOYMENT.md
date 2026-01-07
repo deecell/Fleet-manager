@@ -690,3 +690,151 @@ Common causes:
 
 ### SIMPro Warning
 The warning "SIMPro API credentials not configured" is expected if you haven't added SIMPRO_API_CLIENT and SIMPRO_API_KEY to the start.sh script. SIM location tracking will be disabled.
+
+---
+
+## Production Database Schema Migrations
+
+When schema changes are made in Replit (via `npm run db:push`), the AWS RDS production database must be updated separately. There is no automatic migration in the deployment pipeline.
+
+### Step 1: Connect to EC2 via SSM
+
+From AWS CloudShell:
+
+```bash
+# Get the Device Manager instance ID
+aws autoscaling describe-auto-scaling-groups \
+  --auto-scaling-group-names deecell-fleet-production-device-manager-asg \
+  --query 'AutoScalingGroups[0].Instances[*].InstanceId' \
+  --output text \
+  --region us-east-2
+
+# Connect via SSM Session Manager
+aws ssm start-session --target i-XXXXXXXXXXXXXXXXX --region us-east-2
+```
+
+### Step 2: Install PostgreSQL Client (if not installed)
+
+```bash
+# Ubuntu (Device Manager EC2 is Ubuntu 24.04)
+sudo apt-get update && sudo apt-get install -y postgresql-client
+```
+
+### Step 3: Export DATABASE_URL from Secrets Manager
+
+```bash
+export DATABASE_URL=$(aws secretsmanager get-secret-value \
+  --secret-id "deecell-fleet-production/database-url" \
+  --region us-east-2 \
+  --query SecretString \
+  --output text)
+```
+
+Verify:
+```bash
+echo $DATABASE_URL | head -c 30
+# Should show: postgresql://deecell_admin:...
+```
+
+### Step 4: Run the Migration
+
+For simple column additions, use `ALTER TABLE`:
+
+```bash
+# Example: Add a nullable column
+psql "$DATABASE_URL" -c "ALTER TABLE power_mon_devices ADD COLUMN IF NOT EXISTS marked_unstable_at TIMESTAMP WITH TIME ZONE;"
+
+# Example: Add multiple columns
+psql "$DATABASE_URL" << 'SQL'
+ALTER TABLE power_mon_devices 
+ADD COLUMN IF NOT EXISTS new_column_1 VARCHAR(255),
+ADD COLUMN IF NOT EXISTS new_column_2 INTEGER DEFAULT 0;
+SQL
+```
+
+For complex migrations, create a SQL file and run it:
+
+```bash
+# Create migration file
+cat > /tmp/migration.sql << 'SQL'
+-- Add new table
+CREATE TABLE IF NOT EXISTS new_table (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Add index
+CREATE INDEX IF NOT EXISTS idx_new_table_name ON new_table(name);
+SQL
+
+# Run migration
+psql "$DATABASE_URL" -f /tmp/migration.sql
+```
+
+### Step 5: Verify Migration
+
+```bash
+# Check table structure
+psql "$DATABASE_URL" -c "\d power_mon_devices"
+
+# Check if column exists
+psql "$DATABASE_URL" -c "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'power_mon_devices' AND column_name = 'marked_unstable_at';"
+```
+
+### Step 6: Deploy Updated Code
+
+Push changes to GitHub `main` branch to trigger ECS deployment (web app) or Device Manager deployment.
+
+### Step 7: Restart Device Manager (if needed)
+
+```bash
+sudo systemctl restart device-manager
+sudo journalctl -u device-manager -f
+```
+
+---
+
+### Migration Best Practices
+
+| Do | Don't |
+|----|-------|
+| Use `ADD COLUMN IF NOT EXISTS` | Use `ADD COLUMN` without IF NOT EXISTS |
+| Add nullable columns first, then add NOT NULL later | Add NOT NULL columns without defaults |
+| Create indexes with `IF NOT EXISTS` | Drop and recreate indexes |
+| Test migrations on Replit first | Run untested SQL on production |
+| Back up critical data before destructive changes | DROP tables without backup |
+
+### Common Migration Commands
+
+```bash
+# Add nullable column
+ALTER TABLE table_name ADD COLUMN IF NOT EXISTS col_name TYPE;
+
+# Add column with default
+ALTER TABLE table_name ADD COLUMN IF NOT EXISTS col_name TYPE DEFAULT value;
+
+# Make column NOT NULL (after backfilling)
+ALTER TABLE table_name ALTER COLUMN col_name SET NOT NULL;
+
+# Add index
+CREATE INDEX IF NOT EXISTS idx_name ON table_name(column);
+
+# Add foreign key
+ALTER TABLE table_name ADD CONSTRAINT fk_name FOREIGN KEY (col) REFERENCES other_table(id);
+
+# Rename column
+ALTER TABLE table_name RENAME COLUMN old_name TO new_name;
+```
+
+### Quick Reference: Schema Migration Checklist
+
+1. ✅ Make schema changes in `shared/schema.ts`
+2. ✅ Run `npm run db:push` in Replit (updates dev DB)
+3. ✅ Connect to EC2 via SSM
+4. ✅ Install psql if needed: `sudo apt-get install -y postgresql-client`
+5. ✅ Export DATABASE_URL from Secrets Manager
+6. ✅ Run migration SQL
+7. ✅ Verify changes with `\d table_name`
+8. ✅ Deploy updated code (push to GitHub main)
+9. ✅ Restart Device Manager if needed
