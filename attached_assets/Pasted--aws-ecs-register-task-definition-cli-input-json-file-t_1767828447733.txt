@@ -1,0 +1,129 @@
+~ $ aws ecs register-task-definition --cli-input-json file:///tmp/new-task-def.json --region us-east-2
+{
+    "taskDefinition": {
+        "taskDefinitionArn": "arn:aws:ecs:us-east-2:892213647605:task-definition/deecell-fleet-production:116",
+        "containerDefinitions": [
+            {
+                "name": "deecell-fleet",
+                "image": "892213647605.dkr.ecr.us-east-2.amazonaws.com/deecell-fleet:1f134d15a3d1fc33afab0240e202a08d8b3bd07b",
+                "cpu": 0,
+                "portMappings": [
+                    {
+                        "containerPort": 5000,
+                        "hostPort": 5000,
+                        "protocol": "tcp"
+                    }
+                ],
+                "essential": true,
+                "environment": [
+                    {
+                        "name": "PORT",
+                        "value": "5000"
+                    },
+                    {
+                        "name": "LOG_LEVEL",
+                        "value": "info"
+                    },
+                    {
+                        "name": "NODE_ENV",
+                        "value": "production"
+                    }
+                ],
+                "mountPoints": [],
+                "volumesFrom": [],
+                "secrets": [
+                    {
+                        "name": "DATABASE_URL",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-2:892213647605:secret:deecell-fleet-production/database-url-pDVG5g"
+                    },
+                    {
+                        "name": "SESSION_SECRET",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-2:892213647605:secret:deecell-fleet-production/session-secret-13647605-vlKkfE"
+                    },
+                    {
+                        "name": "ADMIN_PASSWORD",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-2:892213647605:secret:deecell-fleet-production/admin-password-13647605-WdaTNz"
+                    },
+                    {
+                        "name": "SENDGRID_API_KEY",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-2:892213647605:secret:deecell-fleet-production/sendgrid-api-key-HRu3fw"
+                    }
+                ],
+                "logConfiguration": {
+                    "logDriver": "awslogs",
+                    "options": {
+                        "awslogs-group": "/ecs/deecell-fleet-production",
+                        "awslogs-region": "us-east-2",
+                        "awslogs-stream-prefix": "ecs"
+                    }
+                },
+                "healthCheck": {
+                    "command": [
+                        "CMD-SHELL",
+                        "wget --no-verbose --tries=1 --spider http://localhost:5000/api/health || exit 1"
+                    ],
+                    "interval": 30,
+                    "timeout": 5,
+                    "retries": 3,
+                    "startPeriod": 60
+                },
+                "systemControls": []
+            }
+        ],
+        "family": "deecell-fleet-production",
+        "taskRoleArn": "arn:aws:iam::892213647605:role/deecell-fleet-production-ecs-task-role",
+        "executionRoleArn": "arn:aws:iam::892213647605:role/deecell-fleet-production-ecs-execution-role",
+        "networkMode": "awsvpc",
+        "revision": 116,
+        "volumes": [],
+        "status": "ACTIVE",
+        "requiresAttributes": [
+            {
+                "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+            },
+            {
+                "name": "ecs.capability.execution-role-awslogs"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.ecr-auth"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+            },
+            {
+                "name": "ecs.capability.secrets.asm.environment-variables"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.task-iam-role"
+            },
+            {
+                "name": "ecs.capability.container-health-check"
+            },
+            {
+                "name": "ecs.capability.execution-role-ecr-pull"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+            },
+            {
+                "name": "ecs.capability.task-eni"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.docker-remote-api.1.29"
+            }
+        ],
+        "placementConstraints": [],
+        "compatibilities": [
+            "EC2",
+            "FARGATE",
+            "MANAGED_INSTANCES"
+        ],
+        "requiresCompatibilities": [
+            "FARGATE"
+        ],
+        "cpu": "512",
+        "memory": "1024",
+        "registeredAt": "2026-01-07T23:27:04.536000+00:00",
+        "registeredBy": "arn:aws:iam::892213647605:user/amoeck"
+    }
+}
