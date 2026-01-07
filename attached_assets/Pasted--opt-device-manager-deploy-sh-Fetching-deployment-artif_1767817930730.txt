@@ -1,0 +1,149 @@
+$ /opt/device-manager/deploy.sh
+Fetching deployment artifact from S3...
+download: s3://deecell-fleet-production-device-manager-deploy-13647605/device-manager-latest.zip to ../../../../tmp/device-manager.zip
+Extracting artifact...
+Archive:  /tmp/device-manager.zip
+error:  cannot create binding.gyp
+        Permission denied
+checkdir error:  cannot create lib
+                 Permission denied
+                 unable to process lib/.
+checkdir error:  cannot create lib
+                 Permission denied
+                 unable to process lib/bridge-client.d.ts.
+checkdir error:  cannot create lib
+                 Permission denied
+                 unable to process lib/index.ts.
+checkdir error:  cannot create lib
+                 Permission denied
+                 unable to process lib/log-sync.js.
+checkdir error:  cannot create lib
+                 Permission denied
+                 unable to process lib/index.d.ts.
+checkdir error:  cannot create lib
+                 Permission denied
+                 unable to process lib/index.js.
+checkdir error:  cannot create lib
+                 Permission denied
+                 unable to process lib/bridge-client.js.
+error:  cannot create package-lock.json
+        Permission denied
+checkdir error:  cannot create app
+                 Permission denied
+                 unable to process app/.
+checkdir error:  cannot create app
+                 Permission denied
+                 unable to process app/sim-poller.js.
+checkdir error:  cannot create app
+                 Permission denied
+                 unable to process app/metrics.js.
+checkdir error:  cannot create app
+                 Permission denied
+                 unable to process app/logger.js.
+checkdir error:  cannot create app
+                 Permission denied
+                 unable to process app/polling-scheduler.js.
+checkdir error:  cannot create app
+                 Permission denied
+                 unable to process app/config.js.
+checkdir error:  cannot create app
+                 Permission denied
+                 unable to process app/batch-writer.js.
+checkdir error:  cannot create app
+                 Permission denied
+                 unable to process app/database.js.
+checkdir error:  cannot create app
+                 Permission denied
+                 unable to process app/connection-pool.js.
+checkdir error:  cannot create app
+                 Permission denied
+                 unable to process app/backfill-service.js.
+checkdir error:  cannot create app
+                 Permission denied
+                 unable to process app/index.js.
+error:  cannot create package.json
+        Permission denied
+checkdir error:  cannot create build
+                 Permission denied
+                 unable to process build/.
+checkdir error:  cannot create build
+                 Permission denied
+                 unable to process build/config.gypi.
+checkdir error:  cannot create build
+                 Permission denied
+                 unable to process build/binding.Makefile.
+checkdir error:  cannot create build
+                 Permission denied
+                 unable to process build/Release/.
+checkdir error:  cannot create build
+                 Permission denied
+                 unable to process build/Release/powermon_addon.node.
+checkdir error:  cannot create build
+                 Permission denied
+                 unable to process build/Release/.deps/.
+checkdir error:  cannot create build
+                 Permission denied
+                 unable to process build/Release/.deps/Release/.
+checkdir error:  cannot create build
+                 Permission denied
+                 unable to process build/Release/.deps/Release/powermon_addon.node.d.
+checkdir error:  cannot create build
+                 Permission denied
+                 unable to process build/Release/.deps/Release/obj.target/.
+checkdir error:  cannot create build
+                 Permission denied
+                 unable to process build/Release/.deps/Release/obj.target/powermon_addon.node.d.
+checkdir error:  cannot create build
+                 Permission denied
+                 unable to process build/Release/.deps/Release/obj.target/powermon_addon/.
+checkdir error:  cannot create build
+                 Permission denied
+                 unable to process build/Release/.deps/Release/obj.target/powermon_addon/src/.
+checkdir error:  cannot create build
+                 Permission denied
+                 unable to process build/Release/.deps/Release/obj.target/powermon_addon/src/addon.o.d.
+checkdir error:  cannot create build
+                 Permission denied
+                 unable to process build/Release/.deps/Release/obj.target/powermon_addon/src/powermon_wrapper.o.d.
+checkdir error:  cannot create build
+                 Permission denied
+                 unable to process build/Release/obj.target/.
+checkdir error:  cannot create build
+                 Permission denied
+                 unable to process build/Release/obj.target/powermon_addon.node.
+checkdir error:  cannot create build
+                 Permission denied
+                 unable to process build/Release/obj.target/powermon_addon/.
+checkdir error:  cannot create build
+                 Permission denied
+                 unable to process build/Release/obj.target/powermon_addon/src/.
+checkdir error:  cannot create build
+                 Permission denied
+                 unable to process build/Release/obj.target/powermon_addon/src/powermon_wrapper.o.
+checkdir error:  cannot create build
+                 Permission denied
+                 unable to process build/Release/obj.target/powermon_addon/src/addon.o.
+checkdir error:  cannot create build
+                 Permission denied
+                 unable to process build/powermon_addon.target.mk.
+checkdir error:  cannot create build
+                 Permission denied
+                 unable to process build/Makefile.
+error:  cannot create version.json
+        Permission denied
+checkdir error:  cannot create src
+                 Permission denied
+                 unable to process src/.
+checkdir error:  cannot create src
+                 Permission denied
+                 unable to process src/powermon_wrapper.cpp.
+checkdir error:  cannot create src
+                 Permission denied
+                 unable to process src/addon.cpp.
+checkdir error:  cannot create src
+                 Permission denied
+                 unable to process src/powermon_bridge.cpp.
+checkdir error:  cannot create src
+                 Permission denied
+                 unable to process src/powermon_wrapper.h.
+$
