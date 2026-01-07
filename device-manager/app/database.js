@@ -197,6 +197,7 @@ async function markDeviceConnected(deviceId) {
       last_seen_at = NOW(), 
       connection_status = 'online',
       consecutive_disconnects = 0,
+      marked_unstable_at = NULL,
       updated_at = NOW()
     WHERE id = $1
   `, [deviceId]);
@@ -329,6 +330,68 @@ async function markDeviceUnstable(deviceId) {
     UPDATE power_mon_devices 
     SET 
       connection_status = 'unstable',
+      marked_unstable_at = NOW(),
+      updated_at = NOW()
+    WHERE id = $1
+  `, [deviceId]);
+}
+
+/**
+ * Get unstable devices that are ready for recovery attempt
+ * Returns devices marked unstable for longer than the backoff period
+ * @param {number} backoffMs - Backoff period in milliseconds (default 5 minutes)
+ */
+async function getUnstableDevicesReadyForRecovery(backoffMs = 300000) {
+  const result = await query(`
+    SELECT 
+      d.id as device_id,
+      d.organization_id,
+      d.serial_number,
+      d.device_name,
+      d.truck_id,
+      d.status,
+      d.consecutive_disconnects,
+      d.marked_unstable_at,
+      c.applink_url,
+      c.connection_key,
+      c.access_key,
+      s.cohort_id,
+      s.last_successful_poll_at,
+      s.connection_status
+    FROM power_mon_devices d
+    INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = true
+    LEFT JOIN device_sync_status s ON s.device_id = d.id
+    WHERE d.is_active = true
+      AND d.connection_status = 'unstable'
+      AND (
+        d.marked_unstable_at IS NULL 
+        OR d.marked_unstable_at < NOW() - INTERVAL '1 millisecond' * $1
+      )
+    ORDER BY d.marked_unstable_at ASC NULLS FIRST
+  `, [backoffMs]);
+  
+  if (result.rows.length > 0) {
+    logger.info('Found unstable devices ready for recovery', { 
+      count: result.rows.length,
+      devices: result.rows.map(d => d.device_name || d.serial_number)
+    });
+  }
+  
+  return result.rows;
+}
+
+/**
+ * Reset device stability after successful recovery
+ * Called when a previously unstable device successfully reconnects
+ */
+async function resetDeviceStability(deviceId) {
+  logger.info('Resetting device stability after recovery', { deviceId });
+  await query(`
+    UPDATE power_mon_devices 
+    SET 
+      connection_status = 'online',
+      consecutive_disconnects = 0,
+      marked_unstable_at = NULL,
       updated_at = NOW()
     WHERE id = $1
   `, [deviceId]);
@@ -660,6 +723,8 @@ module.exports = {
   markDeviceReporting,
   markDeviceStale,
   markDeviceUnstable,
+  getUnstableDevicesReadyForRecovery,
+  resetDeviceStability,
   updateDeviceInfo,
   getDevicesNeedingBackfill,
   updateBackfillProgress,

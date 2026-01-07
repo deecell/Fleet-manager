@@ -590,6 +590,89 @@ class ConnectionPool {
   }
 
   /**
+   * Attempt to recover unstable devices that have been waiting long enough
+   * Called periodically to give unstable devices a chance to reconnect
+   */
+  async recoverUnstableDevices() {
+    logger.debug('Checking for unstable devices ready for recovery');
+    
+    try {
+      // Get devices that have been unstable for longer than the backoff period
+      const unstableDevices = await db.getUnstableDevicesReadyForRecovery(UNSTABLE_BACKOFF_MS);
+      
+      if (unstableDevices.length === 0) {
+        return { attempted: 0, recovered: 0 };
+      }
+      
+      logger.info('Attempting to recover unstable devices', { 
+        count: unstableDevices.length,
+        devices: unstableDevices.map(d => d.device_name || d.serial_number)
+      });
+      
+      let recovered = 0;
+      
+      for (const device of unstableDevices) {
+        const cohortId = this.hashToCohort(device.serial_number);
+        
+        // Check if device is already in the pool (shouldn't be, but check anyway)
+        if (this.connections.has(device.device_id)) {
+          logger.warn('Unstable device already in pool, skipping', { deviceId: device.device_id });
+          continue;
+        }
+        
+        // Create new connection with reset state
+        const conn = new DeviceConnection({
+          ...device,
+          cohort_id: cohortId,
+          consecutive_disconnects: 0, // Reset for fresh start
+        });
+        
+        // Add to pool
+        this.connections.set(device.device_id, conn);
+        
+        if (!this.cohorts.has(cohortId)) {
+          this.cohorts.set(cohortId, new Set());
+        }
+        this.cohorts.get(cohortId).add(device.device_id);
+        
+        // Attempt to connect
+        const success = await conn.connect();
+        
+        if (success) {
+          // Connection successful - stability will be reset by markDeviceConnected
+          recovered++;
+          logger.info('Unstable device recovered successfully', { 
+            deviceId: device.device_id,
+            serial: device.serial_number
+          });
+        } else {
+          // Connection failed - remove from pool and let it try again later
+          this.connections.delete(device.device_id);
+          this.cohorts.get(cohortId)?.delete(device.device_id);
+          
+          // Update marked_unstable_at to restart the backoff timer
+          await db.markDeviceUnstable(device.device_id);
+          
+          logger.warn('Unstable device recovery failed, will retry later', { 
+            deviceId: device.device_id,
+            serial: device.serial_number
+          });
+        }
+      }
+      
+      logger.info('Unstable device recovery complete', { 
+        attempted: unstableDevices.length, 
+        recovered 
+      });
+      
+      return { attempted: unstableDevices.length, recovered };
+    } catch (err) {
+      logger.error('Error recovering unstable devices', { error: err.message });
+      return { attempted: 0, recovered: 0, error: err.message };
+    }
+  }
+
+  /**
    * Disconnect all devices
    */
   disconnectAll() {

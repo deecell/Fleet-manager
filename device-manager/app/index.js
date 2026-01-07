@@ -81,6 +81,17 @@ async function main() {
       }
     }, 5 * 60 * 1000);
 
+    // Set up periodic unstable device recovery (every 5 minutes)
+    // This attempts to reconnect devices that were marked unstable but have been
+    // waiting long enough for the circuit breaker backoff to expire
+    setInterval(async () => {
+      try {
+        await connectionPool.recoverUnstableDevices();
+      } catch (err) {
+        logger.error('Failed to recover unstable devices', { error: err.message });
+      }
+    }, 5 * 60 * 1000);
+
   } catch (err) {
     logger.error('Failed to start Device Manager', { error: err.message });
     process.exit(1);
