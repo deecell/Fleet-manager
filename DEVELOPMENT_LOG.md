@@ -4,7 +4,46 @@
 
 ---
 
-## Latest Updates (January 5, 2026)
+## Latest Updates (January 7, 2026)
+
+### Device Manager EC2 Manual Bootstrap (January 7, 2026)
+
+**Context**: After AWS account suspension and recovery, the Device Manager EC2 instance was terminated. A new instance was launched but GitHub Actions deployment failed with "deploy.sh not found" because the fresh instance wasn't bootstrapped.
+
+**Solution**: Documented and executed a manual bootstrap process via AWS CloudShell.
+
+**Bootstrap Steps Summary**:
+1. Connect via SSM Session Manager from CloudShell
+2. Install Node.js 20, build-essential, AWS CLI v2
+3. Install Bluetooth libraries (libbluetooth-dev, libdbus-1-dev)
+4. Create `/opt/device-manager` directory
+5. Create `deploy.sh` script (pulls from S3, uses `--ignore-scripts` for pre-built native addon)
+6. Create `start.sh` script (fetches DATABASE_URL from Secrets Manager at runtime)
+7. Download RDS CA certificate bundle
+8. Create systemd service
+9. Run initial deployment
+
+**Key Learnings**:
+- **Pre-built Native Addon**: The `powermon_addon.node` is included in the S3 deployment package. Use `npm ci --ignore-scripts` to skip rebuilding (avoids needing `libpowermon_bin` headers on EC2).
+- **SSM Session Runs as ssm-user**: Must use `sudo -u ubuntu` to run deploy.sh or fix directory permissions.
+- **/tmp Permission Issues**: Download to `/home/ubuntu/` instead of `/tmp` when running as ubuntu user.
+- **Secrets at Runtime**: The `start.sh` fetches DATABASE_URL from AWS Secrets Manager using the EC2 instance's IAM role.
+
+**Files Updated**:
+- `device-manager/DEPLOYMENT.md` - Added comprehensive "Manual EC2 Bootstrap Guide (CloudShell)" section with all 15 steps
+
+**Current State**:
+- Device Manager running on instance `i-05443904f977d7301`
+- Health endpoint: `http://localhost:3001/health` returning healthy
+- 1 PowerMon device connected (serial: A93B7B8CC0D672FE)
+- Polling at 10-second intervals with 100% success rate
+- SIMPro disabled (credentials not configured)
+
+**Future Deployments**: GitHub Actions will now work since `/opt/device-manager/deploy.sh` exists on the instance.
+
+---
+
+## Previous Updates (January 5, 2026)
 
 ### Mobile API for iOS Driver App (January 5, 2026)
 

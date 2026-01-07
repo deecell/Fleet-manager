@@ -388,3 +388,305 @@ For issues:
 2. Check metrics: `curl localhost:3001/metrics`
 3. Verify database connectivity
 4. Contact: support@deecell.com
+
+---
+
+## Manual EC2 Bootstrap Guide (CloudShell)
+
+This section documents the manual process to bootstrap a fresh EC2 instance for the Device Manager using AWS CloudShell. Use this when:
+- The EC2 instance was terminated and a new one launched
+- Terraform wasn't used to provision the instance
+- GitHub Actions deployment fails with "deploy.sh not found"
+
+### Prerequisites
+
+- AWS CloudShell access
+- EC2 instance running Ubuntu 24.04 in the Device Manager ASG
+- SSM Session Manager access to the instance
+- S3 bucket with deployment artifacts (`device-manager-latest.zip`)
+
+### Step 1: Connect to the Instance
+
+From AWS CloudShell:
+
+```bash
+# Get the instance ID from the ASG
+aws autoscaling describe-auto-scaling-groups \
+  --auto-scaling-group-names deecell-fleet-production-device-manager-asg \
+  --query 'AutoScalingGroups[0].Instances[*].InstanceId' \
+  --output text \
+  --region us-east-2
+
+# Connect via SSM Session Manager
+aws ssm start-session --target i-XXXXXXXXXXXXXXXXX --region us-east-2
+```
+
+### Step 2: Update System Packages
+
+```bash
+sudo apt-get update -y
+sudo apt-get upgrade -y
+```
+
+### Step 3: Install Node.js 20
+
+```bash
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo bash -
+sudo apt-get install -y nodejs git build-essential jq unzip
+```
+
+Verify installation:
+```bash
+node --version   # Should show v20.x.x
+npm --version
+```
+
+### Step 4: Install AWS CLI v2
+
+```bash
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
+unzip -q /tmp/awscliv2.zip -d /tmp
+sudo /tmp/aws/install
+rm -rf /tmp/aws /tmp/awscliv2.zip
+```
+
+Verify:
+```bash
+aws --version
+```
+
+### Step 5: Install Bluetooth Libraries
+
+Required for the PowerMon native addon:
+
+```bash
+sudo apt-get install -y libbluetooth-dev libdbus-1-dev
+```
+
+### Step 6: Create Application Directory
+
+```bash
+sudo mkdir -p /opt/device-manager
+sudo chown ubuntu:ubuntu /opt/device-manager
+```
+
+### Step 7: Get S3 Bucket Name
+
+From CloudShell (not the instance):
+
+```bash
+aws s3 ls | grep device-manager-deploy
+```
+
+Note the bucket name (e.g., `deecell-fleet-production-device-manager-deploy-XXXXXXXX`).
+
+### Step 8: Create deploy.sh Script
+
+Replace `BUCKET_NAME` with the actual bucket name from Step 7:
+
+```bash
+sudo bash -c 'cat > /opt/device-manager/deploy.sh << "DEPLOYSCRIPT"
+#!/bin/bash
+set -e
+BUCKET="deecell-fleet-production-device-manager-deploy-XXXXXXXX"
+TMPFILE="/home/ubuntu/device-manager.zip"
+echo "Fetching deployment artifact from S3..."
+aws s3 cp "s3://$BUCKET/device-manager-latest.zip" "$TMPFILE" --region us-east-2
+echo "Extracting artifact..."
+cd /opt/device-manager
+unzip -o "$TMPFILE"
+rm -f "$TMPFILE"
+echo "Installing dependencies (using pre-built native addon)..."
+npm ci --only=production --ignore-scripts
+echo "Verifying native addon..."
+ls -la build/Release/powermon_addon.node
+echo "Restarting service..."
+sudo systemctl restart device-manager
+echo "Deployment complete!"
+DEPLOYSCRIPT'
+
+sudo chmod +x /opt/device-manager/deploy.sh
+sudo chown ubuntu:ubuntu /opt/device-manager/deploy.sh
+```
+
+**Important**: We use `--ignore-scripts` because the pre-built `powermon_addon.node` is included in the deployment package. Rebuilding would fail without the `libpowermon_bin` headers.
+
+### Step 9: Get Secrets Manager ARNs
+
+From CloudShell:
+
+```bash
+aws secretsmanager list-secrets --region us-east-2 \
+  --query "SecretList[?contains(Name, 'deecell')].{Name:Name,ARN:ARN}" \
+  --output table
+```
+
+Note the DATABASE_URL ARN (e.g., `arn:aws:secretsmanager:us-east-2:XXXXXXXXXXXX:secret:deecell-fleet-production/database-url-XXXXXX`).
+
+### Step 10: Create start.sh Script
+
+Replace the secret ARN with the actual value from Step 9:
+
+```bash
+sudo bash -c 'cat > /opt/device-manager/start.sh << "STARTSCRIPT"
+#!/bin/bash
+set -e
+
+# Fetch DATABASE_URL from Secrets Manager
+export DATABASE_URL=$(aws secretsmanager get-secret-value \
+  --secret-id "arn:aws:secretsmanager:us-east-2:XXXXXXXXXXXX:secret:deecell-fleet-production/database-url-XXXXXX" \
+  --query "SecretString" \
+  --output text \
+  --region us-east-2)
+
+# Set other environment variables
+export NODE_ENV=production
+export LOG_LEVEL=info
+export DM_PORT=3001
+export POLL_INTERVAL_MS=10000
+export COHORT_COUNT=10
+export MAX_BATCH_SIZE=500
+export RDS_CA_BUNDLE=/opt/device-manager/certs/rds-ca-bundle.pem
+
+# Start the application
+exec node app/index.js
+STARTSCRIPT'
+
+sudo chmod +x /opt/device-manager/start.sh
+sudo chown ubuntu:ubuntu /opt/device-manager/start.sh
+```
+
+### Step 11: Download RDS CA Certificate
+
+```bash
+sudo mkdir -p /opt/device-manager/certs
+curl -sS "https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem" | sudo tee /opt/device-manager/certs/rds-ca-bundle.pem > /dev/null
+sudo chmod 644 /opt/device-manager/certs/rds-ca-bundle.pem
+sudo chown ubuntu:ubuntu /opt/device-manager/certs/rds-ca-bundle.pem
+```
+
+### Step 12: Create systemd Service
+
+```bash
+sudo bash -c 'cat > /etc/systemd/system/device-manager.service << "SYSTEMD"
+[Unit]
+Description=Deecell Device Manager
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/device-manager
+ExecStart=/opt/device-manager/start.sh
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+SYSTEMD'
+
+sudo systemctl daemon-reload
+sudo systemctl enable device-manager
+```
+
+### Step 13: Run Initial Deployment
+
+```bash
+sudo -u ubuntu /opt/device-manager/deploy.sh
+```
+
+### Step 14: Verify Service is Running
+
+```bash
+sudo systemctl status device-manager
+```
+
+You should see "Active: active (running)" and log messages showing device connections.
+
+### Step 15: Test Health Endpoint
+
+```bash
+curl http://localhost:3001/health
+```
+
+Expected output:
+```json
+{
+  "status": "healthy",
+  "timestamp": "2026-01-07T20:36:39.734Z",
+  "components": {
+    "connectionPool": { "status": "ok", "devices": 1, "connected": 1 },
+    "pollingScheduler": { "status": "ok", "totalPolls": 8, "successRate": "100.0%" },
+    "batchWriter": { "status": "ok", "queueSize": 0, "totalWritten": 8 }
+  }
+}
+```
+
+---
+
+## Quick Reference Commands
+
+### View Service Logs
+```bash
+sudo journalctl -u device-manager -f
+```
+
+### Restart Service
+```bash
+sudo systemctl restart device-manager
+```
+
+### Re-deploy from S3
+```bash
+sudo -u ubuntu /opt/device-manager/deploy.sh
+```
+
+### Check Service Status
+```bash
+sudo systemctl status device-manager
+curl http://localhost:3001/health
+```
+
+### Trigger GitHub Actions Deployment
+After bootstrap, GitHub Actions deployments will work because `/opt/device-manager/deploy.sh` now exists. The workflow runs:
+```bash
+aws ssm send-command --parameters 'commands=["/opt/device-manager/deploy.sh"]'
+```
+
+---
+
+## Troubleshooting
+
+### "deploy.sh not found" Error
+This means the EC2 instance hasn't been bootstrapped. Follow the Manual EC2 Bootstrap Guide above.
+
+### Permission Denied During Deploy
+Run deploy as the ubuntu user:
+```bash
+sudo -u ubuntu /opt/device-manager/deploy.sh
+```
+
+### Native Addon Build Fails
+Use `--ignore-scripts` in npm ci. The pre-built `.node` file is included in the S3 package:
+```bash
+npm ci --only=production --ignore-scripts
+```
+
+### "powermon.h not found" Error
+This occurs if npm tries to rebuild. The `libpowermon_bin` headers aren't in the deployment package. Use `--ignore-scripts` to skip the build.
+
+### Service Fails to Start
+Check logs for database connection issues:
+```bash
+sudo journalctl -u device-manager -n 50
+```
+
+Common causes:
+- DATABASE_URL secret ARN is wrong in start.sh
+- RDS security group doesn't allow access from EC2
+- EC2 instance doesn't have IAM permissions for Secrets Manager
+
+### SIMPro Warning
+The warning "SIMPro API credentials not configured" is expected if you haven't added SIMPRO_API_CLIENT and SIMPRO_API_KEY to the start.sh script. SIM location tracking will be disabled.
