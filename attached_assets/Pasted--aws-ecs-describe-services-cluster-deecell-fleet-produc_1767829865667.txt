@@ -1,0 +1,11 @@
+~ $ aws ecs describe-services --cluster deecell-fleet-production-cluster --services deecell-fleet --region us-east-2 --query 'services[0].events[0:5].[createdAt,message]' --output table
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+|                                                                                                     DescribeServices                                                                                                     |
++----------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+|  2026-01-07T23:41:46.204000+00:00|  (service deecell-fleet) has reached a steady state.                                                                                                                                  |
+|  2026-01-07T23:41:46.203000+00:00|  (service deecell-fleet) (deployment ecs-svc/4000614238116916092) deployment completed.                                                                                               |
+|  2026-01-07T23:40:44.291000+00:00|  (service deecell-fleet, taskSet ecs-svc/3823894882493824495) has begun draining connections on 1 tasks.                                                                              |
+|  2026-01-07T23:40:44.286000+00:00|  (service deecell-fleet) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:892213647605:targetgroup/dcltg-20251224225245578000000009/64e07a1118151673)   |
+|  2026-01-07T23:40:34.435000+00:00|  (service deecell-fleet) has stopped 1 running tasks: (task 9fa2adfd7fe048a8bd30a12b2e43ac66).                                                                                        |
++----------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+~ $
