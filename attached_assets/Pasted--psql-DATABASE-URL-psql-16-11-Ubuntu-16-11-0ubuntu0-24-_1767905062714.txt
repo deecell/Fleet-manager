@@ -1,0 +1,52 @@
+$ psql "$DATABASE_URL"
+psql (16.11 (Ubuntu 16.11-0ubuntu0.24.04.1), server 15.14)
+SSL connection (protocol: TLSv1.2, cipher: ECDHE-RSA-AES256-GCM-SHA384, compression: off)
+Type "help" for help.
+
+deecell_fleet=> CREATE TABLE IF NOT EXISTS shelly_devices (
+deecell_fleet(>     id SERIAL PRIMARY KEY,
+deecell_fleet(>     organization_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+deecell_fleet(>     truck_id INTEGER REFERENCES trucks(id) ON DELETE SET NULL,
+deecell_fleet(>     device_id VARCHAR(64) NOT NULL UNIQUE,
+deecell_fleet(>     device_name VARCHAR(128),
+deecell_fleet(>     device_model VARCHAR(64) DEFAULT 'Plus Uni',
+deecell_fleet(>     ip_address VARCHAR(45),
+deecell_fleet(>     firmware_version VARCHAR(32),
+deecell_fleet(>     last_seen_at TIMESTAMP,
+deecell_fleet(>     connection_status VARCHAR(20) DEFAULT 'offline',
+deecell_fleet(>     last_frequency REAL DEFAULT 0,
+deecell_fleet(>     is_moving BOOLEAN DEFAULT FALSE,
+deecell_fleet(>     movement_threshold REAL DEFAULT 10,
+deecell_fleet(>     webhook_secret VARCHAR(64),
+deecell_fleet(>     is_active BOOLEAN DEFAULT TRUE,
+deecell_fleet(>     created_at TIMESTAMP DEFAULT NOW(),
+deecell_fleet(>     updated_at TIMESTAMP DEFAULT NOW()
+deecell_fleet(> );
+CREATE TABLE
+deecell_fleet=> CREATE INDEX IF NOT EXISTS shelly_device_org_idx ON shelly_devices(organization_id);
+CREATE INDEX
+deecell_fleet=> CREATE INDEX IF NOT EXISTS shelly_device_truck_idx ON shelly_devices(truck_id);
+CREATE INDEX
+deecell_fleet=> CREATE INDEX IF NOT EXISTS shelly_device_id_idx ON shelly_devices(device_id);
+CREATE INDEX
+deecell_fleet=> CREATE INDEX IF NOT EXISTS shelly_device_connection_status_idx ON shelly_devices(organization_id, connection_status);
+CREATE INDEX
+deecell_fleet=> CREATE TABLE IF NOT EXISTS shelly_snapshots (
+deecell_fleet(>     id SERIAL PRIMARY KEY,
+deecell_fleet(>     organization_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+deecell_fleet(>     shelly_device_id INTEGER NOT NULL REFERENCES shelly_devices(id) ON DELETE CASCADE,
+deecell_fleet(>     truck_id INTEGER REFERENCES trucks(id) ON DELETE SET NULL,
+deecell_fleet(>     frequency REAL DEFAULT 0,
+deecell_fleet(>     is_moving BOOLEAN DEFAULT FALSE,
+deecell_fleet(>     temperature REAL,
+deecell_fleet(>     voltage REAL,
+deecell_fleet(>     rssi INTEGER,
+deecell_fleet(>     recorded_at TIMESTAMP NOT NULL,
+deecell_fleet(>     updated_at TIMESTAMP DEFAULT NOW()
+deecell_fleet(> );
+CREATE TABLE
+deecell_fleet=> CREATE UNIQUE INDEX IF NOT EXISTS shelly_snapshot_device_idx ON shelly_snapshots(shelly_device_id);
+CREATE INDEX
+deecell_fleet=> CREATE INDEX IF NOT EXISTS shelly_snapshot_org_idx ON shelly_snapshots(organization_id);
+CREATE INDEX
+deecell_fleet=>
