@@ -6,6 +6,21 @@
 
 ## Latest Updates (January 8, 2026)
 
+### New Hire Developer Setup Guide (January 8, 2026)
+
+Created comprehensive onboarding documentation for new developers at `docs/NEW_HIRE_DEVELOPER_SETUP.md`.
+
+**Covers**:
+- Homebrew, AWS CLI, and Git installation
+- AWS credentials configuration
+- Session Manager plugin installation (Intel and Apple Silicon)
+- GitHub Personal Access Token setup
+- Repository cloning with correct URL
+- Production database migration workflow
+- Troubleshooting common issues
+
+---
+
 ### Shelly Plus Uni Vibration Sensor Integration (January 8, 2026)
 
 **Purpose**: Add support for Shelly Plus Uni devices with SW-420 vibration sensors to detect truck movement, enabling accurate differentiation between Driving, Idling, and Parked states.
