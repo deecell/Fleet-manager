@@ -7,6 +7,35 @@ This guide documents the **only** approved method for running database migration
 
 ---
 
+## Option A: Run from MacBook Pro (Preferred)
+
+### One-Time Setup
+```bash
+# Install AWS CLI
+brew install awscli
+
+# Install Session Manager plugin
+brew install --cask session-manager-plugin
+
+# Configure AWS credentials
+aws configure
+```
+
+### Running a Migration
+```bash
+# Pull latest code
+git pull origin main
+
+# Run the migration script
+./scripts/run-prod-migration.sh migrations/my_migration.sql
+```
+
+The script will find the EC2 instance, connect via SSM, and show you the commands to run.
+
+---
+
+## Option B: Run from AWS CloudShell
+
 ## Step-by-Step Process
 
 ### Step 1: Get the EC2 Instance ID
