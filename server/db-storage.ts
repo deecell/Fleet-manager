@@ -4,7 +4,7 @@ import {
   organizations, users, fleets, trucks, powerMonDevices,
   deviceCredentials, deviceSnapshots, deviceMeasurements,
   deviceSyncStatus, alerts, auditLogs, pollingSettings,
-  passwordResetTokens,
+  passwordResetTokens, shellyDevices, shellySnapshots,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Fleet, type InsertFleet,
@@ -18,6 +18,8 @@ import {
   type AuditLog, type InsertAuditLog,
   type PollingSetting, type InsertPollingSetting,
   type PasswordResetToken, type InsertPasswordResetToken,
+  type ShellyDevice, type InsertShellyDevice,
+  type ShellySnapshot, type InsertShellySnapshot,
 } from "@shared/schema";
 import { sendAlertNotifications, shouldNotifyForAlert } from "./services/alert-notifications";
 
@@ -879,6 +881,121 @@ export class DbStorage {
     await db.update(passwordResetTokens)
       .set({ usedAt: new Date() })
       .where(eq(passwordResetTokens.token, token));
+  }
+
+  // ===========================================================================
+  // SHELLY DEVICES (Vibration sensors)
+  // ===========================================================================
+
+  async createShellyDevice(data: InsertShellyDevice): Promise<ShellyDevice> {
+    const [device] = await db.insert(shellyDevices).values(data).returning();
+    return device;
+  }
+
+  async getShellyDevice(organizationId: number, id: number): Promise<ShellyDevice | undefined> {
+    const [device] = await db.select().from(shellyDevices)
+      .where(and(eq(shellyDevices.organizationId, organizationId), eq(shellyDevices.id, id)));
+    return device;
+  }
+
+  async getShellyDeviceByDeviceId(deviceId: string): Promise<ShellyDevice | undefined> {
+    const [device] = await db.select().from(shellyDevices)
+      .where(eq(shellyDevices.deviceId, deviceId));
+    return device;
+  }
+
+  async getShellyDeviceByTruck(organizationId: number, truckId: number): Promise<ShellyDevice | undefined> {
+    const [device] = await db.select().from(shellyDevices)
+      .where(and(eq(shellyDevices.organizationId, organizationId), eq(shellyDevices.truckId, truckId)));
+    return device;
+  }
+
+  async listShellyDevices(organizationId: number): Promise<ShellyDevice[]> {
+    return db.select().from(shellyDevices)
+      .where(eq(shellyDevices.organizationId, organizationId))
+      .orderBy(asc(shellyDevices.deviceName));
+  }
+
+  async listAllShellyDevices(): Promise<ShellyDevice[]> {
+    return db.select().from(shellyDevices)
+      .where(eq(shellyDevices.isActive, true))
+      .orderBy(asc(shellyDevices.deviceName));
+  }
+
+  async updateShellyDevice(organizationId: number, id: number, data: Partial<InsertShellyDevice>): Promise<ShellyDevice | undefined> {
+    const [device] = await db.update(shellyDevices)
+      .set({ ...data, updatedAt: new Date() })
+      .where(and(eq(shellyDevices.organizationId, organizationId), eq(shellyDevices.id, id)))
+      .returning();
+    return device;
+  }
+
+  async updateShellyDeviceByDeviceId(deviceId: string, data: Partial<InsertShellyDevice> & { lastSeenAt?: Date }): Promise<ShellyDevice | undefined> {
+    const [device] = await db.update(shellyDevices)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(shellyDevices.deviceId, deviceId))
+      .returning();
+    return device;
+  }
+
+  async assignShellyDeviceToTruck(organizationId: number, deviceId: number, truckId: number): Promise<ShellyDevice | undefined> {
+    const [device] = await db.update(shellyDevices)
+      .set({ truckId, updatedAt: new Date() })
+      .where(and(eq(shellyDevices.organizationId, organizationId), eq(shellyDevices.id, deviceId)))
+      .returning();
+    return device;
+  }
+
+  async markShellyDevicesOffline(cutoffTime: Date): Promise<number> {
+    const result = await db.update(shellyDevices)
+      .set({ connectionStatus: 'offline', updatedAt: new Date() })
+      .where(
+        and(
+          eq(shellyDevices.connectionStatus, 'online'),
+          lte(shellyDevices.lastSeenAt, cutoffTime)
+        )
+      );
+    return result.rowCount ?? 0;
+  }
+
+  // ===========================================================================
+  // SHELLY SNAPSHOTS
+  // ===========================================================================
+
+  async upsertShellySnapshot(data: InsertShellySnapshot): Promise<ShellySnapshot> {
+    const [snapshot] = await db.insert(shellySnapshots)
+      .values(data)
+      .onConflictDoUpdate({
+        target: shellySnapshots.shellyDeviceId,
+        set: {
+          frequency: data.frequency,
+          isMoving: data.isMoving,
+          temperature: data.temperature,
+          voltage: data.voltage,
+          rssi: data.rssi,
+          recordedAt: data.recordedAt,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return snapshot;
+  }
+
+  async getShellySnapshot(organizationId: number, shellyDeviceId: number): Promise<ShellySnapshot | undefined> {
+    const [snapshot] = await db.select().from(shellySnapshots)
+      .where(and(eq(shellySnapshots.organizationId, organizationId), eq(shellySnapshots.shellyDeviceId, shellyDeviceId)));
+    return snapshot;
+  }
+
+  async getShellySnapshotByTruck(organizationId: number, truckId: number): Promise<ShellySnapshot | undefined> {
+    const [snapshot] = await db.select().from(shellySnapshots)
+      .where(and(eq(shellySnapshots.organizationId, organizationId), eq(shellySnapshots.truckId, truckId)));
+    return snapshot;
+  }
+
+  async listShellySnapshots(organizationId: number): Promise<ShellySnapshot[]> {
+    return db.select().from(shellySnapshots)
+      .where(eq(shellySnapshots.organizationId, organizationId));
   }
 }
 

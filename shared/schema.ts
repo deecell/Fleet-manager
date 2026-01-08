@@ -526,6 +526,62 @@ export const simSyncSettings = pgTable("sim_sync_settings", {
 }));
 
 // =============================================================================
+// SHELLY DEVICES (Vibration sensors for driving/idling detection)
+// =============================================================================
+export const shellyDevices = pgTable("shelly_devices", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  truckId: integer("truck_id")
+    .references(() => trucks.id, { onDelete: "set null" }),
+  deviceId: varchar("device_id", { length: 64 }).notNull().unique(), // Shelly MAC/ID
+  deviceName: varchar("device_name", { length: 128 }), // e.g., "DCL-Moeck-Vibration"
+  deviceModel: varchar("device_model", { length: 64 }).default("Plus Uni"), // Shelly model
+  ipAddress: varchar("ip_address", { length: 45 }), // Local IP on truck network
+  firmwareVersion: varchar("firmware_version", { length: 32 }),
+  lastSeenAt: timestamp("last_seen_at"), // Last webhook received
+  connectionStatus: varchar("connection_status", { length: 20 }).default("offline"), // online, offline
+  lastFrequency: real("last_frequency").default(0), // Vibration pulses per minute
+  isMoving: boolean("is_moving").default(false), // Derived from frequency threshold
+  movementThreshold: real("movement_threshold").default(10), // Pulses/min to consider "moving"
+  webhookSecret: varchar("webhook_secret", { length: 64 }), // Optional auth for webhook
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  orgIdx: index("shelly_device_org_idx").on(table.organizationId),
+  truckIdx: index("shelly_device_truck_idx").on(table.truckId),
+  deviceIdIdx: index("shelly_device_id_idx").on(table.deviceId),
+  connectionStatusIdx: index("shelly_device_connection_status_idx").on(table.organizationId, table.connectionStatus),
+}));
+
+// =============================================================================
+// SHELLY SNAPSHOTS (latest vibration readings for fast queries)
+// =============================================================================
+export const shellySnapshots = pgTable("shelly_snapshots", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  shellyDeviceId: integer("shelly_device_id")
+    .notNull()
+    .references(() => shellyDevices.id, { onDelete: "cascade" }),
+  truckId: integer("truck_id")
+    .references(() => trucks.id, { onDelete: "set null" }),
+  frequency: real("frequency").default(0), // Current vibration frequency
+  isMoving: boolean("is_moving").default(false),
+  temperature: real("temperature"), // If sensor reports temp
+  voltage: real("voltage"), // Shelly input voltage
+  rssi: integer("rssi"), // WiFi signal strength
+  recordedAt: timestamp("recorded_at").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  deviceIdx: uniqueIndex("shelly_snapshot_device_idx").on(table.shellyDeviceId),
+  orgIdx: index("shelly_snapshot_org_idx").on(table.organizationId),
+}));
+
+// =============================================================================
 // POLLING SETTINGS (configurable per organization)
 // =============================================================================
 export const pollingSettings = pgTable("polling_settings", {
@@ -653,6 +709,12 @@ export const insertDataMigrationSchema = createInsertSchema(dataMigrations)
 export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens)
   .omit({ id: true, createdAt: true, usedAt: true });
 
+export const insertShellyDeviceSchema = createInsertSchema(shellyDevices)
+  .omit({ id: true, createdAt: true, updatedAt: true, lastSeenAt: true });
+
+export const insertShellySnapshotSchema = createInsertSchema(shellySnapshots)
+  .omit({ id: true, updatedAt: true });
+
 // =============================================================================
 // SELECT TYPES (for query results)
 // =============================================================================
@@ -677,6 +739,8 @@ export type FuelPrice = typeof fuelPrices.$inferSelect;
 export type SavingsConfig = typeof savingsConfig.$inferSelect;
 export type DataMigration = typeof dataMigrations.$inferSelect;
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type ShellyDevice = typeof shellyDevices.$inferSelect;
+export type ShellySnapshot = typeof shellySnapshots.$inferSelect;
 
 // =============================================================================
 // INSERT TYPES (for creating new records)
@@ -701,6 +765,8 @@ export type InsertSimSyncSetting = z.infer<typeof insertSimSyncSettingsSchema>;
 export type InsertFuelPrice = z.infer<typeof insertFuelPriceSchema>;
 export type InsertSavingsConfig = z.infer<typeof insertSavingsConfigSchema>;
 export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
+export type InsertShellyDevice = z.infer<typeof insertShellyDeviceSchema>;
+export type InsertShellySnapshot = z.infer<typeof insertShellySnapshotSchema>;
 
 // =============================================================================
 // LEGACY SCHEMAS (for backward compatibility with existing dashboard)

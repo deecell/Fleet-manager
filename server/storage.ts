@@ -12,6 +12,8 @@ import {
   type AuditLog, type InsertAuditLog,
   type PollingSetting, type InsertPollingSetting,
   type PasswordResetToken, type InsertPasswordResetToken,
+  type ShellyDevice, type InsertShellyDevice,
+  type ShellySnapshot, type InsertShellySnapshot,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -157,6 +159,24 @@ export interface IStorage {
   createPasswordResetToken(data: InsertPasswordResetToken): Promise<PasswordResetToken>;
   getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined>;
   markPasswordResetTokenUsed(token: string): Promise<void>;
+
+  // Shelly Devices (vibration sensors)
+  createShellyDevice(data: InsertShellyDevice): Promise<ShellyDevice>;
+  getShellyDevice(organizationId: number, id: number): Promise<ShellyDevice | undefined>;
+  getShellyDeviceByDeviceId(deviceId: string): Promise<ShellyDevice | undefined>;
+  getShellyDeviceByTruck(organizationId: number, truckId: number): Promise<ShellyDevice | undefined>;
+  listShellyDevices(organizationId: number): Promise<ShellyDevice[]>;
+  listAllShellyDevices(): Promise<ShellyDevice[]>;
+  updateShellyDevice(organizationId: number, id: number, data: Partial<InsertShellyDevice>): Promise<ShellyDevice | undefined>;
+  updateShellyDeviceByDeviceId(deviceId: string, data: Partial<InsertShellyDevice> & { lastSeenAt?: Date }): Promise<ShellyDevice | undefined>;
+  assignShellyDeviceToTruck(organizationId: number, deviceId: number, truckId: number): Promise<ShellyDevice | undefined>;
+  markShellyDevicesOffline(cutoffTime: Date): Promise<number>;
+
+  // Shelly Snapshots
+  upsertShellySnapshot(data: InsertShellySnapshot): Promise<ShellySnapshot>;
+  getShellySnapshot(organizationId: number, shellyDeviceId: number): Promise<ShellySnapshot | undefined>;
+  getShellySnapshotByTruck(organizationId: number, truckId: number): Promise<ShellySnapshot | undefined>;
+  listShellySnapshots(organizationId: number): Promise<ShellySnapshot[]>;
 }
 
 export { dbStorage as storage } from "./db-storage";

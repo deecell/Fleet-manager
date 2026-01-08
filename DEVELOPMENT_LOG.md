@@ -4,7 +4,65 @@
 
 ---
 
-## Latest Updates (January 7, 2026)
+## Latest Updates (January 8, 2026)
+
+### Shelly Plus Uni Vibration Sensor Integration (January 8, 2026)
+
+**Purpose**: Add support for Shelly Plus Uni devices with SW-420 vibration sensors to detect truck movement, enabling accurate differentiation between Driving, Idling, and Parked states.
+
+**Background**: Currently we can only detect engine state (on/off) via chassis voltage from PowerMon devices. We cannot distinguish between a truck that is driving vs idling because we lack engine RPM, GPS/speed, or cell tower location data.
+
+**Hardware Solution** (~$15/truck):
+- Shelly Plus Uni controller
+- SW-420 vibration sensor
+- 12V-to-5V buck converter (for powering Shelly from truck power)
+
+**Detection Logic**:
+- High vibration frequency (≥10 pulses/min) + Engine On = **Driving**
+- Low vibration frequency + Engine On (V > 13.8V) = **Idling**
+- Low vibration frequency + Engine Off (V ≤ 13.8V) = **Parked**
+
+**Implementation**:
+
+1. **New Database Tables**:
+   - `shelly_devices` - Device registry (org_id, truck_id, device_id, device_name, connection_status, last_frequency, is_moving)
+   - `shelly_snapshots` - Latest readings for fast dashboard queries
+
+2. **New API Endpoints**:
+   - `POST /api/v1/shelly/vibration` - Webhook for vibration data from Shelly devices
+   - `POST /api/v1/shelly/heartbeat` - Heartbeat to maintain online status
+   - `GET /api/v1/shelly/devices` - List all Shelly devices
+   - `POST /api/v1/shelly/check-offline` - Mark devices offline if no data in 2+ minutes
+
+3. **Device Naming Convention**: `{TruckName}-Vibration` (e.g., DCL-Moeck-Vibration)
+
+4. **Connection Monitoring**: Heartbeat every 60 seconds; marked offline if no data in 2+ minutes
+
+**Files Changed**:
+- `shared/schema.ts` - Added `shellyDevices` and `shellySnapshots` tables
+- `server/storage.ts` - Added Shelly interface methods
+- `server/db-storage.ts` - Implemented Shelly storage methods
+- `server/api/shelly-routes.ts` - New webhook endpoints
+- `server/routes.ts` - Registered Shelly routes
+- `migrations/shelly_devices_production.sql` - Production SQL for CloudShell
+
+**Shelly Device Setup (before deployment)**:
+1. Connect to Shelly's AP WiFi (`ShellyPlusUni-XXXXXXXX`)
+2. Open `192.168.33.1` in browser
+3. Go to Settings → Device Name → Set to `{TruckName}-Vibration`
+4. Go to Settings → Wi-Fi → Connect to truck's router WiFi
+5. Configure input:2 as counter type for vibration frequency
+6. Set up webhook to POST to `https://app.deecell.com/api/v1/shelly/vibration?device_id=${info.id}&frequency=${status['input:2'].freq}`
+
+**Production Migration**:
+```bash
+# Via CloudShell:
+psql $DATABASE_URL -f migrations/shelly_devices_production.sql
+```
+
+---
+
+## Previous Updates (January 7, 2026)
 
 ### SendGrid Email Configuration for AWS Production (January 7, 2026)
 
