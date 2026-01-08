@@ -1,0 +1,389 @@
+
+Remote Updates
+origin/main•upstream
+last fetched 6 min ago
+Commit
+There are no changes to commit.
+Enable "Accessible Terminal" in Workspace Settings to use a screen reader with the shell.
+Deecell Fleet - Infrastructure Setup Notes
+Overview
+Infrastructure changes are managed manually via AWS CloudShell (not GitHub Actions). This provides better security by keeping admin-level AWS permissions out of CI/CD.
+
+App deployments (ECS, Device Manager) still run automatically via GitHub Actions.
+
+One-Time CloudShell Setup
+Run these commands the first time you use CloudShell for Terraform:
+
+# Install Terraform 1.6.0
+curl -fsSL https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip -o tf.zip
+unzip tf.zip && sudo mv terraform /usr/local/bin/
+rm tf.zip
+# Verify installation
+terraform version
+# Clone the repository
+git clone https://github.com/deecellglobal/fleet-tracking.git
+cd fleet-tracking/terraform
+# Initialize Terraform (connects to S3 backend)
+terraform init
+Making Infrastructure Changes
+When you need to modify AWS infrastructure:
+
+1. Open CloudShell
+Log into AWS Console: https://console.aws.amazon.com
+Make sure you're in us-east-2 region
+Click the CloudShell icon (terminal icon in top navigation bar)
+2. Pull Latest Changes
+cd ~/fleet-tracking
+git pull origin main
+cd terraform
+3. Run Terraform Plan
+Review what will change before applying:
+
+# Set your variables (replace with actual values)
+export TF_VAR_db_password="your-db-password"
+export TF_VAR_session_secret="your-session-secret"
+export TF_VAR_admin_password="your-admin-password"
+# Run plan
+terraform plan \
+  -var="ecr_repository_url=892213647605.dkr.ecr.us-east-2.amazonaws.com/deecell-fleet" \
+  -var="domain_name=app.deecell.com"
+4. Apply Changes
+If the plan looks correct:
+
+terraform apply \
+  -var="ecr_repository_url=892213647605.dkr.ecr.us-east-2.amazonaws.com/deecell-fleet" \
+  -var="domain_name=app.deecell.com"
+Type yes when prompted to confirm.
+
+Important Notes
+CloudShell sessions persist for 120 days - your clone and Terraform will be there
+If session expires, re-run the one-time setup commands
+Secrets: The variables above are also stored in AWS Secrets Manager:
+deecell-fleet-production/database-url
+deecell-fleet-production/session-secret
+deecell-fleet-production/admin-password
+Getting Secret Values
+If you need to retrieve the current secret values:
+
+# Database URL
+aws secretsmanager get-secret-value \
+  --secret-id deecell-fleet-production/database-url \
+  --query SecretString --output text
+# Session Secret
+aws secretsmanager get-secret-value \
+  --secret-id deecell-fleet-production/session-secret-13647605 \
+  --query SecretString --output text
+# Admin Password
+aws secretsmanager get-secret-value \
+  --secret-id deecell-fleet-production/admin-password-13647605 \
+  --query SecretString --output text
+GitHub Actions Workflows
+Workflow	Purpose	Trigger
+Deploy to AWS	Build & deploy web app to ECS	Push to main
+Deploy Device Manager	Deploy device polling service to EC2	Manual or device-manager/ changes
+Terraform	DISABLED - Run manually via CloudShell	N/A
+IAM Permissions Summary
+GitHub Actions IAM User (deecell-terraform):
+
+ECR: Push/pull container images
+ECS: Update services, register task definitions
+S3: Device Manager deployment artifacts
+SSM: Send commands to EC2 instances
+Secrets Manager: Read database URL
+CloudWatch Logs: Read logs
+Your AWS Console User:
+
+Full administrator access for infrastructure changes
+Troubleshooting
+CloudShell Terraform Not Found
+Re-run the installation:
+
+curl -fsSL https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip -o tf.zip
+unzip tf.zip && sudo mv terraform /usr/local/bin/
+State Lock Error
+If Terraform shows a lock error, another process may be running. Wait or force unlock:
+
+terraform force-unlock LOCK_ID
+Plan Shows Unexpected Deletions
+Always review the plan carefully. If resources show as deleted unexpectedly, check:
+
+You're on the correct AWS account (892213647605)
+You're in the correct region (us-east-2)
+State file hasn't been corrupted
+IAM Cleanup (One-Time)
+After switching to CloudShell for Terraform, clean up unused IAM resources:
+
+Step 1: Delete Unused Policy
+Go to IAM → Policies in AWS Console
+Search for DeecellGitHubActionsPolicy (the manually created one, not the Terraform-managed one)
+If it exists and has 0 attached entities, delete it
+Step 2: Remove Terraform State Permissions (Optional)
+The GitHub Actions policy (deecell-fleet-production-github-actions-policy) may still have Terraform-related permissions. These can be removed since Terraform no longer runs via GitHub Actions:
+
+Permissions to keep (needed for app deployments):
+
+ecr:* - Container image push/pull
+ecs:* - ECS service updates
+ssm:* - EC2 command execution
+secretsmanager:GetSecretValue - Read database URL
+logs:* - CloudWatch logs
+s3:* on deployment bucket - Device Manager artifacts
+iam:PassRole - ECS task execution
+Permissions that could be removed (only needed for Terraform):
+
+S3 access to terraform-state-* bucket (if separate from deployment bucket)
+DynamoDB access to terraform-locks table
+Any iam:* beyond PassRole
+Note: The current policy is minimal and may already be optimized. Only modify if you see excess permissions.
+
+Step 3: Verify Deployments Still Work
+After any IAM changes, trigger a test deployment:
+
+Make a small change to any file (not in terraform/ or device-manager/)
+Push to main
+Check GitHub Actions → "Deploy to AWS" workflow succeeds
+AWS Resources Reference
+Resource	ARN/ID
+AWS Account	892213647605
+Region	us-east-2
+ECR Repository	deecell-fleet
+ECS Cluster	deecell-fleet-production-cluster
+ECS Service	deecell-fleet
+ALB	deecell-fleet-production-alb
+RDS Instance	deecell-fleet-production-postgres
+S3 Terraform State	deecell-fleet-terraform-state-892213647605
+IAM User (CI/CD)	deecell-terraform
+Domain	app.deecell.com
+Secrets
+SESSION_SECRET
+••••••••
+AI_INTEGRATIONS_OPENAI_BASE_URL
+••••••••
+AI_INTEGRATIONS_OPENAI_API_KEY
+••••••••
+TF_VAR_db_password
+••••••••
+TF_VAR_session_secret
+••••••••
+TF_VAR_admin_password
+••••••••
+AWS_ACCESS_KEY_ID
+••••••••
+AWS_SECRET_ACCESS_KEY
+••••••••
+SIMPRO_API_CLIENT
+••••••••
+SIMPRO_API_KEY
+••••••••
+ADMIN_PASSWORD
+••••••••
+GITHUB_TOKEN
+••••••••
+Configurations
+Configurations are similar to secrets, but should only be used for non-sensitive information. They're useful for having a variable that's different between your published app and when testing on Replit.
+Add script to run production database migrations locally
+Checkpoint made
+Show truck status duration in the fleet table
+Worked for 3 minutes
+I also need the driving minutes please
+
+Checkpoint made
+Add driving duration tracking and display to fleet dashboard
+Worked for 3 minutes
+Sol, we have a deploy action problem. Deploy to AWS action is getting this error:
+
+Run # Get the ALB URL
+Deployed to: http://-production-alb-1191388080..elb.amazonaws.com
+Attempt 1: HTTP 301 - waiting...
+Attempt 2: HTTP 301 - waiting...
+Attempt 3: HTTP 301 - waiting...
+Attempt 4: HTTP 301 - waiting...
+Attempt 5: HTTP 301 - waiting...
+Attempt 6: HTTP 301 - waiting...
+Attempt 7: HTTP 301 - waiting...
+Attempt 8: HTTP 301 - waiting...
+Attempt 9: HTTP 301 - waiting...
+Attempt 10: HTTP 301 - waiting...
+Attempt 11: HTTP 301 - waiting...
+Attempt 12: HTTP 301 - waiting...
+Attempt 13: HTTP 301 - waiting...
+Attempt 14: HTTP 301 - waiting...
+Attempt 15: HTTP 301 - waiting...
+Attempt 16: HTTP 301 - waiting...
+Attempt 17: HTTP 301 - waiting...
+Attempt 18: HTTP 301 - waiting...
+Attempt 19: HTTP 301 - waiting...
+Attempt 20: HTTP 301 - waiting...
+Attempt 21: HTTP 301 - waiting...
+Attempt 22: HTTP 301 - waiting...
+Attempt 23: HTTP 301 - waiting...
+Attempt 24: HTTP 301 - waiting...
+Attempt 25: HTTP 301 - waiting...
+Attempt 26: HTTP 301 - waiting...
+Attempt 27: HTTP 301 - waiting...
+Attempt 28: HTTP 301 - waiting...
+Attempt 29: HTTP 301 - waiting...
+Attempt 30: HTTP 301 - waiting...
+Health check failed after 30 attempts
+Error: Process completed with exit code 1.
+
+Checkpoint made
+Update deployment process to use HTTPS for health checks
+Worked for 34 seconds
+I have other changes to push ... I can do from the github screen in Replit, yes?
+
+Sol, necesito hacer unos cambios en la card today's Savings, ahora se mostrara el total ahorrado en el mes y en el dia, por favor utiliza la misma logica que estamos usando hasta ahora; sigue el diseño tal como muestro en el figma
+
+@https://www.figma.com/design/Ij183xTwLeP72aTjzXuHpt/Deecell-Website?node-id=2664-305&m=dev
+
+Checkpoint made
+•
+Free
+Visual edit
+Worked for 3 seconds
+It's looking thesame
+
+Checkpoint made
+Update savings display to use new SavingsCard component
+Worked for 1 minute
+Also, there's no data showing on the prod site please fix
+
+Checkpoint made
+Improve savings calculations and fallback logic for displaying fleet data
+Worked for 1 minute
+left aling with the title
+
+Let me also check the header alignment:
+
+Done! I've left-aligned both the "Status" header and the status badges in the column. The changes should reflect immediately in your browser.
+
+Checkpoint made
+Saved progress at the end of the loop
+Worked for 8 minutes
+Can you write a task report (CSV) so I can update Jira with what was completed? Include any details IE urls, settings, logic, etc.
+
+Checkpoint made
+Add Shelly vibration sensor integration with database and API endpoints
+Worked for 46 seconds
+Ok, lets do the DB modifications on PROD first then I will deploy.
+
+~ $ # Connect to production database and run the migration
+~ $ psql $DATABASE_URL -f migrations/shelly_devices_production.sql
+psql: error: connection to server on socket "/var/run/postgresql/.s.PGSQL.5432" failed: No such file or directory
+Is the server running locally and accepting connections on that socket?
+~ $
+
+~ $
+~ $
+~ $
+~ $ psql "$DATABASE_URL" -f migrations/shelly_devices_production.sql
+
+Looks like the command ran but didn't show output. Can you verify the tables were created?
+
+# Check if tables exist
+psql "$DATABASE_URL" -c "\dt shelly*"
+Or:
+
+# Quick row count check
+psql "$DATABASE_URL" -c "SELECT 'shelly_devices' as table_name, COUNT(*) FROM shelly_devices UNION ALL SELECT 'shelly_snapshots', COUNT(*) FROM shelly_snapshots;"
+Worked for 7 seconds
+I have to CTRL C to stop - nothing is happening
+
+~ $ TASK_ARN=$(aws ecs list-tasks --cluster deecell-fleet-production-cluster --service-name deecell-fleet --query 'taskArns[0]' --output text --region us-east-2)
+~ $ aws ecs execute-command --cluster deecell-fleet-production-cluster \
+
+--task $TASK_ARN
+--container deecell-fleet
+--interactive
+--command "/bin/sh"
+--region us-east-2
+
+The Session Manager plugin was installed successfully. Use the AWS CLI to start a session.
+
+An error occurred (InvalidParameterException) when calling the ExecuteCommand operation: The execute command failed because execute command was not enabled when the task was run or the execute command agent isn’t running. Wait and try again or run a new task with execute command enabled and try again.
+~ $
+
+I want to use whatever approach we used lasat time that worked. Please review our previous work.
+
+Approach 2 is the preferred approach now and going forward. Please take note so we always use approach #2.
+
+Checkpoint made
+Update documentation to prefer a specific database migration approach
+Worked for 47 seconds
+~ $ INSTANCE_ID=$(aws autoscaling describe-auto-scaling-groups \
+
+--auto-scaling-group-names deecell-device-manager-asg
+--query 'AutoScalingGroups[0].Instances[*].InstanceId'
+--output text --region us-east-2)
+~ $
+~ $ echo $INSTANCE_ID
+None
+~ $
+
+Only show me 1 step at a time.
+
+~ $ aws ec2 describe-instances \
+
+--filters "Name=instance-state-name,Values=running"
+--query 'Reservations[].Instances[].[InstanceId,Tags[?Key==Name].Value|[0]]'
+--output table --region us-east-2
+
+| DescribeInstances |
++----------------------+-------------------------------------------+
+| i-05443904f977d7301 | deecell-fleet-production-device-manager |
++----------------------+-------------------------------------------+
+~ $
+
+Please remember that we always need to connect to the instance AND that we need to get the instance name before we try and connect.
+
+Checkpoint made
+Update documentation for production database migration procedures
+Worked for 18 seconds
+What is the next step? I am connected.
+
+another problem.
+
+$ echo $DATABASE_URL
+
+$
+
+Please remember that we need to first get the DAATABASE_URL / set the DATABASE_URL before we connect.
+
+Checkpoint made
+Update documentation for database migration procedures
+Worked for 20 seconds
+Done. What is the next command?
+
+$ psql "$DATABASE_URL"
+psql (16.11 (Ubuntu 16.11-0ubuntu0.24.04.1), server 15.14)
+SSL connection (protocol: TLSv1.2, cipher: ECDHE-RSA-AES256-GCM-SHA384, compression: off)
+Type "help" for help.
+
+deecell_fleet=>
+
+Checkpoint made
+Add new tables to store Shelly device and snapshot data
+Worked for 6 seconds
+Please create a DB Migration note or whatever so the next time we can easily reference and not make the same mistakes.
+
+Checkpoint made
+Add guide for production database migration procedures
+Worked for 37 seconds
+Deploying.
+
+I work from a MacBook Pro and I know Unix Terminal ... for future DB updates / schema changes is there a way that I can SSH (from my MacBook Pro) and then run a script (that you create) that will make the changes?
+
+Yes! I can create a script you can run from your Mac. You'll need the AWS CLI installed and configured with your credentials.
+
+Created scripts/run-prod-migration.sh. Here's how to set it up on your Mac:
+
+One-time setup:
+
+# Install AWS CLI
+brew install awscli
+# Install Session Manager plugin (required for SSM)
+brew install --cask session-manager-plugin
+# Configure AWS credentials
+aws configure
+# Enter your Access Key ID, Secret Key, and region (us-east-2)
+Running a migration:
