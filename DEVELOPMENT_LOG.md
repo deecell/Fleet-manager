@@ -6,6 +6,17 @@
 
 ## Latest Updates (January 8, 2026)
 
+### Migration Script Workflow (January 8, 2026)
+
+Established new workflow for production database migrations:
+- All migrations now have runnable scripts in `scripts/migrations/`
+- Scripts are self-contained with embedded SQL
+- Naming convention: `YYYY-MM-DD_description.sh`
+- Template available at `scripts/migrations/_TEMPLATE.sh`
+- User runs from MacBook: `./scripts/migrations/2026-01-08_add_shelly_tables.sh`
+
+---
+
 ### New Hire Developer Setup Guide (January 8, 2026)
 
 Created comprehensive onboarding documentation for new developers at `docs/NEW_HIRE_DEVELOPER_SETUP.md`.

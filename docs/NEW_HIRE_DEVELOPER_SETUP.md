@@ -157,7 +157,28 @@ Your MacBook is now set up for Deecell development.
 
 ## Quick Reference: Running Production Database Migrations
 
-When you need to run SQL migrations on the production database, use this workflow:
+Migration scripts are located in `scripts/migrations/`. Each script is self-contained and can be run directly from your MacBook.
+
+### Running an Existing Migration Script
+
+```bash
+cd /Users/amoeck/Development/Fleet-manager
+git pull origin main
+./scripts/migrations/2026-01-08_add_shelly_tables.sh
+```
+
+### Creating a New Migration
+
+1. Copy the template: `cp scripts/migrations/_TEMPLATE.sh scripts/migrations/YYYY-MM-DD_description.sh`
+2. Edit the new file and add your SQL
+3. Make it executable: `chmod +x scripts/migrations/YYYY-MM-DD_description.sh`
+4. Run it: `./scripts/migrations/YYYY-MM-DD_description.sh`
+
+---
+
+### Manual Migration Workflow
+
+If you need to run SQL manually without a script:
 
 ### Step 1: Connect to EC2 via SSM
 
