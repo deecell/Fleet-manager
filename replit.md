@@ -8,9 +8,10 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
 - Always update DEVELOPMENT_LOG.md with progress on every task (user reads this regularly).
 - Update replit.md and other documentation alongside DEVELOPMENT_LOG.md.
 - **Production Database Migrations**: Always use SSM → EC2 → psql approach (NOT the API endpoint or direct CloudShell):
-  1. From CloudShell: `aws ssm start-session --target i-XXXXXXXXX --region us-east-2`
-  2. From EC2: `psql "$DATABASE_URL"` (or full connection string)
-  3. Run SQL commands directly
+  1. Get instance ID: `aws ec2 describe-instances --filters "Name=instance-state-name,Values=running" --query 'Reservations[*].Instances[*].[InstanceId,Tags[?Key==\`Name\`].Value|[0]]' --output table --region us-east-2`
+  2. From CloudShell: `aws ssm start-session --target i-XXXXXXXXX --region us-east-2`
+  3. From EC2: `psql "$DATABASE_URL"` (or full connection string)
+  4. Run SQL commands directly
 
 ## System Architecture
 
