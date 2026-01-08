@@ -10,8 +10,9 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
 - **Production Database Migrations**: Always use SSM → EC2 → psql approach (NOT the API endpoint or direct CloudShell):
   1. Get instance ID: `aws ec2 describe-instances --filters "Name=instance-state-name,Values=running" --query 'Reservations[*].Instances[*].[InstanceId,Tags[?Key==\`Name\`].Value|[0]]' --output table --region us-east-2`
   2. From CloudShell: `aws ssm start-session --target i-XXXXXXXXX --region us-east-2`
-  3. From EC2: `psql "$DATABASE_URL"` (or full connection string)
-  4. Run SQL commands directly
+  3. From EC2, get DATABASE_URL: `export DATABASE_URL=$(aws secretsmanager get-secret-value --secret-id deecell-fleet-production/database-url --query SecretString --output text --region us-east-2)`
+  4. From EC2: `psql "$DATABASE_URL"`
+  5. Run SQL commands directly
 
 ## System Architecture
 
