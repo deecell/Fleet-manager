@@ -329,8 +329,9 @@ export function useCreateDevice() {
         method: "POST",
         body: JSON.stringify(data),
       }),
-    onSuccess: () => {
+    onSuccess: (_, { orgId }) => {
       queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/devices"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/organizations", orgId, "devices"] });
       queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/stats"] });
     },
   });
@@ -344,8 +345,9 @@ export function useUpdateDevice() {
         method: "PATCH",
         body: JSON.stringify(data),
       }),
-    onSuccess: () => {
+    onSuccess: (_, { orgId }) => {
       queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/devices"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/organizations", orgId, "devices"] });
     },
   });
 }
@@ -358,8 +360,9 @@ export function useAssignDevice() {
         method: "POST",
         body: JSON.stringify({ truckId, organizationId }),
       }),
-    onSuccess: () => {
+    onSuccess: (_, { organizationId }) => {
       queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/devices"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/organizations", organizationId, "devices"] });
     },
   });
 }
@@ -372,8 +375,9 @@ export function useUnassignDevice() {
         method: "POST",
         body: JSON.stringify({ organizationId }),
       }),
-    onSuccess: () => {
+    onSuccess: (_, { organizationId }) => {
       queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/devices"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/organizations", organizationId, "devices"] });
     },
   });
 }
@@ -385,8 +389,9 @@ export function useDeleteDevice() {
       adminFetch<{ success: boolean }>(`/api/v1/admin/devices/${id}?orgId=${organizationId}`, {
         method: "DELETE",
       }),
-    onSuccess: () => {
+    onSuccess: (_, { organizationId }) => {
       queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/devices"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/organizations", organizationId, "devices"] });
     },
   });
 }
