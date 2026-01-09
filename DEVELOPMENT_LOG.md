@@ -210,13 +210,36 @@ Created comprehensive onboarding documentation for new developers at `docs/NEW_H
 - `server/routes.ts` - Registered Shelly routes
 - `migrations/shelly_devices_production.sql` - Production SQL for CloudShell
 
+**Shelly Script Behavior**:
+
+The Shelly Plus Uni runs an onboard script that:
+1. **Auto-detects Device ID** - Uses `${info.id}` to get its own MAC/serial automatically
+2. **Monitors input:2 frequency** - Reads `${status['input:2'].freq}` from the SW-420 vibration sensor (connected to the counter/purple wire)
+3. **Event-driven webhook** - POSTs to our endpoint whenever "Moving" logic is triggered (not polling at fixed intervals)
+
+**Webhook Payload**:
+```
+POST https://app.deecell.com/api/v1/shelly/vibration?device_id={shelly_mac}&frequency={pulses_per_min}
+```
+
+Example: `?device_id=shellyuniplus-a1b2c3d4e5f6&frequency=15`
+
+**Backend Processing**:
+- Creates/updates Shelly device record (auto-registers on first webhook)
+- Stores frequency reading in `shelly_snapshots` table
+- Sets `is_moving = true` if frequency ≥ 10 pulses/min
+- Combines with PowerMon voltage data to determine truck state:
+  - `is_moving=true` + Engine On → **Driving**
+  - `is_moving=false` + Engine On (V > 13.8V) → **Idling**
+  - `is_moving=false` + Engine Off (V ≤ 13.8V) → **Parked**
+
 **Shelly Device Setup (before deployment)**:
 1. Connect to Shelly's AP WiFi (`ShellyPlusUni-XXXXXXXX`)
 2. Open `192.168.33.1` in browser
 3. Go to Settings → Device Name → Set to `{TruckName}-Vibration`
 4. Go to Settings → Wi-Fi → Connect to truck's router WiFi
 5. Configure input:2 as counter type for vibration frequency
-6. Set up webhook to POST to `https://app.deecell.com/api/v1/shelly/vibration?device_id=${info.id}&frequency=${status['input:2'].freq}`
+6. Add script that monitors frequency and calls webhook on movement trigger
 
 **Production Migration**:
 ```bash
