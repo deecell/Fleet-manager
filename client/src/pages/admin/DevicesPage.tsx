@@ -572,7 +572,7 @@ export default function DevicesPage() {
                             {snapshot?.power?.toFixed(2) ?? "-"}
                           </TableCell>
                           <TableCell className="text-center text-muted-foreground">
-                            {snapshot?.energy?.toFixed(2) ?? "-"}
+                            {snapshot?.energy != null ? Math.round(snapshot.energy).toLocaleString() : "-"}
                           </TableCell>
                           <TableCell className="text-center text-muted-foreground">
                             {snapshot?.charge?.toFixed(2) ?? "-"}
