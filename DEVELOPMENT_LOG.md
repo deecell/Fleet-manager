@@ -4,7 +4,46 @@
 
 ---
 
-## Latest Updates (January 8, 2026)
+## Latest Updates (January 9, 2026)
+
+### Admin Devices Table Redesign (January 9, 2026)
+
+**Purpose**: Redesigned the admin Devices table to match the Figma design, showing real-time device metrics from the latest snapshot data.
+
+**New Table Columns**:
+| Column | Description |
+|--------|-------------|
+| Serial Number - Name | Stacked layout: serial (mono font) on top, device name below |
+| Assigned Truck | Badge showing linked truck number |
+| Data Status | Color-coded pill: Reporting (green), Stale (orange), No data (gray) |
+| Last Reported | Date and time on separate lines |
+| V1 | Chassis voltage from PowerMon |
+| SoC (%) | State of charge - color-coded: green ≥50%, orange ≥20%, red <20% |
+| V2 | Sleeper cab voltage |
+| P (kW) | Power consumption |
+| Wh | Energy (watt-hours) |
+| Ah | Charge (amp-hours) |
+| Temp (°F) | Temperature converted from Celsius |
+
+**Backend Changes**:
+- Added `listDevicesWithSnapshots(orgId)` method to join devices with latest snapshot
+- Added `listAllDevicesWithSnapshots()` method for admin view across all orgs
+- Updated admin routes `/api/admin/devices` and `/api/admin/organizations/:orgId/devices`
+
+**Frontend Changes**:
+- Updated `DevicesPage.tsx` with new column layout
+- Added `DeviceWithSnapshot` type to `admin-api.ts`
+- Dark header styling (bg-[#303030]), alternating row backgrounds
+- Sortable columns: Serial Number, Assigned Truck, Data Status, Last Reported, SoC, Temp
+
+**Files Changed**:
+- `server/api/admin-routes.ts` - Updated device endpoints to use snapshot methods
+- `server/db-storage.ts` - Added snapshot join methods
+- `server/storage.ts` - Added interface methods
+- `client/src/pages/admin/DevicesPage.tsx` - New table layout
+- `client/src/lib/admin-api.ts` - Added DeviceWithSnapshot type
+
+---
 
 ### IAM Permissions Documentation (January 9, 2026)
 
