@@ -59,6 +59,11 @@ class DeviceConnection {
     this.applinkUrl = deviceInfo.applink_url;
     this.cohortId = deviceInfo.cohort_id || 0;
     
+    // Battery configuration for Wh calculation
+    this.batteryVoltage = deviceInfo.battery_voltage || null;
+    this.numberOfBatteries = deviceInfo.number_of_batteries || null;
+    this.batteryAh = deviceInfo.battery_ah || null;
+    
     this.device = null; // PowerMon device instance
     this.status = 'disconnected'; // disconnected, connecting, connected, reconnecting
     this.lastPollAt = null;
@@ -78,6 +83,26 @@ class DeviceConnection {
       serial: this.serialNumber,
       cohort: this.cohortId 
     });
+  }
+  
+  /**
+   * Calculate battery energy (Wh) from SoC and battery configuration
+   * Formula: Wh = (SoC/100) × batteryVoltage × (numberOfBatteries × batteryAh)
+   * 
+   * @param {number} soc - State of charge percentage (0-100)
+   * @returns {number|null} - Calculated Wh or null if battery config is missing
+   */
+  calculateWh(soc) {
+    if (this.batteryVoltage == null || this.numberOfBatteries == null || this.batteryAh == null) {
+      return null; // Cannot calculate without battery config
+    }
+    if (soc == null || isNaN(soc)) {
+      return null;
+    }
+    
+    const totalCapacityAh = this.numberOfBatteries * this.batteryAh;
+    const wh = (soc / 100) * this.batteryVoltage * totalCapacityAh;
+    return Math.round(wh * 100) / 100; // Round to 2 decimal places
   }
   
   /**
@@ -323,6 +348,12 @@ class DeviceConnection {
           this.lastSuccessfulPollAt = this.lastPollAt;
           this.consecutiveFailures = 0;
 
+          // Calculate Wh from SoC and battery configuration
+          // Formula: Wh = (SoC/100) × batteryVoltage × (numberOfBatteries × batteryAh)
+          // Falls back to PowerMon energyMeter if battery config is missing
+          const calculatedWh = this.calculateWh(data.soc);
+          const energyValue = calculatedWh !== null ? calculatedWh : data.energyMeter;
+
           // Transform to measurement format
           const measurement = {
             organizationId: this.orgId,
@@ -335,7 +366,7 @@ class DeviceConnection {
             power: data.power,
             temperature: data.temperature,
             soc: data.soc,
-            energy: data.energyMeter,
+            energy: energyValue,
             charge: data.coulombMeter,
             runtime: data.runtime,
             rssi: data.rssi,
@@ -345,7 +376,7 @@ class DeviceConnection {
             recordedAt: this.lastPollAt,
           };
 
-          this.log.debug('Poll successful', { soc: data.soc, voltage: data.voltage1 });
+          this.log.debug('Poll successful', { soc: data.soc, voltage: data.voltage1, calculatedWh: calculatedWh !== null });
           resolve(measurement);
         });
       } catch (err) {
