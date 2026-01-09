@@ -400,7 +400,7 @@ export default function DevicesPage() {
                     <TableRow className="hover:bg-[#303030] border-0">
                       <TableHead 
                         className="text-white font-medium cursor-pointer select-none"
-                        onClick={() => handleSort("serialNumber")}
+                        onClick={() => handleSort("deviceName")}
                         data-testid="sort-serial-name"
                       >
                         <div className="flex items-center gap-1.5">
