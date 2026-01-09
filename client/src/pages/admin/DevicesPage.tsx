@@ -500,7 +500,7 @@ export default function DevicesPage() {
                           </TableCell>
                           {!selectedOrgId && (
                             <TableCell>
-                              <span className="text-sm text-foreground">
+                              <span className="text-sm text-foreground max-w-[120px] inline-block break-words leading-tight">
                                 {organizations.find(o => o.id === device.organizationId)?.name || "-"}
                               </span>
                             </TableCell>
