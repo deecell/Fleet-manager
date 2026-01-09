@@ -89,7 +89,6 @@ export default function DevicesPage() {
   const updateCredential = useUpdateDeviceCredential();
 
   const [formData, setFormData] = useState({
-    serialNumber: "",
     deviceName: "",
     hardwareRevision: "",
     firmwareVersion: "",
@@ -114,7 +113,6 @@ export default function DevicesPage() {
 
   const resetForm = () => {
     setFormData({
-      serialNumber: "",
       deviceName: "",
       hardwareRevision: "",
       firmwareVersion: "",
@@ -228,7 +226,6 @@ export default function DevicesPage() {
 
   const openEdit = (device: PowerMonDevice) => {
     setFormData({
-      serialNumber: device.serialNumber,
       deviceName: device.deviceName || "",
       hardwareRevision: device.hardwareRevision || "",
       firmwareVersion: device.firmwareVersion || "",
@@ -646,16 +643,6 @@ export default function DevicesPage() {
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="serialNumber">Serial Number</Label>
-                <Input
-                  id="serialNumber"
-                  value={formData.serialNumber}
-                  onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })}
-                  placeholder="PM-0001-ABCD"
-                  data-testid="input-serial-number"
-                />
-              </div>
-              <div>
                 <Label htmlFor="deviceName">Device Name (optional)</Label>
                 <Input
                   id="deviceName"
@@ -709,7 +696,7 @@ export default function DevicesPage() {
               <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleCreate} disabled={createDevice.isPending || !formData.serialNumber} data-testid="button-submit-create">
+              <Button onClick={handleCreate} disabled={createDevice.isPending} data-testid="button-submit-create">
                 {createDevice.isPending ? "Registering..." : "Register"}
               </Button>
             </DialogFooter>
@@ -729,7 +716,7 @@ export default function DevicesPage() {
                 <Label htmlFor="edit-serialNumber">Serial Number</Label>
                 <Input
                   id="edit-serialNumber"
-                  value={formData.serialNumber}
+                  value={editingDevice?.serialNumber || ""}
                   disabled
                   className="bg-muted"
                 />
