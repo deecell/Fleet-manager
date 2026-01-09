@@ -249,6 +249,11 @@ export default function DevicesPage() {
     return allTrucks.find(t => t.id === truckId)?.truckNumber?.toLowerCase() || "";
   };
 
+  const getOrganizationName = (orgId: number | null) => {
+    if (!orgId) return "";
+    return organizations.find(o => o.id === orgId)?.name?.toLowerCase() || "";
+  };
+
   const devices = [...filteredDevices].sort((a, b) => {
     if (!sortField) return 0;
     let aVal: string | number | Date | null = null;
@@ -274,6 +279,10 @@ export default function DevicesPage() {
       case "dataStatus":
         aVal = a.dataStatus || "";
         bVal = b.dataStatus || "";
+        break;
+      case "organization":
+        aVal = getOrganizationName(a.organizationId);
+        bVal = getOrganizationName(b.organizationId);
         break;
       case "assignedTruck":
         aVal = getTruckNumber(a.truckId);
@@ -399,6 +408,18 @@ export default function DevicesPage() {
                           <SortIcon />
                         </div>
                       </TableHead>
+                      {!selectedOrgId && (
+                        <TableHead 
+                          className="text-white font-medium cursor-pointer select-none"
+                          onClick={() => handleSort("organization")}
+                          data-testid="sort-organization"
+                        >
+                          <div className="flex items-center gap-1.5">
+                            Organization
+                            <SortIcon />
+                          </div>
+                        </TableHead>
+                      )}
                       <TableHead 
                         className="text-white font-medium cursor-pointer select-none"
                         onClick={() => handleSort("assignedTruck")}
@@ -477,6 +498,13 @@ export default function DevicesPage() {
                               <span className="text-xs text-muted-foreground">{device.deviceName || "-"}</span>
                             </div>
                           </TableCell>
+                          {!selectedOrgId && (
+                            <TableCell>
+                              <span className="text-sm text-foreground">
+                                {organizations.find(o => o.id === device.organizationId)?.name || "-"}
+                              </span>
+                            </TableCell>
+                          )}
                           <TableCell>
                             {device.truckId ? (
                               <Badge variant="outline" className="bg-white border-[#d9d9d9] text-[#303030]">
