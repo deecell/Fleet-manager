@@ -6,6 +6,45 @@
 
 ## Latest Updates (January 9, 2026)
 
+### Calculated Wh Implementation (January 9, 2026)
+
+**Purpose**: Replace unreliable PowerMon energy meter data with calculated Wh based on battery configuration and real-time SoC readings.
+
+**Formula**: 
+```
+Wh = (SoC/100) × batteryVoltage × (numberOfBatteries × batteryAh)
+```
+
+**Data Sources**:
+- `batteryVoltage`, `numberOfBatteries`, `batteryAh` → from device configuration in `power_mon_devices` table
+- `SoC` → real-time reading from PowerMon device
+
+**Implementation**:
+
+1. **database.js** - Updated queries to include battery config:
+   - `getActiveDevicesWithCredentials()` - Added `battery_voltage`, `number_of_batteries`, `battery_ah`
+   - `getDevicesNeedingBackfill()` - Added same fields for historical data sync
+
+2. **connection-pool.js** - DeviceConnection class changes:
+   - Constructor stores battery config (`batteryVoltage`, `numberOfBatteries`, `batteryAh`)
+   - Added `calculateWh(soc)` method implementing the formula
+   - `poll()` method uses calculated Wh, falls back to `data.energyMeter` if config missing
+
+3. **backfill-service.js** - Historical data sync changes:
+   - Added `calculateWh()` helper function
+   - `processBackfill()` calculates Wh for each sample, falls back to `sample.energy` if config missing
+
+**Fallback Behavior**: If battery configuration is missing (null values), the system falls back to using the raw PowerMon energy meter data.
+
+**Files Changed**:
+- `device-manager/app/database.js` - SQL query updates
+- `device-manager/app/connection-pool.js` - Battery config storage and Wh calculation
+- `device-manager/app/backfill-service.js` - Wh calculation for historical data
+
+**Deployment Note**: Deploy Device Manager to EC2 for changes to take effect. Database already has `battery_voltage`, `number_of_batteries`, `battery_ah` columns in `power_mon_devices` table.
+
+---
+
 ### Admin Devices Table Redesign (January 9, 2026)
 
 **Purpose**: Redesigned the admin Devices table to match the Figma design, showing real-time device metrics from the latest snapshot data.
