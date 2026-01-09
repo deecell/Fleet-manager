@@ -14,6 +14,29 @@ const batchWriter = require('./batch-writer');
 // Load log sync module
 const logSync = require(path.join(__dirname, '../lib/log-sync.js'));
 
+/**
+ * Calculate battery energy (Wh) from SoC and battery configuration
+ * Formula: Wh = (SoC/100) × batteryVoltage × (numberOfBatteries × batteryAh)
+ * 
+ * @param {number} soc - State of charge percentage (0-100)
+ * @param {number} batteryVoltage - Battery voltage from device config
+ * @param {number} numberOfBatteries - Number of batteries
+ * @param {number} batteryAh - Battery amp-hours
+ * @returns {number|null} - Calculated Wh or null if config is missing
+ */
+function calculateWh(soc, batteryVoltage, numberOfBatteries, batteryAh) {
+  if (batteryVoltage == null || numberOfBatteries == null || batteryAh == null) {
+    return null; // Cannot calculate without battery config
+  }
+  if (soc == null || isNaN(soc)) {
+    return null;
+  }
+  
+  const totalCapacityAh = numberOfBatteries * batteryAh;
+  const wh = (soc / 100) * batteryVoltage * totalCapacityAh;
+  return Math.round(wh * 100) / 100; // Round to 2 decimal places
+}
+
 class BackfillService {
   constructor() {
     this.isRunning = false;
@@ -197,6 +220,16 @@ class BackfillService {
         
         // Convert samples to measurements and enqueue
         for (const sample of syncResult.samples) {
+          // Calculate Wh from SoC and battery configuration
+          // Falls back to sample.energy if battery config is missing
+          const calculatedWh = calculateWh(
+            sample.soc,
+            deviceInfo.battery_voltage,
+            deviceInfo.number_of_batteries,
+            deviceInfo.battery_ah
+          );
+          const energyValue = calculatedWh !== null ? calculatedWh : sample.energy;
+          
           const measurement = {
             organizationId: deviceInfo.organization_id,
             deviceId: deviceId,
@@ -208,7 +241,7 @@ class BackfillService {
             power: sample.power || (sample.voltage1 * sample.current),
             temperature: sample.temperature,
             soc: sample.soc,
-            energy: sample.energy,
+            energy: energyValue,
             charge: sample.charge,
             runtime: sample.runtime,
             source: 'backfill',
@@ -218,7 +251,7 @@ class BackfillService {
           batchWriter.enqueue(measurement);
         }
 
-        log.info('Backfill samples enqueued', { count: totalSamples });
+        log.info('Backfill samples enqueued', { count: totalSamples, calculatedWh: deviceInfo.battery_voltage != null });
       }
 
       // Disconnect

@@ -413,6 +413,9 @@ async function getDevicesNeedingBackfill(limit = 5) {
       s.last_log_file_id,
       s.last_log_offset,
       d.serial_number,
+      d.battery_voltage,
+      d.number_of_batteries,
+      d.battery_ah,
       c.applink_url
     FROM device_sync_status s
     INNER JOIN power_mon_devices d ON d.id = s.device_id
