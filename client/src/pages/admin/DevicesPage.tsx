@@ -461,13 +461,6 @@ export default function DevicesPage() {
                     {devices.map((device, index) => {
                       const snapshot = device.snapshot;
                       const soc = snapshot?.soc;
-                      const socStyles = soc !== null && soc !== undefined 
-                        ? soc >= 50 
-                          ? "bg-[rgba(0,201,80,0.14)] border-[#00c950] text-[#00953b]" 
-                          : soc >= 20 
-                            ? "bg-[rgba(255,165,0,0.14)] border-[#ffa500] text-[#cc8400]"
-                            : "bg-[rgba(255,9,0,0.14)] border-[#ff0900] text-[#ff0900]"
-                        : null;
                       const tempF = snapshot?.temperature !== null && snapshot?.temperature !== undefined
                         ? ((snapshot.temperature * 9/5) + 32).toFixed(1)
                         : null;
@@ -520,10 +513,12 @@ export default function DevicesPage() {
                             {snapshot?.voltage1?.toFixed(2) ?? "-"}
                           </TableCell>
                           <TableCell className="text-center">
-                            {soc !== null && soc !== undefined && socStyles ? (
-                              <div className={`inline-flex items-center justify-center px-2.5 py-1 rounded-md border text-xs font-medium min-w-[45px] ${socStyles}`}>
+                            {soc !== null && soc !== undefined ? (
+                              <span className={`text-sm font-semibold ${
+                                soc >= 50 ? "text-[#39c900]" : soc >= 20 ? "text-[#ff9500]" : "text-[#ff0900]"
+                              }`}>
                                 {Math.round(soc)}
-                              </div>
+                              </span>
                             ) : (
                               <span className="text-muted-foreground">-</span>
                             )}
