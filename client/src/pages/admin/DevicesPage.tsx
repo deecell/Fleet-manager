@@ -478,7 +478,6 @@ export default function DevicesPage() {
                       <TableHead className="text-white font-medium text-center">V2</TableHead>
                       <TableHead className="text-white font-medium text-center">P (kW)</TableHead>
                       <TableHead className="text-white font-medium text-center">kWh</TableHead>
-                      <TableHead className="text-white font-medium text-center">Ah</TableHead>
                       <TableHead 
                         className="text-white font-medium text-center cursor-pointer select-none"
                         onClick={() => handleSort("temperature")}
@@ -573,9 +572,6 @@ export default function DevicesPage() {
                           </TableCell>
                           <TableCell className="text-center text-muted-foreground">
                             {snapshot?.energy != null ? (snapshot.energy / 1000).toFixed(2) : "-"}
-                          </TableCell>
-                          <TableCell className="text-center text-muted-foreground">
-                            {snapshot?.charge?.toFixed(2) ?? "-"}
                           </TableCell>
                           <TableCell className="text-center font-medium">
                             {tempF ?? "-"}
