@@ -476,7 +476,7 @@ export default function DevicesPage() {
                         </div>
                       </TableHead>
                       <TableHead className="text-white font-medium text-center">V2</TableHead>
-                      <TableHead className="text-white font-medium text-center">P (kW)</TableHead>
+                      <TableHead className="text-white font-medium text-center">P (W)</TableHead>
                       <TableHead className="text-white font-medium text-center">Wh</TableHead>
                       <TableHead className="text-white font-medium text-center">Ah</TableHead>
                       <TableHead 
