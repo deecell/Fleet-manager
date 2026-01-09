@@ -6,6 +6,20 @@
 
 ## Latest Updates (January 8, 2026)
 
+### IAM Permissions Documentation (January 9, 2026)
+
+Created comprehensive IAM documentation at `docs/IAM_PERMISSIONS.md` covering:
+- ECS Execution Role (container startup permissions)
+- ECS Task Role (runtime permissions)
+- Device Manager EC2 Role (PowerMon/SIM polling)
+- GitHub Actions User (CI/CD automation)
+- All Secrets Manager resources
+- S3 buckets and access patterns
+- Security best practices applied
+- Troubleshooting guide
+
+---
+
 ### Migration Script Workflow (January 8, 2026)
 
 Established new workflow for production database migrations:
