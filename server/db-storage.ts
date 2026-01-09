@@ -763,6 +763,49 @@ export class DbStorage {
     return db.select().from(powerMonDevices).orderBy(asc(powerMonDevices.serialNumber));
   }
 
+  async listAllDevicesWithSnapshots(): Promise<(PowerMonDevice & { snapshot?: DeviceSnapshot })[]> {
+    const deviceList = await db.select().from(powerMonDevices).orderBy(asc(powerMonDevices.serialNumber));
+    const deviceIds = deviceList.map(d => d.id);
+    
+    let snapshotMap = new Map<number, DeviceSnapshot>();
+    if (deviceIds.length > 0) {
+      const snapshots = await db.select().from(deviceSnapshots)
+        .where(inArray(deviceSnapshots.deviceId, deviceIds));
+      for (const s of snapshots) {
+        snapshotMap.set(s.deviceId, s);
+      }
+    }
+    
+    return deviceList.map(device => ({
+      ...device,
+      snapshot: snapshotMap.get(device.id),
+    }));
+  }
+
+  async listDevicesWithSnapshots(organizationId: number): Promise<(PowerMonDevice & { snapshot?: DeviceSnapshot })[]> {
+    const deviceList = await db.select().from(powerMonDevices)
+      .where(eq(powerMonDevices.organizationId, organizationId))
+      .orderBy(asc(powerMonDevices.serialNumber));
+    const deviceIds = deviceList.map(d => d.id);
+    
+    let snapshotMap = new Map<number, DeviceSnapshot>();
+    if (deviceIds.length > 0) {
+      const snapshots = await db.select().from(deviceSnapshots)
+        .where(and(
+          eq(deviceSnapshots.organizationId, organizationId),
+          inArray(deviceSnapshots.deviceId, deviceIds)
+        ));
+      for (const s of snapshots) {
+        snapshotMap.set(s.deviceId, s);
+      }
+    }
+    
+    return deviceList.map(device => ({
+      ...device,
+      snapshot: snapshotMap.get(device.id),
+    }));
+  }
+
   async listAllTrucks(): Promise<Truck[]> {
     return db.select().from(trucks).orderBy(asc(trucks.truckNumber));
   }

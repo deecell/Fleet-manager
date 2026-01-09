@@ -383,7 +383,7 @@ router.delete("/trucks/:id", adminMiddleware, async (req: Request, res: Response
 router.get("/organizations/:orgId/devices", adminMiddleware, async (req: Request, res: Response) => {
   try {
     const orgId = parseInt(req.params.orgId, 10);
-    const devices = await storage.listDevices(orgId);
+    const devices = await storage.listDevicesWithSnapshots(orgId);
     res.json({ devices });
   } catch (error) {
     console.error("Error listing devices:", error);
@@ -393,7 +393,7 @@ router.get("/organizations/:orgId/devices", adminMiddleware, async (req: Request
 
 router.get("/devices", adminMiddleware, async (req: Request, res: Response) => {
   try {
-    const devices = await storage.listAllDevices();
+    const devices = await storage.listAllDevicesWithSnapshots();
     res.json({ devices });
   } catch (error) {
     console.error("Error listing all devices:", error);

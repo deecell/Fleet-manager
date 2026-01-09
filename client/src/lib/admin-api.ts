@@ -6,7 +6,10 @@ import type {
   PowerMonDevice,
   User,
   DeviceCredential,
+  DeviceSnapshot,
 } from "@shared/schema";
+
+export type DeviceWithSnapshot = PowerMonDevice & { snapshot?: DeviceSnapshot };
 
 interface AdminStatsResponse {
   stats: {
@@ -47,7 +50,7 @@ interface TruckResponse {
 }
 
 interface DevicesResponse {
-  devices: PowerMonDevice[];
+  devices: DeviceWithSnapshot[];
 }
 
 interface DeviceResponse {

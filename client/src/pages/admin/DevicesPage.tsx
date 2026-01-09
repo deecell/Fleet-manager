@@ -44,6 +44,7 @@ import {
 } from "@/lib/admin-api";
 import { Plus, Pencil, Cpu, Link2, Unlink, Key, Search } from "lucide-react";
 import type { PowerMonDevice } from "@shared/schema";
+import type { DeviceWithSnapshot } from "@/lib/admin-api";
 
 function SortIcon() {
   return (
@@ -270,6 +271,10 @@ export default function DevicesPage() {
         aVal = a.connectionStatus || "";
         bVal = b.connectionStatus || "";
         break;
+      case "dataStatus":
+        aVal = a.dataStatus || "";
+        bVal = b.dataStatus || "";
+        break;
       case "assignedTruck":
         aVal = getTruckNumber(a.truckId);
         bVal = getTruckNumber(b.truckId);
@@ -281,6 +286,14 @@ export default function DevicesPage() {
       case "lastReportedAt":
         aVal = a.lastReportedAt ? new Date(a.lastReportedAt).getTime() : 0;
         bVal = b.lastReportedAt ? new Date(b.lastReportedAt).getTime() : 0;
+        break;
+      case "soc":
+        aVal = a.snapshot?.soc ?? -1;
+        bVal = b.snapshot?.soc ?? -1;
+        break;
+      case "temperature":
+        aVal = a.snapshot?.temperature ?? -999;
+        bVal = b.snapshot?.temperature ?? -999;
         break;
       default:
         return 0;
@@ -372,171 +385,211 @@ export default function DevicesPage() {
                 )}
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Serial Number</TableHead>
-                    <TableHead 
-                      className="cursor-pointer select-none hover:bg-muted/50"
-                      onClick={() => handleSort("deviceName")}
-                      data-testid="sort-device-name"
-                    >
-                      <div className="flex items-center gap-1">
-                        Device Name
-                        <SortIcon />
-                      </div>
-                    </TableHead>
-                    <TableHead 
-                      className="cursor-pointer select-none hover:bg-muted/50 text-center"
-                      onClick={() => handleSort("firmwareVersion")}
-                      data-testid="sort-firmware"
-                    >
-                      <div className="flex items-center justify-center gap-1">
-                        Firmware
-                        <SortIcon />
-                      </div>
-                    </TableHead>
-                    <TableHead 
-                      className="cursor-pointer select-none hover:bg-muted/50"
-                      onClick={() => handleSort("connectionStatus")}
-                      data-testid="sort-connection"
-                    >
-                      <div className="flex items-center gap-1">
-                        Connection
-                        <SortIcon />
-                      </div>
-                    </TableHead>
-                    <TableHead>Data Status</TableHead>
-                    <TableHead 
-                      className="cursor-pointer select-none hover:bg-muted/50 text-center"
-                      onClick={() => handleSort("assignedTruck")}
-                      data-testid="sort-assigned-truck"
-                    >
-                      <div className="flex items-center justify-center gap-1">
-                        Assigned Truck
-                        <SortIcon />
-                      </div>
-                    </TableHead>
-                    <TableHead 
-                      className="cursor-pointer select-none hover:bg-muted/50"
-                      onClick={() => handleSort("lastSeenAt")}
-                      data-testid="sort-last-seen"
-                    >
-                      <div className="flex items-center gap-1">
-                        Last Seen
-                        <SortIcon />
-                      </div>
-                    </TableHead>
-                    <TableHead 
-                      className="cursor-pointer select-none hover:bg-muted/50"
-                      onClick={() => handleSort("lastReportedAt")}
-                      data-testid="sort-last-reported"
-                    >
-                      <div className="flex items-center gap-1">
-                        Last Reported
-                        <SortIcon />
-                      </div>
-                    </TableHead>
-                    <TableHead className="text-center">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {devices.map((device) => (
-                    <TableRow key={device.id} data-testid={`row-device-${device.id}`}>
-                      <TableCell className="font-mono text-sm">{device.serialNumber}</TableCell>
-                      <TableCell className="text-muted-foreground">{device.deviceName || "-"}</TableCell>
-                      <TableCell className="text-muted-foreground text-center">{device.firmwareVersion || "-"}</TableCell>
-                      <TableCell>
-                        <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md border text-xs font-medium ${
-                          device.connectionStatus === "online" 
-                            ? "bg-[rgba(0,201,80,0.14)] border-[#00c950] text-[#00953b]" 
-                            : device.connectionStatus === "unstable"
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader className="bg-[#303030]">
+                    <TableRow className="hover:bg-[#303030] border-0">
+                      <TableHead 
+                        className="text-white font-medium cursor-pointer select-none"
+                        onClick={() => handleSort("serialNumber")}
+                        data-testid="sort-serial-name"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          Serial Number - Name
+                          <SortIcon />
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="text-white font-medium cursor-pointer select-none"
+                        onClick={() => handleSort("assignedTruck")}
+                        data-testid="sort-assigned-truck"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          Assigned Truck
+                          <SortIcon />
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="text-white font-medium cursor-pointer select-none"
+                        onClick={() => handleSort("dataStatus")}
+                        data-testid="sort-data-status"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          Data Status
+                          <SortIcon />
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="text-white font-medium cursor-pointer select-none"
+                        onClick={() => handleSort("lastReportedAt")}
+                        data-testid="sort-last-reported"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          Last Reported
+                          <SortIcon />
+                        </div>
+                      </TableHead>
+                      <TableHead className="text-white font-medium text-center">V1</TableHead>
+                      <TableHead 
+                        className="text-white font-medium text-center cursor-pointer select-none"
+                        onClick={() => handleSort("soc")}
+                        data-testid="sort-soc"
+                      >
+                        <div className="flex items-center justify-center gap-1.5">
+                          SoC (%)
+                          <SortIcon />
+                        </div>
+                      </TableHead>
+                      <TableHead className="text-white font-medium text-center">V2</TableHead>
+                      <TableHead className="text-white font-medium text-center">P (kW)</TableHead>
+                      <TableHead className="text-white font-medium text-center">Wh</TableHead>
+                      <TableHead className="text-white font-medium text-center">Ah</TableHead>
+                      <TableHead 
+                        className="text-white font-medium text-center cursor-pointer select-none"
+                        onClick={() => handleSort("temperature")}
+                        data-testid="sort-temp"
+                      >
+                        <div className="flex items-center justify-center gap-1.5">
+                          Temp (°F)
+                          <SortIcon />
+                        </div>
+                      </TableHead>
+                      <TableHead className="text-white font-medium text-center">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {devices.map((device, index) => {
+                      const snapshot = device.snapshot;
+                      const soc = snapshot?.soc;
+                      const socStyles = soc !== null && soc !== undefined 
+                        ? soc >= 50 
+                          ? "bg-[rgba(0,201,80,0.14)] border-[#00c950] text-[#00953b]" 
+                          : soc >= 20 
                             ? "bg-[rgba(255,165,0,0.14)] border-[#ffa500] text-[#cc8400]"
                             : "bg-[rgba(255,9,0,0.14)] border-[#ff0900] text-[#ff0900]"
-                        }`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${
-                            device.connectionStatus === "online" ? "bg-[#00c950]" 
-                              : device.connectionStatus === "unstable" ? "bg-[#ffa500]"
-                              : "bg-[#ff0900]"
-                          }`} />
-                          {device.connectionStatus === "online" ? "Online" 
-                            : device.connectionStatus === "unstable" ? "Unstable"
-                            : "Offline"}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md border text-xs font-medium ${
-                          device.dataStatus === "reporting" 
-                            ? "bg-[rgba(0,201,80,0.14)] border-[#00c950] text-[#00953b]" 
-                            : device.dataStatus === "stale"
-                            ? "bg-[rgba(255,165,0,0.14)] border-[#ffa500] text-[#cc8400]"
-                            : "bg-[rgba(128,128,128,0.14)] border-[#808080] text-[#666666]"
-                        }`}>
-                          {device.dataStatus === "reporting" ? "Reporting" 
-                            : device.dataStatus === "stale" ? "Stale"
-                            : "No Data"}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {device.truckId ? (
-                          <Badge variant="outline">
-                            {trucks.find(t => t.id === device.truckId)?.truckNumber || `Truck #${device.truckId}`}
-                          </Badge>
-                        ) : (
-                          <span className="text-muted-foreground">Unassigned</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {device.lastSeenAt ? new Date(device.lastSeenAt).toLocaleString() : "-"}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {device.lastReportedAt ? new Date(device.lastReportedAt).toLocaleString() : "-"}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <div className="flex flex-wrap min-[1440px]:flex-nowrap items-center justify-center gap-0">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => openEdit(device)}
-                            data-testid={`button-edit-device-${device.id}`}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => openCredentials(device)}
-                            data-testid={`button-credentials-device-${device.id}`}
-                            title="Manage PowerMon URL"
-                          >
-                            <Key className="h-4 w-4 text-purple-600" />
-                          </Button>
-                          {device.truckId ? (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleUnassign(device)}
-                              data-testid={`button-unassign-device-${device.id}`}
-                            >
-                              <Unlink className="h-4 w-4 text-orange-600" />
-                            </Button>
-                          ) : (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setAssigningDevice(device)}
-                              disabled={allTrucks.filter(t => t.organizationId === device.organizationId && !devices.some(d => d.truckId === t.id)).length === 0}
-                              data-testid={`button-assign-device-${device.id}`}
-                            >
-                              <Link2 className="h-4 w-4 text-blue-600" />
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                        : null;
+                      const tempF = snapshot?.temperature !== null && snapshot?.temperature !== undefined
+                        ? ((snapshot.temperature * 9/5) + 32).toFixed(1)
+                        : null;
+                      
+                      return (
+                        <TableRow 
+                          key={device.id} 
+                          data-testid={`row-device-${device.id}`}
+                          className={index % 2 === 1 ? "bg-[#fafbfc]" : "bg-white"}
+                        >
+                          <TableCell>
+                            <div className="flex flex-col">
+                              <span className="font-mono text-xs font-medium text-foreground">{device.serialNumber}</span>
+                              <span className="text-xs text-muted-foreground">{device.deviceName || "-"}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {device.truckId ? (
+                              <Badge variant="outline" className="bg-white border-[#d9d9d9] text-[#303030]">
+                                {trucks.find(t => t.id === device.truckId)?.truckNumber || `Truck #${device.truckId}`}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <div className={`inline-flex items-center justify-center px-3 py-1.5 rounded-md border text-xs font-normal ${
+                              device.dataStatus === "reporting" 
+                                ? "bg-[rgba(0,201,80,0.14)] border-[#00c950] text-[#00953b]" 
+                                : device.dataStatus === "stale"
+                                ? "bg-[rgba(255,165,0,0.14)] border-[#ffa500] text-[#cc8400]"
+                                : "bg-[#ededed] border-[#c0c0c0] text-[#9e9e9e]"
+                            }`}>
+                              {device.dataStatus === "reporting" ? "Reporting" 
+                                : device.dataStatus === "stale" ? "Stale"
+                                : "No data"}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground text-sm">
+                            {device.lastReportedAt ? (
+                              <div className="leading-tight">
+                                <div>{new Date(device.lastReportedAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: '2-digit' })}</div>
+                                <div>{new Date(device.lastReportedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true })}</div>
+                              </div>
+                            ) : (
+                              "-"
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center text-muted-foreground">
+                            {snapshot?.voltage1?.toFixed(2) ?? "-"}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {soc !== null && soc !== undefined && socStyles ? (
+                              <div className={`inline-flex items-center justify-center px-2.5 py-1 rounded-md border text-xs font-medium min-w-[45px] ${socStyles}`}>
+                                {Math.round(soc)}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center text-muted-foreground">
+                            {snapshot?.voltage2?.toFixed(2) ?? "-"}
+                          </TableCell>
+                          <TableCell className="text-center text-muted-foreground">
+                            {snapshot?.power?.toFixed(2) ?? "-"}
+                          </TableCell>
+                          <TableCell className="text-center text-muted-foreground">
+                            {snapshot?.energy?.toFixed(2) ?? "-"}
+                          </TableCell>
+                          <TableCell className="text-center text-muted-foreground">
+                            {snapshot?.charge?.toFixed(2) ?? "-"}
+                          </TableCell>
+                          <TableCell className="text-center font-medium">
+                            {tempF ?? "-"}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex items-center justify-center gap-0">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => openEdit(device)}
+                                data-testid={`button-edit-device-${device.id}`}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => openCredentials(device)}
+                                data-testid={`button-credentials-device-${device.id}`}
+                                title="Manage PowerMon URL"
+                              >
+                                <Key className="h-4 w-4 text-purple-600" />
+                              </Button>
+                              {device.truckId ? (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleUnassign(device)}
+                                  data-testid={`button-unassign-device-${device.id}`}
+                                >
+                                  <Unlink className="h-4 w-4 text-orange-600" />
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => setAssigningDevice(device)}
+                                  disabled={allTrucks.filter(t => t.organizationId === device.organizationId && !devices.some(d => d.truckId === t.id)).length === 0}
+                                  data-testid={`button-assign-device-${device.id}`}
+                                >
+                                  <Link2 className="h-4 w-4 text-blue-600" />
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </CardContent>
         </Card>

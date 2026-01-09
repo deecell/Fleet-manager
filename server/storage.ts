@@ -136,6 +136,8 @@ export interface IStorage {
   // Admin Operations (cross-tenant)
   deleteOrganization(id: number): Promise<boolean>;
   listAllDevices(): Promise<PowerMonDevice[]>;
+  listAllDevicesWithSnapshots(): Promise<(PowerMonDevice & { snapshot?: DeviceSnapshot })[]>;
+  listDevicesWithSnapshots(organizationId: number): Promise<(PowerMonDevice & { snapshot?: DeviceSnapshot })[]>;
   listAllUsers(): Promise<User[]>;
   deleteUser(organizationId: number, id: number): Promise<boolean>;
   getUserByEmailGlobal(email: string): Promise<User | undefined>;
