@@ -476,8 +476,8 @@ export default function DevicesPage() {
                         </div>
                       </TableHead>
                       <TableHead className="text-white font-medium text-center">V2</TableHead>
-                      <TableHead className="text-white font-medium text-center">P (W)</TableHead>
-                      <TableHead className="text-white font-medium text-center">Wh</TableHead>
+                      <TableHead className="text-white font-medium text-center">P (kW)</TableHead>
+                      <TableHead className="text-white font-medium text-center">kWh</TableHead>
                       <TableHead className="text-white font-medium text-center">Ah</TableHead>
                       <TableHead 
                         className="text-white font-medium text-center cursor-pointer select-none"
@@ -569,10 +569,10 @@ export default function DevicesPage() {
                             {snapshot?.voltage2?.toFixed(2) ?? "-"}
                           </TableCell>
                           <TableCell className="text-center text-muted-foreground">
-                            {snapshot?.power?.toFixed(2) ?? "-"}
+                            {snapshot?.power != null ? (snapshot.power / 1000).toFixed(2) : "-"}
                           </TableCell>
                           <TableCell className="text-center text-muted-foreground">
-                            {snapshot?.energy != null ? Math.round(snapshot.energy).toLocaleString() : "-"}
+                            {snapshot?.energy != null ? (snapshot.energy / 1000).toFixed(2) : "-"}
                           </TableCell>
                           <TableCell className="text-center text-muted-foreground">
                             {snapshot?.charge?.toFixed(2) ?? "-"}
