@@ -11,6 +11,9 @@ import type {
 
 export type DeviceWithSnapshot = PowerMonDevice & { snapshot?: DeviceSnapshot };
 
+// Auto-refresh interval for admin dashboard (10 seconds, matching Fleet dashboard)
+const ADMIN_POLL_INTERVAL = 10000;
+
 interface AdminStatsResponse {
   stats: {
     totalOrganizations: number;
@@ -142,6 +145,7 @@ export function useAdminStats() {
   return useQuery<AdminStatsResponse>({
     queryKey: ["/api/v1/admin/stats"],
     queryFn: () => adminFetch("/api/v1/admin/stats"),
+    refetchInterval: ADMIN_POLL_INTERVAL,
   });
 }
 
@@ -149,6 +153,7 @@ export function useAdminOrganizations() {
   return useQuery<OrganizationsResponse>({
     queryKey: ["/api/v1/admin/organizations"],
     queryFn: () => adminFetch("/api/v1/admin/organizations"),
+    refetchInterval: ADMIN_POLL_INTERVAL,
   });
 }
 
@@ -313,11 +318,13 @@ export function useAdminDevices(orgId?: number) {
       queryKey: ["/api/v1/admin/organizations", orgId, "devices"],
       queryFn: () => adminFetch(`/api/v1/admin/organizations/${orgId}/devices`),
       enabled: !!orgId,
+      refetchInterval: ADMIN_POLL_INTERVAL,
     });
   }
   return useQuery<DevicesResponse>({
     queryKey: ["/api/v1/admin/devices"],
     queryFn: () => adminFetch("/api/v1/admin/devices"),
+    refetchInterval: ADMIN_POLL_INTERVAL,
   });
 }
 
