@@ -6,6 +6,52 @@
 
 ## Latest Updates (January 9, 2026)
 
+### Device Registration UX Improvement (January 9, 2026)
+
+**Purpose**: Streamline device registration by removing the serial number field since it's auto-populated from the PowerMon on first connection.
+
+**Changes**:
+- Removed serial number input from the Register Device dialog
+- Register button no longer requires serial number to be filled
+- Edit Device dialog still displays serial number as read-only (for reference)
+- Form state and reset function updated to exclude serialNumber
+
+**Files Changed**:
+- `client/src/pages/admin/DevicesPage.tsx` - Removed serial number field from create dialog
+
+---
+
+### Admin Dashboard Auto-Refresh (January 9, 2026)
+
+**Purpose**: Keep admin dashboard data fresh with automatic polling, matching Fleet dashboard behavior.
+
+**Implementation**:
+- Added `ADMIN_POLL_INTERVAL = 10000` (10 seconds) constant
+- Applied `refetchInterval` to key admin queries:
+  - `useAdminStats()` - Dashboard statistics
+  - `useAdminOrganizations()` - Organization list
+  - `useAdminDevices()` - Devices list (all orgs and org-specific)
+
+**Files Changed**:
+- `client/src/lib/admin-api.ts` - Added refetchInterval to React Query hooks
+
+---
+
+### Unit Display Updates (January 9, 2026)
+
+**Purpose**: Display power and energy in more readable units (kW/kWh instead of W/Wh).
+
+**Changes**:
+- Power column: Changed from "P (W)" to "P (kW)" - values divided by 1000
+- Energy column: Changed from "Wh" to "kWh" - values divided by 1000
+- Removed Ah column from admin devices table (not needed)
+
+**Files Changed**:
+- `client/src/pages/admin/DevicesPage.tsx` - Updated column headers and value formatting
+- `client/src/components/FleetTable.tsx` - Same updates for Fleet dashboard
+
+---
+
 ### Calculated Wh Implementation (January 9, 2026)
 
 **Purpose**: Replace unreliable PowerMon energy meter data with calculated Wh based on battery configuration and real-time SoC readings.
