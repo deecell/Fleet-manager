@@ -378,6 +378,19 @@ export function useUnassignDevice() {
   });
 }
 
+export function useDeleteDevice() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, organizationId }: { id: number; organizationId: number }) =>
+      adminFetch<{ success: boolean }>(`/api/v1/admin/devices/${id}?orgId=${organizationId}`, {
+        method: "DELETE",
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/devices"] });
+    },
+  });
+}
+
 export function useAdminUsers(orgId?: number) {
   const queryKey = orgId 
     ? ["/api/v1/admin/organizations", orgId, "users"]

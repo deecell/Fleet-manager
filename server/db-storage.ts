@@ -288,6 +288,12 @@ export class DbStorage {
       .where(and(eq(powerMonDevices.organizationId, organizationId), eq(powerMonDevices.id, id)));
   }
 
+  async deleteDevice(organizationId: number, id: number): Promise<boolean> {
+    const result = await db.delete(powerMonDevices)
+      .where(and(eq(powerMonDevices.organizationId, organizationId), eq(powerMonDevices.id, id)));
+    return (result.rowCount ?? 0) > 0;
+  }
+
   // ===========================================================================
   // DEVICE CREDENTIALS (tenant-scoped)
   // ===========================================================================

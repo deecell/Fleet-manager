@@ -489,6 +489,24 @@ router.post("/devices/:id/unassign", adminMiddleware, async (req: Request, res: 
   }
 });
 
+router.delete("/devices/:id", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const organizationId = req.query.orgId ? parseInt(req.query.orgId as string, 10) : undefined;
+    if (!organizationId) {
+      return res.status(400).json({ error: "Organization ID required (use ?orgId=X)" });
+    }
+    const deleted = await storage.deleteDevice(organizationId, id);
+    if (!deleted) {
+      return res.status(404).json({ error: "Device not found" });
+    }
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting device:", error);
+    res.status(500).json({ error: "Failed to delete device" });
+  }
+});
+
 router.get("/devices/:id/credentials", adminMiddleware, async (req: Request, res: Response) => {
   try {
     const deviceId = parseInt(req.params.id, 10);

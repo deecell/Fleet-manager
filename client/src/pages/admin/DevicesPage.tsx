@@ -38,11 +38,12 @@ import {
   useUpdateDevice,
   useAssignDevice,
   useUnassignDevice,
+  useDeleteDevice,
   useDeviceCredential,
   useCreateDeviceCredential,
   useUpdateDeviceCredential,
 } from "@/lib/admin-api";
-import { Plus, Pencil, Cpu, Link2, Unlink, Key, Search } from "lucide-react";
+import { Plus, Pencil, Cpu, Link2, Unlink, Key, Search, Trash2 } from "lucide-react";
 import type { PowerMonDevice } from "@shared/schema";
 import type { DeviceWithSnapshot } from "@/lib/admin-api";
 
@@ -70,9 +71,11 @@ export default function DevicesPage() {
   const updateDevice = useUpdateDevice();
   const assignDevice = useAssignDevice();
   const unassignDevice = useUnassignDevice();
+  const deleteDevice = useDeleteDevice();
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingDevice, setEditingDevice] = useState<PowerMonDevice | null>(null);
+  const [deletingDevice, setDeletingDevice] = useState<PowerMonDevice | null>(null);
   const [assigningDevice, setAssigningDevice] = useState<PowerMonDevice | null>(null);
   const [credentialsDevice, setCredentialsDevice] = useState<PowerMonDevice | null>(null);
   const [selectedTruckId, setSelectedTruckId] = useState<number | undefined>();
@@ -177,6 +180,17 @@ export default function DevicesPage() {
       toast({ title: "Device unassigned from truck" });
     } catch (error) {
       toast({ title: "Failed to unassign device", variant: "destructive" });
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deletingDevice) return;
+    try {
+      await deleteDevice.mutateAsync({ id: deletingDevice.id, organizationId: deletingDevice.organizationId });
+      toast({ title: "Device deleted successfully" });
+      setDeletingDevice(null);
+    } catch (error) {
+      toast({ title: "Failed to delete device", variant: "destructive" });
     }
   };
 
@@ -605,6 +619,15 @@ export default function DevicesPage() {
                                   <Link2 className="h-4 w-4 text-blue-600" />
                                 </Button>
                               )}
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setDeletingDevice(device)}
+                                data-testid={`button-delete-device-${device.id}`}
+                                title="Delete device"
+                              >
+                                <Trash2 className="h-4 w-4 text-red-600" />
+                              </Button>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -893,6 +916,42 @@ export default function DevicesPage() {
                 {createCredential.isPending || updateCredential.isPending 
                   ? "Saving..." 
                   : credentialData?.credential ? "Update" : "Save"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={!!deletingDevice} onOpenChange={() => setDeletingDevice(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Device</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete this device? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            {deletingDevice && (
+              <div className="py-4">
+                <p className="text-sm">
+                  <span className="font-medium">Serial Number:</span> {deletingDevice.serialNumber}
+                </p>
+                {deletingDevice.deviceName && (
+                  <p className="text-sm">
+                    <span className="font-medium">Name:</span> {deletingDevice.deviceName}
+                  </p>
+                )}
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDeletingDevice(null)}>
+                Cancel
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={handleDelete} 
+                disabled={deleteDevice.isPending}
+                data-testid="button-confirm-delete"
+              >
+                {deleteDevice.isPending ? "Deleting..." : "Delete"}
               </Button>
             </DialogFooter>
           </DialogContent>
