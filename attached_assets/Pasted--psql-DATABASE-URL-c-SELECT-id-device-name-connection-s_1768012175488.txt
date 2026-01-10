@@ -1,0 +1,26 @@
+$ psql "$DATABASE_URL" -c "SELECT id, device_name, connection_status FROM power_mon_devices d WHERE EXISTS (SELECT 1 FROM device_credentials c WHERE c.device_id = d.id) AND connection_status != 'unstable';"
+ id |  device_name   | connection_status 
+----+----------------+-------------------
+  3 | DCL-Moeck      | online
+  4 | DCL-Moeck-Shop | offline
+  5 | DCL-Carter     | online
+  6 | DCL-KTR        | online
+  7 | DCL-Haynes     | online
+  8 | DCL-Kruse      | online
+  9 | DCL-Brown      | online
+ 10 | DCL-Curtis-1   | online
+ 11 | DCL-Curtis-2   | online
+ 12 | DCL-Howard     | online
+ 13 | DCL-Thibert    | online
+(11 rows)
+
+$ sudo journalctl -u device-manager -n 200 --no-pager | grep -i "pool\|loading\|devices\|1982\|shop"
+Jan 10 02:26:11 ip-10-0-12-126 start.sh[31391]: {"timestamp":"2026-01-10T02:26:11.219Z","level":"info","message":"All devices disconnected","service":"device-manager"}
+Jan 10 02:26:11 ip-10-0-12-126 start.sh[31391]: {"timestamp":"2026-01-10T02:26:11.220Z","level":"info","message":"Database pool closed","service":"device-manager"}
+Jan 10 02:26:12 ip-10-0-12-126 start.sh[31770]: {"timestamp":"2026-01-10T02:26:12.271Z","level":"info","message":"Database pool initialized","service":"device-manager","poolSize":10}
+Jan 10 02:26:12 ip-10-0-12-126 start.sh[31770]: {"timestamp":"2026-01-10T02:26:12.272Z","level":"info","message":"Initializing connection pool","service":"device-manager"}
+Jan 10 02:26:12 ip-10-0-12-126 start.sh[31770]: {"timestamp":"2026-01-10T02:26:12.347Z","level":"info","message":"Found active devices","service":"device-manager","count":10}
+Jan 10 02:26:12 ip-10-0-12-126 start.sh[31770]: {"timestamp":"2026-01-10T02:26:12.371Z","level":"info","message":"Connection pool initialized","service":"device-manager","devices":10,"cohorts":6}
+Jan 10 02:26:12 ip-10-0-12-126 start.sh[31770]: {"timestamp":"2026-01-10T02:26:12.372Z","level":"info","message":"Connecting to all devices","service":"device-manager"}
+Jan 10 02:26:12 ip-10-0-12-126 start.sh[31770]: {"timestamp":"2026-01-10T02:26:12.529Z","level":"info","message":"Device Manager started successfully","service":"device-manager","devices":10,"status":"running"}
+$
