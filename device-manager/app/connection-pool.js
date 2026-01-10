@@ -125,15 +125,18 @@ class DeviceConnection {
 
   /**
    * Connect to the device
+   * @returns {Promise<{success: boolean, durationMs: number}>} Connection result with timing
    */
   connect() {
+    const connectStartTime = Date.now();
+    
     if (!powermon) {
       this.log.error('PowerMon addon not available');
-      return Promise.resolve(false);
+      return Promise.resolve({ success: false, durationMs: Date.now() - connectStartTime });
     }
 
     if (this.status === 'connected') {
-      return Promise.resolve(true);
+      return Promise.resolve({ success: true, durationMs: 0 });
     }
     
     // Circuit breaker check
@@ -142,7 +145,7 @@ class DeviceConnection {
         rapidDisconnects: this.rapidDisconnectCount,
         resetAt: this.circuitResetAt
       });
-      return Promise.resolve(false);
+      return Promise.resolve({ success: false, durationMs: 0, skipped: true });
     }
 
     this.status = 'connecting';
@@ -158,7 +161,8 @@ class DeviceConnection {
         
         // Set connection timeout
         const timeout = setTimeout(() => {
-          this.log.warn('Connection timeout');
+          const durationMs = Date.now() - connectStartTime;
+          this.log.warn('Connection timeout', { durationMs });
           this.status = 'disconnected';
           if (this.device) {
             // Mark as non-intentional error disconnect before native teardown
@@ -166,7 +170,7 @@ class DeviceConnection {
             this.device.disconnect();
             this.device = null;
           }
-          resolve(false);
+          resolve({ success: false, durationMs, timedOut: true });
         }, 15000);
         
         // Connect via WiFi using the parsed access key
@@ -174,18 +178,19 @@ class DeviceConnection {
           accessKey: parsed.accessKey,
           onConnect: async () => {
             clearTimeout(timeout);
+            const durationMs = Date.now() - connectStartTime;
             this.status = 'connected';
             this.consecutiveFailures = 0;
             this.reconnectAttempts = 0;
             this.lastConnectedAt = Date.now(); // Track connection time for rapid disconnect detection
-            this.log.info('Connected successfully');
+            this.log.info('Connected successfully', { durationMs });
             
             await db.markDeviceConnected(this.deviceId);
             
             // Fetch and update device info on first connection
             await this.fetchAndUpdateDeviceInfo();
             
-            resolve(true);
+            resolve({ success: true, durationMs });
           },
           onDisconnect: (reason) => {
             clearTimeout(timeout);
@@ -228,12 +233,13 @@ class DeviceConnection {
             }
             
             if (this.status === 'connecting') {
-              this.log.warn('Connection failed during connect', { reason });
+              const durationMs = Date.now() - connectStartTime;
+              this.log.warn('Connection failed during connect', { reason, durationMs });
               this.status = 'disconnected';
               // Track disconnect reason even during connection phase (not intentional)
               db.markDeviceDisconnected(this.deviceId, this.lastSuccessfulPollAt, reason)
                 .catch(err => this.log.error('Failed to update disconnect status', { error: err.message }));
-              resolve(false);
+              resolve({ success: false, durationMs, reason });
             } else if (wasIntentional) {
               // Intentional disconnect (normal poll completion) - don't track in database
               // Don't schedule reconnect since this was intentional
@@ -261,9 +267,10 @@ class DeviceConnection {
           }
         });
       } catch (err) {
+        const durationMs = Date.now() - connectStartTime;
         this.status = 'disconnected';
-        this.log.error('Connection failed', { error: err.message });
-        resolve(false);
+        this.log.error('Connection failed', { error: err.message, durationMs });
+        resolve({ success: false, durationMs, error: err.message });
       }
     });
   }
@@ -449,8 +456,8 @@ class DeviceConnection {
     });
 
     this.reconnectTimer = setTimeout(async () => {
-      const success = await this.connect();
-      if (!success) {
+      const result = await this.connect();
+      if (!result.success) {
         this.scheduleReconnect();
       }
     }, delay);
@@ -529,23 +536,105 @@ class ConnectionPool {
   }
 
   /**
-   * Connect to all devices
+   * Connect to all devices with detailed timing logs
    */
   async connectAll() {
-    logger.info('Connecting to all devices');
+    const totalStartTime = Date.now();
+    const deviceCount = this.connections.size;
     
-    const results = { success: 0, failed: 0 };
+    logger.info('=== STARTUP: Connecting to all devices ===', { 
+      deviceCount,
+      timestamp: new Date().toISOString()
+    });
     
+    const results = { 
+      success: 0, 
+      failed: 0, 
+      skipped: 0,
+      timedOut: 0,
+      totalDurationMs: 0,
+      deviceTimings: []
+    };
+    
+    let deviceIndex = 0;
     for (const conn of this.connections.values()) {
-      const success = await conn.connect();
-      if (success) {
+      deviceIndex++;
+      const deviceStartTime = Date.now();
+      
+      logger.info(`Connecting device ${deviceIndex}/${deviceCount}`, {
+        serialNumber: conn.serialNumber,
+        deviceName: conn.deviceName,
+        cohort: conn.cohortId
+      });
+      
+      const result = await conn.connect();
+      const deviceDuration = result.durationMs || 0;
+      
+      // Track timing for summary
+      results.deviceTimings.push({
+        serialNumber: conn.serialNumber,
+        deviceName: conn.deviceName,
+        success: result.success,
+        durationMs: deviceDuration,
+        skipped: result.skipped || false,
+        timedOut: result.timedOut || false
+      });
+      
+      if (result.success) {
         results.success++;
+        logger.info(`Device ${deviceIndex}/${deviceCount} connected`, {
+          serialNumber: conn.serialNumber,
+          durationMs: deviceDuration
+        });
+      } else if (result.skipped) {
+        results.skipped++;
+        logger.info(`Device ${deviceIndex}/${deviceCount} skipped (circuit breaker)`, {
+          serialNumber: conn.serialNumber
+        });
+      } else if (result.timedOut) {
+        results.timedOut++;
+        results.failed++;
+        logger.warn(`Device ${deviceIndex}/${deviceCount} timed out`, {
+          serialNumber: conn.serialNumber,
+          durationMs: deviceDuration
+        });
       } else {
         results.failed++;
+        logger.warn(`Device ${deviceIndex}/${deviceCount} failed to connect`, {
+          serialNumber: conn.serialNumber,
+          durationMs: deviceDuration,
+          reason: result.reason || result.error
+        });
       }
     }
 
-    logger.info('Connection results', results);
+    results.totalDurationMs = Date.now() - totalStartTime;
+    
+    // Log summary
+    logger.info('=== STARTUP COMPLETE: Connection Summary ===', {
+      success: results.success,
+      failed: results.failed,
+      skipped: results.skipped,
+      timedOut: results.timedOut,
+      totalDurationMs: results.totalDurationMs,
+      averageDurationMs: results.deviceTimings.length > 0 
+        ? Math.round(results.deviceTimings.reduce((sum, d) => sum + d.durationMs, 0) / results.deviceTimings.length)
+        : 0
+    });
+    
+    // Log slow devices (took > 5 seconds)
+    const slowDevices = results.deviceTimings.filter(d => d.durationMs > 5000);
+    if (slowDevices.length > 0) {
+      logger.warn('Slow connections detected', {
+        count: slowDevices.length,
+        devices: slowDevices.map(d => ({
+          serialNumber: d.serialNumber,
+          deviceName: d.deviceName,
+          durationMs: d.durationMs
+        }))
+      });
+    }
+    
     return results;
   }
 
@@ -625,6 +714,7 @@ class ConnectionPool {
     }
 
     // Add new devices
+    const newDevices = [];
     for (const device of devices) {
       if (!currentIds.has(device.device_id)) {
         const cohortId = this.hashToCohort(device.serial_number);
@@ -642,17 +732,42 @@ class ConnectionPool {
         
         await db.upsertDeviceSyncStatus(device.device_id, device.organization_id, cohortId);
         
-        // Attempt to connect
-        await conn.connect();
+        // Attempt to connect with timing
+        logger.info('Connecting new device', { 
+          serialNumber: device.serial_number,
+          deviceName: device.device_name,
+          cohort: cohortId
+        });
         
-        logger.info('Added device to pool', { deviceId: device.device_id, cohort: cohortId });
+        const result = await conn.connect();
+        const durationMs = result.durationMs || 0;
+        
+        newDevices.push({
+          serialNumber: device.serial_number,
+          deviceName: device.device_name,
+          success: result.success,
+          durationMs
+        });
+        
+        logger.info('New device connection result', { 
+          serialNumber: device.serial_number,
+          deviceName: device.device_name,
+          success: result.success,
+          durationMs,
+          cohort: cohortId
+        });
       }
     }
 
     logger.info('Device list refreshed', { 
       total: this.connections.size,
-      added: devices.length - currentIds.size,
-      removed: currentIds.size - newIds.size 
+      added: newDevices.length,
+      removed: currentIds.size - newIds.size,
+      newDevices: newDevices.map(d => ({
+        serialNumber: d.serialNumber,
+        success: d.success,
+        durationMs: d.durationMs
+      }))
     });
   }
 
@@ -703,14 +818,15 @@ class ConnectionPool {
         this.cohorts.get(cohortId).add(device.device_id);
         
         // Attempt to connect
-        const success = await conn.connect();
+        const result = await conn.connect();
         
-        if (success) {
+        if (result.success) {
           // Connection successful - stability will be reset by markDeviceConnected
           recovered++;
           logger.info('Unstable device recovered successfully', { 
             deviceId: device.device_id,
-            serial: device.serial_number
+            serial: device.serial_number,
+            durationMs: result.durationMs
           });
         } else {
           // Connection failed - remove from pool and let it try again later

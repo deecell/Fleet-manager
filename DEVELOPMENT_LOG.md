@@ -6,6 +6,31 @@
 
 ## Latest Updates (January 10, 2026)
 
+### Device Connection Timing Logs (January 10, 2026)
+
+**Purpose**: Added detailed timing logs to track how long each device takes to connect during Device Manager startup and refresh operations. This helps diagnose slow startup times and identify problematic devices.
+
+**New Logging Features**:
+1. **Startup Summary**: Logs total startup time with success/failed/skipped/timedOut counts
+2. **Per-Device Timing**: Each device connection logs its duration in milliseconds
+3. **Slow Device Detection**: Warns about devices taking >5 seconds to connect
+4. **Refresh Timing**: New devices added via refresh() also log connection timing
+
+**Sample Log Output**:
+```
+=== STARTUP: Connecting to all devices === { deviceCount: 11, timestamp: "..." }
+Connecting device 1/11 { serialNumber: "1A81067CFA117B5B", deviceName: "DCL-Curtis-2", cohort: 3 }
+Device 1/11 connected { serialNumber: "1A81067CFA117B5B", durationMs: 2341 }
+...
+=== STARTUP COMPLETE: Connection Summary === { success: 10, failed: 1, timedOut: 1, totalDurationMs: 47523, averageDurationMs: 4320 }
+Slow connections detected { count: 2, devices: [...] }
+```
+
+**Files Changed**:
+- `device-manager/app/connection-pool.js` - Updated `connect()` to return timing object, enhanced `connectAll()` and `refresh()` with detailed logging
+
+---
+
 ### Circuit Breaker Bug Fix (January 10, 2026)
 
 **Problem**: All devices were being marked as "unstable" after a few poll cycles, even though they were working correctly.
