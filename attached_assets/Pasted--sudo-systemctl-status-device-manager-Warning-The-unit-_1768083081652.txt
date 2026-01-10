@@ -1,0 +1,23 @@
+$ sudo systemctl status device-manager
+Warning: The unit file, source configuration file or drop-ins of device-manager.service changed on disk. Run 'systemctl daemon-reload' to reload units.
+● device-manager.service - Deecell Device Manager
+     Loaded: loaded (/etc/systemd/system/device-manager.service; enabled; preset: enabled)
+     Active: active (running) since Sat 2026-01-10 22:11:13 UTC; 2s ago
+   Main PID: 90337 (node)
+      Tasks: 29 (limit: 1008)
+     Memory: 17.1M (peak: 56.0M)
+        CPU: 1.133s
+     CGroup: /system.slice/device-manager.service
+             └─90337 node app/index.js
+
+Jan 10 22:11:15 ip-10-0-12-126 start.sh[90337]: {"timestamp":"2026-01-10T22:11:15.427Z","level":"info","message":"Connecting to device","service":"device-manager","deviceId":4,"s>
+Jan 10 22:11:15 ip-10-0-12-126 start.sh[90337]: {"timestamp":"2026-01-10T22:11:15.434Z","level":"info","message":"Connected successfully","service":"device-manager","deviceId":4,>
+Jan 10 22:11:15 ip-10-0-12-126 start.sh[90337]: {"timestamp":"2026-01-10T22:11:15.437Z","level":"warn","message":"Rapid disconnect detected","service":"device-manager","deviceId">
+Jan 10 22:11:15 ip-10-0-12-126 start.sh[90337]: {"timestamp":"2026-01-10T22:11:15.437Z","level":"info","message":"Device disconnected","service":"device-manager","deviceId":4,"se>
+Jan 10 22:11:15 ip-10-0-12-126 start.sh[90337]: {"timestamp":"2026-01-10T22:11:15.439Z","level":"warn","message":"Error fetching device info","service":"device-manager","deviceId>
+Jan 10 22:11:15 ip-10-0-12-126 start.sh[90337]: {"timestamp":"2026-01-10T22:11:15.441Z","level":"info","message":"Scheduling reconnect","service":"device-manager","deviceId":4,"s>
+Jan 10 22:11:15 ip-10-0-12-126 start.sh[90337]: {"timestamp":"2026-01-10T22:11:15.498Z","level":"info","message":"Fetched device info from PowerMon","service":"device-manager","d>
+Jan 10 22:11:15 ip-10-0-12-126 start.sh[90337]: {"timestamp":"2026-01-10T22:11:15.500Z","level":"info","message":"Updated device info","service":"device-manager","deviceId":8,"se>
+Jan 10 22:11:15 ip-10-0-12-126 start.sh[90337]: {"timestamp":"2026-01-10T22:11:15.873Z","level":"info","message":"Fetched device info from PowerMon","service":"device-manager","d>
+Jan 10 22:11:15 ip-10-0-12-126 start.sh[90337]: {"timestamp":"2026-01-10T22:11:15.875Z","level":"info","message":"Updated device info","service":"device-manager","deviceId":12,"s>
+lines 1-21/21 (END)
