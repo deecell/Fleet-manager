@@ -1,0 +1,23 @@
+$ sudo systemctl status device-manager
+Warning: The unit file, source configuration file or drop-ins of device-manager.service changed on disk. Run 'systemctl daemon-reload' to reload units.
+● device-manager.service - Deecell Device Manager
+     Loaded: loaded (/etc/systemd/system/device-manager.service; enabled; preset: enabled)
+     Active: active (running) since Sat 2026-01-10 01:04:08 UTC; 1h 12min ago
+   Main PID: 31391 (node)
+      Tasks: 31 (limit: 1008)
+     Memory: 21.7M (peak: 56.0M)
+        CPU: 51.497s
+     CGroup: /system.slice/device-manager.service
+             └─31391 node app/index.js
+
+Jan 10 02:16:34 ip-10-0-12-126 start.sh[31391]: {"timestamp":"2026-01-10T02:16:34.940Z","level":"info","message":"Truck parked - accumulating time","service":"device->
+Jan 10 02:16:34 ip-10-0-12-126 start.sh[31391]: {"timestamp":"2026-01-10T02:16:34.945Z","level":"info","message":"Truck parked - accumulating time","service":"device->
+Jan 10 02:16:38 ip-10-0-12-126 start.sh[31391]: {"timestamp":"2026-01-10T02:16:38.959Z","level":"info","message":"Truck parked - accumulating time","service":"device->
+Jan 10 02:16:38 ip-10-0-12-126 start.sh[31391]: {"timestamp":"2026-01-10T02:16:38.964Z","level":"info","message":"Truck parked - accumulating time","service":"device->
+Jan 10 02:16:38 ip-10-0-12-126 start.sh[31391]: {"timestamp":"2026-01-10T02:16:38.969Z","level":"info","message":"Truck parked - accumulating time","service":"device->
+Jan 10 02:16:40 ip-10-0-12-126 start.sh[31391]: {"timestamp":"2026-01-10T02:16:40.975Z","level":"info","message":"Truck parked - accumulating time","service":"device->
+Jan 10 02:16:42 ip-10-0-12-126 start.sh[31391]: {"timestamp":"2026-01-10T02:16:42.982Z","level":"info","message":"Truck parked - accumulating time","service":"device->
+Jan 10 02:16:44 ip-10-0-12-126 start.sh[31391]: {"timestamp":"2026-01-10T02:16:44.990Z","level":"info","message":"Truck parked - accumulating time","service":"device->
+Jan 10 02:16:46 ip-10-0-12-126 start.sh[31391]: {"timestamp":"2026-01-10T02:16:46.997Z","level":"info","message":"Truck parked - accumulating time","service":"device->
+Jan 10 02:16:47 ip-10-0-12-126 start.sh[31391]: {"timestamp":"2026-01-10T02:16:47.002Z","level":"info","message":"Truck parked - accumulating time","service":"device->
+$ 
