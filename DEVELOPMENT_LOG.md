@@ -6,6 +6,22 @@
 
 ## Latest Updates (January 10, 2026)
 
+### Admin Dashboard kWh Calculation Fix (January 10, 2026)
+
+**Problem**: After updating a device's battery count in the admin dashboard, the kWh value wasn't updating immediately. The fleet dashboard showed the correct value (20.48 kWh) but the admin dashboard showed the old value (10.28 kWh).
+
+**Root Cause**: The admin dashboard was displaying `snapshot.energy` from the Device Manager, which caches battery configuration at connection time. Editing the device in the UI updated the database, but the running Device Manager still had the old values.
+
+**Fix**: Updated admin dashboard to calculate kWh on-the-fly using current device settings:
+- Formula: `kWh = (SoC/100) × batteryVoltage × (numberOfBatteries × batteryAh) / 1000`
+- Uses `device.batteryVoltage`, `device.numberOfBatteries`, `device.batteryAh` from the database
+- Changes to battery configuration now reflect immediately without restarting Device Manager
+
+**Files Changed**:
+- `client/src/pages/admin/DevicesPage.tsx` - Calculate kWh on-the-fly instead of using snapshot.energy
+
+---
+
 ### Device Connection Timing Logs (January 10, 2026)
 
 **Purpose**: Added detailed timing logs to track how long each device takes to connect during Device Manager startup and refresh operations. This helps diagnose slow startup times and identify problematic devices.

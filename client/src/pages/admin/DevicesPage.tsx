@@ -496,6 +496,17 @@ export default function DevicesPage() {
                         ? ((snapshot.temperature * 9/5) + 32).toFixed(1)
                         : null;
                       
+                      // Calculate kWh on-the-fly using current device battery settings
+                      // This ensures edits to battery config are reflected immediately
+                      // Formula: kWh = (SoC/100) × batteryVoltage × (numberOfBatteries × batteryAh) / 1000
+                      const calculatedKwh = (
+                        soc != null &&
+                        device.batteryVoltage != null &&
+                        device.numberOfBatteries != null &&
+                        device.batteryAh != null
+                      ) ? ((soc / 100) * device.batteryVoltage * (device.numberOfBatteries * device.batteryAh) / 1000)
+                        : null;
+                      
                       return (
                         <TableRow 
                           key={device.id} 
@@ -568,7 +579,7 @@ export default function DevicesPage() {
                             {snapshot?.power != null ? (snapshot.power / 1000).toFixed(2) : "-"}
                           </TableCell>
                           <TableCell className="text-center text-muted-foreground">
-                            {snapshot?.energy != null ? (snapshot.energy / 1000).toFixed(2) : "-"}
+                            {calculatedKwh != null ? calculatedKwh.toFixed(2) : "-"}
                           </TableCell>
                           <TableCell className="text-center font-medium">
                             {tempF ?? "-"}
