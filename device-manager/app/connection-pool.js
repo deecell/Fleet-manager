@@ -77,6 +77,7 @@ class DeviceConnection {
     this.rapidDisconnectCount = deviceInfo.consecutive_disconnects || 0;
     this.isCircuitOpen = false; // If true, don't try to connect
     this.circuitResetAt = null; // When to try again
+    this.intentionalDisconnect = false; // Flag to track intentional vs error disconnects
     
     this.log = logger.child({ 
       deviceId: this.deviceId, 
@@ -160,6 +161,8 @@ class DeviceConnection {
           this.log.warn('Connection timeout');
           this.status = 'disconnected';
           if (this.device) {
+            // Mark as non-intentional error disconnect before native teardown
+            this.intentionalDisconnect = false;
             this.device.disconnect();
             this.device = null;
           }
@@ -187,13 +190,19 @@ class DeviceConnection {
           onDisconnect: (reason) => {
             clearTimeout(timeout);
             
+            // Check if this was an intentional disconnect (normal poll completion)
+            // If intentional, don't count toward rapid disconnect threshold
+            const wasIntentional = this.intentionalDisconnect;
+            this.intentionalDisconnect = false; // Reset flag
+            
             // Check for rapid disconnect (disconnect within threshold of connect)
-            const isRapidDisconnect = this.lastConnectedAt && 
+            // Only count as rapid if NOT intentional (error/unexpected disconnects)
+            const isRapidDisconnect = !wasIntentional && this.lastConnectedAt && 
               (Date.now() - this.lastConnectedAt) < RAPID_DISCONNECT_THRESHOLD_MS;
             
             if (isRapidDisconnect) {
               this.rapidDisconnectCount++;
-              this.log.warn('Rapid disconnect detected', { 
+              this.log.warn('Rapid disconnect detected (error)', { 
                 reason, 
                 rapidDisconnects: this.rapidDisconnectCount,
                 connectionDurationMs: Date.now() - this.lastConnectedAt
@@ -214,19 +223,25 @@ class DeviceConnection {
                 db.markDeviceUnstable(this.deviceId)
                   .catch(err => this.log.error('Failed to mark device unstable in database', { error: err.message }));
               }
+            } else if (wasIntentional) {
+              this.log.debug('Intentional disconnect (normal poll completion)', { reason });
             }
             
             if (this.status === 'connecting') {
               this.log.warn('Connection failed during connect', { reason });
               this.status = 'disconnected';
-              // Track disconnect reason even during connection phase
+              // Track disconnect reason even during connection phase (not intentional)
               db.markDeviceDisconnected(this.deviceId, this.lastSuccessfulPollAt, reason)
                 .catch(err => this.log.error('Failed to update disconnect status', { error: err.message }));
               resolve(false);
-            } else {
-              this.log.info('Device disconnected', { reason, isRapidDisconnect });
+            } else if (wasIntentional) {
+              // Intentional disconnect (normal poll completion) - don't track in database
+              // Don't schedule reconnect since this was intentional
               this.status = 'disconnected';
-              // Track disconnect reason for state analysis
+            } else {
+              this.log.info('Device disconnected (unexpected)', { reason, isRapidDisconnect });
+              this.status = 'disconnected';
+              // Only track unexpected disconnects in database
               db.markDeviceDisconnected(this.deviceId, this.lastSuccessfulPollAt, reason)
                 .then(() => {
                   // Use longer backoff if circuit breaker is open
@@ -255,10 +270,13 @@ class DeviceConnection {
 
   /**
    * Disconnect from the device
+   * @param {boolean} intentional - If true, this is a normal disconnect (not an error)
    */
-  disconnect() {
+  disconnect(intentional = true) {
     if (this.device) {
       try {
+        // Mark as intentional so circuit breaker doesn't count it
+        this.intentionalDisconnect = intentional;
         this.device.disconnect();
       } catch (err) {
         this.log.warn('Error during disconnect', { error: err.message });
@@ -335,9 +353,14 @@ class DeviceConnection {
 
             // Mark as disconnected if too many failures
             if (this.consecutiveFailures >= 3) {
-              this.status = 'disconnected';
+              // Persist the failure to DB first (this increments consecutive_disconnects)
               db.markDeviceDisconnected(this.deviceId, this.lastSuccessfulPollAt)
-                .then(() => this.scheduleReconnect());
+                .then(() => {
+                  // Disconnect with intentional=true since we already tracked the failure
+                  // This prevents double-counting in onDisconnect
+                  this.disconnect(true);
+                  this.scheduleReconnect();
+                });
             }
 
             resolve(null);
@@ -347,6 +370,19 @@ class DeviceConnection {
           const data = result.data;
           this.lastSuccessfulPollAt = this.lastPollAt;
           this.consecutiveFailures = 0;
+          
+          // Reset rapid disconnect counter on successful poll
+          // This gives the device a clean slate after stable operation
+          // Always persist to DB to ensure memory/DB parity across restarts
+          if (this.rapidDisconnectCount > 0) {
+            this.log.debug('Resetting rapid disconnect count after successful poll', {
+              previousCount: this.rapidDisconnectCount
+            });
+            this.rapidDisconnectCount = 0;
+          }
+          // Always sync to DB to handle cases where process restarts with stale data
+          db.resetDeviceDisconnects(this.deviceId)
+            .catch(err => this.log.warn('Failed to reset disconnect count in DB', { error: err.message }));
 
           // Calculate Wh from SoC and battery configuration
           // Formula: Wh = (SoC/100) × batteryVoltage × (numberOfBatteries × batteryAh)

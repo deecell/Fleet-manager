@@ -6,6 +6,37 @@
 
 ## Latest Updates (January 10, 2026)
 
+### Circuit Breaker Bug Fix (January 10, 2026)
+
+**Problem**: All devices were being marked as "unstable" after a few poll cycles, even though they were working correctly.
+
+**Root Cause**: The circuit breaker was counting ALL disconnects as "rapid disconnects" - including intentional disconnects after successful polls. Since each poll cycle connects, fetches data, and disconnects within 5 seconds, every normal poll was counting toward the circuit breaker threshold.
+
+**Fix**:
+1. Added `intentionalDisconnect` flag to `DeviceConnection` class
+2. The `disconnect()` method now sets this flag to `true` before calling the native disconnect
+3. The `onDisconnect` handler has 3 paths:
+   - **Connection phase failures**: Track in DB, count toward circuit breaker
+   - **Intentional disconnects**: Don't track in DB, don't schedule reconnect
+   - **Unexpected disconnects**: Track in DB, count toward circuit breaker, schedule reconnect
+4. Successful polls reset in-memory `rapidDisconnectCount` AND persist to DB via new `db.resetDeviceDisconnects()`
+5. Poll failure path (3 consecutive failures) explicitly clears `intentionalDisconnect = false` to ensure any native onDisconnect is tracked as error
+6. Database persistence via existing `markDeviceReporting()` (resets `consecutive_disconnects = 0` when measurements written)
+7. Database persistence via existing `markDeviceConnected()` (resets on connect)
+
+**New Database Method**:
+- `db.resetDeviceDisconnects(deviceId)` - Resets `consecutive_disconnects = 0` in power_mon_devices table
+
+**Logic Change**:
+- **Before**: Any disconnect within 5s of connect = rapid disconnect (broken)
+- **After**: Only ERROR disconnects within 5s = rapid disconnect (correct)
+
+**Files Changed**:
+- `device-manager/app/connection-pool.js` - Added intentional disconnect tracking and 3-path onDisconnect logic
+- `device-manager/app/database.js` - Added `resetDeviceDisconnects()` method for persistence
+
+---
+
 ### Truck-Based Device Polling Control (January 10, 2026)
 
 **Purpose**: Device Manager polling now follows the truck's `is_active` status instead of the device's own `is_active` flag. This prevents scenarios where a truck is active but its device is not being polled.

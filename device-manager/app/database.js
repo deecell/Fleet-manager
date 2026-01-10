@@ -405,6 +405,21 @@ async function resetDeviceStability(deviceId) {
 }
 
 /**
+ * Reset device disconnect counter after successful poll
+ * Called immediately when poll succeeds to keep DB in sync with memory
+ * This ensures process restarts don't cause circuit breaker to retrip
+ */
+async function resetDeviceDisconnects(deviceId) {
+  await query(`
+    UPDATE power_mon_devices 
+    SET 
+      consecutive_disconnects = 0,
+      updated_at = NOW()
+    WHERE id = $1 AND consecutive_disconnects > 0
+  `, [deviceId]);
+}
+
+/**
  * Get devices needing backfill
  */
 async function getDevicesNeedingBackfill(limit = 5) {
@@ -735,6 +750,7 @@ module.exports = {
   markDeviceUnstable,
   getUnstableDevicesReadyForRecovery,
   resetDeviceStability,
+  resetDeviceDisconnects,
   updateDeviceInfo,
   getDevicesNeedingBackfill,
   updateBackfillProgress,
