@@ -1,0 +1,33 @@
+$ sudo systemctl restart device-manager && sleep 3 && sudo journalctl -u device-manager -n 50 --no-pager | head -30
+Warning: The unit file, source configuration file or drop-ins of device-manager.service changed on disk. Run 'systemctl daemon-reload' to reload units.
+Jan 10 02:36:30 ip-10-0-12-126 start.sh[32070]: {"timestamp":"2026-01-10T02:36:30.237Z","level":"info","message":"Batch writer started","service":"device-manager","flushIntervalMs":2000,"maxBatchSize":500}
+Jan 10 02:36:30 ip-10-0-12-126 start.sh[32070]: {"timestamp":"2026-01-10T02:36:30.237Z","level":"info","message":"Connecting to all devices","service":"device-manager"}
+Jan 10 02:36:30 ip-10-0-12-126 start.sh[32070]: {"timestamp":"2026-01-10T02:36:30.237Z","level":"info","message":"Connecting to device","service":"device-manager","deviceId":3,"serial":"A3A5B30EA9B3FF98","cohort":4}
+Jan 10 02:36:30 ip-10-0-12-126 start.sh[32070]: {"timestamp":"2026-01-10T02:36:30.244Z","level":"info","message":"Metrics server started","service":"device-manager","port":3001,"metricsPath":"/metrics","healthPath":"/health"}
+Jan 10 02:36:30 ip-10-0-12-126 start.sh[32070]: {"timestamp":"2026-01-10T02:36:30.245Z","level":"info","message":"Connected successfully","service":"device-manager","deviceId":3,"serial":"A3A5B30EA9B3FF98","cohort":4}
+Jan 10 02:36:30 ip-10-0-12-126 start.sh[32070]: {"timestamp":"2026-01-10T02:36:30.250Z","level":"info","message":"Connecting to device","service":"device-manager","deviceId":4,"serial":"1982A3044D3599E2","cohort":9}
+Jan 10 02:36:30 ip-10-0-12-126 start.sh[32070]: {"timestamp":"2026-01-10T02:36:30.257Z","level":"info","message":"Connected successfully","service":"device-manager","deviceId":4,"serial":"1982A3044D3599E2","cohort":9}
+Jan 10 02:36:30 ip-10-0-12-126 start.sh[32070]: {"timestamp":"2026-01-10T02:36:30.262Z","level":"info","message":"Connecting to device","service":"device-manager","deviceId":5,"serial":"B051375C222A5334","cohort":4}
+Jan 10 02:36:30 ip-10-0-12-126 start.sh[32070]: {"timestamp":"2026-01-10T02:36:30.271Z","level":"info","message":"Connected successfully","service":"device-manager","deviceId":5,"serial":"B051375C222A5334","cohort":4}
+Jan 10 02:36:30 ip-10-0-12-126 start.sh[32070]: {"timestamp":"2026-01-10T02:36:30.276Z","level":"info","message":"Connecting to device","service":"device-manager","deviceId":6,"serial":"E747AAFD3EEB003C","cohort":4}
+Jan 10 02:36:30 ip-10-0-12-126 start.sh[32070]: {"timestamp":"2026-01-10T02:36:30.283Z","level":"info","message":"Connected successfully","service":"device-manager","deviceId":6,"serial":"E747AAFD3EEB003C","cohort":4}
+Jan 10 02:36:30 ip-10-0-12-126 start.sh[32070]: {"timestamp":"2026-01-10T02:36:30.287Z","level":"info","message":"Connecting to device","service":"device-manager","deviceId":7,"serial":"96FE5E88572C1995","cohort":1}
+Jan 10 02:36:30 ip-10-0-12-126 start.sh[32070]: {"timestamp":"2026-01-10T02:36:30.295Z","level":"info","message":"Connected successfully","service":"device-manager","deviceId":7,"serial":"96FE5E88572C1995","cohort":1}
+Jan 10 02:36:30 ip-10-0-12-126 start.sh[32070]: {"timestamp":"2026-01-10T02:36:30.299Z","level":"info","message":"Connecting to device","service":"device-manager","deviceId":8,"serial":"E844BD0A2017EB7A","cohort":5}
+Jan 10 02:36:30 ip-10-0-12-126 start.sh[32070]: {"timestamp":"2026-01-10T02:36:30.306Z","level":"info","message":"Connected successfully","service":"device-manager","deviceId":8,"serial":"E844BD0A2017EB7A","cohort":5}
+Jan 10 02:36:30 ip-10-0-12-126 start.sh[32070]: {"timestamp":"2026-01-10T02:36:30.311Z","level":"info","message":"Connecting to device","service":"device-manager","deviceId":9,"serial":"E6D8F89877415815","cohort":6}
+Jan 10 02:36:30 ip-10-0-12-126 start.sh[32070]: {"timestamp":"2026-01-10T02:36:30.318Z","level":"info","message":"Connected successfully","service":"device-manager","deviceId":9,"serial":"E6D8F89877415815","cohort":6}
+Jan 10 02:36:30 ip-10-0-12-126 start.sh[32070]: {"timestamp":"2026-01-10T02:36:30.322Z","level":"info","message":"Connecting to device","service":"device-manager","deviceId":10,"serial":"1B1034C2B3399A18","cohort":0}
+Jan 10 02:36:30 ip-10-0-12-126 start.sh[32070]: {"timestamp":"2026-01-10T02:36:30.329Z","level":"info","message":"Connected successfully","service":"device-manager","deviceId":10,"serial":"1B1034C2B3399A18","cohort":0}
+Jan 10 02:36:30 ip-10-0-12-126 start.sh[32070]: {"timestamp":"2026-01-10T02:36:30.333Z","level":"info","message":"Connecting to device","service":"device-manager","deviceId":11,"serial":"1A81067CFA117B5B","cohort":0}
+Jan 10 02:36:30 ip-10-0-12-126 start.sh[32070]: {"timestamp":"2026-01-10T02:36:30.341Z","level":"info","message":"Connected successfully","service":"device-manager","deviceId":11,"serial":"1A81067CFA117B5B","cohort":0}
+Jan 10 02:36:30 ip-10-0-12-126 start.sh[32070]: {"timestamp":"2026-01-10T02:36:30.345Z","level":"info","message":"Connecting to device","service":"device-manager","deviceId":12,"serial":"A93B7B8CC0D672FE","cohort":8}
+Jan 10 02:36:30 ip-10-0-12-126 start.sh[32070]: {"timestamp":"2026-01-10T02:36:30.352Z","level":"info","message":"Connected successfully","service":"device-manager","deviceId":12,"serial":"A93B7B8CC0D672FE","cohort":8}
+Jan 10 02:36:30 ip-10-0-12-126 start.sh[32070]: {"timestamp":"2026-01-10T02:36:30.357Z","level":"info","message":"Connecting to device","service":"device-manager","deviceId":13,"serial":"292240386041C12B","cohort":1}
+Jan 10 02:36:30 ip-10-0-12-126 start.sh[32070]: {"timestamp":"2026-01-10T02:36:30.364Z","level":"info","message":"Connected successfully","service":"device-manager","deviceId":13,"serial":"292240386041C12B","cohort":1}
+Jan 10 02:36:30 ip-10-0-12-126 start.sh[32070]: {"timestamp":"2026-01-10T02:36:30.368Z","level":"info","message":"Connection results","service":"device-manager","success":11,"failed":0}
+Jan 10 02:36:30 ip-10-0-12-126 start.sh[32070]: {"timestamp":"2026-01-10T02:36:30.368Z","level":"info","message":"Starting polling scheduler","service":"device-manager","intervalMs":10000,"cohorts":10,"tickDurationMs":1000}
+Jan 10 02:36:30 ip-10-0-12-126 start.sh[32070]: {"timestamp":"2026-01-10T02:36:30.368Z","level":"info","message":"Backfill service started","service":"device-manager","gapThresholdMs":30000,"maxConcurrent":5}
+Jan 10 02:36:30 ip-10-0-12-126 start.sh[32070]: {"timestamp":"2026-01-10T02:36:30.369Z","level":"warn","message":"SIMPro API credentials not configured, SIM polling disabled","service":"device-manager"}
+Jan 10 02:36:30 ip-10-0-12-126 start.sh[32070]: {"timestamp":"2026-01-10T02:36:30.369Z","level":"info","message":"Device Manager started successfully","service":"device-manager","devices":11,"status":"running"}
+$
