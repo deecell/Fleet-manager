@@ -80,6 +80,19 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
 - **CI/CD**: GitHub Actions workflows in `.github/workflows/`.
 - **Components**: ECS Fargate for web app, RDS PostgreSQL for database, ALB, EC2 for Device Manager, VPC, Secrets Manager, CloudWatch, CloudTrail.
 
+### AWS Secrets & Database Access
+- **Production Database Secret**: `deecell-fleet-production/database-url`
+- **To get DATABASE_URL from EC2**:
+  ```bash
+  aws secretsmanager get-secret-value --secret-id deecell-fleet-production/database-url --query SecretString --output text
+  ```
+- **To query production database from EC2**:
+  ```bash
+  export DATABASE_URL=$(aws secretsmanager get-secret-value --secret-id deecell-fleet-production/database-url --query SecretString --output text)
+  psql "$DATABASE_URL" -c "SELECT * FROM ..."
+  ```
+- **Other secrets**: See `docs/IAM_PERMISSIONS.md` for full list
+
 ## External Dependencies
 
 ### Core Infrastructure
