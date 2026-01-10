@@ -4,7 +4,34 @@
 
 ---
 
-## Latest Updates (January 9, 2026)
+## Latest Updates (January 10, 2026)
+
+### Truck-Based Device Polling Control (January 10, 2026)
+
+**Purpose**: Device Manager polling now follows the truck's `is_active` status instead of the device's own `is_active` flag. This prevents scenarios where a truck is active but its device is not being polled.
+
+**Logic**:
+- If a device is assigned to a truck → polls only if the truck's `is_active = true`
+- If a device is unassigned (truck_id IS NULL) → always polls (for testing before assignment)
+- Setting a truck to Inactive stops polling for its PowerMon device automatically
+
+**UI Changes**:
+- Added Active/Inactive column to Trucks admin table
+- Added Active/Inactive toggle in Edit Truck dialog
+- Consistent with other admin pages (Organizations, Users, Fleets)
+
+**Device Manager Query Changes**:
+- `getActiveDevicesWithCredentials()` - Now JOINs trucks table and checks `t.is_active`
+- `getUnstableDevicesReadyForRecovery()` - Same truck-based filter for recovery attempts
+- Skipped unstable devices log also updated to use truck's is_active
+
+**Files Changed**:
+- `client/src/pages/admin/TrucksPage.tsx` - Added Active column and edit toggle
+- `device-manager/app/database.js` - Updated 3 queries to use truck's is_active
+
+---
+
+## Previous Updates (January 9, 2026)
 
 ### Device Registration UX Improvement (January 9, 2026)
 

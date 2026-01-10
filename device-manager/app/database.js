@@ -108,16 +108,19 @@ async function getActiveDevicesWithCredentials() {
     FROM power_mon_devices d
     INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = true
     LEFT JOIN device_sync_status s ON s.device_id = d.id
-    WHERE d.is_active = true
+    LEFT JOIN trucks t ON t.id = d.truck_id
+    WHERE (d.truck_id IS NULL OR t.is_active = true)
       AND (d.connection_status IS NULL OR d.connection_status != 'unstable')
     ORDER BY d.id
   `);
   
   // Log any skipped unstable devices for visibility
   const skippedResult = await query(`
-    SELECT serial_number, device_name, consecutive_disconnects 
-    FROM power_mon_devices 
-    WHERE is_active = true AND connection_status = 'unstable'
+    SELECT d.serial_number, d.device_name, d.consecutive_disconnects 
+    FROM power_mon_devices d
+    LEFT JOIN trucks t ON t.id = d.truck_id
+    WHERE (d.truck_id IS NULL OR t.is_active = true) 
+      AND d.connection_status = 'unstable'
   `);
   if (skippedResult.rows.length > 0) {
     logger.warn('Skipping unstable devices (circuit breaker)', { 
@@ -364,7 +367,8 @@ async function getUnstableDevicesReadyForRecovery(backoffMs = 300000) {
     FROM power_mon_devices d
     INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = true
     LEFT JOIN device_sync_status s ON s.device_id = d.id
-    WHERE d.is_active = true
+    LEFT JOIN trucks t ON t.id = d.truck_id
+    WHERE (d.truck_id IS NULL OR t.is_active = true)
       AND d.connection_status = 'unstable'
       AND (
         d.marked_unstable_at IS NULL 
