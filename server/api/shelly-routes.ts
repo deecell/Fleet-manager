@@ -32,7 +32,7 @@ const shellyWebhookSchema = z.object({
 router.post("/vibration", async (req: Request, res: Response) => {
   try {
     const deviceId = req.query.device_id as string || req.body.device_id;
-    const frequency = parseFloat(req.query.frequency as string) || req.body.frequency || 0;
+    const pulseCount = parseInt(req.query.pulse_count as string) || req.body.pulse_count || 0;
     const temperature = req.query.temperature ? parseFloat(req.query.temperature as string) : req.body.temperature;
     const voltage = req.query.voltage ? parseFloat(req.query.voltage as string) : req.body.voltage;
     const rssi = req.query.rssi ? parseInt(req.query.rssi as string) : req.body.rssi;
@@ -52,13 +52,31 @@ router.post("/vibration", async (req: Request, res: Response) => {
       });
     }
 
+    const now = new Date();
+    let frequency = 0;
+
+    // Calculate frequency from pulse count delta
+    if (existingDevice.lastPulseCount !== null && existingDevice.lastPulseCountAt) {
+      const elapsedMs = now.getTime() - new Date(existingDevice.lastPulseCountAt).getTime();
+      const elapsedSeconds = elapsedMs / 1000;
+      
+      if (elapsedSeconds > 0 && elapsedSeconds < 300) { // Ignore gaps > 5 min
+        const pulseDelta = pulseCount - (existingDevice.lastPulseCount || 0);
+        if (pulseDelta >= 0) { // Handle counter reset
+          frequency = pulseDelta / elapsedSeconds; // Hz (pulses per second)
+        }
+      }
+    }
+
     const movementThreshold = existingDevice.movementThreshold || 10;
     const isMoving = frequency >= movementThreshold;
 
     await storage.updateShellyDeviceByDeviceId(deviceId, {
-      lastSeenAt: new Date(),
+      lastSeenAt: now,
       connectionStatus: "online",
       lastFrequency: frequency,
+      lastPulseCount: pulseCount,
+      lastPulseCountAt: now,
       isMoving: isMoving,
     });
 
@@ -72,15 +90,16 @@ router.post("/vibration", async (req: Request, res: Response) => {
         temperature: temperature,
         voltage: voltage,
         rssi: rssi,
-        recordedAt: new Date(),
+        recordedAt: now,
       });
     }
 
-    console.log(`[Shelly] Updated device ${deviceId}: freq=${frequency}, moving=${isMoving}`);
+    console.log(`[Shelly] Device ${deviceId}: pulse=${pulseCount}, freq=${frequency.toFixed(2)}Hz, moving=${isMoving}`);
 
     res.json({
       success: true,
       device_id: deviceId,
+      pulse_count: pulseCount,
       frequency: frequency,
       is_moving: isMoving,
       connection_status: "online",

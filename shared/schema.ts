@@ -542,9 +542,11 @@ export const shellyDevices = pgTable("shelly_devices", {
   firmwareVersion: varchar("firmware_version", { length: 32 }),
   lastSeenAt: timestamp("last_seen_at"), // Last webhook received
   connectionStatus: varchar("connection_status", { length: 20 }).default("offline"), // online, offline
-  lastFrequency: real("last_frequency").default(0), // Vibration pulses per minute
+  lastFrequency: real("last_frequency").default(0), // Calculated vibration frequency (Hz)
+  lastPulseCount: integer("last_pulse_count").default(0), // Previous $total value from Shelly
+  lastPulseCountAt: timestamp("last_pulse_count_at"), // When we received last pulse count
   isMoving: boolean("is_moving").default(false), // Derived from frequency threshold
-  movementThreshold: real("movement_threshold").default(10), // Pulses/min to consider "moving"
+  movementThreshold: real("movement_threshold").default(10), // Hz to consider "moving"
   webhookSecret: varchar("webhook_secret", { length: 64 }), // Optional auth for webhook
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
