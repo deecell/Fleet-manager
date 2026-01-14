@@ -6,6 +6,37 @@
 
 ## Latest Updates (January 14, 2026)
 
+### Shelly Vibration Sensor Integration COMPLETE (January 14, 2026)
+
+**Status**: ✅ LIVE AND WORKING IN PRODUCTION
+
+**Webhook URL**:
+```
+https://app.deecell.com/api/v1/shelly/vibration?device_id=ShellyPlusUni-78421C548C5C&pulse_count=$total
+```
+
+**How It Works**:
+1. Shelly sends GET request with `$total` (cumulative pulse count)
+2. Server calculates frequency: `(current_count - last_count) / elapsed_seconds`
+3. Frequency compared to threshold (default 10 Hz) → determines `is_moving`
+4. Updates `shelly_devices` and `shelly_snapshots` tables
+
+**Database Tables**:
+- `shelly_devices` - Device registration, last reading, movement status
+- `shelly_snapshots` - Historical vibration readings per truck
+
+**Key Fields Added**:
+- `last_pulse_count` - Previous $total value from Shelly
+- `last_pulse_count_at` - When we received last pulse count
+- `last_frequency` - Calculated Hz from pulse delta
+
+**First Production Device**:
+- Device ID: `ShellyPlusUni-78421C548C5C`
+- Assigned to: GFR-70 (truck_id: 2, org_id: 2)
+- Name: "GFR-70 Vibration Sensor"
+
+---
+
 ### Shelly Plus Uni Vibration Sensor Setup (January 14, 2026)
 
 **Purpose**: Detect truck movement states (Driving, Idling, Parked) using a vibration sensor connected to a Shelly Plus Uni WiFi controller.
@@ -31,16 +62,16 @@
 
 **Shelly Network Configuration**:
 - IP Address: 192.168.1.240
-- Device broadcasts WiFi hotspot for initial setup, then joins regular network
-- HTTP API available for integration with Fleet Dashboard
+- Connected to DCL Hauler router with internet access
+- HTTP API webhook sends data to app.deecell.com
 
 **Documentation Created**:
 - `docs/SHELLY_VIBRATION_SENSOR_SETUP.md` - Comprehensive setup guide with wiring diagrams, API examples, and troubleshooting
 
 **Next Steps**:
-1. Install in truck and calibrate Hz thresholds for real-world conditions
-2. Integrate Shelly API with Device Manager or Fleet Dashboard
-3. Add database tables for Shelly devices and vibration readings
+1. Calibrate Hz thresholds for real-world driving conditions
+2. Add Shelly status to the Fleet Dashboard UI
+3. Test with truck engine running to establish idle vs driving thresholds
 
 ---
 
