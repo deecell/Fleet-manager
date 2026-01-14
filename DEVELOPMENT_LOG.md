@@ -4,7 +4,47 @@
 
 ---
 
-## Latest Updates (January 10, 2026)
+## Latest Updates (January 14, 2026)
+
+### Shelly Plus Uni Vibration Sensor Setup (January 14, 2026)
+
+**Purpose**: Detect truck movement states (Driving, Idling, Parked) using a vibration sensor connected to a Shelly Plus Uni WiFi controller.
+
+**Hardware Components**:
+1. **Shelly Plus Uni** - Universal WiFi sensor input controller
+2. **DC-DC Converter** - 12-24V input → 5V output to power the Shelly
+3. **SW-420 Vibration Sensor Module** - Digital output vibration sensor with adjustable sensitivity
+
+**Final Wiring Configuration**:
+| Connection | Wire Color | Wire # |
+|------------|------------|--------|
+| DC-DC +5V → Shelly +5VDC | Gray | #6 |
+| DC-DC GND → Shelly GND | Green | #7 |
+| Sensor VCC → Shelly SENSOR VCC | Yellow | #9 |
+| Sensor GND → Shelly GND | Green | #7 |
+| Sensor DO → Shelly COUNT IN | Purple | #8 |
+
+**Key Configuration Decisions**:
+- Used **COUNT IN (Input 2)** instead of IN1/IN2 for frequency measurement (Hz)
+- IN1/IN2 use active-low logic (require "Invert" setting); COUNT IN doesn't need inversion
+- Frequency measurement allows distinguishing: Parked (0 Hz), Idling (1-10 Hz), Driving (10+ Hz)
+
+**Shelly Network Configuration**:
+- IP Address: 192.168.1.240
+- Device broadcasts WiFi hotspot for initial setup, then joins regular network
+- HTTP API available for integration with Fleet Dashboard
+
+**Documentation Created**:
+- `docs/SHELLY_VIBRATION_SENSOR_SETUP.md` - Comprehensive setup guide with wiring diagrams, API examples, and troubleshooting
+
+**Next Steps**:
+1. Install in truck and calibrate Hz thresholds for real-world conditions
+2. Integrate Shelly API with Device Manager or Fleet Dashboard
+3. Add database tables for Shelly devices and vibration readings
+
+---
+
+## Previous Updates (January 10, 2026)
 
 ### Admin Dashboard kWh Calculation Fix (January 10, 2026)
 
