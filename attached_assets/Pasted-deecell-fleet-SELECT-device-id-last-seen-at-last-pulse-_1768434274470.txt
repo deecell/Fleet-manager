@@ -1,0 +1,58 @@
+deecell_fleet=> SELECT device_id, last_seen_at, last_pulse_count, last_frequency, is_moving, connection_status 
+FROM shelly_devices 
+WHERE device_id = 'ShellyPlusUni-78421C548C5C';
+         device_id          |      last_seen_at       | last_pulse_count | last_frequency | is_moving | connection_status 
+----------------------------+-------------------------+------------------+----------------+-----------+-------------------
+ ShellyPlusUni-78421C548C5C | 2026-01-14 23:43:13.632 |            62445 |      979.18555 | t         | online
+(1 row)
+
+deecell_fleet=> SELECT device_id, last_seen_at, last_pulse_count, last_frequency, is_moving, connection_status 
+FROM shelly_devices 
+WHERE device_id = 'ShellyPlusUni-78421C548C5C';
+         device_id          |      last_seen_at       | last_pulse_count | last_frequency | is_moving | connection_status 
+----------------------------+-------------------------+------------------+----------------+-----------+-------------------
+ ShellyPlusUni-78421C548C5C | 2026-01-14 23:43:23.622 |            71555 |       1064.044 | t         | online
+(1 row)
+
+deecell_fleet=> SELECT device_id, last_seen_at, last_pulse_count, last_frequency, is_moving, connection_status 
+FROM shelly_devices 
+WHERE device_id = 'ShellyPlusUni-78421C548C5C';
+         device_id          |      last_seen_at       | last_pulse_count | last_frequency | is_moving | connection_status 
+----------------------------+-------------------------+------------------+----------------+-----------+-------------------
+ ShellyPlusUni-78421C548C5C | 2026-01-14 23:43:23.622 |            71555 |       1064.044 | t         | online
+(1 row)
+
+deecell_fleet=> SELECT device_id, last_seen_at, last_pulse_count, last_frequency, is_moving, connection_status 
+FROM shelly_devices 
+WHERE device_id = 'ShellyPlusUni-78421C548C5C';
+         device_id          |      last_seen_at       | last_pulse_count | last_frequency | is_moving | connection_status 
+----------------------------+-------------------------+------------------+----------------+-----------+-------------------
+ ShellyPlusUni-78421C548C5C | 2026-01-14 23:43:26.882 |            74252 |       827.3006 | t         | online
+(1 row)
+
+deecell_fleet=> SELECT device_id, last_seen_at, last_pulse_count, last_frequency, is_moving, connection_status 
+FROM shelly_devices 
+WHERE device_id = 'ShellyPlusUni-78421C548C5C';
+         device_id          |      last_seen_at       | last_pulse_count | last_frequency | is_moving | connection_status 
+----------------------------+-------------------------+------------------+----------------+-----------+-------------------
+ ShellyPlusUni-78421C548C5C | 2026-01-14 23:43:43.872 |            89677 |        1018.75 | t         | online
+(1 row)
+
+deecell_fleet=> 
+deecell_fleet=> SELECT device_id, last_seen_at, last_pulse_count, last_frequency, is_moving, connection_status 
+FROM shelly_devices 
+WHERE device_id = 'ShellyPlusUni-78421C548C5C';
+         device_id          |      last_seen_at       | last_pulse_count | last_frequency | is_moving | connection_status 
+----------------------------+-------------------------+------------------+----------------+-----------+-------------------
+ ShellyPlusUni-78421C548C5C | 2026-01-14 23:43:47.146 |            92446 |      845.75446 | t         | online
+(1 row)
+
+deecell_fleet=> SELECT device_id, last_seen_at, last_pulse_count, last_frequency, is_moving, connection_status 
+FROM shelly_devices 
+WHERE device_id = 'ShellyPlusUni-78421C548C5C';
+         device_id          |      last_seen_at       | last_pulse_count | last_frequency | is_moving | connection_status 
+----------------------------+-------------------------+------------------+----------------+-----------+-------------------
+ ShellyPlusUni-78421C548C5C | 2026-01-14 23:44:15.047 |           118340 |       823.9223 | t         | online
+(1 row)
+
+deecell_fleet=>
