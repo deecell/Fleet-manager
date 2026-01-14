@@ -29,7 +29,8 @@ const shellyWebhookSchema = z.object({
   is_moving: z.boolean().optional(),
 });
 
-router.post("/vibration", async (req: Request, res: Response) => {
+// Handler function for vibration webhook (supports both GET and POST)
+const handleVibration = async (req: Request, res: Response) => {
   try {
     const deviceId = req.query.device_id as string || req.body.device_id;
     const pulseCount = parseInt(req.query.pulse_count as string) || req.body.pulse_count || 0;
@@ -108,7 +109,11 @@ router.post("/vibration", async (req: Request, res: Response) => {
     console.error("[Shelly] Webhook error:", error);
     res.status(500).json({ error: "Internal server error" });
   }
-});
+};
+
+// Register both GET and POST for vibration webhook (Shelly uses GET by default)
+router.get("/vibration", handleVibration);
+router.post("/vibration", handleVibration);
 
 router.post("/heartbeat", async (req: Request, res: Response) => {
   try {
