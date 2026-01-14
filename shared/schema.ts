@@ -278,6 +278,75 @@ export const deviceStatistics = pgTable("device_statistics", {
 }));
 
 // =============================================================================
+// SHELLY DEVICES (vibration sensors for movement detection)
+// =============================================================================
+export const shellyDevices = pgTable("shelly_devices", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  truckId: integer("truck_id")
+    .references(() => trucks.id, { onDelete: "set null" }),
+  deviceId: text("device_id").notNull().unique(), // Shelly device ID (e.g., "shellyplus1-xxxx")
+  name: text("name"),
+  ipAddress: text("ip_address"),
+  firmwareVersion: text("firmware_version"),
+  model: text("model").default("plus_uni"), // plus_uni, plus_1, etc.
+  
+  // Input configuration
+  inputType: text("input_type").default("count_in"), // count_in, in1, in2
+  inputId: integer("input_id").default(2), // 0, 1, or 2
+  
+  // Movement thresholds (Hz)
+  idleThresholdHz: real("idle_threshold_hz").default(1), // Below this = parked
+  drivingThresholdHz: real("driving_threshold_hz").default(10), // Above this = driving
+  
+  // Status
+  connectionStatus: text("connection_status").default("offline"), // online, offline
+  lastSeenAt: timestamp("last_seen_at"),
+  lastErrorMessage: text("last_error_message"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  orgIdx: index("shelly_org_idx").on(table.organizationId),
+  truckIdx: index("shelly_truck_idx").on(table.truckId),
+  deviceIdIdx: uniqueIndex("shelly_device_id_idx").on(table.deviceId),
+}));
+
+// =============================================================================
+// VIBRATION READINGS (time-series vibration data from Shelly devices)
+// =============================================================================
+export const vibrationReadings = pgTable("vibration_readings", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  shellyDeviceId: integer("shelly_device_id")
+    .notNull()
+    .references(() => shellyDevices.id, { onDelete: "cascade" }),
+  truckId: integer("truck_id")
+    .references(() => trucks.id, { onDelete: "set null" }),
+  
+  // Vibration data
+  frequencyHz: real("frequency_hz"), // Pulses per second
+  pulseCount: integer("pulse_count"), // Total pulse count
+  pulseDelta: integer("pulse_delta"), // Pulses since last reading
+  
+  // Derived movement state
+  movementState: text("movement_state"), // parked, idling, driving
+  
+  recordedAt: timestamp("recorded_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  orgIdx: index("vibration_org_idx").on(table.organizationId),
+  shellyDeviceIdx: index("vibration_shelly_idx").on(table.shellyDeviceId),
+  truckIdx: index("vibration_truck_idx").on(table.truckId),
+  recordedAtIdx: index("vibration_recorded_at_idx").on(table.recordedAt),
+  shellyTimeIdx: index("vibration_shelly_time_idx").on(table.shellyDeviceId, table.recordedAt),
+}));
+
+// =============================================================================
 // DEVICE SYNC STATUS (tracks polling state, connection, and log file sync)
 // Used by Device Manager for connection pool and backfill operations
 // =============================================================================
@@ -860,6 +929,32 @@ export const TRUCK_STATUS = {
   IN_SERVICE: "in-service",
   NOT_IN_SERVICE: "not-in-service",
 } as const;
+
+export const MOVEMENT_STATE = {
+  PARKED: "parked",
+  IDLING: "idling",
+  DRIVING: "driving",
+} as const;
+
+// =============================================================================
+// SHELLY DEVICE SCHEMAS AND TYPES
+// =============================================================================
+export const insertShellyDeviceSchema = createInsertSchema(shellyDevices).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertShellyDevice = z.infer<typeof insertShellyDeviceSchema>;
+export type ShellyDevice = typeof shellyDevices.$inferSelect;
+
+export const insertVibrationReadingSchema = createInsertSchema(vibrationReadings).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertVibrationReading = z.infer<typeof insertVibrationReadingSchema>;
+export type VibrationReading = typeof vibrationReadings.$inferSelect;
 
 // =============================================================================
 // BACKWARD COMPATIBILITY ALIASES
