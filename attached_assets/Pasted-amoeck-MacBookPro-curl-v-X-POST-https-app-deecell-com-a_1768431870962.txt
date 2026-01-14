@@ -1,0 +1,50 @@
+amoeck@MacBookPro ~ % curl -v -X POST "https://app.deecell.com/api/v1/shelly/vibration?device_id=ShellyPlusUni-78421C548C5C&pulse_count=1"
+* Host app.deecell.com:443 was resolved.
+* IPv6: (none)
+* IPv4: 13.58.65.187, 18.119.199.178
+*   Trying 13.58.65.187:443...
+* Connected to app.deecell.com (13.58.65.187) port 443
+* ALPN: curl offers h2,http/1.1
+* (304) (OUT), TLS handshake, Client hello (1):
+*  CAfile: /etc/ssl/cert.pem
+*  CApath: none
+* (304) (IN), TLS handshake, Server hello (2):
+* (304) (IN), TLS handshake, Unknown (8):
+* (304) (IN), TLS handshake, Certificate (11):
+* (304) (IN), TLS handshake, CERT verify (15):
+* (304) (IN), TLS handshake, Finished (20):
+* (304) (OUT), TLS handshake, Finished (20):
+* SSL connection using TLSv1.3 / AEAD-AES128-GCM-SHA256 / [blank] / UNDEF
+* ALPN: server accepted h2
+* Server certificate:
+*  subject: CN=app.deecell.com
+*  start date: Dec 27 00:00:00 2025 GMT
+*  expire date: Jan 25 23:59:59 2027 GMT
+*  subjectAltName: host "app.deecell.com" matched cert's "app.deecell.com"
+*  issuer: C=US; O=Amazon; CN=Amazon RSA 2048 M04
+*  SSL certificate verify ok.
+* using HTTP/2
+* [HTTP/2] [1] OPENED stream for https://app.deecell.com/api/v1/shelly/vibration?device_id=ShellyPlusUni-78421C548C5C&pulse_count=1
+* [HTTP/2] [1] [:method: POST]
+* [HTTP/2] [1] [:scheme: https]
+* [HTTP/2] [1] [:authority: app.deecell.com]
+* [HTTP/2] [1] [:path: /api/v1/shelly/vibration?device_id=ShellyPlusUni-78421C548C5C&pulse_count=1]
+* [HTTP/2] [1] [user-agent: curl/8.7.1]
+* [HTTP/2] [1] [accept: */*]
+> POST /api/v1/shelly/vibration?device_id=ShellyPlusUni-78421C548C5C&pulse_count=1 HTTP/2
+> Host: app.deecell.com
+> User-Agent: curl/8.7.1
+> Accept: */*
+> 
+* Request completely sent off
+< HTTP/2 200 
+< date: Wed, 14 Jan 2026 23:04:13 GMT
+< content-type: application/json; charset=utf-8
+< content-length: 134
+< set-cookie: AWSALB=7+fsvlNc4DoDEQiijlpboeAShe6GlvIoFuz1DWHWcUXcrBCysScJBxj5V+5rshmQJG9jOep9fOUnCUafdF39NGIeIZoSSntBwPsAT7vb1NabPFDFuXdP9yAEwUjS; Expires=Wed, 21 Jan 2026 23:04:13 GMT; Path=/
+< set-cookie: AWSALBCORS=7+fsvlNc4DoDEQiijlpboeAShe6GlvIoFuz1DWHWcUXcrBCysScJBxj5V+5rshmQJG9jOep9fOUnCUafdF39NGIeIZoSSntBwPsAT7vb1NabPFDFuXdP9yAEwUjS; Expires=Wed, 21 Jan 2026 23:04:13 GMT; Path=/; SameSite=None; Secure
+< x-powered-by: Express
+< etag: W/"86-7mPG8eQi6TDBDbyfUqr8+iOAeQg"
+< 
+* Connection #0 to host app.deecell.com left intact
+{"success":true,"device_id":"ShellyPlusUni-78421C548C5C","pulse_count":1,"frequency":0,"is_moving":false,"connection_status":"online"}%  amoeck@MacBookPro ~ %
