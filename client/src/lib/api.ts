@@ -155,7 +155,7 @@ export interface LegacyTruckWithDevice extends LegacyTruckWithHistory {
 }
 
 // Fuel savings and parked status constants
-const PARKED_VOLTAGE_THRESHOLD = 13.0; // Chassis voltage below this = parked (engine off)
+const PARKED_VOLTAGE_THRESHOLD = 13.2; // Chassis voltage below this = parked (engine off)
 const IDLE_BUFFER_MINUTES = 30; // Minutes without movement before switching from DRIVING to IDLING
 const GALLONS_PER_HOUR_IDLING = 1.2;
 const DEFAULT_DIESEL_PRICE = 3.50;
