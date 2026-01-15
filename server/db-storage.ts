@@ -4,7 +4,7 @@ import {
   organizations, users, fleets, trucks, powerMonDevices,
   deviceCredentials, deviceSnapshots, deviceMeasurements,
   deviceSyncStatus, alerts, auditLogs, pollingSettings,
-  passwordResetTokens, shellyDevices, shellySnapshots,
+  passwordResetTokens, shellyDevices, shellySnapshots, shellyReadings,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Fleet, type InsertFleet,
@@ -20,6 +20,7 @@ import {
   type PasswordResetToken, type InsertPasswordResetToken,
   type ShellyDevice, type InsertShellyDevice,
   type ShellySnapshot, type InsertShellySnapshot,
+  type ShellyReading, type InsertShellyReading,
 } from "@shared/schema";
 import { sendAlertNotifications, shouldNotifyForAlert } from "./services/alert-notifications";
 
@@ -1045,6 +1046,22 @@ export class DbStorage {
   async listShellySnapshots(organizationId: number): Promise<ShellySnapshot[]> {
     return db.select().from(shellySnapshots)
       .where(eq(shellySnapshots.organizationId, organizationId));
+  }
+
+  // ===========================================================================
+  // SHELLY READINGS (historical data for calibration)
+  // ===========================================================================
+  
+  async insertShellyReading(data: InsertShellyReading): Promise<ShellyReading> {
+    const [reading] = await db.insert(shellyReadings).values(data).returning();
+    return reading;
+  }
+
+  async listShellyReadings(shellyDeviceId: number, limit: number = 1000): Promise<ShellyReading[]> {
+    return db.select().from(shellyReadings)
+      .where(eq(shellyReadings.shellyDeviceId, shellyDeviceId))
+      .orderBy(desc(shellyReadings.recordedAt))
+      .limit(limit);
   }
 }
 

@@ -584,6 +584,33 @@ export const shellySnapshots = pgTable("shelly_snapshots", {
 }));
 
 // =============================================================================
+// SHELLY READINGS (historical vibration data for analysis/calibration)
+// =============================================================================
+export const shellyReadings = pgTable("shelly_readings", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  shellyDeviceId: integer("shelly_device_id")
+    .notNull()
+    .references(() => shellyDevices.id, { onDelete: "cascade" }),
+  truckId: integer("truck_id")
+    .references(() => trucks.id, { onDelete: "set null" }),
+  pulseCount: integer("pulse_count").notNull(),
+  frequency: real("frequency").default(0),
+  isMoving: boolean("is_moving").default(false),
+  temperature: real("temperature"),
+  voltage: real("voltage"),
+  rssi: integer("rssi"),
+  recordedAt: timestamp("recorded_at").notNull(),
+}, (table) => ({
+  deviceIdx: index("shelly_reading_device_idx").on(table.shellyDeviceId),
+  orgIdx: index("shelly_reading_org_idx").on(table.organizationId),
+  timeIdx: index("shelly_reading_time_idx").on(table.recordedAt),
+  deviceTimeIdx: index("shelly_reading_device_time_idx").on(table.shellyDeviceId, table.recordedAt),
+}));
+
+// =============================================================================
 // POLLING SETTINGS (configurable per organization)
 // =============================================================================
 export const pollingSettings = pgTable("polling_settings", {
@@ -717,6 +744,9 @@ export const insertShellyDeviceSchema = createInsertSchema(shellyDevices)
 export const insertShellySnapshotSchema = createInsertSchema(shellySnapshots)
   .omit({ id: true, updatedAt: true });
 
+export const insertShellyReadingSchema = createInsertSchema(shellyReadings)
+  .omit({ id: true });
+
 // =============================================================================
 // SELECT TYPES (for query results)
 // =============================================================================
@@ -743,6 +773,7 @@ export type DataMigration = typeof dataMigrations.$inferSelect;
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 export type ShellyDevice = typeof shellyDevices.$inferSelect;
 export type ShellySnapshot = typeof shellySnapshots.$inferSelect;
+export type ShellyReading = typeof shellyReadings.$inferSelect;
 
 // =============================================================================
 // INSERT TYPES (for creating new records)
@@ -769,6 +800,7 @@ export type InsertSavingsConfig = z.infer<typeof insertSavingsConfigSchema>;
 export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
 export type InsertShellyDevice = z.infer<typeof insertShellyDeviceSchema>;
 export type InsertShellySnapshot = z.infer<typeof insertShellySnapshotSchema>;
+export type InsertShellyReading = z.infer<typeof insertShellyReadingSchema>;
 
 // =============================================================================
 // LEGACY SCHEMAS (for backward compatibility with existing dashboard)

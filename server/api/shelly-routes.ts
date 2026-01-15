@@ -95,6 +95,20 @@ const handleVibration = async (req: Request, res: Response) => {
       });
     }
 
+    // Log reading to historical table for calibration/analysis
+    await storage.insertShellyReading({
+      organizationId: existingDevice.organizationId,
+      shellyDeviceId: existingDevice.id,
+      truckId: existingDevice.truckId,
+      pulseCount: pulseCount,
+      frequency: frequency,
+      isMoving: isMoving,
+      temperature: temperature,
+      voltage: voltage,
+      rssi: rssi,
+      recordedAt: now,
+    });
+
     console.log(`[Shelly] Device ${deviceId}: pulse=${pulseCount}, freq=${frequency.toFixed(2)}Hz, moving=${isMoving}`);
 
     res.json({

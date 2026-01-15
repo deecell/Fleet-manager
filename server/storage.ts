@@ -14,6 +14,7 @@ import {
   type PasswordResetToken, type InsertPasswordResetToken,
   type ShellyDevice, type InsertShellyDevice,
   type ShellySnapshot, type InsertShellySnapshot,
+  type ShellyReading, type InsertShellyReading,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -180,6 +181,10 @@ export interface IStorage {
   getShellySnapshot(organizationId: number, shellyDeviceId: number): Promise<ShellySnapshot | undefined>;
   getShellySnapshotByTruck(organizationId: number, truckId: number): Promise<ShellySnapshot | undefined>;
   listShellySnapshots(organizationId: number): Promise<ShellySnapshot[]>;
+  
+  // Shelly Readings (historical data for calibration)
+  insertShellyReading(data: InsertShellyReading): Promise<ShellyReading>;
+  listShellyReadings(shellyDeviceId: number, limit?: number): Promise<ShellyReading[]>;
 }
 
 export { dbStorage as storage } from "./db-storage";
