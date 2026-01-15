@@ -13,7 +13,14 @@
 **What Changed**:
 Added comprehensive integration tests for the Fleet Dashboard data flow, covering truck status detection logic (Parked/Idling/Driving), fuel savings calculations, and state transitions.
 
-**Test Coverage** (25 tests):
+**Test Coverage** (43 tests):
+
+| Test File | Tests | Description |
+|-----------|-------|-------------|
+| **fleet-dashboard.test.ts** | 25 | Unit tests for status detection logic |
+| **api-integration.test.ts** | 18 | API endpoint integration tests |
+
+**Unit Tests (fleet-dashboard.test.ts)**:
 | Category | Tests | Description |
 |----------|-------|-------------|
 | Parked Status | 3 | Voltage below threshold, edge cases |
@@ -24,6 +31,17 @@ Added comprehensive integration tests for the Fleet Dashboard data flow, coverin
 | Fuel Savings | 5 | Calculation accuracy |
 | Constants | 3 | Threshold validation |
 
+**API Integration Tests (api-integration.test.ts)**:
+| Category | Tests | Description |
+|----------|-------|-------------|
+| GET /trucks | 4 | List trucks, specific truck, 404 handling |
+| GET /devices | 3 | List devices, device details |
+| GET /snapshots | 3 | Snapshot data with voltage/SoC |
+| GET /shelly-snapshots | 2 | Movement status from Shelly sensors |
+| GET /fleets | 1 | Fleet listing |
+| GET /dashboard/stats | 2 | Fleet statistics and device counts |
+| Data Flow Validation | 4 | Truck↔Device↔Snapshot correlation |
+
 **Shared Module Created**: `shared/truck-status.ts`
 - Extracted status detection logic into testable pure functions
 - `determineTruckStatus()` - Three-state detection with all logic
@@ -32,7 +50,8 @@ Added comprehensive integration tests for the Fleet Dashboard data flow, coverin
 
 **Files Changed**:
 - `vitest.config.ts` - Test framework configuration
-- `tests/fleet-dashboard.test.ts` - 25 integration tests
+- `tests/fleet-dashboard.test.ts` - 25 unit tests for status detection
+- `tests/api-integration.test.ts` - 18 API endpoint integration tests
 - `shared/truck-status.ts` - Shared status detection logic
 - `client/src/lib/api.ts` - Refactored to use shared module
 
