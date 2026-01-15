@@ -4,7 +4,39 @@
 
 ---
 
-## Latest Updates (January 14, 2026)
+## Latest Updates (January 15, 2026)
+
+### Test Drive Data Collection & Analysis (January 15, 2026)
+
+**Status**: ✅ Data collection working, calibration in progress
+
+**Test Drive Summary**:
+- 115 readings collected over ~31 minutes
+- Route: City streets with stop lights → Freeway in traffic → Back to shop
+- POT sensitivity may need adjustment (turned too low)
+
+**Frequency Analysis from Test Drive**:
+| State | Frequency Range | Notes |
+|-------|----------------|-------|
+| **Idling (at stop light)** | 0-20 Hz | Engine running, not moving |
+| **City Driving** | 20-60 Hz | Variable, stop-and-go |
+| **Highway/Fast Driving** | 60-160 Hz | Higher vibration from road |
+
+**Issues Identified**:
+1. **Voltage not being captured** - Readings show NULL for voltage column. Need to investigate why voltage isn't coming through the webhook.
+2. **POT sensitivity** - May be set too low, causing gaps in data during idle periods
+
+**Next Steps (January 16)**:
+1. Fix voltage capture in webhook handler
+2. Adjust POT sensitivity slightly higher
+3. Another short test drive to validate thresholds
+4. Implement state machine with voltage + frequency
+
+**Key Insight**: Voltage is the cleanest signal for engine on/off (14.2V charging vs 12.7V off). Frequency then distinguishes moving vs stopped.
+
+---
+
+## Previous Updates (January 14, 2026)
 
 ### Shelly Vibration Sensor Integration COMPLETE (January 14, 2026)
 
