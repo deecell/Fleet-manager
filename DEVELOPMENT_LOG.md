@@ -6,33 +6,44 @@
 
 ## Latest Updates (January 15, 2026)
 
-### Three-State Status Detection Implemented (January 15, 2026)
+### Three-State Status Detection with 30-Minute Buffer (January 15, 2026)
 
 **Status**: ✅ IMPLEMENTED
 
 **What Changed**:
-Implemented three-state truck status detection using Shelly vibration sensor data combined with chassis voltage:
+Implemented three-state truck status detection with a 30-minute buffer to prevent false "Idling" status at stoplights, stop-and-go traffic, and quick fuel stops.
 
-| State | Detection Logic |
-|-------|----------------|
-| **PARKED** | V2 (chassis voltage) < 13.0V (engine off) |
-| **IDLING** | V2 >= 13.0V + Shelly sensor present + isMoving = false |
-| **DRIVING** | V2 >= 13.0V + (no Shelly data OR isMoving = true) |
+| Transition | Condition | Delay |
+|------------|-----------|-------|
+| ANY → **PARKED** | V2 < 13.0V | Immediate |
+| PARKED → **DRIVING** | V2 ≥ 13.0V | Immediate |
+| DRIVING → **IDLING** | V2 ≥ 13.0V + no movement for 30+ min | 30 min buffer |
+| IDLING → **DRIVING** | V2 ≥ 13.0V + movement detected | Immediate |
 
 **Key Implementation Details**:
-1. New API endpoint: `GET /api/v1/shelly-snapshots` - Returns Shelly vibration snapshots for all trucks
-2. Frontend `useLegacyTrucks` hook now fetches Shelly data alongside PowerMon data
-3. Fallback behavior: If no Shelly sensor data exists for a truck, defaults to "Driving" when engine is on (preserves previous behavior for trucks without Shelly sensors)
+1. New field: `shelly_snapshots.last_movement_at` - Tracks when movement was last detected
+2. Webhook updates `lastMovementAt` only when `isMoving = true` (preserves last known value)
+3. Frontend calculates time since last movement to determine if 30-min threshold exceeded
+4. Fallback: Trucks without Shelly sensors default to "Driving" when engine on
 
 **Files Changed**:
+- `shared/schema.ts` - Added `lastMovementAt` timestamp to `shellySnapshots`
+- `server/api/shelly-routes.ts` - Webhook updates `lastMovementAt` when moving
+- `server/db-storage.ts` - Conditional update to preserve `lastMovementAt` when not moving
 - `server/api/fleet-routes.ts` - Added `/shelly-snapshots` endpoint
-- `client/src/lib/api.ts` - Added `useShellySnapshots` hook and updated status calculation logic
+- `client/src/lib/api.ts` - Added 30-minute buffer logic
+
+**Production Migration**:
+```bash
+cd /Users/amoeck/Development/Fleet-manager
+./scripts/migrations/2026-01-15_add_shelly_last_movement_at.sh
+```
 
 **Current Test Status**:
 - GFR-70 (truck_id: 2) has Shelly sensor: `ShellyPlusUni-78421C548C5C`
-- When engine is running (V2 >= 13.0V) and Shelly shows no movement → "Idling"
-- When engine is running and Shelly shows movement → "Driving"
-- When engine is off (V2 < 13.0V) → "Parked"
+- After moving, status stays "Driving" for 30 minutes even if stopped
+- After 30+ minutes without movement (engine on) → "Idling"
+- Engine off (V2 < 13.0V) → "Parked" (immediate)
 
 ---
 

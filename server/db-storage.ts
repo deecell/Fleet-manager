@@ -1013,19 +1013,26 @@ export class DbStorage {
   // ===========================================================================
 
   async upsertShellySnapshot(data: InsertShellySnapshot): Promise<ShellySnapshot> {
+    // Build update set - only include lastMovementAt if provided (when moving)
+    const updateSet: Record<string, unknown> = {
+      frequency: data.frequency,
+      isMoving: data.isMoving,
+      temperature: data.temperature,
+      rssi: data.rssi,
+      recordedAt: data.recordedAt,
+      updatedAt: new Date(),
+    };
+    
+    // Only update lastMovementAt if movement is detected (don't overwrite with null)
+    if (data.lastMovementAt) {
+      updateSet.lastMovementAt = data.lastMovementAt;
+    }
+    
     const [snapshot] = await db.insert(shellySnapshots)
       .values(data)
       .onConflictDoUpdate({
         target: shellySnapshots.shellyDeviceId,
-        set: {
-          frequency: data.frequency,
-          isMoving: data.isMoving,
-          temperature: data.temperature,
-          voltage: data.voltage,
-          rssi: data.rssi,
-          recordedAt: data.recordedAt,
-          updatedAt: new Date(),
-        },
+        set: updateSet,
       })
       .returning();
     return snapshot;

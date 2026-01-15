@@ -86,6 +86,7 @@ const handleVibration = async (req: Request, res: Response) => {
         truckId: existingDevice.truckId,
         frequency: frequency,
         isMoving: isMoving,
+        lastMovementAt: isMoving ? now : undefined, // Only update when moving
         temperature: temperature,
         rssi: rssi,
         recordedAt: now,

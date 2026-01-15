@@ -573,6 +573,7 @@ export const shellySnapshots = pgTable("shelly_snapshots", {
     .references(() => trucks.id, { onDelete: "set null" }),
   frequency: real("frequency").default(0), // Current vibration frequency
   isMoving: boolean("is_moving").default(false),
+  lastMovementAt: timestamp("last_movement_at"), // When movement was last detected (for 30-min idle buffer)
   temperature: real("temperature"), // If sensor reports temp
   rssi: integer("rssi"), // WiFi signal strength
   recordedAt: timestamp("recorded_at").notNull(),

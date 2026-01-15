@@ -156,6 +156,7 @@ export interface LegacyTruckWithDevice extends LegacyTruckWithHistory {
 
 // Fuel savings and parked status constants
 const PARKED_VOLTAGE_THRESHOLD = 13.0; // Chassis voltage below this = parked (engine off)
+const IDLE_BUFFER_MINUTES = 30; // Minutes without movement before switching from DRIVING to IDLING
 const GALLONS_PER_HOUR_IDLING = 1.2;
 const DEFAULT_DIESEL_PRICE = 3.50;
 
@@ -207,21 +208,36 @@ export function useLegacyTrucks() {
     const chassisVoltage = snapshot?.voltage2 ?? 0;
     const isParked = chassisVoltage < PARKED_VOLTAGE_THRESHOLD;
     
-    // Three-state status detection using Shelly vibration sensor:
-    // - PARKED: V2 < 13.0V (engine off)
-    // - IDLING: V2 >= 13.0V + Shelly exists + isMoving = false (engine on but not moving)
-    // - DRIVING: V2 >= 13.0V + (no Shelly data OR Shelly isMoving = true)
-    // If no Shelly data exists, default to DRIVING (previous behavior)
+    // Three-state status detection using Shelly vibration sensor with 30-minute buffer:
+    // - PARKED: V2 < 13.0V (engine off) - IMMEDIATE
+    // - DRIVING: V2 >= 13.0V AND (no Shelly OR moved within last 30 min) - IMMEDIATE when moving
+    // - IDLING: V2 >= 13.0V AND Shelly exists AND no movement for >= 30 min
+    // This buffer prevents false "Idling" at stoplights, traffic, or quick fuel stops
     const hasShellyData = !!shellySnapshot;
-    const shellyIsMoving = shellySnapshot?.isMoving ?? true; // Default to moving if no Shelly data
-    const isIdling = !isParked && hasShellyData && !shellyIsMoving;
+    const now = Date.now();
+    
+    // Check if movement was detected within the buffer period
+    // Default to "moved" = true to prevent false Idling
+    let movedWithinBuffer = true;
+    if (hasShellyData && shellySnapshot.lastMovementAt) {
+      // Has movement history - check if within buffer period
+      const lastMovementTime = new Date(shellySnapshot.lastMovementAt).getTime();
+      const minutesSinceMovement = (now - lastMovementTime) / 60000;
+      movedWithinBuffer = minutesSinceMovement < IDLE_BUFFER_MINUTES;
+    } else if (hasShellyData && shellySnapshot.isMoving) {
+      // Currently moving
+      movedWithinBuffer = true;
+    }
+    // If Shelly exists but no lastMovementAt yet, stay in "Driving" mode
+    // (we haven't established a movement baseline yet)
+    
+    const isIdling = !isParked && hasShellyData && !movedWithinBuffer;
     
     // Determine status label and calculate duration
     let statusLabel: "Driving" | "Parked" | "Idling" = "Driving";
     let statusDurationMinutes = 0;
     const parkedSince = snapshot?.parkedSince ? String(snapshot.parkedSince) : null;
     const drivingSince = snapshot?.drivingSince ? String(snapshot.drivingSince) : null;
-    const now = Date.now();
     
     if (isParked) {
       statusLabel = "Parked";
