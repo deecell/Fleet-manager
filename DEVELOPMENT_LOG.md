@@ -6,6 +6,44 @@
 
 ## Latest Updates (January 15, 2026)
 
+### Integration Tests for Fleet Dashboard (January 15, 2026)
+
+**Status**: ✅ IMPLEMENTED
+
+**What Changed**:
+Added comprehensive integration tests for the Fleet Dashboard data flow, covering truck status detection logic (Parked/Idling/Driving), fuel savings calculations, and state transitions.
+
+**Test Coverage** (25 tests):
+| Category | Tests | Description |
+|----------|-------|-------------|
+| Parked Status | 3 | Voltage below threshold, edge cases |
+| Driving Status | 4 | Movement detection, 30-min buffer, legacy fallback |
+| Idling Status | 4 | No movement, buffer expired, warming up |
+| Boundary Tests | 2 | Threshold edge cases |
+| State Transitions | 4 | All valid state changes |
+| Fuel Savings | 5 | Calculation accuracy |
+| Constants | 3 | Threshold validation |
+
+**Shared Module Created**: `shared/truck-status.ts`
+- Extracted status detection logic into testable pure functions
+- `determineTruckStatus()` - Three-state detection with all logic
+- `calculateFuelSavings()` - Fuel savings calculation
+- Exported constants: `PARKED_VOLTAGE_THRESHOLD`, `IDLE_BUFFER_MINUTES`, `GALLONS_PER_HOUR_IDLING`
+
+**Files Changed**:
+- `vitest.config.ts` - Test framework configuration
+- `tests/fleet-dashboard.test.ts` - 25 integration tests
+- `shared/truck-status.ts` - Shared status detection logic
+- `client/src/lib/api.ts` - Refactored to use shared module
+
+**Run Tests**:
+```bash
+npx vitest run          # Run all tests
+npx vitest run --watch  # Watch mode
+```
+
+---
+
 ### Three-State Status Detection with 30-Minute Buffer (January 15, 2026)
 
 **Status**: ✅ IMPLEMENTED

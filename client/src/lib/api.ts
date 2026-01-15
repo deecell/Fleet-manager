@@ -6,6 +6,11 @@ import type {
   LegacyTruckWithHistory, LegacyHistoricalDataPoint, LegacyNotification,
   ShellySnapshot
 } from "@shared/schema";
+import {
+  determineTruckStatus,
+  calculateFuelSavings,
+  DEFAULT_DIESEL_PRICE,
+} from "@shared/truck-status";
 
 interface TrucksResponse {
   trucks: Truck[];
@@ -154,11 +159,7 @@ export interface LegacyTruckWithDevice extends LegacyTruckWithHistory {
   mtdFuelSavings?: number;
 }
 
-// Fuel savings and parked status constants
-const PARKED_VOLTAGE_THRESHOLD = 13.2; // Chassis voltage below this = parked (engine off)
-const IDLE_BUFFER_MINUTES = 30; // Minutes without movement before switching from DRIVING to IDLING
-const GALLONS_PER_HOUR_IDLING = 1.2;
-const DEFAULT_DIESEL_PRICE = 3.50;
+// Fuel savings and parked status constants imported from @shared/truck-status
 
 interface FuelPriceResponse {
   pricePerGallon: number;
@@ -204,85 +205,54 @@ export function useLegacyTrucks() {
     const soc = snapshot?.soc ?? 0;
     const calculatedKwh = ((batteryVoltage * batteryAh) * numberOfBatteries) * (soc / 100) / 1000;
     
-    // Parked status: chassis voltage (v2) < 13.0V means parked (engine off)
+    // Use shared status detection logic
     const chassisVoltage = snapshot?.voltage2 ?? 0;
-    const isParked = chassisVoltage < PARKED_VOLTAGE_THRESHOLD;
-    
-    // Three-state status detection using Shelly vibration sensor with 30-minute buffer:
-    // - PARKED: V2 < 13.0V (engine off) - IMMEDIATE
-    // - IDLING: V2 >= 13.0V AND Shelly exists AND (no movement OR no movement for >= 30 min)
-    // - DRIVING: V2 >= 13.0V AND (no Shelly OR currently moving OR moved within last 30 min)
-    // The 30-min buffer prevents false "Idling" at stoplights, traffic, or quick fuel stops
     const hasShellyData = !!shellySnapshot;
     const now = Date.now();
     
-    // Determine if truck is actively driving (has recent movement)
-    // Requires Shelly to confirm movement - no movement detected = Idling
-    let isDriving = false;
-    if (!hasShellyData) {
-      // No Shelly sensor - fallback to Driving when engine is on (legacy behavior)
-      isDriving = !isParked;
-    } else if (shellySnapshot.isMoving) {
-      // Currently moving right now
-      isDriving = true;
-    } else if (shellySnapshot.lastMovementAt) {
-      // Check if movement was within the 30-minute buffer
-      const lastMovementTime = new Date(shellySnapshot.lastMovementAt).getTime();
-      const minutesSinceMovement = (now - lastMovementTime) / 60000;
-      isDriving = minutesSinceMovement < IDLE_BUFFER_MINUTES;
-    }
-    // If Shelly exists but no movement ever detected = Idling (engine on, waiting)
+    const statusResult = determineTruckStatus({
+      chassisVoltage,
+      hasShellyData,
+      isMoving: shellySnapshot?.isMoving ?? false,
+      lastMovementAt: shellySnapshot?.lastMovementAt ? new Date(shellySnapshot.lastMovementAt) : null,
+      now: new Date(now),
+    });
     
-    const isIdling = !isParked && hasShellyData && !isDriving;
+    const { isParked, isIdling, isDriving, statusLabel } = statusResult;
     
-    // Determine status label and calculate duration
-    let statusLabel: "Driving" | "Parked" | "Idling" = "Driving";
+    // Calculate status duration
     let statusDurationMinutes = 0;
     const parkedSince = snapshot?.parkedSince ? String(snapshot.parkedSince) : null;
     const drivingSince = snapshot?.drivingSince ? String(snapshot.drivingSince) : null;
     
     if (isParked) {
-      statusLabel = "Parked";
-      // Calculate duration from parkedSince if available
       if (parkedSince) {
         const parkedTime = new Date(parkedSince).getTime();
         statusDurationMinutes = Math.max(0, Math.floor((now - parkedTime) / 60000));
       }
     } else if (isIdling) {
-      statusLabel = "Idling";
-      // For idling, duration is since engine started (drivingSince) or since movement stopped
       if (shellySnapshot?.lastMovementAt) {
-        // Idle since last movement stopped
         const lastMovementTime = new Date(shellySnapshot.lastMovementAt).getTime();
         statusDurationMinutes = Math.max(0, Math.floor((now - lastMovementTime) / 60000));
       } else if (drivingSince) {
-        // No movement history - idle since engine started
         const drivingTime = new Date(drivingSince).getTime();
         statusDurationMinutes = Math.max(0, Math.floor((now - drivingTime) / 60000));
       }
-    } else {
-      statusLabel = "Driving";
-      // Calculate duration from drivingSince if available
+    } else if (isDriving) {
       if (drivingSince) {
         const drivingTime = new Date(drivingSince).getTime();
         statusDurationMinutes = Math.max(0, Math.floor((now - drivingTime) / 60000));
       }
     }
     
-    // Fuel Savings = (parkedMinutes / 60) * 1.2 gal/hr * diesel price (from EIA API)
-    // Use database value if available, otherwise 0 (Device Manager tracks accumulated time)
+    // Fuel Savings calculation using shared utility
     const todayParkedMinutes = snapshot?.todayParkedMinutes ?? 0;
-    const parkedHours = todayParkedMinutes / 60;
-    const gallonsSaved = parkedHours * GALLONS_PER_HOUR_IDLING;
-    const fuelSavings = gallonsSaved * dieselPrice;
+    const fuelSavings = calculateFuelSavings(todayParkedMinutes, dieselPrice);
     
     // MTD Savings = (month_parked_minutes + today_parked_minutes) converted to savings
-    // month_parked_minutes stores completed days only, so we add today for full MTD
     const completedDaysMinutes = snapshot?.monthParkedMinutes ?? 0;
     const monthParkedMinutes = completedDaysMinutes + todayParkedMinutes;
-    const mtdParkedHours = monthParkedMinutes / 60;
-    const mtdGallonsSaved = mtdParkedHours * GALLONS_PER_HOUR_IDLING;
-    const mtdFuelSavings = mtdGallonsSaved * dieselPrice;
+    const mtdFuelSavings = calculateFuelSavings(monthParkedMinutes, dieselPrice);
     
     return {
       id: String(truck.id),
