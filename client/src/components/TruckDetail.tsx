@@ -13,7 +13,6 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format, subDays } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { DeviceWarningIndicator, DeviceStatusBadge } from "./DeviceWarningIndicator";
 
 interface TruckDetailProps {
   truck: LegacyTruckWithDevice;
