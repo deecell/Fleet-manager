@@ -127,14 +127,9 @@ export default function DevicesPage() {
 
   const handleCreate = async () => {
     if (!selectedOrgId) return;
-    if (!formData.serialNumber.trim()) {
-      toast({ title: "Serial number is required", variant: "destructive" });
-      return;
-    }
     try {
       const data = {
         ...formData,
-        serialNumber: formData.serialNumber.trim(),
         batteryVoltage: formData.batteryVoltage ? parseFloat(formData.batteryVoltage) : null,
         batteryAh: formData.batteryAh ? parseFloat(formData.batteryAh) : null,
         numberOfBatteries: formData.numberOfBatteries ? parseInt(formData.numberOfBatteries) : null,
@@ -233,6 +228,7 @@ export default function DevicesPage() {
 
   const openEdit = (device: PowerMonDevice) => {
     setFormData({
+      serialNumber: device.serialNumber || "",
       deviceName: device.deviceName || "",
       hardwareRevision: device.hardwareRevision || "",
       firmwareVersion: device.firmwareVersion || "",
@@ -656,20 +652,10 @@ export default function DevicesPage() {
             <DialogHeader>
               <DialogTitle>Register Device</DialogTitle>
               <DialogDescription>
-                Add a new PowerMon device. Enter the serial number from the device label. Firmware version and hardware revision will be auto-populated when the device connects.
+                Add a new PowerMon device. Serial number, firmware version, and hardware revision will be auto-populated when the device connects.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
-              <div>
-                <Label htmlFor="serialNumber">Serial Number <span className="text-red-500">*</span></Label>
-                <Input
-                  id="serialNumber"
-                  value={formData.serialNumber}
-                  onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })}
-                  placeholder="1A81067CFA117B5B"
-                  data-testid="input-serial-number"
-                />
-              </div>
               <div>
                 <Label htmlFor="deviceName">Device Name (optional)</Label>
                 <Input

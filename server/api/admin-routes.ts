@@ -416,7 +416,8 @@ router.post("/organizations/:orgId/devices", adminMiddleware, async (req: Reques
     const orgId = parseInt(req.params.orgId, 10);
     const data = insertPowerMonDeviceSchema.omit({ organizationId: true }).parse(req.body);
     
-    if (await storage.checkSerialExists(data.serialNumber)) {
+    // Only check for duplicate serial if one is provided
+    if (data.serialNumber && await storage.checkSerialExists(data.serialNumber)) {
       return res.status(409).json({ error: "Device with this serial number already exists" });
     }
     

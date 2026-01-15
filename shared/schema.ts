@@ -108,7 +108,7 @@ export const powerMonDevices = pgTable("power_mon_devices", {
     .references(() => organizations.id, { onDelete: "cascade" }),
   truckId: integer("truck_id")
     .references(() => trucks.id, { onDelete: "set null" }),
-  serialNumber: text("serial_number").notNull().unique(),
+  serialNumber: text("serial_number").unique(), // Populated when device connects
   deviceName: text("device_name"),
   hardwareRevision: text("hardware_revision"),
   firmwareVersion: text("firmware_version"),
