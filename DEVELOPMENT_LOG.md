@@ -15,10 +15,11 @@ Implemented three-state truck status detection with a 30-minute buffer to preven
 
 | Transition | Condition | Delay |
 |------------|-----------|-------|
-| ANY → **PARKED** | V2 < 13.0V | Immediate |
-| PARKED → **DRIVING** | V2 ≥ 13.0V | Immediate |
-| DRIVING → **IDLING** | V2 ≥ 13.0V + no movement for 30+ min | 30 min buffer |
-| IDLING → **DRIVING** | V2 ≥ 13.0V + movement detected | Immediate |
+| ANY → **PARKED** | V2 < 13.0V (engine off) | Immediate |
+| PARKED → **IDLING** | V2 ≥ 13.0V + Shelly exists + no movement | Immediate |
+| PARKED → **DRIVING** | V2 ≥ 13.0V + no Shelly (legacy fallback) | Immediate |
+| IDLING → **DRIVING** | Movement detected by Shelly | Immediate |
+| DRIVING → **IDLING** | No movement for 30+ min | 30 min buffer |
 
 **Key Implementation Details**:
 1. New field: `shelly_snapshots.last_movement_at` - Tracks when movement was last detected

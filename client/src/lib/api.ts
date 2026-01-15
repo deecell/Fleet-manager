@@ -210,28 +210,30 @@ export function useLegacyTrucks() {
     
     // Three-state status detection using Shelly vibration sensor with 30-minute buffer:
     // - PARKED: V2 < 13.0V (engine off) - IMMEDIATE
-    // - DRIVING: V2 >= 13.0V AND (no Shelly OR moved within last 30 min) - IMMEDIATE when moving
-    // - IDLING: V2 >= 13.0V AND Shelly exists AND no movement for >= 30 min
-    // This buffer prevents false "Idling" at stoplights, traffic, or quick fuel stops
+    // - IDLING: V2 >= 13.0V AND Shelly exists AND (no movement OR no movement for >= 30 min)
+    // - DRIVING: V2 >= 13.0V AND (no Shelly OR currently moving OR moved within last 30 min)
+    // The 30-min buffer prevents false "Idling" at stoplights, traffic, or quick fuel stops
     const hasShellyData = !!shellySnapshot;
     const now = Date.now();
     
-    // Check if movement was detected within the buffer period
-    // Default to "moved" = true to prevent false Idling
-    let movedWithinBuffer = true;
-    if (hasShellyData && shellySnapshot.lastMovementAt) {
-      // Has movement history - check if within buffer period
+    // Determine if truck is actively driving (has recent movement)
+    // Requires Shelly to confirm movement - no movement detected = Idling
+    let isDriving = false;
+    if (!hasShellyData) {
+      // No Shelly sensor - fallback to Driving when engine is on (legacy behavior)
+      isDriving = !isParked;
+    } else if (shellySnapshot.isMoving) {
+      // Currently moving right now
+      isDriving = true;
+    } else if (shellySnapshot.lastMovementAt) {
+      // Check if movement was within the 30-minute buffer
       const lastMovementTime = new Date(shellySnapshot.lastMovementAt).getTime();
       const minutesSinceMovement = (now - lastMovementTime) / 60000;
-      movedWithinBuffer = minutesSinceMovement < IDLE_BUFFER_MINUTES;
-    } else if (hasShellyData && shellySnapshot.isMoving) {
-      // Currently moving
-      movedWithinBuffer = true;
+      isDriving = minutesSinceMovement < IDLE_BUFFER_MINUTES;
     }
-    // If Shelly exists but no lastMovementAt yet, stay in "Driving" mode
-    // (we haven't established a movement baseline yet)
+    // If Shelly exists but no movement ever detected = Idling (engine on, waiting)
     
-    const isIdling = !isParked && hasShellyData && !movedWithinBuffer;
+    const isIdling = !isParked && hasShellyData && !isDriving;
     
     // Determine status label and calculate duration
     let statusLabel: "Driving" | "Parked" | "Idling" = "Driving";
@@ -248,8 +250,13 @@ export function useLegacyTrucks() {
       }
     } else if (isIdling) {
       statusLabel = "Idling";
-      // For idling, we use drivingSince as the time engine started (not moving yet)
-      if (drivingSince) {
+      // For idling, duration is since engine started (drivingSince) or since movement stopped
+      if (shellySnapshot?.lastMovementAt) {
+        // Idle since last movement stopped
+        const lastMovementTime = new Date(shellySnapshot.lastMovementAt).getTime();
+        statusDurationMinutes = Math.max(0, Math.floor((now - lastMovementTime) / 60000));
+      } else if (drivingSince) {
+        // No movement history - idle since engine started
         const drivingTime = new Date(drivingSince).getTime();
         statusDurationMinutes = Math.max(0, Math.floor((now - drivingTime) / 60000));
       }
