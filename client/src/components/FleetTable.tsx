@@ -1,7 +1,8 @@
 // FleetTable component - displays truck fleet with parked status and savings
 import { LegacyTruckWithDevice } from "@/lib/api";
-import { ArrowUpDown, AlertTriangle } from "lucide-react";
+import { ArrowUpDown } from "lucide-react";
 import { useState } from "react";
+import { DeviceWarningIndicator } from "./DeviceWarningIndicator";
 
 interface FleetTableProps {
   trucks: LegacyTruckWithDevice[];
@@ -51,9 +52,21 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
   };
 
   const sortedTrucks = [...trucks].sort((a, b) => {
+    // Priority 1: Critical warnings first
+    const aHasCritical = a.warnings?.some(w => w.severity === "critical") ?? false;
+    const bHasCritical = b.warnings?.some(w => w.severity === "critical") ?? false;
+    if (aHasCritical && !bHasCritical) return -1;
+    if (!aHasCritical && bHasCritical) return 1;
+
+    // Priority 2: Any warnings next
+    const aHasWarnings = (a.warnings?.length ?? 0) > 0;
+    const bHasWarnings = (b.warnings?.length ?? 0) > 0;
+    if (aHasWarnings && !bHasWarnings) return -1;
+    if (!aHasWarnings && bHasWarnings) return 1;
+    
+    // Priority 3: Alerts from notifications
     const aHasAlert = alertTruckIds.includes(a.id);
     const bHasAlert = alertTruckIds.includes(b.id);
-    
     if (aHasAlert && !bHasAlert) return -1;
     if (!aHasAlert && bHasAlert) return 1;
     
@@ -118,10 +131,14 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                       data-testid={`status-dot-${truck.id}`}
                     />
                     <span className={`text-[13px] 2xl:text-sm font-medium whitespace-nowrap ${
-                      alertTruckIds.includes(truck.id) ? "text-[#f55200]" : "text-black"
+                      alertTruckIds.includes(truck.id) || (truck.warnings && truck.warnings.length > 0) ? "text-[#f55200]" : "text-black"
                     }`}>{truck.name}</span>
-                    {alertTruckIds.includes(truck.id) && (
-                      <AlertTriangle className="w-4 h-4 text-[#f55200] shrink-0" data-testid={`alert-icon-${truck.id}`} />
+                    {truck.warnings && truck.warnings.length > 0 && (
+                      <DeviceWarningIndicator 
+                        warnings={truck.warnings} 
+                        size="sm"
+                        data-testid={`warning-indicator-${truck.id}`}
+                      />
                     )}
                   </div>
                 </td>

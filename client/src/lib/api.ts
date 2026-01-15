@@ -145,6 +145,19 @@ function formatLocation(lat: number | null, lng: number | null): string {
   return `${Math.abs(lat).toFixed(4)}° ${latDir}, ${Math.abs(lng).toFixed(4)}° ${lngDir}`;
 }
 
+export type DeviceWarningType = 
+  | "offline"      // Device not communicating
+  | "stale"        // Data is outdated
+  | "low_battery"  // SOC below threshold
+  | "low_voltage"  // Voltage critically low
+  | "unstable";    // Device connection unstable
+
+export interface DeviceWarning {
+  type: DeviceWarningType;
+  message: string;
+  severity: "warning" | "critical";
+}
+
 export interface LegacyTruckWithDevice extends LegacyTruckWithHistory {
   deviceId?: number;
   lastUpdated?: string;
@@ -157,9 +170,83 @@ export interface LegacyTruckWithDevice extends LegacyTruckWithHistory {
   monthParkedMinutes?: number;
   fuelSavings?: number;
   mtdFuelSavings?: number;
+  connectionStatus?: string;
+  dataStatus?: string;
+  warnings?: DeviceWarning[];
 }
 
 // Fuel savings and parked status constants imported from @shared/truck-status
+
+// Device warning thresholds
+const LOW_SOC_WARNING_THRESHOLD = 30;
+const LOW_SOC_CRITICAL_THRESHOLD = 15;
+const LOW_VOLTAGE_WARNING_THRESHOLD = 11.8;
+const LOW_VOLTAGE_CRITICAL_THRESHOLD = 11.0;
+
+function detectDeviceWarnings(
+  connectionStatus: string | null | undefined,
+  dataStatus: string | null | undefined,
+  soc: number,
+  voltage: number
+): DeviceWarning[] {
+  const warnings: DeviceWarning[] = [];
+
+  // Connection status warnings
+  if (connectionStatus === "offline") {
+    warnings.push({
+      type: "offline",
+      message: "Device is offline",
+      severity: "critical",
+    });
+  } else if (connectionStatus === "unstable") {
+    warnings.push({
+      type: "unstable",
+      message: "Device connection is unstable",
+      severity: "warning",
+    });
+  }
+
+  // Data status warnings (only if device is online)
+  if (connectionStatus !== "offline" && dataStatus === "stale") {
+    warnings.push({
+      type: "stale",
+      message: "Data is outdated",
+      severity: "warning",
+    });
+  }
+
+  // Low battery warnings
+  if (soc > 0 && soc < LOW_SOC_CRITICAL_THRESHOLD) {
+    warnings.push({
+      type: "low_battery",
+      message: `Battery critically low (${soc}%)`,
+      severity: "critical",
+    });
+  } else if (soc > 0 && soc < LOW_SOC_WARNING_THRESHOLD) {
+    warnings.push({
+      type: "low_battery",
+      message: `Battery low (${soc}%)`,
+      severity: "warning",
+    });
+  }
+
+  // Low voltage warnings (chassis voltage)
+  if (voltage > 0 && voltage < LOW_VOLTAGE_CRITICAL_THRESHOLD) {
+    warnings.push({
+      type: "low_voltage",
+      message: `Voltage critically low (${voltage.toFixed(1)}V)`,
+      severity: "critical",
+    });
+  } else if (voltage > 0 && voltage < LOW_VOLTAGE_WARNING_THRESHOLD) {
+    warnings.push({
+      type: "low_voltage",
+      message: `Voltage low (${voltage.toFixed(1)}V)`,
+      severity: "warning",
+    });
+  }
+
+  return warnings;
+}
 
 interface FuelPriceResponse {
   pricePerGallon: number;
@@ -254,6 +341,16 @@ export function useLegacyTrucks() {
     const monthParkedMinutes = completedDaysMinutes + todayParkedMinutes;
     const mtdFuelSavings = calculateFuelSavings(monthParkedMinutes, dieselPrice);
     
+    // Detect device warnings
+    const connectionStatus = device?.connectionStatus ?? "offline";
+    const dataStatus = device?.dataStatus ?? "no_data";
+    const warnings = detectDeviceWarnings(
+      connectionStatus,
+      dataStatus,
+      soc,
+      chassisVoltage
+    );
+
     return {
       id: String(truck.id),
       name: truck.truckNumber || `Truck-${truck.id}`,
@@ -288,6 +385,9 @@ export function useLegacyTrucks() {
       monthParkedMinutes,
       fuelSavings,
       mtdFuelSavings,
+      connectionStatus,
+      dataStatus,
+      warnings,
     };
   });
 
