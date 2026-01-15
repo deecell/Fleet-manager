@@ -3,7 +3,8 @@ import { queryClient, apiRequest } from "./queryClient";
 import { useOrganization } from "./org-context";
 import type { 
   Truck, PowerMonDevice, DeviceSnapshot, DeviceMeasurement, Alert,
-  LegacyTruckWithHistory, LegacyHistoricalDataPoint, LegacyNotification
+  LegacyTruckWithHistory, LegacyHistoricalDataPoint, LegacyNotification,
+  ShellySnapshot
 } from "@shared/schema";
 
 interface TrucksResponse {
@@ -34,6 +35,10 @@ interface DevicesResponse {
 
 interface AlertsResponse {
   alerts: Alert[];
+}
+
+interface ShellySnapshotsResponse {
+  snapshots: ShellySnapshot[];
 }
 
 interface MeasurementsResponse {
@@ -85,6 +90,15 @@ export function useAlerts() {
   const { organizationId } = useOrganization();
   return useQuery<AlertsResponse>({
     queryKey: ["/api/v1/alerts", "org", organizationId],
+    refetchInterval: POLL_INTERVAL,
+    enabled: !!organizationId,
+  });
+}
+
+export function useShellySnapshots() {
+  const { organizationId } = useOrganization();
+  return useQuery<ShellySnapshotsResponse>({
+    queryKey: ["/api/v1/shelly-snapshots", "org", organizationId],
     refetchInterval: POLL_INTERVAL,
     enabled: !!organizationId,
   });
@@ -163,6 +177,7 @@ export function useLegacyTrucks() {
   const trucksQuery = useTrucks();
   const devicesQuery = useDevices();
   const snapshotsQuery = useSnapshots();
+  const shellySnapshotsQuery = useShellySnapshots();
   const fuelPriceQuery = useFuelPrice();
 
   const isLoading = trucksQuery.isLoading || devicesQuery.isLoading || snapshotsQuery.isLoading;
@@ -174,6 +189,7 @@ export function useLegacyTrucks() {
   const legacyTrucks: LegacyTruckWithDevice[] = (trucksQuery.data?.trucks || []).map(truck => {
     const device = devicesQuery.data?.devices?.find(d => d.truckId === truck.id);
     const snapshot = device ? snapshotsQuery.data?.snapshots?.find(s => s.deviceId === device.id) : undefined;
+    const shellySnapshot = shellySnapshotsQuery.data?.snapshots?.find(s => s.truckId === truck.id);
     
     const tempCelsius = snapshot?.temperature ?? null;
     const tempFahrenheit = tempCelsius !== null ? (tempCelsius * 9/5) + 32 : 0;
@@ -188,14 +204,17 @@ export function useLegacyTrucks() {
     const calculatedKwh = ((batteryVoltage * batteryAh) * numberOfBatteries) * (soc / 100) / 1000;
     
     // Parked status: chassis voltage (v2) < 13.0V means parked (engine off)
-    // Calculate from voltage directly for immediate display
     const chassisVoltage = snapshot?.voltage2 ?? 0;
     const isParked = chassisVoltage < PARKED_VOLTAGE_THRESHOLD;
     
-    // Idling: engine on (v2 >= 13.0V) but power draw is minimal (device drawing power)
-    // We consider it idling if parked with significant sleeper power draw (> 100W)
-    const sleeperPower = snapshot?.power ?? 0;
-    const isIdling = isParked && sleeperPower > 100;
+    // Three-state status detection using Shelly vibration sensor:
+    // - PARKED: V2 < 13.0V (engine off)
+    // - IDLING: V2 >= 13.0V + Shelly exists + isMoving = false (engine on but not moving)
+    // - DRIVING: V2 >= 13.0V + (no Shelly data OR Shelly isMoving = true)
+    // If no Shelly data exists, default to DRIVING (previous behavior)
+    const hasShellyData = !!shellySnapshot;
+    const shellyIsMoving = shellySnapshot?.isMoving ?? true; // Default to moving if no Shelly data
+    const isIdling = !isParked && hasShellyData && !shellyIsMoving;
     
     // Determine status label and calculate duration
     let statusLabel: "Driving" | "Parked" | "Idling" = "Driving";
@@ -205,11 +224,18 @@ export function useLegacyTrucks() {
     const now = Date.now();
     
     if (isParked) {
-      statusLabel = isIdling ? "Idling" : "Parked";
+      statusLabel = "Parked";
       // Calculate duration from parkedSince if available
       if (parkedSince) {
         const parkedTime = new Date(parkedSince).getTime();
         statusDurationMinutes = Math.max(0, Math.floor((now - parkedTime) / 60000));
+      }
+    } else if (isIdling) {
+      statusLabel = "Idling";
+      // For idling, we use drivingSince as the time engine started (not moving yet)
+      if (drivingSince) {
+        const drivingTime = new Date(drivingSince).getTime();
+        statusDurationMinutes = Math.max(0, Math.floor((now - drivingTime) / 60000));
       }
     } else {
       statusLabel = "Driving";
@@ -282,6 +308,7 @@ export function useLegacyTrucks() {
       trucksQuery.refetch();
       devicesQuery.refetch();
       snapshotsQuery.refetch();
+      shellySnapshotsQuery.refetch();
     },
   };
 }

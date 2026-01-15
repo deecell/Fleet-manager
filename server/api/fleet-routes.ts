@@ -430,6 +430,16 @@ router.get("/snapshots", tenantMiddleware, async (req: Request, res: Response) =
   }
 });
 
+router.get("/shelly-snapshots", tenantMiddleware, async (req: Request, res: Response) => {
+  try {
+    const snapshots = await storage.listShellySnapshots(req.organizationId!);
+    res.json({ snapshots });
+  } catch (error) {
+    console.error("Error listing shelly snapshots:", error);
+    res.status(500).json({ error: "Failed to list shelly snapshots" });
+  }
+});
+
 // ===========================================================================
 // ALERTS (Tenant-scoped)
 // ===========================================================================

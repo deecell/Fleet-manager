@@ -6,6 +6,36 @@
 
 ## Latest Updates (January 15, 2026)
 
+### Three-State Status Detection Implemented (January 15, 2026)
+
+**Status**: ✅ IMPLEMENTED
+
+**What Changed**:
+Implemented three-state truck status detection using Shelly vibration sensor data combined with chassis voltage:
+
+| State | Detection Logic |
+|-------|----------------|
+| **PARKED** | V2 (chassis voltage) < 13.0V (engine off) |
+| **IDLING** | V2 >= 13.0V + Shelly sensor present + isMoving = false |
+| **DRIVING** | V2 >= 13.0V + (no Shelly data OR isMoving = true) |
+
+**Key Implementation Details**:
+1. New API endpoint: `GET /api/v1/shelly-snapshots` - Returns Shelly vibration snapshots for all trucks
+2. Frontend `useLegacyTrucks` hook now fetches Shelly data alongside PowerMon data
+3. Fallback behavior: If no Shelly sensor data exists for a truck, defaults to "Driving" when engine is on (preserves previous behavior for trucks without Shelly sensors)
+
+**Files Changed**:
+- `server/api/fleet-routes.ts` - Added `/shelly-snapshots` endpoint
+- `client/src/lib/api.ts` - Added `useShellySnapshots` hook and updated status calculation logic
+
+**Current Test Status**:
+- GFR-70 (truck_id: 2) has Shelly sensor: `ShellyPlusUni-78421C548C5C`
+- When engine is running (V2 >= 13.0V) and Shelly shows no movement → "Idling"
+- When engine is running and Shelly shows movement → "Driving"
+- When engine is off (V2 < 13.0V) → "Parked"
+
+---
+
 ### Test Drive Data Collection & Analysis (January 15, 2026)
 
 **Status**: ✅ Data collection working, calibration in progress
