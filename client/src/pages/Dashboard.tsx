@@ -312,7 +312,7 @@ export default function Dashboard() {
                   data-testid="filter-all-mobile"
                 >
                   <img src={allIcon} alt="" className="w-2.5 h-2.5" />
-                  All ({totalTrucks.toString().padStart(2, '0')})
+                  All ({totalTrucks})
                 </button>
                 <button
                   onClick={() => setFilterStatus("in-service")}
@@ -324,7 +324,7 @@ export default function Dashboard() {
                   data-testid="filter-in-service-mobile"
                 >
                   <div className="w-2 h-2 rounded-full bg-[#39c900]" />
-                  In Service ({activeTrucksCount.toString().padStart(2, '0')})
+                  In Service ({activeTrucksCount})
                 </button>
                 <button
                   onClick={() => setFilterStatus("not-in-service")}
@@ -336,7 +336,7 @@ export default function Dashboard() {
                   data-testid="filter-not-in-service-mobile"
                 >
                   <div className="w-2 h-2 rounded-full bg-[#ff0900]" />
-                  Not In Service ({(totalTrucks - activeTrucksCount).toString().padStart(2, '0')})
+                  Not In Service ({(totalTrucks - activeTrucksCount)})
                 </button>
               </div>
             </div>
@@ -367,7 +367,7 @@ export default function Dashboard() {
                   data-testid="filter-all"
                 >
                   <img src={allIcon} alt="" className="w-2.5 h-2.5" />
-                  All ({totalTrucks.toString().padStart(2, '0')})
+                  All ({totalTrucks})
                 </button>
                 <button
                   onClick={() => setFilterStatus("in-service")}
@@ -379,7 +379,7 @@ export default function Dashboard() {
                   data-testid="filter-in-service"
                 >
                   <div className="w-2 h-2 rounded-full bg-[#39c900]" />
-                  In Service ({activeTrucksCount.toString().padStart(2, '0')})
+                  In Service ({activeTrucksCount})
                 </button>
                 <button
                   onClick={() => setFilterStatus("not-in-service")}
@@ -391,7 +391,7 @@ export default function Dashboard() {
                   data-testid="filter-not-in-service"
                 >
                   <div className="w-2 h-2 rounded-full bg-[#ff0900]" />
-                  Not In Service ({(totalTrucks - activeTrucksCount).toString().padStart(2, '0')})
+                  Not In Service ({(totalTrucks - activeTrucksCount)})
                 </button>
               </div>
             </div>
