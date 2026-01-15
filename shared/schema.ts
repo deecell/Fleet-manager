@@ -574,7 +574,6 @@ export const shellySnapshots = pgTable("shelly_snapshots", {
   frequency: real("frequency").default(0), // Current vibration frequency
   isMoving: boolean("is_moving").default(false),
   temperature: real("temperature"), // If sensor reports temp
-  voltage: real("voltage"), // Shelly input voltage
   rssi: integer("rssi"), // WiFi signal strength
   recordedAt: timestamp("recorded_at").notNull(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -600,7 +599,6 @@ export const shellyReadings = pgTable("shelly_readings", {
   frequency: real("frequency").default(0),
   isMoving: boolean("is_moving").default(false),
   temperature: real("temperature"),
-  voltage: real("voltage"),
   rssi: integer("rssi"),
   recordedAt: timestamp("recorded_at").notNull(),
 }, (table) => ({

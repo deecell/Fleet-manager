@@ -24,7 +24,6 @@ const shellyWebhookSchema = z.object({
   device_id: z.string(),
   frequency: z.number().optional().default(0),
   temperature: z.number().optional(),
-  voltage: z.number().optional(),
   rssi: z.number().optional(),
   is_moving: z.boolean().optional(),
 });
@@ -35,7 +34,6 @@ const handleVibration = async (req: Request, res: Response) => {
     const deviceId = req.query.device_id as string || req.body.device_id;
     const pulseCount = parseInt(req.query.pulse_count as string) || req.body.pulse_count || 0;
     const temperature = req.query.temperature ? parseFloat(req.query.temperature as string) : req.body.temperature;
-    const voltage = req.query.voltage ? parseFloat(req.query.voltage as string) : req.body.voltage;
     const rssi = req.query.rssi ? parseInt(req.query.rssi as string) : req.body.rssi;
 
     if (!deviceId) {
@@ -89,7 +87,6 @@ const handleVibration = async (req: Request, res: Response) => {
         frequency: frequency,
         isMoving: isMoving,
         temperature: temperature,
-        voltage: voltage,
         rssi: rssi,
         recordedAt: now,
       });
@@ -104,7 +101,6 @@ const handleVibration = async (req: Request, res: Response) => {
       frequency: frequency,
       isMoving: isMoving,
       temperature: temperature,
-      voltage: voltage,
       rssi: rssi,
       recordedAt: now,
     });
