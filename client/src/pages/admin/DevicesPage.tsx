@@ -578,7 +578,15 @@ export default function DevicesPage() {
                           <TableCell className="text-center text-muted-foreground">
                             {snapshot?.voltage2?.toFixed(2) ?? "-"}
                           </TableCell>
-                          <TableCell className="text-center text-muted-foreground">
+                          <TableCell className={`text-center ${
+                            snapshot?.power != null 
+                              ? snapshot.power < 0 
+                                ? "text-red-600" 
+                                : snapshot.power > 0 
+                                  ? "text-green-600" 
+                                  : "text-muted-foreground"
+                              : "text-muted-foreground"
+                          }`}>
                             {snapshot?.power != null ? (snapshot.power / 1000).toFixed(2) : "-"}
                           </TableCell>
                           <TableCell className="text-center text-muted-foreground">
