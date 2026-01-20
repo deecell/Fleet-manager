@@ -65,7 +65,7 @@ export default function UsersPage() {
     email: "",
     firstName: "",
     lastName: "",
-    role: "user",
+    role: "operator",
     isActive: true,
     password: "",
   });
@@ -80,7 +80,7 @@ export default function UsersPage() {
       email: "",
       firstName: "",
       lastName: "",
-      role: "user",
+      role: "operator",
       isActive: true,
       password: "",
     });
@@ -170,7 +170,7 @@ export default function UsersPage() {
       email: user.email,
       firstName: user.firstName || "",
       lastName: user.lastName || "",
-      role: user.role || "user",
+      role: user.role || "operator",
       isActive: user.isActive ?? true,
       password: "",
     });
@@ -190,10 +190,10 @@ export default function UsersPage() {
     switch (role) {
       case "super_admin":
         return "secondary";
-      case "org_admin":
+      case "fleet_manager":
         return "default";
-      case "manager":
-        return "secondary";
+      case "operator":
+        return "outline";
       default:
         return "outline";
     }
@@ -203,14 +203,12 @@ export default function UsersPage() {
     switch (role) {
       case "super_admin":
         return "Super Admin";
-      case "org_admin":
-        return "Org Admin";
-      case "manager":
-        return "Manager";
-      case "viewer":
-        return "Viewer";
+      case "fleet_manager":
+        return "Fleet Manager";
+      case "operator":
+        return "Operator";
       default:
-        return "User";
+        return role || "User";
     }
   };
 
@@ -436,11 +434,8 @@ export default function UsersPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="user">User</SelectItem>
-                    <SelectItem value="viewer">Viewer</SelectItem>
-                    <SelectItem value="manager">Manager</SelectItem>
-                    <SelectItem value="org_admin">Org Admin</SelectItem>
-                    <SelectItem value="super_admin">Super Admin</SelectItem>
+                    <SelectItem value="fleet_manager">Fleet Manager</SelectItem>
+                    <SelectItem value="operator">Operator (Driver)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -510,11 +505,8 @@ export default function UsersPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="user">User</SelectItem>
-                    <SelectItem value="viewer">Viewer</SelectItem>
-                    <SelectItem value="manager">Manager</SelectItem>
-                    <SelectItem value="org_admin">Org Admin</SelectItem>
-                    <SelectItem value="super_admin">Super Admin</SelectItem>
+                    <SelectItem value="fleet_manager">Fleet Manager</SelectItem>
+                    <SelectItem value="operator">Operator (Driver)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
