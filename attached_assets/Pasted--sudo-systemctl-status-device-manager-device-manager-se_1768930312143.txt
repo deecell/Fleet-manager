@@ -1,0 +1,22 @@
+$ sudo systemctl status device-manager
+● device-manager.service - Deecell Device Manager
+     Loaded: loaded (/etc/systemd/system/device-manager.service; enabled; preset: enabled)
+     Active: active (running) since Tue 2026-01-20 17:31:41 UTC; 4s ago
+   Main PID: 1440336 (node)
+      Tasks: 23 (limit: 1008)
+     Memory: 19.5M (peak: 58.3M)
+        CPU: 1.230s
+     CGroup: /system.slice/device-manager.service
+             └─1440336 node app/index.js
+
+Jan 20 17:31:44 ip-10-0-12-126 start.sh[1440336]: {"timestamp":"2026-01-20T17:31:44.392Z","level":"warn","message":"Error fetching device info","service":"device-manager","device>
+Jan 20 17:31:44 ip-10-0-12-126 start.sh[1440336]: {"timestamp":"2026-01-20T17:31:44.394Z","level":"info","message":"Scheduling reconnect","service":"device-manager","deviceId":13>
+Jan 20 17:31:45 ip-10-0-12-126 start.sh[1440336]: {"timestamp":"2026-01-20T17:31:45.394Z","level":"info","message":"Connecting to device","service":"device-manager","deviceId":13>
+Jan 20 17:31:45 ip-10-0-12-126 start.sh[1440336]: {"timestamp":"2026-01-20T17:31:45.401Z","level":"info","message":"Connected successfully","service":"device-manager","deviceId":>
+Jan 20 17:31:45 ip-10-0-12-126 start.sh[1440336]: {"timestamp":"2026-01-20T17:31:45.404Z","level":"warn","message":"Rapid disconnect detected (error)","service":"device-manager",>
+Jan 20 17:31:45 ip-10-0-12-126 start.sh[1440336]: {"timestamp":"2026-01-20T17:31:45.405Z","level":"error","message":"Circuit breaker OPEN - too many rapid disconnects","service":>
+Jan 20 17:31:45 ip-10-0-12-126 start.sh[1440336]: {"timestamp":"2026-01-20T17:31:45.405Z","level":"warn","message":"Marking device as unstable in database","service":"device-mana>
+Jan 20 17:31:45 ip-10-0-12-126 start.sh[1440336]: {"timestamp":"2026-01-20T17:31:45.405Z","level":"info","message":"Device disconnected (unexpected)","service":"device-manager",">
+Jan 20 17:31:45 ip-10-0-12-126 start.sh[1440336]: {"timestamp":"2026-01-20T17:31:45.406Z","level":"warn","message":"Error fetching device info","service":"device-manager","device>
+Jan 20 17:31:45 ip-10-0-12-126 start.sh[1440336]: {"timestamp":"2026-01-20T17:31:45.431Z","level":"info","message":"Skipping reconnect - circuit breaker open","service":"device-m>
+lines 1-20/20 (END)
