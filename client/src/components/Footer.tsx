@@ -1,7 +1,7 @@
 import slLogo from "@assets/sl.svg";
 import rtLogo from "@assets/rt.svg";
 import awsLogo from "@assets/aws.svg";
-import openaiLogo from "@assets/openai.svg";
+import claudeLogo from "@assets/claude.svg";
 
 interface FooterProps {
   transparent?: boolean;
@@ -18,7 +18,7 @@ export function Footer({ transparent = false, sidebarOffset = false }: FooterPro
         </span>
         <div className="flex items-center gap-5">
           <img src={awsLogo} alt="AWS" className="h-[20px] translate-y-[2px]" data-testid="logo-aws" />
-          <img src={openaiLogo} alt="OpenAI" className="h-[22px]" data-testid="logo-openai" />
+          <img src={claudeLogo} alt="Claude" className="h-[22px]" data-testid="logo-claude" />
           <img src={rtLogo} alt="Railtracks" className="h-[12px]" data-testid="logo-railtracks" />
           <img src={slLogo} alt="SL" className="h-[18px]" data-testid="logo-sl" />
         </div>
