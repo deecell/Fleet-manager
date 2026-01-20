@@ -1,0 +1,22 @@
+$ sudo systemctl status device-manager
+● device-manager.service - Deecell Device Manager
+     Loaded: loaded (/etc/systemd/system/device-manager.service; enabled; preset: enabled)
+     Active: active (running) since Tue 2026-01-20 18:01:50 UTC; 57s ago
+   Main PID: 1445894 (node)
+      Tasks: 23 (limit: 1008)
+     Memory: 16.6M (peak: 57.6M)
+        CPU: 1.701s
+     CGroup: /system.slice/device-manager.service
+             └─1445894 node app/index.js
+
+Jan 20 18:02:27 ip-10-0-12-126 start.sh[1445894]: {"timestamp":"2026-01-20T18:02:27.501Z","level":"info","message":"Truck parked - accumulating time","service":"device-manager",">
+Jan 20 18:02:31 ip-10-0-12-126 start.sh[1445894]: {"timestamp":"2026-01-20T18:02:31.512Z","level":"info","message":"Truck parked - accumulating time","service":"device-manager",">
+Jan 20 18:02:33 ip-10-0-12-126 start.sh[1445894]: {"timestamp":"2026-01-20T18:02:33.546Z","level":"info","message":"Truck parked - accumulating time","service":"device-manager",">
+Jan 20 18:02:33 ip-10-0-12-126 start.sh[1445894]: {"timestamp":"2026-01-20T18:02:33.551Z","level":"info","message":"Truck parked - accumulating time","service":"device-manager",">
+Jan 20 18:02:39 ip-10-0-12-126 start.sh[1445894]: {"timestamp":"2026-01-20T18:02:39.563Z","level":"info","message":"Truck parked - accumulating time","service":"device-manager",">
+Jan 20 18:02:41 ip-10-0-12-126 start.sh[1445894]: {"timestamp":"2026-01-20T18:02:41.572Z","level":"info","message":"Truck parked - accumulating time","service":"device-manager",">
+Jan 20 18:02:41 ip-10-0-12-126 start.sh[1445894]: {"timestamp":"2026-01-20T18:02:41.578Z","level":"info","message":"Truck parked - accumulating time","service":"device-manager",">
+Jan 20 18:02:45 ip-10-0-12-126 start.sh[1445894]: {"timestamp":"2026-01-20T18:02:45.587Z","level":"info","message":"Truck parked - accumulating time","service":"device-manager",">
+Jan 20 18:02:47 ip-10-0-12-126 start.sh[1445894]: {"timestamp":"2026-01-20T18:02:47.596Z","level":"info","message":"Truck parked - accumulating time","service":"device-manager",">
+Jan 20 18:02:47 ip-10-0-12-126 start.sh[1445894]: {"timestamp":"2026-01-20T18:02:47.601Z","level":"info","message":"Truck parked - accumulating time","service":"device-manager",">
+lines 1-20/20 (END)
