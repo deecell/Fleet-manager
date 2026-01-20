@@ -420,8 +420,8 @@ export function useAdminUsers(orgId?: number) {
 export function useCreateUser() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ orgId, data, sendWelcome = false }: { orgId: number; data: Partial<User>; sendWelcome?: boolean }) =>
-      adminFetch<UserResponse & { welcomeEmailSent?: boolean }>(`/api/v1/admin/organizations/${orgId}/users?sendWelcome=${sendWelcome}`, {
+    mutationFn: ({ orgId, data }: { orgId: number; data: Partial<User> }) =>
+      adminFetch<UserResponse & { invitationEmailSent?: boolean }>(`/api/v1/admin/organizations/${orgId}/users?sendInvitation=true`, {
         method: "POST",
         body: JSON.stringify(data),
       }),

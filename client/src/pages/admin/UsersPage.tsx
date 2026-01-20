@@ -40,7 +40,6 @@ import {
   useAssignTruckToUser,
 } from "@/lib/admin-api";
 import { Plus, Pencil, Trash2, Users, Mail, Truck } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
 import type { User, Truck as TruckType } from "@shared/schema";
 
 export default function UsersPage() {
@@ -69,7 +68,6 @@ export default function UsersPage() {
     role: "user",
     isActive: true,
     password: "",
-    sendWelcome: true,
   });
 
   // Use org-specific trucks when an org is selected, otherwise use all trucks
@@ -85,7 +83,6 @@ export default function UsersPage() {
       role: "user",
       isActive: true,
       password: "",
-      sendWelcome: true,
     });
   };
 
@@ -93,21 +90,20 @@ export default function UsersPage() {
     const orgId = createOrgId || selectedOrgId;
     if (!orgId) return;
     try {
-      const { sendWelcome, ...userData } = formData;
-      const result = await createUser.mutateAsync({ orgId, data: userData, sendWelcome });
+      const { password, ...userData } = formData;
+      const result = await createUser.mutateAsync({ orgId, data: userData });
       
-      if (result.welcomeEmailSent) {
+      if (result.invitationEmailSent) {
         toast({ 
           title: "User created successfully",
-          description: "Welcome email sent to " + formData.email,
-        });
-      } else if (sendWelcome) {
-        toast({ 
-          title: "User created successfully",
-          description: "Welcome email could not be sent",
+          description: "Invitation email sent to " + formData.email,
         });
       } else {
-        toast({ title: "User created successfully" });
+        toast({ 
+          title: "User created",
+          description: "Invitation email could not be sent. Check email configuration.",
+          variant: "destructive",
+        });
       }
       
       setIsCreateOpen(false);
@@ -177,7 +173,6 @@ export default function UsersPage() {
       role: user.role || "user",
       isActive: user.isActive ?? true,
       password: "",
-      sendWelcome: false,
     });
     setEditingUser(user);
   };
@@ -380,9 +375,9 @@ export default function UsersPage() {
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add User</DialogTitle>
+              <DialogTitle>Invite User</DialogTitle>
               <DialogDescription>
-                Create a new user account.
+                Send an invitation to a new user. They'll receive an email to set their password.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
@@ -449,33 +444,9 @@ export default function UsersPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  placeholder="Minimum 6 characters"
-                  data-testid="input-password"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Required for customer login access
-                </p>
-              </div>
-              <div className="flex items-center space-x-2 pt-2">
-                <Checkbox
-                  id="sendWelcome"
-                  checked={formData.sendWelcome}
-                  onCheckedChange={(checked) => setFormData({ ...formData, sendWelcome: checked === true })}
-                  data-testid="checkbox-send-welcome"
-                />
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="sendWelcome" className="text-sm font-normal cursor-pointer">
-                    Send welcome email with login credentials
-                  </Label>
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                </div>
+              <div className="flex items-center gap-2 pt-2 text-sm text-muted-foreground">
+                <Mail className="h-4 w-4" />
+                <span>An invitation email will be sent so the user can set their own password</span>
               </div>
             </div>
             <DialogFooter>
@@ -484,10 +455,10 @@ export default function UsersPage() {
               </Button>
               <Button 
                 onClick={handleCreate} 
-                disabled={createUser.isPending || !createOrgId || !formData.email || formData.password.length < 6} 
+                disabled={createUser.isPending || !createOrgId || !formData.email} 
                 data-testid="button-submit-create"
               >
-                {createUser.isPending ? "Creating..." : "Create"}
+                {createUser.isPending ? "Sending Invite..." : "Send Invite"}
               </Button>
             </DialogFooter>
           </DialogContent>
