@@ -1,0 +1,48 @@
+$ psql "$DATABASE_URL" -c "\d power_mon_devices"
+                                               Table "public.power_mon_devices"
+         Column          |            Type             | Collation | Nullable |                    Default                    
+-------------------------+-----------------------------+-----------+----------+-----------------------------------------------
+ id                      | integer                     |           | not null | nextval('power_mon_devices_id_seq'::regclass)
+ organization_id         | integer                     |           | not null | 
+ truck_id                | integer                     |           |          | 
+ serial_number           | text                        |           |          | 
+ device_name             | text                        |           |          | 
+ hardware_revision       | text                        |           |          | 
+ firmware_version        | text                        |           |          | 
+ host_id                 | text                        |           |          | 
+ status                  | text                        |           |          | 'offline'::text
+ last_seen_at            | timestamp without time zone |           |          | 
+ assigned_at             | timestamp without time zone |           |          | 
+ unassigned_at           | timestamp without time zone |           |          | 
+ is_active               | boolean                     |           |          | true
+ created_at              | timestamp without time zone |           |          | now()
+ updated_at              | timestamp without time zone |           |          | now()
+ battery_voltage         | real                        |           |          | 
+ battery_ah              | real                        |           |          | 
+ number_of_batteries     | integer                     |           |          | 
+ last_reported_at        | timestamp without time zone |           |          | 
+ connection_status       | text                        |           |          | 'offline'::text
+ data_status             | text                        |           |          | 'no_data'::text
+ last_disconnect_reason  | integer                     |           |          | 
+ consecutive_disconnects | integer                     |           |          | 0
+ marked_unstable_at      | timestamp with time zone    |           |          | 
+Indexes:
+    "power_mon_devices_pkey" PRIMARY KEY, btree (id)
+    "device_org_idx" btree (organization_id)
+    "device_serial_idx" btree (serial_number)
+    "device_status_idx" btree (organization_id, status)
+    "device_truck_idx" btree (truck_id)
+    "power_mon_devices_serial_number_key" UNIQUE CONSTRAINT, btree (serial_number)
+Foreign-key constraints:
+    "power_mon_devices_organization_id_fkey" FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
+    "power_mon_devices_truck_id_fkey" FOREIGN KEY (truck_id) REFERENCES trucks(id) ON DELETE SET NULL
+Referenced by:
+    TABLE "alerts" CONSTRAINT "alerts_device_id_fkey" FOREIGN KEY (device_id) REFERENCES power_mon_devices(id) ON DELETE CASCADE
+    TABLE "device_credentials" CONSTRAINT "device_credentials_device_id_fkey" FOREIGN KEY (device_id) REFERENCES power_mon_devices(id) ON DELETE CASCADE
+    TABLE "device_measurements" CONSTRAINT "device_measurements_device_id_fkey" FOREIGN KEY (device_id) REFERENCES power_mon_devices(id) ON DELETE CASCADE
+    TABLE "device_snapshots" CONSTRAINT "device_snapshots_device_id_fkey" FOREIGN KEY (device_id) REFERENCES power_mon_devices(id) ON DELETE CASCADE
+    TABLE "device_statistics" CONSTRAINT "device_statistics_device_id_fkey" FOREIGN KEY (device_id) REFERENCES power_mon_devices(id) ON DELETE CASCADE
+    TABLE "device_sync_status" CONSTRAINT "device_sync_status_device_id_fkey" FOREIGN KEY (device_id) REFERENCES power_mon_devices(id) ON DELETE CASCADE
+    TABLE "sims" CONSTRAINT "sims_device_id_fkey" FOREIGN KEY (device_id) REFERENCES power_mon_devices(id) ON DELETE SET NULL
+
+$
