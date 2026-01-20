@@ -13,7 +13,8 @@ import bcrypt from "bcrypt";
 import { getSimSyncService } from "../services/sim-sync-service";
 import { createGitHubIssue, listGitHubIssues, getGitHubLabels } from "../services/github-issues";
 import { processAdminChat, ChatMessage } from "../services/admin-assistant";
-import { sendWelcomeEmail, isEmailConfigured } from "../services/email-service";
+import { sendWelcomeEmail, sendInvitationEmail, isEmailConfigured } from "../services/email-service";
+import { nanoid } from "nanoid";
 
 const SALT_ROUNDS = 10;
 
@@ -675,18 +676,23 @@ router.post("/organizations/:orgId/users", adminMiddleware, async (req: Request,
   try {
     const orgId = parseInt(req.params.orgId, 10);
     const sendWelcomeQuery = req.query.sendWelcome === "true";
-    const { password, sendWelcome: sendWelcomeBody, ...restBody } = req.body;
+    const sendInvitationQuery = req.query.sendInvitation === "true";
+    const { password, sendWelcome: sendWelcomeBody, sendInvitation: sendInvitationBody, ...restBody } = req.body;
     const sendWelcome = sendWelcomeQuery || sendWelcomeBody === true;
+    const sendInvitation = sendInvitationQuery || sendInvitationBody === true;
     const data = insertUserSchema.omit({ organizationId: true }).parse(restBody);
     
-    if (!password || typeof password !== "string" || password.length < 6) {
-      return res.status(400).json({ 
-        error: "Validation failed", 
-        details: [{ field: "password", message: "Password is required and must be at least 6 characters" }] 
-      });
+    // If sending invitation, password is not required - user will create their own
+    if (!sendInvitation) {
+      if (!password || typeof password !== "string" || password.length < 6) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: [{ field: "password", message: "Password is required and must be at least 6 characters" }] 
+        });
+      }
     }
     
-    const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+    const passwordHash = sendInvitation ? null : await bcrypt.hash(password, SALT_ROUNDS);
     
     const user = await storage.createUser({ 
       ...data, 
@@ -695,7 +701,41 @@ router.post("/organizations/:orgId/users", adminMiddleware, async (req: Request,
     });
 
     let welcomeEmailSent = false;
-    if (sendWelcome && isEmailConfigured() && user.email) {
+    let invitationEmailSent = false;
+
+    // Send invitation email with link to create password
+    if (sendInvitation && isEmailConfigured() && user.email) {
+      try {
+        // Get organization name for the email
+        const org = await storage.getOrganization(orgId);
+        const orgName = org?.name || "your organization";
+        
+        // Generate invitation token (expires in 7 days)
+        const token = nanoid(32);
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 7);
+        
+        await storage.createInvitationToken({
+          userId: user.id,
+          organizationId: orgId,
+          token,
+          expiresAt,
+        });
+        
+        await sendInvitationEmail(
+          user.email,
+          user.firstName || user.name || "",
+          orgName,
+          token
+        );
+        invitationEmailSent = true;
+        console.log(`Invitation email sent to ${user.email}`);
+      } catch (emailError) {
+        console.error(`Failed to send invitation email to ${user.email}:`, emailError);
+      }
+    }
+    // Send welcome email with temporary password (legacy flow)
+    else if (sendWelcome && isEmailConfigured() && user.email) {
       try {
         await sendWelcomeEmail(user.email, user.firstName || undefined, password);
         welcomeEmailSent = true;
@@ -705,7 +745,7 @@ router.post("/organizations/:orgId/users", adminMiddleware, async (req: Request,
       }
     }
 
-    res.status(201).json({ user, welcomeEmailSent });
+    res.status(201).json({ user, welcomeEmailSent, invitationEmailSent });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: "Validation failed", details: error.errors });

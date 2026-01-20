@@ -350,6 +350,136 @@ router.post("/reset-password", async (req: Request, res: Response) => {
   }
 });
 
+// Validate invitation token
+router.get("/invitation/:token", async (req: Request, res: Response) => {
+  try {
+    const { token } = req.params;
+    
+    if (!token) {
+      return res.status(400).json({ 
+        valid: false, 
+        message: "Token is required" 
+      });
+    }
+
+    const inviteToken = await storage.getInvitationToken(token);
+    
+    if (!inviteToken) {
+      return res.status(400).json({ 
+        valid: false, 
+        message: "Invalid or expired invitation link" 
+      });
+    }
+
+    if (inviteToken.usedAt) {
+      return res.status(400).json({ 
+        valid: false, 
+        message: "This invitation has already been accepted" 
+      });
+    }
+
+    if (new Date() > inviteToken.expiresAt) {
+      return res.status(400).json({ 
+        valid: false, 
+        message: "This invitation has expired" 
+      });
+    }
+
+    const user = await storage.getUserById(inviteToken.userId);
+    if (!user) {
+      return res.status(400).json({ 
+        valid: false, 
+        message: "Account not found" 
+      });
+    }
+
+    const org = await storage.getOrganization(inviteToken.organizationId);
+
+    return res.json({ 
+      valid: true,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      organizationName: org?.name || "your organization",
+    });
+  } catch (error) {
+    console.error("Validate invitation token error:", error);
+    return res.status(500).json({ 
+      valid: false, 
+      message: "An error occurred validating your invitation" 
+    });
+  }
+});
+
+// Accept invitation and set password
+router.post("/accept-invitation", async (req: Request, res: Response) => {
+  try {
+    const { token, password } = req.body;
+    
+    if (!token || !password) {
+      return res.status(400).json({ 
+        error: "Missing fields", 
+        message: "Token and password are required" 
+      });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({ 
+        error: "Password too short", 
+        message: "Password must be at least 8 characters" 
+      });
+    }
+
+    const inviteToken = await storage.getInvitationToken(token);
+    
+    if (!inviteToken) {
+      return res.status(400).json({ 
+        error: "Invalid token", 
+        message: "Invalid or expired invitation link" 
+      });
+    }
+
+    if (inviteToken.usedAt) {
+      return res.status(400).json({ 
+        error: "Token already used", 
+        message: "This invitation has already been accepted" 
+      });
+    }
+
+    if (new Date() > inviteToken.expiresAt) {
+      return res.status(400).json({ 
+        error: "Token expired", 
+        message: "This invitation has expired" 
+      });
+    }
+
+    const user = await storage.getUserById(inviteToken.userId);
+    if (!user) {
+      return res.status(400).json({ 
+        error: "Account not found", 
+        message: "Account not found" 
+      });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    await storage.updateUserPassword(user.id, passwordHash);
+
+    await storage.markInvitationTokenUsed(token);
+
+    return res.json({ 
+      success: true, 
+      message: "Your account has been activated successfully. You can now log in." 
+    });
+  } catch (error) {
+    console.error("Accept invitation error:", error);
+    return res.status(500).json({ 
+      error: "Server error", 
+      message: "An error occurred accepting your invitation" 
+    });
+  }
+});
+
 // Change password for authenticated users
 router.post("/change-password", requireAuth, async (req: Request, res: Response) => {
   try {

@@ -12,6 +12,7 @@ import {
   type AuditLog, type InsertAuditLog,
   type PollingSetting, type InsertPollingSetting,
   type PasswordResetToken, type InsertPasswordResetToken,
+  type InvitationToken, type InsertInvitationToken,
   type ShellyDevice, type InsertShellyDevice,
   type ShellySnapshot, type InsertShellySnapshot,
   type ShellyReading, type InsertShellyReading,
@@ -163,6 +164,11 @@ export interface IStorage {
   createPasswordResetToken(data: InsertPasswordResetToken): Promise<PasswordResetToken>;
   getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined>;
   markPasswordResetTokenUsed(token: string): Promise<void>;
+
+  // Invitation Tokens
+  createInvitationToken(data: InsertInvitationToken): Promise<InvitationToken>;
+  getInvitationToken(token: string): Promise<InvitationToken | undefined>;
+  markInvitationTokenUsed(token: string): Promise<void>;
 
   // Shelly Devices (vibration sensors)
   createShellyDevice(data: InsertShellyDevice): Promise<ShellyDevice>;

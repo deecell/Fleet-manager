@@ -295,3 +295,41 @@ export async function sendPasswordChangedEmail(
 export function isEmailConfigured(): boolean {
   return !!SENDGRID_API_KEY;
 }
+
+// SendGrid Dynamic Template ID for user invitations
+const INVITATION_TEMPLATE_ID = "d-b2c71a5b055144bfa4ae32d4663a1f9f";
+
+export async function sendInvitationEmail(
+  email: string,
+  inviteeFirstName: string,
+  organizationName: string,
+  invitationToken: string
+): Promise<boolean> {
+  if (!SENDGRID_API_KEY) {
+    console.error("SendGrid API key not configured");
+    return false;
+  }
+
+  const inviteUrl = `${APP_URL}/accept-invitation?token=${invitationToken}`;
+
+  try {
+    await sgMail.send({
+      to: email,
+      from: {
+        email: SENDER_EMAIL,
+        name: SENDER_NAME,
+      },
+      templateId: INVITATION_TEMPLATE_ID,
+      dynamicTemplateData: {
+        name: inviteeFirstName || "there",
+        Organization: organizationName,
+        invite_url: inviteUrl,
+      },
+    });
+    console.log(`Invitation email sent successfully to ${email}`);
+    return true;
+  } catch (error: any) {
+    console.error("Failed to send invitation email:", error.response?.body || error.message);
+    return false;
+  }
+}

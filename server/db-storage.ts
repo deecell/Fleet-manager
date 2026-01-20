@@ -4,7 +4,7 @@ import {
   organizations, users, fleets, trucks, powerMonDevices,
   deviceCredentials, deviceSnapshots, deviceMeasurements,
   deviceSyncStatus, alerts, auditLogs, pollingSettings,
-  passwordResetTokens, shellyDevices, shellySnapshots, shellyReadings,
+  passwordResetTokens, invitationTokens, shellyDevices, shellySnapshots, shellyReadings,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Fleet, type InsertFleet,
@@ -18,6 +18,7 @@ import {
   type AuditLog, type InsertAuditLog,
   type PollingSetting, type InsertPollingSetting,
   type PasswordResetToken, type InsertPasswordResetToken,
+  type InvitationToken, type InsertInvitationToken,
   type ShellyDevice, type InsertShellyDevice,
   type ShellySnapshot, type InsertShellySnapshot,
   type ShellyReading, type InsertShellyReading,
@@ -931,6 +932,27 @@ export class DbStorage {
     await db.update(passwordResetTokens)
       .set({ usedAt: new Date() })
       .where(eq(passwordResetTokens.token, token));
+  }
+
+  // ===========================================================================
+  // INVITATION TOKENS
+  // ===========================================================================
+
+  async createInvitationToken(data: InsertInvitationToken): Promise<InvitationToken> {
+    const [token] = await db.insert(invitationTokens).values(data).returning();
+    return token;
+  }
+
+  async getInvitationToken(token: string): Promise<InvitationToken | undefined> {
+    const [inviteToken] = await db.select().from(invitationTokens)
+      .where(eq(invitationTokens.token, token));
+    return inviteToken;
+  }
+
+  async markInvitationTokenUsed(token: string): Promise<void> {
+    await db.update(invitationTokens)
+      .set({ usedAt: new Date() })
+      .where(eq(invitationTokens.token, token));
   }
 
   // ===========================================================================

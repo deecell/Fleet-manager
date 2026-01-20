@@ -410,6 +410,27 @@ export const passwordResetTokens = pgTable("password_reset_tokens", {
 }));
 
 // =============================================================================
+// INVITATION TOKENS (for user invitations with password creation)
+// =============================================================================
+export const invitationTokens = pgTable("invitation_tokens", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  organizationId: integer("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  usedAt: timestamp("used_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  tokenIdx: index("invitation_token_idx").on(table.token),
+  userIdx: index("invitation_user_idx").on(table.userId),
+  expiresIdx: index("invitation_expires_idx").on(table.expiresAt),
+}));
+
+// =============================================================================
 // SIM CARDS (from SIMPro - linked to PowerMon devices by name)
 // =============================================================================
 export const sims = pgTable("sims", {
@@ -737,6 +758,9 @@ export const insertDataMigrationSchema = createInsertSchema(dataMigrations)
 export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens)
   .omit({ id: true, createdAt: true, usedAt: true });
 
+export const insertInvitationTokenSchema = createInsertSchema(invitationTokens)
+  .omit({ id: true, createdAt: true, usedAt: true });
+
 export const insertShellyDeviceSchema = createInsertSchema(shellyDevices)
   .omit({ id: true, createdAt: true, updatedAt: true, lastSeenAt: true });
 
@@ -770,6 +794,7 @@ export type FuelPrice = typeof fuelPrices.$inferSelect;
 export type SavingsConfig = typeof savingsConfig.$inferSelect;
 export type DataMigration = typeof dataMigrations.$inferSelect;
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type InvitationToken = typeof invitationTokens.$inferSelect;
 export type ShellyDevice = typeof shellyDevices.$inferSelect;
 export type ShellySnapshot = typeof shellySnapshots.$inferSelect;
 export type ShellyReading = typeof shellyReadings.$inferSelect;
@@ -797,6 +822,7 @@ export type InsertSimSyncSetting = z.infer<typeof insertSimSyncSettingsSchema>;
 export type InsertFuelPrice = z.infer<typeof insertFuelPriceSchema>;
 export type InsertSavingsConfig = z.infer<typeof insertSavingsConfigSchema>;
 export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
+export type InsertInvitationToken = z.infer<typeof insertInvitationTokenSchema>;
 export type InsertShellyDevice = z.infer<typeof insertShellyDeviceSchema>;
 export type InsertShellySnapshot = z.infer<typeof insertShellySnapshotSchema>;
 export type InsertShellyReading = z.infer<typeof insertShellyReadingSchema>;
