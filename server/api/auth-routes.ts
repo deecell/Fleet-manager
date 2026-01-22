@@ -113,6 +113,7 @@ router.post("/login", async (req: Request, res: Response) => {
             role: user.role,
             organizationId: user.organizationId,
             organizationName: organization.name,
+            assignedTruckId: user.assignedTruckId,
           }
         });
       });
@@ -170,6 +171,7 @@ router.get("/session", async (req: Request, res: Response) => {
       role: user.role,
       organizationId: user.organizationId,
       organizationName: organization.name,
+      assignedTruckId: user.assignedTruckId,
     }
   });
 });
