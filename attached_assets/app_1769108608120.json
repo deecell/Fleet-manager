@@ -1,0 +1,61 @@
+{
+  "expo": {
+    "name": "DeCell Fleet View",
+    "slug": "deecellfleetview",
+    "version": "1.0.0",
+    "description": "Real-time battery and solar monitoring for fleet truck drivers. Monitor SPU voltage, chassis voltage, power usage, state of charge, temperature, and energy consumption on the go.",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "deecellfleetview",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "owner": "maryvp89",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.deecell.fleetview",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": false
+        },
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#170b07",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "package": "com.deecell.fleetview",
+      "versionCode": 1
+    },
+    "web": {
+      "output": "single",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 220,
+          "resizeMode": "contain",
+          "backgroundColor": "#170b07"
+        }
+      ],
+      "expo-web-browser"
+    ],
+    "experiments": {
+      "reactCompiler": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "ec1d4192-f06a-436c-ae51-18903dd70f04"
+      }
+    }
+  }
+}
