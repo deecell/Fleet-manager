@@ -51,6 +51,9 @@ router.get("/my-truck", requireAuth, async (req: Request, res: Response) => {
         dataStatus: device.dataStatus,
         lastSeenAt: device.lastSeenAt,
         lastReportedAt: device.lastReportedAt,
+        batteryVoltage: device.batteryVoltage,
+        batteryAh: device.batteryAh,
+        batteryCount: device.batteryCount,
       } : null,
       liveData: snapshot ? {
         voltage1: snapshot.voltage1,
