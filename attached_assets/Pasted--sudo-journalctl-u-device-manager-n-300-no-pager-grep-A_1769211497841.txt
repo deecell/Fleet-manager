@@ -1,0 +1,22 @@
+$ sudo journalctl -u device-manager -n 300 --no-pager | grep -A 5 "Starting polling"
+Jan 23 23:37:39 ip-10-0-12-126 start.sh[2188508]: {"timestamp":"2026-01-23T23:37:39.320Z","level":"info","message":"Starting polling scheduler","service":"device-manager","intervalMs":10000,"cohorts":10,"tickDurationMs":1000}
+Jan 23 23:37:39 ip-10-0-12-126 start.sh[2188508]: {"timestamp":"2026-01-23T23:37:39.320Z","level":"info","message":"Backfill service started","service":"device-manager","gapThresholdMs":30000,"maxConcurrent":5}
+Jan 23 23:37:39 ip-10-0-12-126 start.sh[2188508]: {"timestamp":"2026-01-23T23:37:39.320Z","level":"warn","message":"SIMPro API credentials not configured, SIM polling disabled","service":"device-manager"}
+Jan 23 23:37:39 ip-10-0-12-126 start.sh[2188508]: {"timestamp":"2026-01-23T23:37:39.321Z","level":"info","message":"Device Manager started successfully","service":"device-manager","devices":13,"status":"running"}
+Jan 23 23:37:39 ip-10-0-12-126 start.sh[2188508]: {"timestamp":"2026-01-23T23:37:39.329Z","level":"info","message":"Scheduling reconnect","service":"device-manager","deviceId":13,"serial":"292240386041C12B","cohort":1,"attempt":1,"delayMs":1000}
+Jan 23 23:37:39 ip-10-0-12-126 start.sh[2188508]: {"timestamp":"2026-01-23T23:37:39.337Z","level":"info","message":"Scheduling reconnect","service":"device-manager","deviceId":15,"serial":"623DECC4E318D957","cohort":4,"attempt":1,"delayMs":1000}
+--
+Jan 23 23:37:51 ip-10-0-12-126 start.sh[2188599]: {"timestamp":"2026-01-23T23:37:51.793Z","level":"info","message":"Starting polling scheduler","service":"device-manager","intervalMs":10000,"cohorts":10,"tickDurationMs":1000}
+Jan 23 23:37:51 ip-10-0-12-126 start.sh[2188599]: {"timestamp":"2026-01-23T23:37:51.793Z","level":"info","message":"Backfill service started","service":"device-manager","gapThresholdMs":30000,"maxConcurrent":5}
+Jan 23 23:37:51 ip-10-0-12-126 start.sh[2188599]: {"timestamp":"2026-01-23T23:37:51.793Z","level":"warn","message":"SIMPro API credentials not configured, SIM polling disabled","service":"device-manager"}
+Jan 23 23:37:51 ip-10-0-12-126 start.sh[2188599]: {"timestamp":"2026-01-23T23:37:51.793Z","level":"info","message":"Device Manager started successfully","service":"device-manager","devices":13,"status":"running"}
+Jan 23 23:37:51 ip-10-0-12-126 start.sh[2188599]: {"timestamp":"2026-01-23T23:37:51.813Z","level":"info","message":"Scheduling reconnect","service":"device-manager","deviceId":15,"serial":"623DECC4E318D957","cohort":4,"attempt":1,"delayMs":1000}
+Jan 23 23:37:51 ip-10-0-12-126 start.sh[2188599]: {"timestamp":"2026-01-23T23:37:51.816Z","level":"info","message":"Scheduling reconnect","service":"device-manager","deviceId":16,"serial":"","cohort":0,"attempt":1,"delayMs":1000}
+--
+Jan 23 23:38:04 ip-10-0-12-126 start.sh[2188692]: {"timestamp":"2026-01-23T23:38:04.822Z","level":"info","message":"Starting polling scheduler","service":"device-manager","intervalMs":10000,"cohorts":10,"tickDurationMs":1000}
+Jan 23 23:38:04 ip-10-0-12-126 start.sh[2188692]: {"timestamp":"2026-01-23T23:38:04.823Z","level":"info","message":"Backfill service started","service":"device-manager","gapThresholdMs":30000,"maxConcurrent":5}
+Jan 23 23:38:04 ip-10-0-12-126 start.sh[2188692]: {"timestamp":"2026-01-23T23:38:04.823Z","level":"warn","message":"SIMPro API credentials not configured, SIM polling disabled","service":"device-manager"}
+Jan 23 23:38:04 ip-10-0-12-126 start.sh[2188692]: {"timestamp":"2026-01-23T23:38:04.823Z","level":"info","message":"Device Manager started successfully","service":"device-manager","devices":13,"status":"running"}
+Jan 23 23:38:04 ip-10-0-12-126 start.sh[2188692]: {"timestamp":"2026-01-23T23:38:04.832Z","level":"info","message":"Scheduling reconnect","service":"device-manager","deviceId":13,"serial":"292240386041C12B","cohort":1,"attempt":1,"delayMs":1000}
+Jan 23 23:38:04 ip-10-0-12-126 start.sh[2188692]: {"timestamp":"2026-01-23T23:38:04.845Z","level":"info","message":"Scheduling reconnect","service":"device-manager","deviceId":16,"serial":"","cohort":0,"attempt":1,"delayMs":1000}
+$
