@@ -1,0 +1,22 @@
+$ sudo systemctl restart device-manager && sleep 5 && sudo systemctl status device-manager
+● device-manager.service - Deecell Device Manager
+     Loaded: loaded (/etc/systemd/system/device-manager.service; enabled; preset: enabled)
+     Active: active (running) since Sat 2026-01-24 19:57:58 UTC; 5s ago
+   Main PID: 2346182 (node)
+      Tasks: 31 (limit: 1008)
+     Memory: 17.5M (peak: 56.1M)
+        CPU: 1.196s
+     CGroup: /system.slice/device-manager.service
+             └─2346182 node app/index.js
+
+Jan 24 19:58:00 ip-10-0-12-126 start.sh[2346182]: {"timestamp":"2026-01-24T19:58:00.298Z","level":"info","message":"Fetched device info from PowerMon","service":"device-manager","deviceId":12,"serial":"A93B7B8CC0D672FE","cohor>
+Jan 24 19:58:00 ip-10-0-12-126 start.sh[2346182]: {"timestamp":"2026-01-24T19:58:00.300Z","level":"info","message":"Updated device info","service":"device-manager","deviceId":12,"serialNumber":"A93B7B8CC0D672FE","firmwareVersi>
+Jan 24 19:58:00 ip-10-0-12-126 start.sh[2346182]: {"timestamp":"2026-01-24T19:58:00.747Z","level":"info","message":"Fetched device info from PowerMon","service":"device-manager","deviceId":11,"serial":"1A81067CFA117B5B","cohor>
+Jan 24 19:58:00 ip-10-0-12-126 start.sh[2346182]: {"timestamp":"2026-01-24T19:58:00.750Z","level":"info","message":"Updated device info","service":"device-manager","deviceId":11,"serialNumber":"1A81067CFA117B5B","firmwareVersi>
+Jan 24 19:58:00 ip-10-0-12-126 start.sh[2346182]: {"timestamp":"2026-01-24T19:58:00.788Z","level":"info","message":"Fetched device info from PowerMon","service":"device-manager","deviceId":10,"serial":"1B1034C2B3399A18","cohor>
+Jan 24 19:58:00 ip-10-0-12-126 start.sh[2346182]: {"timestamp":"2026-01-24T19:58:00.791Z","level":"info","message":"Updated device info","service":"device-manager","deviceId":10,"serialNumber":"1B1034C2B3399A18","firmwareVersi>
+Jan 24 19:58:01 ip-10-0-12-126 start.sh[2346182]: {"timestamp":"2026-01-24T19:58:01.057Z","level":"info","message":"Fetched device info from PowerMon","service":"device-manager","deviceId":3,"serial":"A3A5B30EA9B3FF98","cohort>
+Jan 24 19:58:01 ip-10-0-12-126 start.sh[2346182]: {"timestamp":"2026-01-24T19:58:01.060Z","level":"info","message":"Updated device info","service":"device-manager","deviceId":3,"serialNumber":"A3A5B30EA9B3FF98","firmwareVersio>
+Jan 24 19:58:01 ip-10-0-12-126 start.sh[2346182]: {"timestamp":"2026-01-24T19:58:01.355Z","level":"info","message":"Truck parked - accumulating time","service":"device-manager","deviceId":11,"voltage2":0.04527223855257034,"tod>
+Jan 24 19:58:01 ip-10-0-12-126 start.sh[2346182]: {"timestamp":"2026-01-24T19:58:01.367Z","level":"info","message":"Truck parked - accumulating time","service":"device-manager","deviceId":10,"voltage2":0.038711581379175186,"to>
+$
