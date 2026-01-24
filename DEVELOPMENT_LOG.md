@@ -4,7 +4,58 @@
 
 ---
 
-## Latest Updates (January 15, 2026)
+## Latest Updates (January 24, 2026)
+
+### Device Manager: Fix Offline Device Polling Crash (January 24, 2026)
+
+**Status**: ✅ IMPLEMENTED
+
+**Problem**:
+The device manager was crashing repeatedly when powered-off devices (13: DCL-Thibert, 15: DCL-Elite-Hospitality) were being polled. The native Thornwave PowerMon C++ library crashes with ABRT signal when attempting to connect to unreachable devices.
+
+**Root Cause**:
+- The database query `getActiveDevicesWithCredentials()` only excluded devices with `connection_status = 'unstable'`
+- Devices that were simply powered off had `connection_status = 'offline'` and were still being polled
+- The native library crashes before our circuit breaker can detect the rapid disconnect pattern
+
+**Solution**:
+Updated the device manager to skip both 'offline' AND 'unstable' devices during polling:
+
+```sql
+-- Before (only skipped unstable):
+WHERE d.connection_status != 'unstable'
+
+-- After (skips both):
+WHERE d.connection_status NOT IN ('unstable', 'offline')
+```
+
+**Status Definitions**:
+| Status | Meaning | Action |
+|--------|---------|--------|
+| `online` | Device is connected and reporting | Normal polling |
+| `offline` | Device is powered off/unreachable (temporary) | Skip polling, check periodically |
+| `unstable` | Device has hardware/firmware issues | Skip polling, needs manual intervention |
+
+**Files Changed**:
+- `device-manager/app/database.js` - Updated `getActiveDevicesWithCredentials()` query
+- `scripts/migrations/2026-01-24_fix_offline_device_polling.sh` - Deployment script
+
+**Production Deployment**:
+```bash
+# On EC2 instance:
+cd /opt/device-manager
+sudo git pull origin main
+sudo systemctl restart device-manager
+```
+
+**To mark a device as offline (skip polling)**:
+```bash
+psql "$DATABASE_URL" -c "UPDATE power_mon_devices SET connection_status = 'offline' WHERE id = <device_id>;"
+```
+
+---
+
+## Previous Updates (January 15, 2026)
 
 ### Integration Tests for Fleet Dashboard (January 15, 2026)
 

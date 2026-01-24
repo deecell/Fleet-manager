@@ -110,21 +110,24 @@ async function getActiveDevicesWithCredentials() {
     LEFT JOIN device_sync_status s ON s.device_id = d.id
     LEFT JOIN trucks t ON t.id = d.truck_id
     WHERE (d.truck_id IS NULL OR t.is_active = true)
-      AND (d.connection_status IS NULL OR d.connection_status != 'unstable')
+      AND (d.connection_status IS NULL OR d.connection_status NOT IN ('unstable', 'offline'))
     ORDER BY d.id
   `);
   
-  // Log any skipped unstable devices for visibility
+  // Log any skipped unstable/offline devices for visibility
   const skippedResult = await query(`
-    SELECT d.serial_number, d.device_name, d.consecutive_disconnects 
+    SELECT d.serial_number, d.device_name, d.connection_status, d.consecutive_disconnects 
     FROM power_mon_devices d
     LEFT JOIN trucks t ON t.id = d.truck_id
     WHERE (d.truck_id IS NULL OR t.is_active = true) 
-      AND d.connection_status = 'unstable'
+      AND d.connection_status IN ('unstable', 'offline')
   `);
   if (skippedResult.rows.length > 0) {
-    logger.warn('Skipping unstable devices (circuit breaker)', { 
-      devices: skippedResult.rows.map(d => d.device_name || d.serial_number)
+    logger.warn('Skipping offline/unstable devices', { 
+      devices: skippedResult.rows.map(d => ({
+        name: d.device_name || d.serial_number,
+        status: d.connection_status
+      }))
     });
   }
   
