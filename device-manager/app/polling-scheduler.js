@@ -93,6 +93,16 @@ class PollingScheduler {
     this.stats.lastTickTime = new Date();
     this.stats.ticksProcessed++;
 
+    // At the start of each polling cycle, check for newly activated devices
+    // This catches trucks that were just set to active without waiting for the 5-min refresh
+    if (this.currentTick === 0) {
+      try {
+        await connectionPool.checkForNewDevices();
+      } catch (err) {
+        logger.warn('Failed to check for new devices', { error: err.message });
+      }
+    }
+
     // Get the cohort for this tick
     const cohortId = this.currentTick;
     const devices = connectionPool.getCohortDevices(cohortId);

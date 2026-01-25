@@ -6,7 +6,7 @@
 
 ## Latest Updates (January 25, 2026)
 
-### Device Manager: Inactive Truck Exclusion & Crash Prevention (January 25, 2026)
+### Device Manager: Inactive Truck Exclusion & Instant Reactivation (January 25, 2026)
 
 **Status**: ✅ IMPLEMENTED
 
@@ -22,20 +22,23 @@ The native C++ library crashes when devices rapidly disconnect. The recovery mec
    - Offline recovery (10-minute cycle)
    - Unstable recovery (5-minute cycle)
    
-2. **Status Preservation Fix**: Fixed `markDeviceDisconnected` to preserve 'unstable' status:
+2. **Instant Reactivation**: When a truck is set back to active, the device is detected and connected within ~10 seconds (at the start of the next polling cycle). No need to wait for the 5-minute refresh.
+
+3. **Status Preservation Fix**: Fixed `markDeviceDisconnected` to preserve 'unstable' status:
    ```sql
    WHEN connection_status = 'unstable' THEN 'unstable'
    ```
 
-3. **Visibility Logging**: Added logging for devices skipped due to inactive trucks.
+4. **Visibility Logging**: Added logging for devices skipped due to inactive trucks.
 
-**How to Disable a Problematic Device**:
-1. In admin dashboard, set the truck as **inactive** (`is_active = false`)
-2. Restart device manager: `sudo systemctl restart device-manager`
-3. Verify in logs: `grep "inactive trucks" /var/log/device-manager.log`
+**How to Disable/Enable a Device**:
+- **Disable**: Set the truck as inactive in admin dashboard → device excluded within 10 seconds
+- **Enable**: Set the truck as active in admin dashboard → device connected within 10 seconds
 
 **Files Changed**:
 - `device-manager/app/database.js` - Added inactive truck logging, fixed status preservation
+- `device-manager/app/connection-pool.js` - Added `checkForNewDevices()` method
+- `device-manager/app/polling-scheduler.js` - Calls `checkForNewDevices()` at start of each polling cycle
 
 ---
 

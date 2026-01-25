@@ -740,6 +740,61 @@ class ConnectionPool {
   }
 
   /**
+   * Lightweight check for newly activated devices
+   * Called at the start of each polling cycle to quickly detect reactivated trucks
+   * Only adds new devices - doesn't remove (that's handled by refresh())
+   */
+  async checkForNewDevices() {
+    const devices = await db.getActiveDevicesWithCredentials();
+    const currentIds = new Set(this.connections.keys());
+    
+    // Find devices that aren't in the pool yet
+    const newDevices = devices.filter(d => !currentIds.has(d.device_id));
+    
+    if (newDevices.length === 0) {
+      return { added: 0 };
+    }
+    
+    logger.info('Found newly activated devices', { 
+      count: newDevices.length,
+      devices: newDevices.map(d => d.device_name || d.serial_number)
+    });
+    
+    // Add and connect each new device
+    for (const device of newDevices) {
+      const cohortId = this.hashToCohort(device.serial_number);
+      const conn = new DeviceConnection({
+        ...device,
+        cohort_id: cohortId,
+      });
+      
+      this.connections.set(device.device_id, conn);
+      
+      if (!this.cohorts.has(cohortId)) {
+        this.cohorts.set(cohortId, new Set());
+      }
+      this.cohorts.get(cohortId).add(device.device_id);
+      
+      await db.upsertDeviceSyncStatus(device.device_id, device.organization_id, cohortId);
+      
+      // Attempt to connect
+      const startTime = Date.now();
+      const result = await conn.connect();
+      const durationMs = Date.now() - startTime;
+      
+      logger.info('New device connection result', { 
+        serialNumber: device.serial_number,
+        deviceName: device.device_name,
+        success: result.success,
+        durationMs,
+        cohort: cohortId
+      });
+    }
+    
+    return { added: newDevices.length };
+  }
+
+  /**
    * Refresh device list from database
    */
   async refresh() {
