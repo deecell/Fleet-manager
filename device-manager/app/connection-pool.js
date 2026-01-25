@@ -740,58 +740,81 @@ class ConnectionPool {
   }
 
   /**
-   * Lightweight check for newly activated devices
-   * Called at the start of each polling cycle to quickly detect reactivated trucks
-   * Only adds new devices - doesn't remove (that's handled by refresh())
+   * Lightweight check for device changes
+   * Called at the start of each polling cycle to quickly detect:
+   * - Newly activated trucks (add device to pool)
+   * - Newly deactivated trucks (remove device from pool)
    */
   async checkForNewDevices() {
     const devices = await db.getActiveDevicesWithCredentials();
     const currentIds = new Set(this.connections.keys());
+    const activeIds = new Set(devices.map(d => d.device_id));
     
-    // Find devices that aren't in the pool yet
-    const newDevices = devices.filter(d => !currentIds.has(d.device_id));
+    let added = 0;
+    let removed = 0;
     
-    if (newDevices.length === 0) {
-      return { added: 0 };
-    }
-    
-    logger.info('Found newly activated devices', { 
-      count: newDevices.length,
-      devices: newDevices.map(d => d.device_name || d.serial_number)
-    });
-    
-    // Add and connect each new device
-    for (const device of newDevices) {
-      const cohortId = this.hashToCohort(device.serial_number);
-      const conn = new DeviceConnection({
-        ...device,
-        cohort_id: cohortId,
-      });
-      
-      this.connections.set(device.device_id, conn);
-      
-      if (!this.cohorts.has(cohortId)) {
-        this.cohorts.set(cohortId, new Set());
+    // Remove devices whose trucks are now inactive
+    for (const id of currentIds) {
+      if (!activeIds.has(id)) {
+        const conn = this.connections.get(id);
+        if (conn) {
+          logger.info('Removing deactivated device from pool', { 
+            deviceId: id,
+            serialNumber: conn.serialNumber,
+            deviceName: conn.deviceName
+          });
+          conn.disconnect();
+          this.connections.delete(id);
+          // Remove from cohort
+          for (const cohort of this.cohorts.values()) {
+            cohort.delete(id);
+          }
+          removed++;
+        }
       }
-      this.cohorts.get(cohortId).add(device.device_id);
-      
-      await db.upsertDeviceSyncStatus(device.device_id, device.organization_id, cohortId);
-      
-      // Attempt to connect
-      const startTime = Date.now();
-      const result = await conn.connect();
-      const durationMs = Date.now() - startTime;
-      
-      logger.info('New device connection result', { 
-        serialNumber: device.serial_number,
-        deviceName: device.device_name,
-        success: result.success,
-        durationMs,
-        cohort: cohortId
-      });
     }
     
-    return { added: newDevices.length };
+    // Add devices that aren't in the pool yet
+    for (const device of devices) {
+      if (!currentIds.has(device.device_id)) {
+        logger.info('Found newly activated device', { 
+          serialNumber: device.serial_number,
+          deviceName: device.device_name
+        });
+        
+        const cohortId = this.hashToCohort(device.serial_number);
+        const conn = new DeviceConnection({
+          ...device,
+          cohort_id: cohortId,
+        });
+        
+        this.connections.set(device.device_id, conn);
+        
+        if (!this.cohorts.has(cohortId)) {
+          this.cohorts.set(cohortId, new Set());
+        }
+        this.cohorts.get(cohortId).add(device.device_id);
+        
+        await db.upsertDeviceSyncStatus(device.device_id, device.organization_id, cohortId);
+        
+        // Attempt to connect
+        const startTime = Date.now();
+        const result = await conn.connect();
+        const durationMs = Date.now() - startTime;
+        
+        logger.info('New device connection result', { 
+          serialNumber: device.serial_number,
+          deviceName: device.device_name,
+          success: result.success,
+          durationMs,
+          cohort: cohortId
+        });
+        
+        added++;
+      }
+    }
+    
+    return { added, removed };
   }
 
   /**
