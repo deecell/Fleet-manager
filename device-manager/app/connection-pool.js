@@ -6,6 +6,9 @@
  */
 
 const path = require('path');
+const https = require('https');
+const http = require('http');
+const { URL } = require('url');
 const { config } = require('./config');
 const logger = require('./logger');
 const db = require('./database');
@@ -48,6 +51,55 @@ if (process.env.SIMULATION_MODE === 'true' || process.env.SIMULATION_MODE === '1
 const RAPID_DISCONNECT_THRESHOLD_MS = 5000; // Disconnect within 5s of connect = rapid
 const MAX_RAPID_DISCONNECTS = 5; // After 5 rapid disconnects, mark as unstable
 const UNSTABLE_BACKOFF_MS = 300000; // 5 minutes backoff for unstable devices
+const OFFLINE_BACKOFF_MS = 600000; // 10 minutes backoff for offline devices
+
+/**
+ * Ping an applink URL to check if the device router is reachable
+ * This is used before attempting to connect to an offline device
+ * to avoid crashing the native library on unreachable devices
+ * 
+ * @param {string} applinkUrl - The applink URL to ping
+ * @param {number} timeoutMs - Timeout in milliseconds (default 5000)
+ * @returns {Promise<boolean>} - True if reachable, false otherwise
+ */
+async function pingApplinkUrl(applinkUrl, timeoutMs = 5000) {
+  return new Promise((resolve) => {
+    try {
+      const url = new URL(applinkUrl);
+      const isHttps = url.protocol === 'https:';
+      const httpModule = isHttps ? https : http;
+      const defaultPort = isHttps ? 443 : 80;
+      
+      const req = httpModule.request({
+        hostname: url.hostname,
+        port: url.port || defaultPort,
+        path: url.pathname + url.search,
+        method: 'HEAD',
+        timeout: timeoutMs,
+        rejectUnauthorized: false, // Accept self-signed certs
+      }, (res) => {
+        // Any response means the server is reachable
+        resolve(true);
+      });
+      
+      req.on('error', (err) => {
+        logger.debug('Ping failed', { url: applinkUrl, error: err.message });
+        resolve(false);
+      });
+      
+      req.on('timeout', () => {
+        req.destroy();
+        logger.debug('Ping timed out', { url: applinkUrl });
+        resolve(false);
+      });
+      
+      req.end();
+    } catch (err) {
+      logger.debug('Ping exception', { url: applinkUrl, error: err.message });
+      resolve(false);
+    }
+  });
+}
 
 class DeviceConnection {
   constructor(deviceInfo) {
@@ -852,6 +904,115 @@ class ConnectionPool {
     } catch (err) {
       logger.error('Error recovering unstable devices', { error: err.message });
       return { attempted: 0, recovered: 0, error: err.message };
+    }
+  }
+
+  /**
+   * Attempt to recover offline devices that have been waiting long enough
+   * Uses a ping check before attempting connection to avoid crashing
+   * on unreachable devices
+   */
+  async recoverOfflineDevices() {
+    logger.debug('Checking for offline devices ready for recovery');
+    
+    try {
+      // Get devices that have been offline for longer than the backoff period
+      const offlineDevices = await db.getOfflineDevicesForRecovery(OFFLINE_BACKOFF_MS);
+      
+      if (offlineDevices.length === 0) {
+        return { attempted: 0, recovered: 0, unreachable: 0 };
+      }
+      
+      logger.info('Attempting to recover offline devices', { 
+        count: offlineDevices.length,
+        devices: offlineDevices.map(d => d.device_name || d.serial_number)
+      });
+      
+      let recovered = 0;
+      let unreachable = 0;
+      
+      for (const device of offlineDevices) {
+        // First, ping the applink URL to check if the device router is reachable
+        // This prevents crashing the native library on unreachable devices
+        const isReachable = await pingApplinkUrl(device.applink_url);
+        
+        if (!isReachable) {
+          unreachable++;
+          logger.debug('Offline device still unreachable, skipping', { 
+            deviceId: device.device_id,
+            deviceName: device.device_name
+          });
+          // Update marked_offline_at to restart backoff timer
+          await db.updateMarkedOfflineAt(device.device_id);
+          continue;
+        }
+        
+        logger.info('Offline device reachable, attempting connection', { 
+          deviceId: device.device_id,
+          deviceName: device.device_name
+        });
+        
+        const cohortId = this.hashToCohort(device.serial_number);
+        
+        // Check if device is already in the pool (shouldn't be, but check anyway)
+        if (this.connections.has(device.device_id)) {
+          logger.warn('Offline device already in pool, skipping', { deviceId: device.device_id });
+          continue;
+        }
+        
+        // Create new connection with reset state
+        const conn = new DeviceConnection({
+          ...device,
+          cohort_id: cohortId,
+          consecutive_disconnects: 0, // Reset for fresh start
+        });
+        
+        // Add to pool
+        this.connections.set(device.device_id, conn);
+        
+        if (!this.cohorts.has(cohortId)) {
+          this.cohorts.set(cohortId, new Set());
+        }
+        this.cohorts.get(cohortId).add(device.device_id);
+        
+        // Attempt to connect
+        const result = await conn.connect();
+        
+        if (result.success) {
+          // Connection successful - device is back online
+          recovered++;
+          logger.info('Offline device recovered successfully', { 
+            deviceId: device.device_id,
+            serial: device.serial_number,
+            deviceName: device.device_name,
+            durationMs: result.durationMs
+          });
+        } else {
+          // Connection failed - remove from pool and try again later
+          this.connections.delete(device.device_id);
+          this.cohorts.get(cohortId)?.delete(device.device_id);
+          
+          // Update marked_offline_at to restart the backoff timer
+          await db.updateMarkedOfflineAt(device.device_id);
+          
+          logger.warn('Offline device recovery failed, will retry later', { 
+            deviceId: device.device_id,
+            serial: device.serial_number,
+            deviceName: device.device_name
+          });
+        }
+      }
+      
+      logger.info('Offline device recovery complete', { 
+        attempted: offlineDevices.length, 
+        recovered,
+        unreachable
+      });
+      
+      return { attempted: offlineDevices.length, recovered, unreachable };
+    } catch (err) {
+      logger.error('Error recovering offline devices', { error: err.message });
+      return { attempted: 0, recovered: 0, unreachable: 0, error: err.message };
     }
   }
 

@@ -124,6 +124,7 @@ export const powerMonDevices = pgTable("power_mon_devices", {
   lastDisconnectReason: integer("last_disconnect_reason"),
   consecutiveDisconnects: integer("consecutive_disconnects").default(0),
   markedUnstableAt: timestamp("marked_unstable_at"),
+  markedOfflineAt: timestamp("marked_offline_at"),
   assignedAt: timestamp("assigned_at"),
   unassignedAt: timestamp("unassigned_at"),
   isActive: boolean("is_active").default(true),

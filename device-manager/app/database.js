@@ -207,6 +207,7 @@ async function markDeviceConnected(deviceId) {
       connection_status = 'online',
       consecutive_disconnects = 0,
       marked_unstable_at = NULL,
+      marked_offline_at = NULL,
       updated_at = NOW()
     WHERE id = $1
   `, [deviceId]);
@@ -340,6 +341,65 @@ async function markDeviceUnstable(deviceId) {
     SET 
       connection_status = 'unstable',
       marked_unstable_at = NOW(),
+      updated_at = NOW()
+    WHERE id = $1
+  `, [deviceId]);
+}
+
+/**
+ * Get offline devices that are ready for recovery attempt
+ * Returns devices marked offline for longer than the backoff period
+ * @param {number} backoffMs - Backoff period in milliseconds (default 10 minutes)
+ */
+async function getOfflineDevicesForRecovery(backoffMs = 600000) {
+  const result = await query(`
+    SELECT 
+      d.id as device_id,
+      d.organization_id,
+      d.serial_number,
+      d.device_name,
+      d.truck_id,
+      d.status,
+      d.consecutive_disconnects,
+      d.marked_offline_at,
+      c.applink_url,
+      c.connection_key,
+      c.access_key,
+      s.cohort_id,
+      s.last_successful_poll_at,
+      s.connection_status
+    FROM power_mon_devices d
+    INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = true
+    LEFT JOIN device_sync_status s ON s.device_id = d.id
+    LEFT JOIN trucks t ON t.id = d.truck_id
+    WHERE (d.truck_id IS NULL OR t.is_active = true)
+      AND d.connection_status = 'offline'
+      AND (
+        d.marked_offline_at IS NULL 
+        OR d.marked_offline_at < NOW() - INTERVAL '1 millisecond' * $1
+      )
+    ORDER BY d.marked_offline_at ASC NULLS FIRST
+  `, [backoffMs]);
+  
+  if (result.rows.length > 0) {
+    logger.info('Found offline devices ready for recovery check', { 
+      count: result.rows.length,
+      devices: result.rows.map(d => d.device_name || d.serial_number)
+    });
+  }
+  
+  return result.rows;
+}
+
+/**
+ * Update marked_offline_at timestamp for a device
+ * Used to reset the backoff timer after a failed recovery attempt
+ */
+async function updateMarkedOfflineAt(deviceId) {
+  await query(`
+    UPDATE power_mon_devices 
+    SET 
+      marked_offline_at = NOW(),
       updated_at = NOW()
     WHERE id = $1
   `, [deviceId]);
@@ -752,6 +812,8 @@ module.exports = {
   markDeviceStale,
   markDeviceUnstable,
   getUnstableDevicesReadyForRecovery,
+  getOfflineDevicesForRecovery,
+  updateMarkedOfflineAt,
   resetDeviceStability,
   resetDeviceDisconnects,
   updateDeviceInfo,

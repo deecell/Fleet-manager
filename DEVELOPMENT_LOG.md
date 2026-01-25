@@ -4,7 +4,46 @@
 
 ---
 
-## Latest Updates (January 24, 2026)
+## Latest Updates (January 25, 2026)
+
+### Device Manager: Automatic Offline Device Recovery (January 25, 2026)
+
+**Status**: ✅ IMPLEMENTED
+
+**Feature**:
+Added automatic recovery for offline devices. The device manager now periodically checks if powered-off devices have come back online and automatically reconnects them.
+
+**How It Works**:
+1. Every 10 minutes, the device manager checks for offline devices
+2. Before attempting connection, it **pings the applink URL** to check if the device router is reachable
+3. If reachable → attempts full connection
+4. If successful → device is brought back online and added to polling
+5. If unreachable or connection fails → updates backoff timer and tries again in 10 minutes
+
+**Why Ping First?**
+The native PowerMon C++ library crashes (ABRT signal) when attempting to connect to unreachable devices. The ping check prevents this by verifying the device router is accessible before the connection attempt.
+
+**New Database Column**:
+- `power_mon_devices.marked_offline_at` - Tracks when a device was marked offline (for backoff timing)
+
+**Files Changed**:
+- `shared/schema.ts` - Added `markedOfflineAt` column
+- `device-manager/app/database.js` - Added `getOfflineDevicesForRecovery()` and `updateMarkedOfflineAt()`
+- `device-manager/app/connection-pool.js` - Added `pingApplinkUrl()` helper and `recoverOfflineDevices()` method
+- `device-manager/app/index.js` - Added 10-minute recovery interval
+
+**Production Deployment**:
+```bash
+# 1. Run database migration (add marked_offline_at column)
+./scripts/migrations/2026-01-25_add_offline_recovery.sh
+
+# 2. Deploy device manager on EC2
+cd /opt/device-manager
+sudo git pull origin main
+sudo systemctl restart device-manager
+```
+
+---
 
 ### Device Manager: Fix Offline Device Polling Crash (January 24, 2026)
 
