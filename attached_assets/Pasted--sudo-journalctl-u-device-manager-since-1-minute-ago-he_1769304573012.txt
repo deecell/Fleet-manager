@@ -1,0 +1,52 @@
+$ sudo journalctl -u device-manager --since "1 minute ago" | head -50
+Jan 25 01:29:03 ip-10-0-12-126 start.sh[2358548]: {"timestamp":"2026-01-25T01:29:03.470Z","level":"info","message":"Shutting down Device Manager","service":"device-manager","signal":"SIGTERM"}
+Jan 25 01:29:03 ip-10-0-12-126 start.sh[2358548]: {"timestamp":"2026-01-25T01:29:03.470Z","level":"info","message":"Polling scheduler stopped","service":"device-manager","totalPolls":0,"successfulPolls":0,"failedPolls":0,"skippedPolls":0,"ticksProcessed":134,"lastTickTime":"2026-01-25T01:29:02.488Z","averagePollDurationMs":0.1825058202638117}
+Jan 25 01:29:03 ip-10-0-12-126 start.sh[2358548]: {"timestamp":"2026-01-25T01:29:03.470Z","level":"info","message":"Polling scheduler stopped","service":"device-manager"}
+Jan 25 01:29:03 ip-10-0-12-126 start.sh[2358548]: {"timestamp":"2026-01-25T01:29:03.470Z","level":"info","message":"SIM poller stopped","service":"device-manager"}
+Jan 25 01:29:03 ip-10-0-12-126 start.sh[2358548]: {"timestamp":"2026-01-25T01:29:03.470Z","level":"info","message":"Backfill service stopped","service":"device-manager","totalBackfills":0,"successfulBackfills":0,"failedBackfills":0,"totalSamplesBackfilled":0,"lastCheckTime":"2026-01-25T01:28:48.918Z"}
+Jan 25 01:29:03 ip-10-0-12-126 start.sh[2358548]: {"timestamp":"2026-01-25T01:29:03.471Z","level":"info","message":"Backfill service stopped","service":"device-manager"}
+Jan 25 01:29:03 ip-10-0-12-126 start.sh[2358548]: {"timestamp":"2026-01-25T01:29:03.471Z","level":"info","message":"Batch writer stopped","service":"device-manager","totalWritten":0,"totalBatches":0,"failedBatches":0,"queueHighWaterMark":0,"lastFlushTime":null,"averageFlushDurationMs":0,"snapshotsWritten":0,"recentSnapshotFailures":0,"lastSnapshotWriteTime":null}
+Jan 25 01:29:03 ip-10-0-12-126 start.sh[2358548]: {"timestamp":"2026-01-25T01:29:03.471Z","level":"info","message":"Batch writer stopped","service":"device-manager"}
+Jan 25 01:29:03 ip-10-0-12-126 start.sh[2358548]: {"timestamp":"2026-01-25T01:29:03.471Z","level":"info","message":"Disconnecting all devices","service":"device-manager"}
+Jan 25 01:29:03 ip-10-0-12-126 start.sh[2358548]: {"timestamp":"2026-01-25T01:29:03.471Z","level":"info","message":"All devices disconnected","service":"device-manager"}
+Jan 25 01:29:03 ip-10-0-12-126 start.sh[2358548]: {"timestamp":"2026-01-25T01:29:03.471Z","level":"info","message":"Device connections closed","service":"device-manager"}
+Jan 25 01:29:03 ip-10-0-12-126 start.sh[2358548]: {"timestamp":"2026-01-25T01:29:03.471Z","level":"info","message":"Metrics server stopped","service":"device-manager"}
+Jan 25 01:29:03 ip-10-0-12-126 start.sh[2358548]: {"timestamp":"2026-01-25T01:29:03.471Z","level":"info","message":"Metrics server stopped","service":"device-manager"}
+Jan 25 01:29:03 ip-10-0-12-126 systemd[1]: Stopping device-manager.service - Deecell Device Manager...
+Jan 25 01:29:03 ip-10-0-12-126 start.sh[2358548]: {"timestamp":"2026-01-25T01:29:03.472Z","level":"info","message":"Database pool closed","service":"device-manager"}
+Jan 25 01:29:03 ip-10-0-12-126 start.sh[2358548]: {"timestamp":"2026-01-25T01:29:03.472Z","level":"info","message":"Database closed","service":"device-manager"}
+Jan 25 01:29:03 ip-10-0-12-126 start.sh[2358548]: {"timestamp":"2026-01-25T01:29:03.472Z","level":"info","message":"Device Manager shutdown complete","service":"device-manager"}
+Jan 25 01:29:03 ip-10-0-12-126 systemd[1]: device-manager.service: Deactivated successfully.
+Jan 25 01:29:03 ip-10-0-12-126 systemd[1]: Stopped device-manager.service - Deecell Device Manager.
+Jan 25 01:29:03 ip-10-0-12-126 systemd[1]: device-manager.service: Consumed 1.193s CPU time.
+Jan 25 01:29:03 ip-10-0-12-126 systemd[1]: Started device-manager.service - Deecell Device Manager.
+Jan 25 01:29:04 ip-10-0-12-126 start.sh[2358591]: {"timestamp":"2026-01-25T01:29:04.483Z","level":"info","message":"PowerMon addon loaded successfully","service":"device-manager"}
+Jan 25 01:29:04 ip-10-0-12-126 start.sh[2358591]: {"timestamp":"2026-01-25T01:29:04.487Z","level":"info","message":"Device Manager starting","service":"device-manager","pollInterval":10000,"cohorts":10,"batchFlushInterval":2000}
+Jan 25 01:29:04 ip-10-0-12-126 start.sh[2358591]: {"timestamp":"2026-01-25T01:29:04.487Z","level":"info","message":"Configuration validated","service":"device-manager"}
+Jan 25 01:29:04 ip-10-0-12-126 start.sh[2358591]: {"timestamp":"2026-01-25T01:29:04.488Z","level":"info","message":"Database connection configured","service":"device-manager","host":"deecell-fleet-production-postgres.cn4qsw8g8yyx.us-east-2.rds.amazonaws.com","database":"deecell_fleet"}
+Jan 25 01:29:04 ip-10-0-12-126 start.sh[2358591]: {"timestamp":"2026-01-25T01:29:04.488Z","level":"info","message":"Database pool initialized","service":"device-manager","poolSize":10}
+Jan 25 01:29:04 ip-10-0-12-126 start.sh[2358591]: {"timestamp":"2026-01-25T01:29:04.488Z","level":"info","message":"Database initialized","service":"device-manager"}
+Jan 25 01:29:04 ip-10-0-12-126 start.sh[2358591]: {"timestamp":"2026-01-25T01:29:04.489Z","level":"info","message":"Initializing connection pool","service":"device-manager"}
+Jan 25 01:29:04 ip-10-0-12-126 start.sh[2358591]: {"timestamp":"2026-01-25T01:29:04.564Z","level":"info","message":"Found active devices","service":"device-manager","count":12}
+Jan 25 01:29:04 ip-10-0-12-126 start.sh[2358591]: {"timestamp":"2026-01-25T01:29:04.591Z","level":"info","message":"Connection pool initialized","service":"device-manager","devices":12,"cohorts":7}
+Jan 25 01:29:04 ip-10-0-12-126 start.sh[2358591]: {"timestamp":"2026-01-25T01:29:04.592Z","level":"info","message":"Batch writer started","service":"device-manager","flushIntervalMs":2000,"maxBatchSize":500}
+Jan 25 01:29:04 ip-10-0-12-126 start.sh[2358591]: {"timestamp":"2026-01-25T01:29:04.592Z","level":"info","message":"=== STARTUP: Connecting to all devices ===","service":"device-manager","deviceCount":12}
+Jan 25 01:29:04 ip-10-0-12-126 start.sh[2358591]: {"timestamp":"2026-01-25T01:29:04.592Z","level":"info","message":"Connecting device 1/12","service":"device-manager","serialNumber":"A3A5B30EA9B3FF98","deviceName":"DCL-Moeck","cohort":4}
+Jan 25 01:29:04 ip-10-0-12-126 start.sh[2358591]: {"timestamp":"2026-01-25T01:29:04.593Z","level":"info","message":"Connecting to device","service":"device-manager","deviceId":3,"serial":"A3A5B30EA9B3FF98","cohort":4}
+Jan 25 01:29:04 ip-10-0-12-126 start.sh[2358591]: {"timestamp":"2026-01-25T01:29:04.604Z","level":"info","message":"Metrics server started","service":"device-manager","port":3001,"metricsPath":"/metrics","healthPath":"/health"}
+Jan 25 01:29:04 ip-10-0-12-126 start.sh[2358591]: {"timestamp":"2026-01-25T01:29:04.605Z","level":"info","message":"Connected successfully","service":"device-manager","deviceId":3,"serial":"A3A5B30EA9B3FF98","cohort":4,"durationMs":12}
+Jan 25 01:29:04 ip-10-0-12-126 start.sh[2358591]: {"timestamp":"2026-01-25T01:29:04.609Z","level":"info","message":"Device 1/12 connected","service":"device-manager","serialNumber":"A3A5B30EA9B3FF98","durationMs":12}
+Jan 25 01:29:04 ip-10-0-12-126 start.sh[2358591]: {"timestamp":"2026-01-25T01:29:04.610Z","level":"info","message":"Connecting device 2/12","service":"device-manager","serialNumber":"1982A3044D3599E2","deviceName":"DCL-Moeck-Shop","cohort":9}
+Jan 25 01:29:04 ip-10-0-12-126 start.sh[2358591]: {"timestamp":"2026-01-25T01:29:04.610Z","level":"info","message":"Connecting to device","service":"device-manager","deviceId":4,"serial":"1982A3044D3599E2","cohort":9}
+Jan 25 01:29:04 ip-10-0-12-126 start.sh[2358591]: {"timestamp":"2026-01-25T01:29:04.617Z","level":"info","message":"Connected successfully","service":"device-manager","deviceId":4,"serial":"1982A3044D3599E2","cohort":9,"durationMs":7}
+Jan 25 01:29:04 ip-10-0-12-126 start.sh[2358591]: {"timestamp":"2026-01-25T01:29:04.622Z","level":"info","message":"Device 2/12 connected","service":"device-manager","serialNumber":"1982A3044D3599E2","durationMs":7}
+Jan 25 01:29:04 ip-10-0-12-126 start.sh[2358591]: {"timestamp":"2026-01-25T01:29:04.622Z","level":"info","message":"Connecting device 3/12","service":"device-manager","serialNumber":"B051375C222A5334","deviceName":"DCL-Carter","cohort":4}
+Jan 25 01:29:04 ip-10-0-12-126 start.sh[2358591]: {"timestamp":"2026-01-25T01:29:04.622Z","level":"info","message":"Connecting to device","service":"device-manager","deviceId":5,"serial":"B051375C222A5334","cohort":4}
+Jan 25 01:29:04 ip-10-0-12-126 start.sh[2358591]: {"timestamp":"2026-01-25T01:29:04.628Z","level":"info","message":"Connected successfully","service":"device-manager","deviceId":5,"serial":"B051375C222A5334","cohort":4,"durationMs":6}
+Jan 25 01:29:04 ip-10-0-12-126 start.sh[2358591]: {"timestamp":"2026-01-25T01:29:04.633Z","level":"info","message":"Device 3/12 connected","service":"device-manager","serialNumber":"B051375C222A5334","durationMs":6}
+Jan 25 01:29:04 ip-10-0-12-126 start.sh[2358591]: {"timestamp":"2026-01-25T01:29:04.633Z","level":"info","message":"Connecting device 4/12","service":"device-manager","serialNumber":"E747AAFD3EEB003C","deviceName":"DCL-KTR","cohort":4}
+Jan 25 01:29:04 ip-10-0-12-126 start.sh[2358591]: {"timestamp":"2026-01-25T01:29:04.633Z","level":"info","message":"Connecting to device","service":"device-manager","deviceId":6,"serial":"E747AAFD3EEB003C","cohort":4}
+Jan 25 01:29:04 ip-10-0-12-126 start.sh[2358591]: {"timestamp":"2026-01-25T01:29:04.640Z","level":"info","message":"Connected successfully","service":"device-manager","deviceId":6,"serial":"E747AAFD3EEB003C","cohort":4,"durationMs":7}
+Jan 25 01:29:04 ip-10-0-12-126 start.sh[2358591]: {"timestamp":"2026-01-25T01:29:04.644Z","level":"info","message":"Device 4/12 connected","service":"device-manager","serialNumber":"E747AAFD3EEB003C","durationMs":7}
+Jan 25 01:29:04 ip-10-0-12-126 start.sh[2358591]: {"timestamp":"2026-01-25T01:29:04.644Z","level":"info","message":"Connecting device 5/12","service":"device-manager","serialNumber":"96FE5E88572C1995","deviceName":"DCL-Haynes","cohort":1}
+$
