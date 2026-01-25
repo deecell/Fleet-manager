@@ -1,0 +1,22 @@
+$ sudo systemctl status device-manager
+● device-manager.service - Deecell Device Manager
+     Loaded: loaded (/etc/systemd/system/device-manager.service; enabled; preset: enabled)
+     Active: active (running) since Sun 2026-01-25 18:20:39 UTC; 3min 48s ago
+   Main PID: 2377704 (node)
+      Tasks: 25 (limit: 1008)
+     Memory: 15.1M (peak: 56.2M)
+        CPU: 3.402s
+     CGroup: /system.slice/device-manager.service
+             └─2377704 node app/index.js
+
+Jan 25 18:24:09 ip-10-0-12-126 start.sh[2377704]: {"timestamp":"2026-01-25T18:24:09.833Z","level":"info","message":"Truck parked - accumulating time","service":"device-manager","deviceId":4,"voltage2":0.00011825208639493212,"today>
+Jan 25 18:24:09 ip-10-0-12-126 start.sh[2377704]: {"timestamp":"2026-01-25T18:24:09.838Z","level":"info","message":"Truck parked - accumulating time","service":"device-manager","deviceId":10,"voltage2":0.03988436982035637,"todayPa>
+Jan 25 18:24:09 ip-10-0-12-126 start.sh[2377704]: {"timestamp":"2026-01-25T18:24:09.843Z","level":"info","message":"Truck parked - accumulating time","service":"device-manager","deviceId":11,"voltage2":0.04722115397453308,"todayPa>
+Jan 25 18:24:13 ip-10-0-12-126 start.sh[2377704]: {"timestamp":"2026-01-25T18:24:13.850Z","level":"info","message":"Truck parked - accumulating time","service":"device-manager","deviceId":6,"voltage2":12.510658264160156,"todayPark>
+Jan 25 18:24:13 ip-10-0-12-126 start.sh[2377704]: {"timestamp":"2026-01-25T18:24:13.855Z","level":"info","message":"Truck parked - accumulating time","service":"device-manager","deviceId":3,"voltage2":0.04266802966594696,"todayPar>
+Jan 25 18:24:17 ip-10-0-12-126 start.sh[2377704]: {"timestamp":"2026-01-25T18:24:17.864Z","level":"info","message":"Truck parked - accumulating time","service":"device-manager","deviceId":9,"voltage2":0.03755201771855354,"todayPar>
+Jan 25 18:24:19 ip-10-0-12-126 start.sh[2377704]: {"timestamp":"2026-01-25T18:24:19.872Z","level":"info","message":"Truck parked - accumulating time","service":"device-manager","deviceId":12,"voltage2":0.04212513193488121,"todayPa>
+Jan 25 18:24:21 ip-10-0-12-126 start.sh[2377704]: {"timestamp":"2026-01-25T18:24:21.880Z","level":"info","message":"Truck parked - accumulating time","service":"device-manager","deviceId":4,"voltage2":0.00026129151228815317,"today>
+Jan 25 18:24:23 ip-10-0-12-126 start.sh[2377704]: {"timestamp":"2026-01-25T18:24:23.890Z","level":"info","message":"Truck parked - accumulating time","service":"device-manager","deviceId":10,"voltage2":0.039712946861982346,"todayP>
+Jan 25 18:24:23 ip-10-0-12-126 start.sh[2377704]: {"timestamp":"2026-01-25T18:24:23.895Z","level":"info","message":"Truck parked - accumulating time","service":"device-manager","deviceId":11,"voltage2":0.04730544239282608,"todayPa>
+$ 
