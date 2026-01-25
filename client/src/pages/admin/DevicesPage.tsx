@@ -539,17 +539,32 @@ export default function DevicesPage() {
                             )}
                           </TableCell>
                           <TableCell>
-                            <div className={`inline-flex items-center justify-center px-3 py-1.5 rounded-md border text-xs font-normal ${
-                              device.dataStatus === "reporting" 
-                                ? "bg-[rgba(0,201,80,0.14)] border-[#00c950] text-[#00953b]" 
-                                : device.dataStatus === "stale"
-                                ? "bg-[rgba(255,165,0,0.14)] border-[#ffa500] text-[#cc8400]"
-                                : "bg-[#ededed] border-[#c0c0c0] text-[#9e9e9e]"
-                            }`}>
-                              {device.dataStatus === "reporting" ? "Reporting" 
-                                : device.dataStatus === "stale" ? "Stale"
-                                : "No data"}
-                            </div>
+                            {(() => {
+                              const truck = device.truckId ? allTrucks.find(t => t.id === device.truckId) : null;
+                              const isTruckInactive = truck && truck.isActive === false;
+                              
+                              if (isTruckInactive) {
+                                return (
+                                  <div className="inline-flex items-center justify-center px-3 py-1.5 rounded-md border text-xs font-normal bg-[rgba(128,128,128,0.14)] border-[#808080] text-[#666666]">
+                                    INACTIVE
+                                  </div>
+                                );
+                              }
+                              
+                              return (
+                                <div className={`inline-flex items-center justify-center px-3 py-1.5 rounded-md border text-xs font-normal ${
+                                  device.dataStatus === "reporting" 
+                                    ? "bg-[rgba(0,201,80,0.14)] border-[#00c950] text-[#00953b]" 
+                                    : device.dataStatus === "stale"
+                                    ? "bg-[rgba(255,165,0,0.14)] border-[#ffa500] text-[#cc8400]"
+                                    : "bg-[#ededed] border-[#c0c0c0] text-[#9e9e9e]"
+                                }`}>
+                                  {device.dataStatus === "reporting" ? "Reporting" 
+                                    : device.dataStatus === "stale" ? "Stale"
+                                    : "No data"}
+                                </div>
+                              );
+                            })()}
                           </TableCell>
                           <TableCell className="text-muted-foreground text-sm">
                             {device.lastReportedAt ? (
