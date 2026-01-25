@@ -131,6 +131,22 @@ async function getActiveDevicesWithCredentials() {
     });
   }
   
+  // Log devices skipped due to inactive trucks
+  const inactiveTruckResult = await query(`
+    SELECT d.serial_number, d.device_name, t.unit_number as truck_unit
+    FROM power_mon_devices d
+    INNER JOIN trucks t ON t.id = d.truck_id
+    WHERE t.is_active = false
+  `);
+  if (inactiveTruckResult.rows.length > 0) {
+    logger.info('Skipping devices with inactive trucks', { 
+      devices: inactiveTruckResult.rows.map(d => ({
+        name: d.device_name || d.serial_number,
+        truck: d.truck_unit
+      }))
+    });
+  }
+  
   return result.rows;
 }
 
