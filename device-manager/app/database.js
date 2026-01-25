@@ -283,6 +283,7 @@ async function markDeviceDisconnected(deviceId, lastSuccessfulPoll, disconnectRe
     SET 
       status = 'offline', 
       connection_status = CASE 
+        WHEN connection_status = 'unstable' THEN 'unstable'
         WHEN consecutive_disconnects + 1 >= 5 THEN 'unstable' 
         ELSE 'offline' 
       END,
