@@ -6,6 +6,39 @@
 
 ## Latest Updates (January 25, 2026)
 
+### Device Manager: Inactive Truck Exclusion & Crash Prevention (January 25, 2026)
+
+**Status**: ✅ IMPLEMENTED
+
+**Problem**:
+Two devices (DCL-Thibert, DCL-Elite-Hospitality) were crashing the device manager's native PowerMon library. They connect briefly (2-3ms) then disconnect, causing SIGABRT crashes and restart loops.
+
+**Root Cause**:
+The native C++ library crashes when devices rapidly disconnect. The recovery mechanisms were inadvertently resetting device status, causing repeated connection attempts.
+
+**Solution**:
+1. **Inactive Truck Exclusion**: Devices with inactive trucks are now excluded from ALL polling:
+   - Initial device loading
+   - Offline recovery (10-minute cycle)
+   - Unstable recovery (5-minute cycle)
+   
+2. **Status Preservation Fix**: Fixed `markDeviceDisconnected` to preserve 'unstable' status:
+   ```sql
+   WHEN connection_status = 'unstable' THEN 'unstable'
+   ```
+
+3. **Visibility Logging**: Added logging for devices skipped due to inactive trucks.
+
+**How to Disable a Problematic Device**:
+1. In admin dashboard, set the truck as **inactive** (`is_active = false`)
+2. Restart device manager: `sudo systemctl restart device-manager`
+3. Verify in logs: `grep "inactive trucks" /var/log/device-manager.log`
+
+**Files Changed**:
+- `device-manager/app/database.js` - Added inactive truck logging, fixed status preservation
+
+---
+
 ### Device Manager: Automatic Offline Device Recovery (January 25, 2026)
 
 **Status**: ✅ IMPLEMENTED
