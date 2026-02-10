@@ -19,6 +19,16 @@ const config = {
     apiKey: process.env.SIMPRO_API_KEY || '',
   },
 
+  // InHand Networks API configuration (for GPS location polling)
+  inhand: {
+    baseUrl: process.env.INHAND_API_BASE_URL || 'https://na.inhandcloud.com',
+    username: process.env.INHAND_API_USERNAME || '',
+    password: process.env.INHAND_API_PASSWORD || '',
+    clientId: process.env.INHAND_CLIENT_ID || '',
+    clientSecret: process.env.INHAND_CLIENT_SECRET || '',
+    pollIntervalMs: parseInt(process.env.INHAND_POLL_INTERVAL_MS || '120000', 10), // 2 minutes
+  },
+
   // Polling configuration
   polling: {
     intervalMs: parseInt(process.env.POLL_INTERVAL_MS || '10000', 10), // 10 seconds

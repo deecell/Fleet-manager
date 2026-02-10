@@ -18,6 +18,7 @@ const batchWriter = require('./batch-writer');
 const { backfillService } = require('./backfill-service');
 const { startMetricsServer, stopMetricsServer } = require('./metrics');
 const { simPoller } = require('./sim-poller');
+const { inhandPoller } = require('./inhand-poller');
 
 let isShuttingDown = false;
 
@@ -66,6 +67,9 @@ async function main() {
 
     // Start SIM location poller (polls every 60 seconds)
     simPoller.start();
+
+    // Start InHand Networks GPS location poller (polls every 2 minutes)
+    inhandPoller.start();
 
     logger.info('Device Manager started successfully', {
       devices: deviceCount,
@@ -129,6 +133,10 @@ async function shutdown(signal) {
     // 1b. Stop SIM location poller
     simPoller.stop();
     logger.info('SIM poller stopped');
+
+    // 1c. Stop InHand GPS location poller
+    inhandPoller.stop();
+    logger.info('InHand poller stopped');
 
     // 2. Wait for active backfill operations to complete
     await backfillService.stop();
