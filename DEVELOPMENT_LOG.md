@@ -4,7 +4,13 @@
 
 ---
 
-## Latest Updates (January 25, 2026)
+## Latest Updates (January 27, 2026)
+
+### Production Redeploy (January 27, 2026)
+- Triggering fresh deploy to AWS after confirming build passes locally
+- All recent changes: inactive truck exclusion, instant activation/deactivation, admin INACTIVE badge
+
+## Previous Updates (January 25, 2026)
 
 ### Device Manager: Inactive Truck Exclusion & Instant Reactivation (January 25, 2026)
 
