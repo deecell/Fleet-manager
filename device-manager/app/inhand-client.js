@@ -4,8 +4,9 @@
  * OAuth2 authenticated client for InHand Networks' Device Manager platform.
  * Used to fetch GPS location data from InHand routers installed in trucks.
  * 
- * Authentication: OAuth2 with password grant, access tokens valid 1 hour,
- * refresh tokens valid 15 days.
+ * Authentication: OAuth2 password grant. Access tokens valid ~1 hour.
+ * Client ID/secret are optional — many InHand instances work with just
+ * username/password. If client credentials are provided, they're included.
  * 
  * Key endpoint: GET /api/devices?verbose=50 returns all devices with location data.
  */
@@ -26,36 +27,50 @@ class InHandClient {
 
   /**
    * Authenticate with InHand API using password grant
-   * Returns access_token and refresh_token
+   * Tries OAuth2 password grant first, falls back to /api/login if needed
    */
   async authenticate() {
     const { baseUrl, username, password, clientId, clientSecret } = config.inhand;
 
     logger.info('InHand API: Authenticating', { username, baseUrl });
 
-    const body = new URLSearchParams({
+    const params = {
       grant_type: 'password',
       username,
       password,
-      client_id: clientId,
-      client_secret: clientSecret,
-    }).toString();
+    };
 
-    const response = await this._request('POST', '/oauth/token', body, {
+    if (clientId) params.client_id = clientId;
+    if (clientSecret) params.client_secret = clientSecret;
+
+    const body = new URLSearchParams(params).toString();
+
+    let response = await this._request('POST', '/oauth/token', body, {
       'Content-Type': 'application/x-www-form-urlencoded',
     }, true);
+
+    if (!response || !response.access_token) {
+      logger.info('InHand API: OAuth token endpoint failed, trying /api/login');
+      const loginBody = JSON.stringify({ username, password });
+      response = await this._request('POST', '/api/login', loginBody, {
+        'Content-Type': 'application/json',
+      }, true);
+    }
 
     if (!response || !response.access_token) {
       throw new Error('InHand API authentication failed: no access token received');
     }
 
     this.accessToken = response.access_token;
-    this.refreshToken = response.refresh_token;
+    this.refreshToken = response.refresh_token || null;
     this.tokenExpiresAt = Date.now() + (response.expires_in || 3600) * 1000 - 60000;
-    this.refreshTokenExpiresAt = Date.now() + 15 * 24 * 60 * 60 * 1000;
+    if (this.refreshToken) {
+      this.refreshTokenExpiresAt = Date.now() + 15 * 24 * 60 * 60 * 1000;
+    }
 
     logger.info('InHand API: Authenticated successfully', {
       expiresIn: response.expires_in,
+      hasRefreshToken: !!this.refreshToken,
     });
   }
 
@@ -72,12 +87,14 @@ class InHandClient {
 
     logger.debug('InHand API: Refreshing access token');
 
-    const body = new URLSearchParams({
+    const params = {
       grant_type: 'refresh_token',
       refresh_token: this.refreshToken,
-      client_id: clientId,
-      client_secret: clientSecret,
-    }).toString();
+    };
+    if (clientId) params.client_id = clientId;
+    if (clientSecret) params.client_secret = clientSecret;
+
+    const body = new URLSearchParams(params).toString();
 
     try {
       const response = await this._request('POST', '/oauth/token', body, {
@@ -179,7 +196,7 @@ class InHandClient {
             return;
           }
 
-          if (res.statusCode !== 200) {
+          if (res.statusCode < 200 || res.statusCode >= 300) {
             logger.error('InHand API error', {
               statusCode: res.statusCode,
               path,
