@@ -843,7 +843,7 @@ export default function DevicesPage() {
             <DialogHeader>
               <DialogTitle>Assign Device to Truck</DialogTitle>
               <DialogDescription>
-                Link device "{assigningDevice?.serialNumber}" to a truck.
+                Link device "{assigningDevice?.serialNumber || assigningDevice?.deviceName || `Device #${assigningDevice?.id}`}" to a truck.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
