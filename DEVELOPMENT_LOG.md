@@ -4,7 +4,68 @@
 
 ---
 
-## Latest Updates (January 27, 2026)
+## Latest Updates (February 10, 2026)
+
+### InHand Networks GPS Location Poller (February 10, 2026)
+
+**Status**: ✅ IMPLEMENTED (pending deployment)
+
+**Purpose**: 
+Fetch precise GPS coordinates (latitude/longitude) from InHand Networks routers installed in trucks. This provides real-time truck location tracking on the map, complementing the existing SIMPro poller which provides country/network data.
+
+**How It Works**:
+1. Polls InHand API every 2 minutes (`GET /api/devices?verbose=50`)
+2. Each InHand device has a "Phone" field = the SIM's MSISDN number
+3. Matches InHand Phone number to our SIM record's MSISDN (same identifier, e.g., `883190603571828`)
+4. If the SIM is linked to a truck, updates the truck's latitude/longitude
+5. Both SIMPro (country/network) and InHand (GPS lat/long) run in parallel
+
+**Authentication**:
+- OAuth2 password grant using InHand login credentials
+- Access tokens valid ~1 hour, auto-refreshed
+- Client ID/secret optional (tries without them first)
+- Falls back to `/api/login` endpoint if OAuth token endpoint fails
+
+**Device Matching Strategy**:
+- MSISDN (Wireless Logic/SIMPro) = Phone number (InHand Networks)
+- Both use the same SIM identifier (e.g., `883190603571828`)
+- Lookup: InHand device → SIM record (by MSISDN) → Truck (by truck_id)
+
+**No Database Changes Required**:
+- `trucks` table already has `latitude`, `longitude`, `last_location_update` columns
+- `sims` table already has `msisdn` column with index
+
+**Environment Variables** (for EC2 Device Manager):
+- `INHAND_API_USERNAME` - InHand login email
+- `INHAND_API_PASSWORD` - InHand login password
+- `INHAND_API_BASE_URL` - `https://na.inhandcloud.com` (default, North America)
+- `INHAND_CLIENT_ID` - OAuth2 client ID (optional)
+- `INHAND_CLIENT_SECRET` - OAuth2 client secret (optional)
+- `INHAND_POLL_INTERVAL_MS` - Poll interval in ms (default: 120000 = 2 minutes)
+
+**Files Changed**:
+- `device-manager/app/config.js` - Added InHand config section
+- `device-manager/app/inhand-client.js` - New: OAuth2 API client with token management
+- `device-manager/app/inhand-poller.js` - New: GPS location poller with MSISDN matching
+- `device-manager/app/index.js` - Wired InHand poller into startup/shutdown
+- `scripts/migrations/2026-02-10_add_inhand_gps_poller.sh` - Deployment script
+
+**Deployment**:
+1. Deploy code via normal CI/CD (GitHub Actions)
+2. Run `scripts/migrations/2026-02-10_add_inhand_gps_poller.sh` to add env vars on EC2
+3. Restart Device Manager service
+
+### Admin Device Dialog Fix (February 10, 2026)
+
+**Status**: ✅ IMPLEMENTED
+
+- Fixed device assignment dialog to show device name when serial number is empty
+- Displays: serial number → device name → "Device #ID" (in fallback order)
+- Example: Shows "DCL-Kalitta-Hospitality" instead of empty string
+
+---
+
+## Previous Updates (January 27, 2026)
 
 ### Production Redeploy (January 27, 2026)
 - Triggering fresh deploy to AWS after confirming build passes locally

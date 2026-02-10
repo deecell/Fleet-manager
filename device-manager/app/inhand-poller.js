@@ -31,14 +31,9 @@ class InHandPoller {
       return;
     }
 
-    const { username, password, clientId, clientSecret } = config.inhand;
+    const { username, password } = config.inhand;
     if (!username || !password) {
       logger.warn('InHand API credentials not configured, GPS polling disabled');
-      return;
-    }
-
-    if (!clientId || !clientSecret) {
-      logger.warn('InHand API client credentials not configured, GPS polling disabled');
       return;
     }
 

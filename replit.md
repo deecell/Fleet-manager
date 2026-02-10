@@ -53,11 +53,12 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
 - **Security**: Session-based auth, `tenantMiddleware` for active user/org verification.
 
 ### Device Manager
-- **Purpose**: Standalone application for managing device polling and data collection (PowerMon devices, SIM cards).
+- **Purpose**: Standalone application for managing device polling and data collection (PowerMon devices, SIM cards, GPS locations).
 - **Deployment**: Designed for AWS EC2, scales independently from web app.
 - **Architecture**: Cohort-based sharding, staggered polling, batch database writes.
-- **Polling Intervals**: PowerMon (10 seconds), SIM Cards (60 seconds).
+- **Polling Intervals**: PowerMon (10 seconds), SIM Cards (60 seconds), InHand GPS (2 minutes).
 - **Native Addon**: `libpowermon_bin` v1.17 (Thornwave's C++ library).
+- **InHand Networks GPS Poller**: Fetches lat/long from InHand routers via `GET /api/devices?verbose=50`. Matches devices to SIM records using MSISDN = Phone number. Updates truck locations.
 - **Circuit Breaker**: Protects against unstable devices that crash the native library:
   - Database query filters out `connection_status = 'unstable'` devices
   - Rapid disconnect detection (within 5 seconds of connect)
@@ -109,6 +110,7 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
 
 ### External APIs
 - **SIMPro API**: For SIM card location tracking and data usage monitoring.
+- **InHand Networks API**: For GPS location tracking (lat/long) from InHand routers. OAuth2 auth, polls every 2 minutes.
 - **U.S. Energy Information Administration (EIA) API**: For fetching diesel fuel prices.
 - **OpenAI API**: For the AI Fleet Assistant (GPT-4o-mini).
 

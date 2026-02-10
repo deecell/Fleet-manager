@@ -55,10 +55,19 @@ class InHandClient {
       response = await this._request('POST', '/api/login', loginBody, {
         'Content-Type': 'application/json',
       }, true);
+
+      if (response && !response.access_token) {
+        const token = response.token || response.authorization || response.jwt || response.session_token;
+        if (token) {
+          response.access_token = token;
+          logger.info('InHand API: Mapped login response token field to access_token');
+        }
+      }
     }
 
     if (!response || !response.access_token) {
-      throw new Error('InHand API authentication failed: no access token received');
+      const fields = response ? Object.keys(response).join(', ') : 'null response';
+      throw new Error(`InHand API authentication failed: no access token received. Response fields: ${fields}`);
     }
 
     this.accessToken = response.access_token;
