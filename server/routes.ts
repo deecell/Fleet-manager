@@ -96,6 +96,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const rdsStatus = await testConnection();
     res.json({
       status: "ok",
+      version: "2026.01.27",
       rds: rdsStatus ? "connected" : "disconnected",
       s3Bucket: process.env.S3_BUCKET_NAME || "not configured",
     });
