@@ -4132,6 +4132,56 @@ headers: {
 
 ---
 
+## 2026-02-12: InHand Networks GPS Integration - Authentication Fixed & SIM Sync
+
+### What Was Done
+
+**InHand API Authentication Fixed:**
+- Corrected auth endpoint from `/oauth/token` to `POST /oauth2/access_token` (per official API docs)
+- Added MD5 password hashing (password_type=2, the InHand default)
+- Added required fixed client credentials: `client_id=000017953450251798098136`, `client_secret=08E9EC6793345759456CB8BAE52615F3`
+- Updated base URL default to `https://iot.inhandnetworks.com`
+- Authentication now working — successfully fetching 43 devices from InHand API
+
+**Device Matching Strategy Updated:**
+- Discovered `mobileNumber` field on InHand devices (available at verbose=100)
+- Every InHand router has `mobileNumber` = MSISDN of the SIM card inserted
+- Updated poller to use `mobileNumber` as primary matching identifier (matches `sims.msisdn`)
+- Fallback matching via `info.iccid` and `info.imsi` (only populated when SIM is active)
+- Changed API request from verbose=50 to verbose=100 to get `mobileNumber` field
+
+**SIM Inventory Sync:**
+- Fetched all 46 SIMs from SIMPro API — confirmed every InHand router's MSISDN matches a SIMPro SIM
+- Production database only had 2 SIMs — created migration script to upsert all 46
+- Migration script: `scripts/migrations/2026-02-12_sync_simpro_sims.sh`
+
+### Current Status (4 InHand routers online with GPS)
+
+| InHand Device | MSISDN | ICCID | Location | Online |
+|---|---|---|---|---|
+| IR302_21 | 883190603657503 | 89444611503507318085 | 33.70, -116.25 | YES |
+| IR302_32 | 883190603659432 | 89444611503507317871 | 33.84, -118.26 | ONLINE |
+| IR302_40 | 883190603571828 | 89444611503504517861 | 42.23, -83.63 | ONLINE |
+| IR302_44 | 883190603571827 | 89444611503504517903 | 33.95, -118.18 | ONLINE |
+
+### Next Steps
+
+1. Run `scripts/migrations/2026-02-12_sync_simpro_sims.sh` on MacBook to sync all 46 SIMs
+2. Push updated code (inhand-client.js, inhand-poller.js) via GitHub → ECS deploy
+3. Link SIMs to trucks (need to determine which router is on which truck)
+4. Verify GPS locations updating on truck records
+
+### Key Files Modified
+
+| File | Change |
+|------|--------|
+| `device-manager/app/inhand-client.js` | Fixed auth endpoint, MD5 hashing, client credentials, verbose=100 |
+| `device-manager/app/inhand-poller.js` | Use `mobileNumber` field, updated matching strategy |
+| `device-manager/app/config.js` | Default base URL to `iot.inhandnetworks.com` |
+| `scripts/migrations/2026-02-12_sync_simpro_sims.sh` | Sync all 46 SIMPro SIMs to production DB |
+
+---
+
 ## Team Notes
 
 *Add notes here during development for future reference*

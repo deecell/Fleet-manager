@@ -58,7 +58,12 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
 - **Architecture**: Cohort-based sharding, staggered polling, batch database writes.
 - **Polling Intervals**: PowerMon (10 seconds), SIM Cards (60 seconds), InHand GPS (2 minutes).
 - **Native Addon**: `libpowermon_bin` v1.17 (Thornwave's C++ library).
-- **InHand Networks GPS Poller**: Fetches lat/long from InHand routers via `GET /api/devices?verbose=50`. Matches devices to SIM records using MSISDN = Phone number. Updates truck locations.
+- **InHand Networks GPS Poller**: Fetches lat/long from InHand routers via `GET /api/devices?verbose=100`. Matches devices to SIM records using `mobileNumber` (MSISDN). Updates truck locations.
+  - **Auth**: OAuth2 via `POST /oauth2/access_token` with MD5-hashed password (password_type=2)
+  - **Fixed Client Credentials**: client_id=`000017953450251798098136`, client_secret=`08E9EC6793345759456CB8BAE52615F3`
+  - **Base URL**: `https://iot.inhandnetworks.com`
+  - **Matching**: `device.mobileNumber` (MSISDN) → `sims.msisdn` → `sims.truck_id` → update truck lat/long
+  - **Fallback matching**: `info.iccid` → `sims.iccid`, `info.imsi` → `sims.imsi`
 - **Circuit Breaker**: Protects against unstable devices that crash the native library:
   - Database query filters out `connection_status = 'unstable'` devices
   - Rapid disconnect detection (within 5 seconds of connect)

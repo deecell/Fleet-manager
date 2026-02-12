@@ -140,8 +140,11 @@ class InHandClient {
   }
 
   /**
-   * Get all devices with full detail including location data
-   * GET /api/devices?verbose=50 returns location.latitude, location.longitude, location.time
+   * Get all devices with full detail including location and mobileNumber
+   * GET /api/devices?verbose=100 returns all fields:
+   *   - location.latitude, location.longitude, location.time, location.source
+   *   - mobileNumber (MSISDN of the SIM card in the router)
+   *   - info.iccid, info.imsi
    * Response: { cursor, limit, total, result: [...devices] }
    * Paginates through all pages if total > limit
    */
@@ -154,7 +157,7 @@ class InHandClient {
     let total = Infinity;
 
     while (cursor < total) {
-      const response = await this._request('GET', `/api/devices?verbose=50&cursor=${cursor}&limit=${limit}`, null, {
+      const response = await this._request('GET', `/api/devices?verbose=100&cursor=${cursor}&limit=${limit}`, null, {
         'Authorization': `Bearer ${this.accessToken}`,
       });
 

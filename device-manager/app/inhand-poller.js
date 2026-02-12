@@ -2,22 +2,22 @@
  * InHand Networks GPS Location Poller
  * 
  * Polls InHand Networks Device Manager API for GPS location data.
- * Matches InHand devices to our SIM records using identifiers from the
- * device's info object (ICCID, IMSI, IMEI) or the device name/serialNumber.
+ * Matches InHand devices to our SIM records using the device's mobileNumber
+ * field (MSISDN) as the primary identifier, with ICCID/IMSI as fallbacks.
  * 
- * The primary matching strategy is:
- * 1. info.iccid -> sims.iccid
- * 2. info.imsi -> sims.imsi  
- * 3. Device name/serialNumber -> sims.msisdn (phone number)
+ * Matching strategy (in priority order):
+ * 1. device.mobileNumber -> sims.msisdn (primary — every router has this)
+ * 2. info.iccid -> sims.iccid (fallback — only populated when SIM is active)
+ * 3. info.imsi -> sims.imsi (fallback — only populated when SIM is active)
  * 
  * When a match is found and the SIM is linked to a truck, update the truck's lat/long.
  * 
  * Runs on a configurable interval (default 2 minutes).
  * 
  * Flow:
- * 1. Fetch all devices from InHand API (GET /api/devices?verbose=50)
- * 2. For each device, extract identifiers and location data
- * 3. Match identifiers to SIM records in our database
+ * 1. Fetch all devices from InHand API (GET /api/devices?verbose=100)
+ * 2. For each device, extract mobileNumber (MSISDN) and location data
+ * 3. Match MSISDN to SIM records in our database
  * 4. If SIM is linked to a truck, update the truck's latitude/longitude
  */
 
@@ -191,21 +191,21 @@ class InHandPoller {
 
   /**
    * Extract all possible identifiers from an InHand device object
-   * Primary: info.iccid, info.imsi (from SIM card in the router)
-   * Fallback: device name or serialNumber (may contain phone number)
+   * Primary: device.mobileNumber (MSISDN — always present on every router)
+   * Fallback: info.iccid, info.imsi (only populated when SIM is actively connected)
    */
   _extractIdentifiers(device) {
     const info = device.info || {};
     return {
+      msisdn: device.mobileNumber || null,
       iccid: info.iccid || null,
       imsi: info.imsi || null,
-      msisdn: device.phone || device.phone_num || device.phone_number || null,
     };
   }
 
   /**
    * Extract location data from InHand device object
-   * With verbose=50, location is nested: device.location.{latitude, longitude, time, source}
+   * With verbose>=50, location is nested: device.location.{latitude, longitude, time, source}
    */
   _extractLocation(device) {
     const loc = device.location;
