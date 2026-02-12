@@ -2,15 +2,22 @@
  * InHand Networks GPS Location Poller
  * 
  * Polls InHand Networks Device Manager API for GPS location data.
- * Matches InHand devices to our SIM records using the Phone number (MSISDN)
- * as the common identifier, then updates the linked truck's lat/long.
+ * Matches InHand devices to our SIM records using identifiers from the
+ * device's info object (ICCID, IMSI, IMEI) or the device name/serialNumber.
+ * 
+ * The primary matching strategy is:
+ * 1. info.iccid -> sims.iccid
+ * 2. info.imsi -> sims.imsi  
+ * 3. Device name/serialNumber -> sims.msisdn (phone number)
+ * 
+ * When a match is found and the SIM is linked to a truck, update the truck's lat/long.
  * 
  * Runs on a configurable interval (default 2 minutes).
  * 
  * Flow:
  * 1. Fetch all devices from InHand API (GET /api/devices?verbose=50)
- * 2. For each device, extract Phone number and location data
- * 3. Match Phone number to SIM record's MSISDN in our database
+ * 2. For each device, extract identifiers and location data
+ * 3. Match identifiers to SIM records in our database
  * 4. If SIM is linked to a truck, update the truck's latitude/longitude
  */
 
@@ -79,40 +86,55 @@ class InHandPoller {
 
       const devicesWithLocation = [];
       for (const device of devices) {
-        const phoneNumber = this._extractPhoneNumber(device);
         const location = this._extractLocation(device);
+        const identifiers = this._extractIdentifiers(device);
 
-        if (phoneNumber && location) {
+        if (location && (identifiers.iccid || identifiers.imsi || identifiers.msisdn)) {
           devicesWithLocation.push({
-            phoneNumber,
+            ...identifiers,
             latitude: location.latitude,
             longitude: location.longitude,
             locationTime: location.time,
             locationSource: location.source,
-            deviceName: device.device_name || device.name || null,
-            deviceSn: device.sn || device.serial_number || null,
+            deviceName: device.name || null,
+            deviceSn: device.serialNumber || null,
             online: device.online !== undefined ? device.online : null,
           });
         }
       }
 
       if (devicesWithLocation.length === 0) {
-        logger.debug('InHand API: No devices with valid phone number + location');
+        logger.info('InHand API: No devices with valid identifiers + location', {
+          totalDevices: devices.length,
+          devicesWithoutLocation: devices.filter(d => !this._extractLocation(d)).length,
+        });
         return;
       }
 
-      const phoneNumbers = devicesWithLocation.map(d => d.phoneNumber);
+      const iccids = devicesWithLocation.map(d => d.iccid).filter(Boolean);
+      const imsis = devicesWithLocation.map(d => d.imsi).filter(Boolean);
+      const msisdns = devicesWithLocation.map(d => d.msisdn).filter(Boolean);
+
       const simsResult = await pool.query(
-        `SELECT s.id, s.msisdn, s.truck_id, s.organization_id, t.truck_number
+        `SELECT s.id, s.msisdn, s.iccid, s.imsi, s.truck_id, s.organization_id, t.truck_number
          FROM sims s
          LEFT JOIN trucks t ON t.id = s.truck_id
-         WHERE s.msisdn = ANY($1) AND s.is_active = true`,
-        [phoneNumbers]
+         WHERE s.is_active = true
+           AND (
+             (s.iccid = ANY($1) AND s.iccid IS NOT NULL)
+             OR (s.imsi = ANY($2) AND s.imsi IS NOT NULL)
+             OR (s.msisdn = ANY($3) AND s.msisdn IS NOT NULL)
+           )`,
+        [iccids, imsis, msisdns]
       );
 
-      const msisdnToSim = new Map();
+      const simsByIccid = new Map();
+      const simsByImsi = new Map();
+      const simsByMsisdn = new Map();
       for (const sim of simsResult.rows) {
-        msisdnToSim.set(sim.msisdn, sim);
+        if (sim.iccid) simsByIccid.set(sim.iccid, sim);
+        if (sim.imsi) simsByImsi.set(sim.imsi, sim);
+        if (sim.msisdn) simsByMsisdn.set(sim.msisdn, sim);
       }
 
       let trucksUpdated = 0;
@@ -120,9 +142,17 @@ class InHandPoller {
       let unmatched = [];
 
       for (const device of devicesWithLocation) {
-        const sim = msisdnToSim.get(device.phoneNumber);
+        const sim = (device.iccid && simsByIccid.get(device.iccid))
+          || (device.imsi && simsByImsi.get(device.imsi))
+          || (device.msisdn && simsByMsisdn.get(device.msisdn));
+
         if (!sim) {
-          unmatched.push(device.phoneNumber);
+          unmatched.push({
+            name: device.deviceName,
+            iccid: device.iccid,
+            imsi: device.imsi,
+            msisdn: device.msisdn,
+          });
           continue;
         }
 
@@ -148,7 +178,7 @@ class InHandPoller {
         devicesWithLocation: devicesWithLocation.length,
         simsMatched,
         trucksUpdated,
-        unmatchedPhones: unmatched.length > 0 ? unmatched : undefined,
+        unmatchedDevices: unmatched.length > 0 ? unmatched : undefined,
         durationMs: duration,
       });
 
@@ -160,14 +190,17 @@ class InHandPoller {
   }
 
   /**
-   * Extract phone number (MSISDN) from InHand device object
-   * InHand calls this "phone" or "phone_num" depending on API version
+   * Extract all possible identifiers from an InHand device object
+   * Primary: info.iccid, info.imsi (from SIM card in the router)
+   * Fallback: device name or serialNumber (may contain phone number)
    */
-  _extractPhoneNumber(device) {
-    const phone = device.phone || device.phone_num || device.phone_number || null;
-    if (!phone) return null;
-    const cleaned = String(phone).replace(/\D/g, '');
-    return cleaned || null;
+  _extractIdentifiers(device) {
+    const info = device.info || {};
+    return {
+      iccid: info.iccid || null,
+      imsi: info.imsi || null,
+      msisdn: device.phone || device.phone_num || device.phone_number || null,
+    };
   }
 
   /**

@@ -21,7 +21,7 @@ const config = {
 
   // InHand Networks API configuration (for GPS location polling)
   inhand: {
-    baseUrl: process.env.INHAND_API_BASE_URL || 'https://na.inhandcloud.com',
+    baseUrl: process.env.INHAND_API_BASE_URL || 'https://iot.inhandnetworks.com',
     username: process.env.INHAND_API_USERNAME || '',
     password: process.env.INHAND_API_PASSWORD || '',
     clientId: process.env.INHAND_CLIENT_ID || '',

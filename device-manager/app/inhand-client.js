@@ -4,18 +4,24 @@
  * OAuth2 authenticated client for InHand Networks' Device Manager platform.
  * Used to fetch GPS location data from InHand routers installed in trucks.
  * 
- * Authentication: OAuth2 password grant. Access tokens valid ~1 hour.
- * Client ID/secret are optional — many InHand instances work with just
- * username/password. If client credentials are provided, they're included.
+ * Authentication: OAuth2 password grant via POST /oauth2/access_token
+ * - Password must be MD5-hashed (password_type=2, the default)
+ * - Fixed client credentials are required
+ * - Access tokens valid ~1 hour, refresh tokens valid ~15 days
  * 
  * Key endpoint: GET /api/devices?verbose=50 returns all devices with location data.
+ * Response format: { cursor, limit, total, result: [...devices] }
  */
 
 const https = require('https');
 const http = require('http');
+const crypto = require('crypto');
 const { URL } = require('url');
 const { config } = require('./config');
 const logger = require('./logger');
+
+const INHAND_CLIENT_ID = '000017953450251798098136';
+const INHAND_CLIENT_SECRET = '08E9EC6793345759456CB8BAE52615F3';
 
 class InHandClient {
   constructor() {
@@ -26,48 +32,41 @@ class InHandClient {
   }
 
   /**
-   * Authenticate with InHand API using password grant
-   * Tries OAuth2 password grant first, falls back to /api/login if needed
+   * MD5 hash the password as required by InHand API (password_type=2)
+   */
+  _md5(str) {
+    return crypto.createHash('md5').update(str).digest('hex');
+  }
+
+  /**
+   * Authenticate with InHand API using OAuth2 password grant
+   * POST /oauth2/access_token with form-urlencoded body
    */
   async authenticate() {
-    const { baseUrl, username, password, clientId, clientSecret } = config.inhand;
+    const { baseUrl, username, password } = config.inhand;
 
     logger.info('InHand API: Authenticating', { username, baseUrl });
+
+    const md5Password = this._md5(password);
 
     const params = {
       grant_type: 'password',
       username,
-      password,
+      password: md5Password,
+      password_type: '2',
+      client_id: INHAND_CLIENT_ID,
+      client_secret: INHAND_CLIENT_SECRET,
     };
-
-    if (clientId) params.client_id = clientId;
-    if (clientSecret) params.client_secret = clientSecret;
 
     const body = new URLSearchParams(params).toString();
 
-    let response = await this._request('POST', '/oauth/token', body, {
-      'Content-Type': 'application/x-www-form-urlencoded',
+    const response = await this._request('POST', '/oauth2/access_token', body, {
+      'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
     }, true);
 
     if (!response || !response.access_token) {
-      logger.info('InHand API: OAuth token endpoint failed, trying /api/login');
-      const loginBody = JSON.stringify({ username, password });
-      response = await this._request('POST', '/api/login', loginBody, {
-        'Content-Type': 'application/json',
-      }, true);
-
-      if (response && !response.access_token) {
-        const token = response.token || response.authorization || response.jwt || response.session_token;
-        if (token) {
-          response.access_token = token;
-          logger.info('InHand API: Mapped login response token field to access_token');
-        }
-      }
-    }
-
-    if (!response || !response.access_token) {
-      const fields = response ? Object.keys(response).join(', ') : 'null response';
-      throw new Error(`InHand API authentication failed: no access token received. Response fields: ${fields}`);
+      const fields = response ? JSON.stringify(response).substring(0, 500) : 'null response';
+      throw new Error(`InHand API authentication failed: no access token received. Response: ${fields}`);
     }
 
     this.accessToken = response.access_token;
@@ -85,6 +84,7 @@ class InHandClient {
 
   /**
    * Refresh the access token using the refresh token
+   * POST /oauth2/access_token with grant_type=refresh_token
    */
   async refreshAccessToken() {
     if (!this.refreshToken) {
@@ -92,22 +92,20 @@ class InHandClient {
       return this.authenticate();
     }
 
-    const { clientId, clientSecret } = config.inhand;
-
     logger.debug('InHand API: Refreshing access token');
 
     const params = {
       grant_type: 'refresh_token',
       refresh_token: this.refreshToken,
+      client_id: INHAND_CLIENT_ID,
+      client_secret: INHAND_CLIENT_SECRET,
     };
-    if (clientId) params.client_id = clientId;
-    if (clientSecret) params.client_secret = clientSecret;
 
     const body = new URLSearchParams(params).toString();
 
     try {
-      const response = await this._request('POST', '/oauth/token', body, {
-        'Content-Type': 'application/x-www-form-urlencoded',
+      const response = await this._request('POST', '/oauth2/access_token', body, {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
       }, true);
 
       if (!response || !response.access_token) {
@@ -143,24 +141,40 @@ class InHandClient {
 
   /**
    * Get all devices with full detail including location data
-   * verbose=50 returns location.latitude, location.longitude, location.time, location.source
+   * GET /api/devices?verbose=50 returns location.latitude, location.longitude, location.time
+   * Response: { cursor, limit, total, result: [...devices] }
+   * Paginates through all pages if total > limit
    */
   async getDevicesWithLocation() {
     await this.ensureAuthenticated();
 
-    const response = await this._request('GET', '/api/devices?verbose=50', null, {
-      'Authorization': `Bearer ${this.accessToken}`,
-    });
+    let allDevices = [];
+    let cursor = 0;
+    const limit = 100;
+    let total = Infinity;
 
-    if (!response) {
-      logger.error('InHand API: No response from devices endpoint');
-      return [];
+    while (cursor < total) {
+      const response = await this._request('GET', `/api/devices?verbose=50&cursor=${cursor}&limit=${limit}`, null, {
+        'Authorization': `Bearer ${this.accessToken}`,
+      });
+
+      if (!response) {
+        logger.error('InHand API: No response from devices endpoint');
+        break;
+      }
+
+      const devices = response.result || [];
+      allDevices = allDevices.concat(devices);
+
+      total = response.total || 0;
+      const pageLimit = response.limit || limit;
+      cursor += pageLimit;
+
+      if (devices.length === 0) break;
     }
 
-    const devices = Array.isArray(response) ? response : (response.data || response.devices || []);
-
-    logger.debug('InHand API: Got devices', { count: devices.length });
-    return devices;
+    logger.debug('InHand API: Got devices', { count: allDevices.length, total });
+    return allDevices;
   }
 
   /**
