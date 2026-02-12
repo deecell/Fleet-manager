@@ -9,6 +9,7 @@ import {
   insertAlertSchema,
 } from "@shared/schema";
 import { z } from "zod";
+import { reverseGeocode, hasCoordinatesChanged } from "../services/geocoding";
 
 const updateLocationSchema = z.object({
   latitude: z.number().min(-90).max(90),
@@ -198,8 +199,19 @@ router.patch("/trucks/:id/location", tenantMiddleware, async (req: Request, res:
     const id = parseInt(req.params.id, 10);
     const data = updateLocationSchema.parse(req.body);
     
-    await storage.updateTruckLocation(req.organizationId!, id, data.latitude, data.longitude);
-    res.json({ success: true });
+    const existing = await storage.getTruck(req.organizationId!, id);
+    const moved = !existing || hasCoordinatesChanged(
+      existing.latitude, existing.longitude,
+      data.latitude, data.longitude
+    );
+    
+    let locationDescription: string | null = existing?.locationDescription ?? null;
+    if (moved || !locationDescription) {
+      locationDescription = await reverseGeocode(data.latitude, data.longitude);
+    }
+    
+    await storage.updateTruckLocation(req.organizationId!, id, data.latitude, data.longitude, locationDescription);
+    res.json({ success: true, locationDescription });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: "Validation failed", details: error.errors });
@@ -858,6 +870,32 @@ router.get("/fleet-stats", tenantMiddleware, async (req: Request, res: Response)
   } catch (error) {
     console.error("Error calculating fleet stats:", error);
     res.status(500).json({ error: "Failed to calculate fleet stats" });
+  }
+});
+
+router.post("/trucks/geocode", tenantMiddleware, async (req: Request, res: Response) => {
+  try {
+    const allTrucks = await storage.listTrucks(req.organizationId!);
+    const trucksToGeocode = allTrucks.filter(t => t.latitude && t.longitude && !t.locationDescription);
+    
+    let geocoded = 0;
+    for (const truck of trucksToGeocode) {
+      const description = await reverseGeocode(truck.latitude!, truck.longitude!);
+      if (description) {
+        await storage.updateTruckLocation(
+          req.organizationId!, truck.id,
+          truck.latitude!, truck.longitude!,
+          description
+        );
+        geocoded++;
+      }
+      await new Promise(resolve => setTimeout(resolve, 1100));
+    }
+    
+    res.json({ success: true, geocoded, total: trucksToGeocode.length });
+  } catch (error) {
+    console.error("Error geocoding trucks:", error);
+    res.status(500).json({ error: "Failed to geocode trucks" });
   }
 });
 

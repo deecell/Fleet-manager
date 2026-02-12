@@ -84,6 +84,7 @@ export const trucks = pgTable("trucks", {
   status: text("status").default("in-service"),
   latitude: real("latitude"),
   longitude: real("longitude"),
+  locationDescription: text("location_description"),
   country: text("country"),
   lastLocationUpdate: timestamp("last_location_update"),
   isActive: boolean("is_active").default(true),

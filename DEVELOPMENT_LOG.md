@@ -4182,6 +4182,58 @@ headers: {
 
 ---
 
+---
+
+## February 12, 2026 - Reverse Geocoding for Truck Locations
+
+### Summary
+Added reverse geocoding to convert raw GPS coordinates (e.g., "33.9500° N, 118.1800° W") into human-readable location descriptions (e.g., "South Gate, CA"). Uses OpenStreetMap's free Nominatim API.
+
+### What Changed
+
+**Schema**: Added `location_description` column to `trucks` table.
+
+**Backend** (`server/services/geocoding.ts`):
+- Reverse geocoding service with in-memory cache (24h TTL, 500 entries)
+- Built-in rate limiting (1 request/sec to respect Nominatim terms)
+- US state abbreviation mapping (California → CA)
+- Coordinate change detection (1km threshold) to avoid redundant API calls
+
+**Fleet API** (`server/api/fleet-routes.ts`):
+- `PATCH /trucks/:id/location` now geocodes and stores location description
+- `POST /trucks/geocode` bulk endpoint to geocode all trucks missing descriptions
+- Only re-geocodes when truck has moved >1km from last known position
+
+**Device Manager** (`device-manager/app/inhand-poller.js`):
+- InHand GPS poller now geocodes when updating truck coordinates
+- Checks if coordinates have actually changed before making API call
+- Rate-limited and cached to prevent Nominatim abuse
+
+**Frontend** (`client/src/lib/api.ts`):
+- `formatLocation()` now prefers `locationDescription` from DB over raw coordinates
+- FleetMap tooltip and FleetTable automatically display city names
+
+### Production Migration
+
+Run `scripts/migrations/2026-02-12_add_location_description.sh` to add the column to production.
+
+After deploying the updated InHand poller, truck locations will automatically get geocoded on next GPS update. Use the `POST /trucks/geocode` endpoint to backfill existing trucks.
+
+### Key Files Modified
+
+| File | Change |
+|------|--------|
+| `shared/schema.ts` | Added `locationDescription` to trucks table |
+| `server/services/geocoding.ts` | New reverse geocoding service with cache & rate limiting |
+| `server/storage.ts` | Updated `updateTruckLocation` interface |
+| `server/db-storage.ts` | Updated `updateTruckLocation` implementation |
+| `server/api/fleet-routes.ts` | Geocode on location update + bulk geocode endpoint |
+| `device-manager/app/inhand-poller.js` | Geocode on GPS update with change detection |
+| `client/src/lib/api.ts` | Display location descriptions |
+| `scripts/migrations/2026-02-12_add_location_description.sh` | Production migration |
+
+---
+
 ## Team Notes
 
 *Add notes here during development for future reference*

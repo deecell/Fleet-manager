@@ -49,7 +49,7 @@ export interface IStorage {
   listTrucks(organizationId: number, fleetId?: number, status?: string): Promise<Truck[]>;
   countTrucksByStatus(organizationId: number, fleetId?: number): Promise<{ status: string; count: number }[]>;
   updateTruck(organizationId: number, id: number, data: Partial<InsertTruck>): Promise<Truck | undefined>;
-  updateTruckLocation(organizationId: number, id: number, latitude: number, longitude: number): Promise<void>;
+  updateTruckLocation(organizationId: number, id: number, latitude: number, longitude: number, locationDescription?: string | null): Promise<void>;
   deleteTruck(organizationId: number, id: number): Promise<boolean>;
 
   // Power Mon Devices (tenant-scoped)

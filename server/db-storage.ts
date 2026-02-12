@@ -193,9 +193,13 @@ export class DbStorage {
     return truck;
   }
 
-  async updateTruckLocation(organizationId: number, id: number, latitude: number, longitude: number): Promise<void> {
+  async updateTruckLocation(organizationId: number, id: number, latitude: number, longitude: number, locationDescription?: string | null): Promise<void> {
+    const updateData: Record<string, any> = { latitude, longitude, lastLocationUpdate: new Date(), updatedAt: new Date() };
+    if (locationDescription !== undefined) {
+      updateData.locationDescription = locationDescription;
+    }
     await db.update(trucks)
-      .set({ latitude, longitude, lastLocationUpdate: new Date(), updatedAt: new Date() })
+      .set(updateData)
       .where(and(eq(trucks.organizationId, organizationId), eq(trucks.id, id)));
   }
 

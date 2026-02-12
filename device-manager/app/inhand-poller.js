@@ -26,6 +26,84 @@ const logger = require('./logger');
 const db = require('./database');
 const { inhandClient } = require('./inhand-client');
 
+const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/reverse';
+
+const US_STATE_ABBRS = {
+  'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR',
+  'California': 'CA', 'Colorado': 'CO', 'Connecticut': 'CT', 'Delaware': 'DE',
+  'Florida': 'FL', 'Georgia': 'GA', 'Hawaii': 'HI', 'Idaho': 'ID',
+  'Illinois': 'IL', 'Indiana': 'IN', 'Iowa': 'IA', 'Kansas': 'KS',
+  'Kentucky': 'KY', 'Louisiana': 'LA', 'Maine': 'ME', 'Maryland': 'MD',
+  'Massachusetts': 'MA', 'Michigan': 'MI', 'Minnesota': 'MN', 'Mississippi': 'MS',
+  'Missouri': 'MO', 'Montana': 'MT', 'Nebraska': 'NE', 'Nevada': 'NV',
+  'New Hampshire': 'NH', 'New Jersey': 'NJ', 'New Mexico': 'NM', 'New York': 'NY',
+  'North Carolina': 'NC', 'North Dakota': 'ND', 'Ohio': 'OH', 'Oklahoma': 'OK',
+  'Oregon': 'OR', 'Pennsylvania': 'PA', 'Rhode Island': 'RI', 'South Carolina': 'SC',
+  'South Dakota': 'SD', 'Tennessee': 'TN', 'Texas': 'TX', 'Utah': 'UT',
+  'Vermont': 'VT', 'Virginia': 'VA', 'Washington': 'WA', 'West Virginia': 'WV',
+  'Wisconsin': 'WI', 'Wyoming': 'WY', 'District of Columbia': 'DC',
+};
+
+let lastGeoRequestTime = 0;
+const geocodeCache = new Map();
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
+function geoCacheKey(lat, lng) {
+  return `${lat.toFixed(3)},${lng.toFixed(3)}`;
+}
+
+function hasCoordsMoved(oldLat, oldLng, newLat, newLng, thresholdKm = 1) {
+  if (oldLat == null || oldLng == null) return true;
+  const R = 6371;
+  const dLat = (newLat - oldLat) * Math.PI / 180;
+  const dLng = (newLng - oldLng) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 +
+    Math.cos(oldLat * Math.PI / 180) * Math.cos(newLat * Math.PI / 180) *
+    Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)) >= thresholdKm;
+}
+
+async function reverseGeocode(lat, lng) {
+  const key = geoCacheKey(lat, lng);
+  const cached = geocodeCache.get(key);
+  if (cached && (Date.now() - cached.ts) < CACHE_TTL_MS) {
+    return cached.desc;
+  }
+
+  try {
+    const now = Date.now();
+    const wait = 1100 - (now - lastGeoRequestTime);
+    if (wait > 0) await new Promise(r => setTimeout(r, wait));
+    lastGeoRequestTime = Date.now();
+
+    const response = await fetch(
+      `${NOMINATIM_URL}?lat=${lat}&lon=${lng}&format=json&zoom=10&addressdetails=1`,
+      { headers: { 'User-Agent': 'DeecellFleetDashboard/1.0 (admin@deecell.com)' } }
+    );
+    if (!response.ok) return null;
+    const data = await response.json();
+    if (!data.address) return null;
+    const addr = data.address;
+    const city = addr.city || addr.town || addr.village || addr.hamlet || addr.suburb || addr.neighbourhood || addr.county;
+    const state = addr.state;
+    let desc = null;
+    if (city && state) {
+      const stateAbbr = US_STATE_ABBRS[state] || state;
+      desc = `${city}, ${stateAbbr}`;
+    } else {
+      desc = city || state || null;
+    }
+    if (desc) {
+      if (geocodeCache.size >= 500) geocodeCache.delete(geocodeCache.keys().next().value);
+      geocodeCache.set(key, { desc, ts: Date.now() });
+    }
+    return desc;
+  } catch (error) {
+    logger.warn('Reverse geocoding failed', { lat, lng, error: error.message });
+    return null;
+  }
+}
+
 class InHandPoller {
   constructor() {
     this.intervalId = null;
@@ -159,14 +237,30 @@ class InHandPoller {
         simsMatched++;
 
         if (sim.truck_id) {
+          const truckResult = await pool.query(
+            'SELECT latitude, longitude, location_description FROM trucks WHERE id = $1',
+            [sim.truck_id]
+          );
+          const currentTruck = truckResult.rows[0];
+          const moved = hasCoordsMoved(
+            currentTruck?.latitude, currentTruck?.longitude,
+            device.latitude, device.longitude
+          );
+          
+          let locationDesc = currentTruck?.location_description || null;
+          if (moved || !locationDesc) {
+            locationDesc = await reverseGeocode(device.latitude, device.longitude);
+          }
+
           await pool.query(
             `UPDATE trucks SET
               latitude = $1,
               longitude = $2,
+              location_description = COALESCE($4, location_description),
               last_location_update = NOW(),
               updated_at = NOW()
             WHERE id = $3`,
-            [device.latitude, device.longitude, sim.truck_id]
+            [device.latitude, device.longitude, sim.truck_id, locationDesc]
           );
           trucksUpdated++;
         }
