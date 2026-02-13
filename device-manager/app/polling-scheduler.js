@@ -93,9 +93,10 @@ class PollingScheduler {
     this.stats.lastTickTime = new Date();
     this.stats.ticksProcessed++;
 
-    // At the start of each polling cycle, check for newly activated devices
-    // This catches trucks that were just set to active without waiting for the 5-min refresh
+    // At the start of each polling cycle, log a visible banner and check for newly activated devices
     if (this.currentTick === 0) {
+      logger.banner('=== New Polling Cycle ================================================');
+
       try {
         await connectionPool.checkForNewDevices();
       } catch (err) {

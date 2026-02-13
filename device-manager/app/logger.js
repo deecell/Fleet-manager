@@ -76,6 +76,15 @@ function debug(message, context = {}) {
 }
 
 /**
+ * Log a green banner message (always shown, regardless of log level)
+ */
+function banner(message) {
+  const green = '\x1b[32m';
+  const reset = '\x1b[0m';
+  console.log(`${green}${message}${reset}`);
+}
+
+/**
  * Create a child logger with preset context
  */
 function child(defaultContext) {
@@ -92,5 +101,6 @@ module.exports = {
   warn,
   info,
   debug,
+  banner,
   child,
 };
