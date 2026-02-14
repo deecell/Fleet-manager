@@ -139,12 +139,14 @@ async function getActiveDevicesWithCredentials() {
     WHERE t.is_active = false
   `);
   if (inactiveTruckResult.rows.length > 0) {
-    logger.info('Skipping devices with inactive trucks', { 
-      devices: inactiveTruckResult.rows.map(d => ({
-        name: d.device_name || d.serial_number,
-        truck: d.truck_number
-      }))
-    });
+    const yellow = '\x1b[33m';
+    const reset = '\x1b[0m';
+    const deviceList = inactiveTruckResult.rows.map(d => ({
+      name: d.device_name || d.serial_number,
+      truck: d.truck_number
+    }));
+    const devicesJson = JSON.stringify(deviceList);
+    console.log(`{"timestamp":"${new Date().toISOString()}","level":"info","message":"${yellow}Skipping devices with inactive trucks${reset}","service":"device-manager","devices":${yellow}[${reset}${devicesJson.slice(1, -1)}${yellow}]${reset}}`);
   }
   
   return result.rows;
