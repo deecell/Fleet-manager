@@ -721,13 +721,22 @@ async function upsertDeviceSnapshot(snapshot) {
   
   // Log parked status at info level for visibility
   if (isCurrentlyParked) {
-    logger.info('Truck parked - accumulating time', { 
-      deviceId: snapshot.deviceId, 
-      voltage2: snapshot.voltage2,
-      todayParkedMinutes: Math.round(todayParkedMinutes),
-      monthParkedMinutes: Math.round(monthParkedMinutes),
-      completedDaysMinutes: Math.round(baseMonthMinutes),
-      parkedSince: parkedSince
+    let truckLabel = `device#${snapshot.deviceId}`;
+    try {
+      const truckResult = await query(
+        'SELECT d.device_name, t.truck_number FROM power_mon_devices d LEFT JOIN trucks t ON t.id = d.truck_id WHERE d.id = $1',
+        [snapshot.deviceId]
+      );
+      if (truckResult.rows.length > 0) {
+        const r = truckResult.rows[0];
+        truckLabel = r.device_name ? `${r.device_name} (${r.truck_number})` : r.truck_number;
+      }
+    } catch (e) {}
+    logger.info(`${truckLabel} parked - accumulating time`, { 
+      voltage2: snapshot.voltage2?.toFixed(4),
+      todayMin: Math.round(todayParkedMinutes),
+      monthMin: Math.round(monthParkedMinutes),
+      since: parkedSince ? parkedSince.toISOString().replace('T', ' ').replace(/\.\d+Z/, '') : 'n/a'
     });
   }
   
