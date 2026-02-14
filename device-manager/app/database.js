@@ -140,11 +140,12 @@ async function getActiveDevicesWithCredentials() {
   `);
   if (inactiveTruckResult.rows.length > 0) {
     const yellow = '\x1b[33m';
+    const dim = '\x1b[2m';
     const reset = '\x1b[0m';
-    const deviceNames = inactiveTruckResult.rows.map(d => 
-      `${d.device_name || d.serial_number} (${d.truck_number})`
-    ).join(', ');
-    console.log(`${yellow}Skipping devices with inactive trucks: [${deviceNames}]${reset}`);
+    console.log(`${yellow}Skipping ${inactiveTruckResult.rows.length} devices with inactive trucks:${reset}`);
+    for (const d of inactiveTruckResult.rows) {
+      console.log(`${dim}  - ${d.device_name || d.serial_number} (${d.truck_number})${reset}`);
+    }
   }
   
   return result.rows;
