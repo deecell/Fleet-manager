@@ -9,6 +9,7 @@ const { config } = require('./config');
 const logger = require('./logger');
 const { connectionPool } = require('./connection-pool');
 const batchWriter = require('./batch-writer');
+const db = require('./database');
 
 class PollingScheduler {
   constructor() {
@@ -180,23 +181,28 @@ class PollingScheduler {
 
   /**
    * Poll a single device
+   * 
+   * Records the active device before polling so that if the native library
+   * crashes (calls terminate()), the next startup can attribute the crash
+   * to this specific device instead of marking all devices as offline.
    */
   async pollDevice(conn) {
     try {
+      db.recordActiveDevice(conn.deviceId, conn.deviceName);
+      
       const measurement = await conn.poll();
       
+      db.recordActiveDevice(null);
+      
       if (measurement) {
-        // Add to batch writer queue
         batchWriter.enqueue(measurement);
-        
-        // Update snapshot for dashboard
         batchWriter.enqueueSnapshot(measurement);
-        
         return measurement;
       }
       
       return null;
     } catch (err) {
+      db.recordActiveDevice(null);
       logger.error('Poll failed', { 
         deviceId: conn.deviceId, 
         error: err.message 

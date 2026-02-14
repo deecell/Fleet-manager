@@ -41,6 +41,24 @@ async function main() {
     db.initDatabase();
     logger.info('Database initialized');
 
+    // Check for crash attribution from previous run
+    // If the process crashed while polling a specific device, only that device
+    // gets marked as unstable (not all devices)
+    const crashData = db.readCrashAttribution();
+    if (crashData) {
+      logger.warn('=== CRASH ATTRIBUTION: Previous crash detected ===', {
+        deviceId: crashData.deviceId,
+        deviceName: crashData.deviceName,
+        crashTime: crashData.timestamp
+      });
+      await db.markCrashCulprit(crashData.deviceId);
+    }
+
+    // Startup recovery sweep: reset devices stuck in offline/unstable state
+    // This handles the case where a previous crash left multiple devices
+    // incorrectly marked as offline (except the actual crash culprit above)
+    await db.startupRecoverySweep();
+
     // Initialize connection pool with devices from database
     const deviceCount = await connectionPool.initialize();
     

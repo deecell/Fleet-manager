@@ -491,6 +491,20 @@ router.post("/devices/:id/unassign", adminMiddleware, async (req: Request, res: 
   }
 });
 
+router.post("/devices/:id/reset-status", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const result = await storage.resetDeviceConnectionStatus(id);
+    if (!result) {
+      return res.status(404).json({ error: "Device not found" });
+    }
+    res.json({ success: true, device: result });
+  } catch (error) {
+    console.error("Error resetting device status:", error);
+    res.status(500).json({ error: "Failed to reset device status" });
+  }
+});
+
 router.delete("/devices/:id", adminMiddleware, async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id, 10);

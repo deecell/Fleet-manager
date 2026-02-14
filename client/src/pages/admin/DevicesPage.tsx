@@ -42,8 +42,9 @@ import {
   useDeviceCredential,
   useCreateDeviceCredential,
   useUpdateDeviceCredential,
+  useResetDeviceStatus,
 } from "@/lib/admin-api";
-import { Plus, Pencil, Cpu, Link2, Unlink, Key, Search, Trash2 } from "lucide-react";
+import { Plus, Pencil, Cpu, Link2, Unlink, Key, Search, Trash2, RotateCcw } from "lucide-react";
 import type { PowerMonDevice } from "@shared/schema";
 import type { DeviceWithSnapshot } from "@/lib/admin-api";
 
@@ -72,6 +73,7 @@ export default function DevicesPage() {
   const assignDevice = useAssignDevice();
   const unassignDevice = useUnassignDevice();
   const deleteDevice = useDeleteDevice();
+  const resetDeviceStatus = useResetDeviceStatus();
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingDevice, setEditingDevice] = useState<PowerMonDevice | null>(null);
@@ -191,6 +193,15 @@ export default function DevicesPage() {
       setDeletingDevice(null);
     } catch (error) {
       toast({ title: "Failed to delete device", variant: "destructive" });
+    }
+  };
+
+  const handleResetStatus = async (device: PowerMonDevice) => {
+    try {
+      await resetDeviceStatus.mutateAsync({ id: device.id });
+      toast({ title: `Device "${device.deviceName || device.serialNumber}" set back online` });
+    } catch (error) {
+      toast({ title: "Failed to reset device status", variant: "destructive" });
     }
   };
 
@@ -647,6 +658,18 @@ export default function DevicesPage() {
                                   data-testid={`button-assign-device-${device.id}`}
                                 >
                                   <Link2 className="h-4 w-4 text-blue-600" />
+                                </Button>
+                              )}
+                              {(device.connectionStatus === "unstable" || device.connectionStatus === "offline") && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleResetStatus(device)}
+                                  disabled={resetDeviceStatus.isPending}
+                                  data-testid={`button-reset-device-${device.id}`}
+                                  title="Set Online (reset connection status)"
+                                >
+                                  <RotateCcw className="h-4 w-4 text-green-600" />
                                 </Button>
                               )}
                               <Button

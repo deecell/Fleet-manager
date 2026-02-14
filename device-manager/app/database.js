@@ -806,6 +806,138 @@ async function upsertDeviceSnapshot(snapshot) {
 }
 
 /**
+ * Startup recovery sweep: Reset devices stuck in offline/unstable state
+ * 
+ * When the device manager crashes (e.g., due to native library terminate()),
+ * multiple devices may be incorrectly left in 'offline' or 'unstable' status.
+ * This sweep resets them to a connectable state so they get picked up by
+ * getActiveDevicesWithCredentials() and get a fresh connection attempt.
+ * 
+ * Only resets devices that have active credentials and active trucks.
+ * 
+ * @returns {Object} Summary of reset operations
+ */
+async function startupRecoverySweep() {
+  logger.info('=== STARTUP RECOVERY SWEEP ===');
+  
+  const offlineResult = await query(`
+    UPDATE power_mon_devices d
+    SET 
+      connection_status = NULL,
+      consecutive_disconnects = 0,
+      marked_offline_at = NULL,
+      updated_at = NOW()
+    WHERE d.connection_status = 'offline'
+      AND EXISTS (
+        SELECT 1 FROM device_credentials c 
+        WHERE c.device_id = d.id AND c.is_active = true
+      )
+      AND (d.truck_id IS NULL OR EXISTS (
+        SELECT 1 FROM trucks t WHERE t.id = d.truck_id AND t.is_active = true
+      ))
+    RETURNING d.id, d.device_name, d.serial_number
+  `);
+  
+  const unstableResult = await query(`
+    UPDATE power_mon_devices d
+    SET 
+      connection_status = NULL,
+      consecutive_disconnects = 0,
+      marked_unstable_at = NULL,
+      updated_at = NOW()
+    WHERE d.connection_status = 'unstable'
+      AND EXISTS (
+        SELECT 1 FROM device_credentials c 
+        WHERE c.device_id = d.id AND c.is_active = true
+      )
+      AND (d.truck_id IS NULL OR EXISTS (
+        SELECT 1 FROM trucks t WHERE t.id = d.truck_id AND t.is_active = true
+      ))
+    RETURNING d.id, d.device_name, d.serial_number
+  `);
+  
+  const summary = {
+    offlineReset: offlineResult.rows.length,
+    unstableReset: unstableResult.rows.length,
+    offlineDevices: offlineResult.rows.map(d => d.device_name || d.serial_number),
+    unstableDevices: unstableResult.rows.map(d => d.device_name || d.serial_number),
+  };
+  
+  if (summary.offlineReset > 0 || summary.unstableReset > 0) {
+    logger.info('Recovery sweep reset devices', summary);
+  } else {
+    logger.info('Recovery sweep: No stuck devices found');
+  }
+  
+  return summary;
+}
+
+/**
+ * Record which device was being actively polled when a crash occurs
+ * Written to a file so it survives process crash
+ * @param {number|null} deviceId - Device ID being polled, or null to clear
+ * @param {string|null} deviceName - Device name for logging
+ */
+function recordActiveDevice(deviceId, deviceName) {
+  const fs = require('fs');
+  const crashAttributionFile = '/tmp/device-manager-active-device.json';
+  
+  try {
+    if (deviceId === null) {
+      if (fs.existsSync(crashAttributionFile)) {
+        fs.unlinkSync(crashAttributionFile);
+      }
+    } else {
+      fs.writeFileSync(crashAttributionFile, JSON.stringify({
+        deviceId,
+        deviceName,
+        timestamp: new Date().toISOString()
+      }));
+    }
+  } catch (err) {
+    // Non-critical, don't fail
+  }
+}
+
+/**
+ * Read crash attribution file to find which device caused a crash
+ * @returns {Object|null} Device info or null if no crash attribution data
+ */
+function readCrashAttribution() {
+  const fs = require('fs');
+  const crashAttributionFile = '/tmp/device-manager-active-device.json';
+  
+  try {
+    if (fs.existsSync(crashAttributionFile)) {
+      const data = JSON.parse(fs.readFileSync(crashAttributionFile, 'utf8'));
+      fs.unlinkSync(crashAttributionFile);
+      return data;
+    }
+  } catch (err) {
+    // Non-critical
+  }
+  return null;
+}
+
+/**
+ * Mark a specific device as the crash culprit
+ * Only this device gets marked unstable, not all devices
+ * @param {number} deviceId - Device that was being polled during crash
+ */
+async function markCrashCulprit(deviceId) {
+  logger.warn('Marking crash culprit device as unstable', { deviceId });
+  await query(`
+    UPDATE power_mon_devices 
+    SET 
+      connection_status = 'unstable',
+      consecutive_disconnects = consecutive_disconnects + 1,
+      marked_unstable_at = NOW(),
+      updated_at = NOW()
+    WHERE id = $1
+  `, [deviceId]);
+}
+
+/**
  * Gracefully close the database pool
  */
 async function closeDatabase() {
@@ -839,4 +971,8 @@ module.exports = {
   bulkInsertMeasurements,
   upsertDeviceSnapshot,
   closeDatabase,
+  startupRecoverySweep,
+  recordActiveDevice,
+  readCrashAttribution,
+  markCrashCulprit,
 };

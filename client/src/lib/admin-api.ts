@@ -403,6 +403,19 @@ export function useDeleteDevice() {
   });
 }
 
+export function useResetDeviceStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id }: { id: number }) =>
+      adminFetch<PowerMonDevice>(`/api/v1/admin/devices/${id}/reset-status`, {
+        method: "POST",
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/devices"] });
+    },
+  });
+}
+
 export function useAdminUsers(orgId?: number) {
   const queryKey = orgId 
     ? ["/api/v1/admin/organizations", orgId, "users"]

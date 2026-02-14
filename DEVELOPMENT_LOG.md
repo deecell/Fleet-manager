@@ -4,7 +4,19 @@
 
 ---
 
-## Latest Updates (February 10, 2026)
+## Latest Updates (February 14, 2026)
+
+### "Set Online" Button for Admin Device Management (February 14, 2026)
+- Added `resetDeviceConnectionStatus()` method to `IStorage` interface and `DbStorage` implementation
+- Resets `connectionStatus` to null, `consecutiveDisconnects` to 0, clears `markedUnstableAt`/`markedOfflineAt`, sets `status` to 'online'
+- Added `useResetDeviceStatus()` mutation hook in `admin-api.ts`
+- Added green rotate icon button in admin Devices table actions column
+- Button only appears when device `connectionStatus` is 'unstable' or 'offline'
+- Clicking shows success toast with device name confirmation
+
+---
+
+## Previous Updates (February 10, 2026)
 
 ### InHand Networks GPS Location Poller (February 10, 2026)
 

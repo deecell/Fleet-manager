@@ -205,6 +205,11 @@ class DeviceConnection {
 
     return new Promise((resolve) => {
       try {
+        // Record active device for crash attribution
+        // If the native library crashes during connect, the next startup
+        // can identify this device as the culprit
+        db.recordActiveDevice(this.deviceId, this.deviceName);
+        
         // Parse applink URL to get access key
         const parsed = powermon.PowermonDevice.parseAccessURL(this.applinkUrl);
         
@@ -230,11 +235,12 @@ class DeviceConnection {
           accessKey: parsed.accessKey,
           onConnect: async () => {
             clearTimeout(timeout);
+            db.recordActiveDevice(null);
             const durationMs = Date.now() - connectStartTime;
             this.status = 'connected';
             this.consecutiveFailures = 0;
             this.reconnectAttempts = 0;
-            this.lastConnectedAt = Date.now(); // Track connection time for rapid disconnect detection
+            this.lastConnectedAt = Date.now();
             this.log.info('Connected successfully', { durationMs });
             
             await db.markDeviceConnected(this.deviceId);
@@ -246,6 +252,7 @@ class DeviceConnection {
           },
           onDisconnect: (reason) => {
             clearTimeout(timeout);
+            db.recordActiveDevice(null);
             
             // Check if this was an intentional disconnect (normal poll completion)
             // If intentional, don't count toward rapid disconnect threshold
@@ -319,6 +326,7 @@ class DeviceConnection {
           }
         });
       } catch (err) {
+        db.recordActiveDevice(null);
         const durationMs = Date.now() - connectStartTime;
         this.status = 'disconnected';
         this.log.error('Connection failed', { error: err.message, durationMs });

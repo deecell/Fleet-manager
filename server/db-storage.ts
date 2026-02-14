@@ -294,6 +294,21 @@ export class DbStorage {
       .where(and(eq(powerMonDevices.organizationId, organizationId), eq(powerMonDevices.id, id)));
   }
 
+  async resetDeviceConnectionStatus(id: number): Promise<PowerMonDevice | undefined> {
+    const [device] = await db.update(powerMonDevices)
+      .set({
+        connectionStatus: null,
+        consecutiveDisconnects: 0,
+        markedUnstableAt: null,
+        markedOfflineAt: null,
+        status: 'online',
+        updatedAt: new Date(),
+      })
+      .where(eq(powerMonDevices.id, id))
+      .returning();
+    return device;
+  }
+
   async deleteDevice(organizationId: number, id: number): Promise<boolean> {
     const result = await db.delete(powerMonDevices)
       .where(and(eq(powerMonDevices.organizationId, organizationId), eq(powerMonDevices.id, id)));
