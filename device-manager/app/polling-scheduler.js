@@ -96,7 +96,7 @@ class PollingScheduler {
 
     // At the start of each polling cycle, log a visible banner and check for newly activated devices
     if (this.currentTick === 0) {
-      logger.banner('=== New Polling Cycle ================================================');
+      logger.banner('=== New Polling Cycle ===');
 
       try {
         await connectionPool.checkForNewDevices();
