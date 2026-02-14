@@ -16,27 +16,35 @@ const LOG_LEVELS = {
 
 const currentLevel = LOG_LEVELS[config.logging.level] ?? LOG_LEVELS.info;
 
+const LEVEL_COLORS = {
+  error: '\x1b[31m',   // red
+  warn: '\x1b[33m',    // yellow
+  info: '\x1b[36m',    // cyan
+  debug: '\x1b[90m',   // gray
+};
+
 /**
- * Format a log entry
+ * Format a log entry as a colorized, human-readable line
  */
 function formatLog(level, message, context = {}) {
-  const entry = {
-    timestamp: new Date().toISOString(),
-    level,
-    message,
-    service: 'device-manager',
-    ...context,
-  };
+  const ts = new Date().toISOString().replace('T', ' ').replace('Z', '');
+  const dim = '\x1b[2m';
+  const reset = '\x1b[0m';
+  const bold = '\x1b[1m';
+  const levelColor = LEVEL_COLORS[level] || '';
+  const tag = level.toUpperCase().padEnd(5);
 
-  if (config.logging.format === 'json') {
-    return JSON.stringify(entry);
+  const contextKeys = Object.keys(context);
+  let contextStr = '';
+  if (contextKeys.length > 0) {
+    const parts = contextKeys.map(k => {
+      const v = context[k];
+      return `${dim}${k}=${reset}${v}`;
+    });
+    contextStr = `  ${parts.join('  ')}`;
   }
 
-  // Text format for development
-  const contextStr = Object.keys(context).length > 0 
-    ? ` ${JSON.stringify(context)}` 
-    : '';
-  return `[${entry.timestamp}] ${level.toUpperCase()} ${message}${contextStr}`;
+  return `${dim}${ts}${reset} ${levelColor}${tag}${reset} ${bold}${message}${reset}${contextStr}`;
 }
 
 /**
