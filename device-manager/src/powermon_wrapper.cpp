@@ -38,21 +38,12 @@ PowermonWrapper::PowermonWrapper(const Napi::CallbackInfo& info)
     , connecting_(false)
     , ble_available_(false) {
     
-    // With libpowermon v1.11+, createInstance() no longer requires BLE
-    // BLE is now initialized separately via initBle()
+    // With libpowermon v1.12+, createInstance() handles all initialization
+    // BLE init is no longer a separate step (initBle removed in v1.12)
     powermon_ = Powermon::createInstance();
     
     if (powermon_ != nullptr) {
         SetupCallbacks();
-        
-        // Try to initialize BLE (optional - WiFi works without it)
-        try {
-            ble_available_ = powermon_->initBle();
-        } catch (...) {
-            // BLE init failed (expected on servers without Bluetooth)
-            // WiFi connections will still work
-            ble_available_ = false;
-        }
     }
 }
 
@@ -282,6 +273,14 @@ Napi::Object PowermonWrapper::DeviceInfoToObject(Napi::Env env, const Powermon::
     obj.Set("isUserLocked", Napi::Boolean::New(env, info.isUserLocked()));
     obj.Set("isMasterLocked", Napi::Boolean::New(env, info.isMasterLocked()));
     obj.Set("isWifiConnected", Napi::Boolean::New(env, info.isWifiConnected()));
+    
+    std::stringstream mac_ss;
+    for (int i = 0; i < 6; i++) {
+        if (i > 0) mac_ss << ":";
+        mac_ss << std::hex << std::uppercase << std::setfill('0') 
+               << std::setw(2) << static_cast<int>(info.mac[i]);
+    }
+    obj.Set("mac", Napi::String::New(env, mac_ss.str()));
     
     return obj;
 }

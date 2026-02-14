@@ -88,7 +88,13 @@ static std::string device_info_to_json(const Powermon::DeviceInfo& info) {
     ss << "\"timezone\":" << (int)info.timezone << ",";
     ss << "\"isUserLocked\":" << (info.isUserLocked() ? "true" : "false") << ",";
     ss << "\"isMasterLocked\":" << (info.isMasterLocked() ? "true" : "false") << ",";
-    ss << "\"isWifiConnected\":" << (info.isWifiConnected() ? "true" : "false");
+    ss << "\"isWifiConnected\":" << (info.isWifiConnected() ? "true" : "false") << ",";
+    ss << "\"mac\":\"";
+    for (int i = 0; i < 6; i++) {
+        if (i > 0) ss << ":";
+        ss << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << (int)info.mac[i];
+    }
+    ss << std::dec << "\"";
     ss << "}";
     return ss.str();
 }

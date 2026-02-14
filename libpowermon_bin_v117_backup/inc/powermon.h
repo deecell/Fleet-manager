@@ -39,7 +39,7 @@
 #define ENCRYPTION_KEY_SIZE			32
 
 #define MAX_BLE_NAME_LENGTH			8
-#define MAX_NAME_LENGTH				32
+#define MAX_NAME_LENGTH		32
 
 #define MAX_TIMER_NAME_LENGTH		16
 #define MAX_TIMER_COUNT				16
@@ -193,7 +193,6 @@ public:
 	{
 		uint8_t ssid_length;
 		uint8_t ssid[MAX_WIFI_SSID_SIZE];
-		uint8_t mac[6];
 		uint8_t channel;
 
 		struct

@@ -57,8 +57,8 @@ public:
 	bool isRepeatDOM(void) const;
 	void setRepeatDOM(void);
 
-	uint32_t getRepeat(void) const;
-	void setRepeat(uint32_t value);
+	uint8_t getRepeat(void) const;
+	void setRepeat(uint8_t value);
 
 private:
 	uint8_t mRawSchedule[24];

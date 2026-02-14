@@ -76,13 +76,6 @@ public:
 	static PowermonScanner* createInstance(void);
 	virtual ~PowermonScanner();
 
-	
-	/**
-	 * \brief Initialized the BLE adapter
-	 * \return True if the BLE was initialized
-	*/
-	virtual bool initBle(void) = 0;
-
 	/**
 	 * \brief Sets the callback to be called by the Powermon scanner when a new advertisement has been received
 	 * \param cb Lambda of type `void(const Advertisement&)`

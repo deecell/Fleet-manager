@@ -32,6 +32,12 @@
 class PowermonLogFile
 {
 public:
+    enum Version
+    {
+        VER_FAMILY_MASK = 0xF0,
+        VER_POWERMON_WIFI_5W = 0x00,
+    };
+
     struct Sample
     {
         uint32_t time;
@@ -44,15 +50,70 @@ public:
         uint8_t ps;
     };
 
-	/**
-	 * \brief Decode a log file
-	 * \param data Vector of uint8_t containing the raw log data file
-	 * \param samples Vector of Sample where the data decoded from the log file will be appended
-	 * \param tz_index The time zone index as stored in the device configuration
-	 
-	 * \return Number of samples successfully decoded.
-	*/
-    static uint32_t decode(const std::vector<uint8_t> &data, std::vector<Sample> &samples, int32_t tz_index);
+    static uint32_t decode(const std::vector<char> &data, std::vector<Sample> &samples);
+
+private:
+    enum Flags
+    {
+        POWER_VOLTAGE_SOURCE = (1 << 0)
+    };
+
+	enum Mask
+	{
+		V1 = (1 << 0),
+		V2 = (1 << 1),
+		V3 = (1 << 2),
+		V4 = (1 << 3),
+		V5 = (1 << 4),
+		V6 = (1 << 5),
+		
+		I1 = (1 << 6),
+		I2 = (1 << 7),
+	
+		P1 = (1 << 8),
+		P2 = (1 << 9),
+		
+		T1 = (1 << 10),
+		T2 = (1 << 11),
+	
+		SOC1 = (1 << 12),
+		SOC2 = (1 << 13),
+		
+		PS1 = (1 << 14),
+		PS2 = (1 << 15),
+	
+		VOLTAGE_SOURCE = (1 << 31)
+	};
+
+    struct Header
+    {
+        uint8_t magic[4];
+        
+        uint8_t version;
+        uint8_t mode;
+        uint16_t reserved0;
+
+        uint32_t time;
+
+        uint32_t mask;
+        uint32_t flags;
+    };
+
+    static uint32_t getSamplePeriodInSeconds(uint8_t mode)
+    {
+        switch(mode)
+        {
+            case PowermonConfig::LOG_MODE_1_SEC: return 1;
+            case PowermonConfig::LOG_MODE_2_SEC: return 2;
+            case PowermonConfig::LOG_MODE_5_SEC: return 5;
+            case PowermonConfig::LOG_MODE_10_SEC: return 10;
+            case PowermonConfig::LOG_MODE_20_SEC: return 20;
+            case PowermonConfig::LOG_MODE_30_SEC: return 30;
+            case PowermonConfig::LOG_MODE_60_SEC: return 60;
+        }
+ 
+        return 0;
+    }
 };
 
 #endif
