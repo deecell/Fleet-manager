@@ -733,7 +733,8 @@ async function upsertDeviceSnapshot(snapshot) {
       }
     } catch (e) {}
     logger.info(`${truckLabel} parked - accumulating time`, { 
-      voltage2: snapshot.voltage2?.toFixed(4),
+      v1: snapshot.voltage1?.toFixed(4),
+      v2: snapshot.voltage2?.toFixed(4),
       todayMin: Math.round(todayParkedMinutes),
       monthMin: Math.round(monthParkedMinutes),
       since: parkedSince ? parkedSince.toISOString().replace('T', ' ').replace(/\.\d+Z/, '') : 'n/a'
