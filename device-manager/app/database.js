@@ -128,7 +128,9 @@ async function getActiveDevicesWithCredentials() {
     const reset = '\x1b[0m';
     console.log(`${red}Skipping ${skippedResult.rows.length} offline/unstable devices:${reset}`);
     for (const d of skippedResult.rows) {
-      console.log(`${dim}  - ${d.device_name || d.serial_number} [${d.connection_status}] (${d.consecutive_disconnects} disconnects)${reset}`);
+      const name = (d.device_name || d.serial_number).padEnd(30);
+      const status = `[${d.connection_status}]`.padEnd(12);
+      console.log(`${dim}  - ${name} ${status} (${d.consecutive_disconnects} disconnects)${reset}`);
     }
   }
   
@@ -145,7 +147,8 @@ async function getActiveDevicesWithCredentials() {
     const reset = '\x1b[0m';
     console.log(`${yellow}Skipping ${inactiveTruckResult.rows.length} devices with inactive trucks:${reset}`);
     for (const d of inactiveTruckResult.rows) {
-      console.log(`${dim}  - ${d.device_name || d.serial_number} (${d.truck_number})${reset}`);
+      const name = (d.device_name || d.serial_number).padEnd(30);
+      console.log(`${dim}  - ${name} (${d.truck_number})${reset}`);
     }
   }
   
