@@ -831,11 +831,15 @@ async function upsertDeviceSnapshot(snapshot) {
 }
 
 /**
- * Startup recovery sweep: Reset all non-online devices to give them a fresh start
+ * Startup recovery sweep: Reset devices stuck in unstable/no_power state
  * 
- * When the device manager restarts (deploy, crash, etc.), devices may be
- * left in 'unstable', 'no_power', or 'offline' status from the previous run.
- * This sweep resets ALL of them so every device gets a fresh connection attempt.
+ * When the device manager crashes (e.g., due to native library terminate()),
+ * devices may be incorrectly left in 'unstable' or 'no_power' status. This
+ * sweep resets them so they get a fresh connection attempt.
+ * 
+ * Offline devices are NOT auto-reset — they stay offline until an admin
+ * manually sets them back online via the admin dashboard, or the periodic
+ * offline recovery picks them up after the backoff period.
  * 
  * Only resets devices that have active credentials and active trucks.
  * 
@@ -850,9 +854,8 @@ async function startupRecoverySweep() {
       connection_status = NULL,
       consecutive_disconnects = 0,
       marked_unstable_at = NULL,
-      marked_offline_at = NULL,
       updated_at = NOW()
-    WHERE d.connection_status IN ('unstable', 'no_power', 'offline')
+    WHERE d.connection_status IN ('unstable', 'no_power')
       AND EXISTS (
         SELECT 1 FROM device_credentials c 
         WHERE c.device_id = d.id AND c.is_active = true
