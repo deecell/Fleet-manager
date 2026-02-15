@@ -18,7 +18,8 @@
   2. `checkForNewDevices()` — newly activated devices
   3. `checkForNewDevices()` — admin-reset reconnections
 - **Additional guards**: When circuit breaker does open (for devices already in the pool), immediately null out `this.device`, clear reconnect timers, and return early. `fetchAndUpdateDeviceInfo()` checks `this.status === 'connected'` and `!this.isCircuitOpen`.
-- **Result**: No-power devices are detected on first connect attempt, no reconnect cycle, no crash
+- **Startup recovery sweep change**: No longer auto-resets `no_power` devices on startup. Previously, the sweep reset both `unstable` and `no_power` to NULL, causing Kalitta to reconnect on every restart and crash the process in a loop. Now only `unstable` devices are reset on startup — `no_power` devices require admin "Set Online" to retry.
+- **Result**: No-power devices are detected on first connect attempt, no reconnect cycle, no crash. No-power devices also don't cause crash loops on restart.
 
 ### Connection Status Semantics Fix (February 15, 2026)
 - **BREAKING FIX**: `connection_status = 'offline'` now means **admin-initiated only** (set via dashboard button)

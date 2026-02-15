@@ -1,0 +1,29 @@
+                  [offline]  DCL-Moeck-Shop                 (1 disconnects)
+                  [offline]  DCL-Thibert                    (1 disconnects)
+                  [offline]  DCL-Elite-Hospitality          (1 disconnects)
+                  [offline]  DCL-Epler                      (1 disconnects)
+2026-02-15 19:41:20.424 INFO  Connecting to device  deviceId=18  serial=  cohort=0
+2026-02-15 19:41:20.432 INFO  Connected successfully  deviceId=18  serial=  cohort=0  durationMs=8
+2026-02-15 19:41:20.435 WARN  Rapid disconnect detected (error)  deviceId=18  serial=  cohort=0  reason=2  rapidDisconnects=3  connectionDurationMs=3
+2026-02-15 19:41:20.435 INFO  Device disconnected (unexpected)  deviceId=18  serial=  cohort=0  reason=2  isRapidDisconnect=true
+2026-02-15 19:41:20.439 INFO  Scheduling reconnect  deviceId=18  serial=  cohort=0  attempt=1  delayMs=1000
+2026-02-15 19:41:21.439 INFO  Connecting to device  deviceId=18  serial=  cohort=0
+2026-02-15 19:41:21.448 INFO  Connected successfully  deviceId=18  serial=  cohort=0  durationMs=9
+2026-02-15 19:41:21.451 WARN  Rapid disconnect detected (error)  deviceId=18  serial=  cohort=0  reason=2  rapidDisconnects=4  connectionDurationMs=3
+2026-02-15 19:41:21.451 INFO  Device disconnected (unexpected)  deviceId=18  serial=  cohort=0  reason=2  isRapidDisconnect=true
+2026-02-15 19:41:21.455 INFO  Scheduling reconnect  deviceId=18  serial=  cohort=0  attempt=1  delayMs=1000
+2026-02-15 19:41:21.806 INFO  DCL-Curtis-1 (TRK-01)          parked   v1= 28.82  v2=  0.0374  today= 1181m  month= 20908m  since=2025-12-29 23:38:19
+2026-02-15 19:41:21.813 INFO  DCL-Curtis-2 (TRK-02)          parked   v1= 28.74  v2=  0.0458  today= 1181m  month= 20908m  since=2025-12-29 23:38:54
+2026-02-15 19:41:21.819 INFO  DCL-Haynes (RHR-01)            parked   v1= 26.18  v2=  0.0403  today= 1181m  month= 20915m  since=2025-12-29 23:22:12
+2026-02-15 19:41:22.455 INFO  Connecting to device  deviceId=18  serial=  cohort=0
+2026-02-15 19:41:22.463 INFO  Connected successfully  deviceId=18  serial=  cohort=0  durationMs=8
+2026-02-15 19:41:22.466 WARN  Rapid disconnect detected (error)  deviceId=18  serial=  cohort=0  reason=2  rapidDisconnects=5  connectionDurationMs=3
+2026-02-15 19:41:22.466 ERROR Circuit breaker OPEN - device appears powered off (all connections < 100ms)  deviceId=18  serial=  cohort=0  rapidDisconnects=5  avgDurationMs=3  backoffMinutes=5  resetAt=2026-02-15T19:46:22.466Z
+2026-02-15 19:41:22.467 WARN  Marking device as no_power in database  deviceId=18
+terminate called without an active exception
+device-manager.service: Main process exited, code=dumped, status=6/ABRT
+device-manager.service: Failed with result 'core-dump'.
+device-manager.service: Consumed 3.106s CPU time.
+device-manager.service: Scheduled restart job, restart counter is at 1684.
+Started device-manager.service - Deecell Device Manager.
+2

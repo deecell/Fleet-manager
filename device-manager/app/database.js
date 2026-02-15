@@ -834,10 +834,13 @@ async function upsertDeviceSnapshot(snapshot) {
  * sweep resets them so they get a fresh connection attempt.
  * 
  * Offline devices are NOT auto-reset — they stay offline until an admin
- * manually sets them back online via the admin dashboard, or the periodic
- * offline recovery picks them up after the backoff period.
+ * manually sets them back online via the admin dashboard.
  * 
- * Only resets devices that have active credentials and active trucks.
+ * No-power devices are NOT auto-reset — they crashed the native C++ library
+ * during rapid connect/disconnect cycles. Admin must explicitly "Set Online"
+ * from the dashboard to retry. This prevents crash loops on restart.
+ * 
+ * Only resets devices that have active credentials.
  * 
  * @returns {Object} Summary of reset operations
  */
@@ -851,7 +854,7 @@ async function startupRecoverySweep() {
       consecutive_disconnects = 0,
       marked_unstable_at = NULL,
       updated_at = NOW()
-    WHERE d.connection_status IN ('unstable', 'no_power')
+    WHERE d.connection_status IN ('unstable')
       AND EXISTS (
         SELECT 1 FROM device_credentials c 
         WHERE c.device_id = d.id AND c.is_active = true
