@@ -241,7 +241,7 @@ export default function TrucksPage() {
                     <TableHead>Make/Model</TableHead>
                     <TableHead>VIN</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Active</TableHead>
+                    <TableHead>Monitoring</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -271,12 +271,12 @@ export default function TrucksPage() {
                         )}
                       </TableCell>
                       <TableCell>
-                        {truck.isActive ? (
+                        {truck.status === "in-service" || truck.isActive ? (
                           <Badge 
                             className="rounded-md font-medium"
                             style={{ backgroundColor: 'rgba(0, 201, 80, 0.14)', color: '#00953b' }}
                           >
-                            Active
+                            Monitored
                           </Badge>
                         ) : (
                           <Badge 
@@ -284,7 +284,7 @@ export default function TrucksPage() {
                             className="rounded-md font-medium"
                             style={{ backgroundColor: 'rgba(99, 99, 99, 0.14)', color: '#636363' }}
                           >
-                            Inactive
+                            Not Monitored
                           </Badge>
                         )}
                       </TableCell>
@@ -414,35 +414,35 @@ export default function TrucksPage() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="status">Status</Label>
-                  <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
-                    <SelectTrigger data-testid="select-truck-status">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="in-service">In Service</SelectItem>
-                      <SelectItem value="not-in-service">Not In Service</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="active">Active</Label>
-                  <Select 
-                    value={formData.isActive ? "active" : "inactive"} 
-                    onValueChange={(v) => setFormData({ ...formData, isActive: v === "active" })}
-                  >
-                    <SelectTrigger data-testid="select-truck-active">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div>
+                <Label htmlFor="status">Status</Label>
+                <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v, isActive: v === "in-service" ? true : formData.isActive })}>
+                  <SelectTrigger data-testid="select-truck-status">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="in-service">In Service</SelectItem>
+                    <SelectItem value="not-in-service">Not In Service</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
+              {formData.status === "not-in-service" && (
+                <div>
+                  <Label htmlFor="monitoring">Monitoring</Label>
+                  <Select 
+                    value={formData.isActive ? "monitored" : "not-monitored"} 
+                    onValueChange={(v) => setFormData({ ...formData, isActive: v === "monitored" })}
+                  >
+                    <SelectTrigger data-testid="select-truck-monitoring">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="monitored">Monitored</SelectItem>
+                      <SelectItem value="not-monitored">Not Monitored</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
@@ -516,7 +516,7 @@ export default function TrucksPage() {
               </div>
               <div>
                 <Label htmlFor="edit-status">Status</Label>
-                <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
+                <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v, isActive: v === "in-service" ? true : formData.isActive })}>
                   <SelectTrigger data-testid="select-edit-truck-status">
                     <SelectValue />
                   </SelectTrigger>
@@ -526,21 +526,23 @@ export default function TrucksPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label htmlFor="edit-active">Active</Label>
-                <Select 
-                  value={formData.isActive ? "active" : "inactive"} 
-                  onValueChange={(v) => setFormData({ ...formData, isActive: v === "active" })}
-                >
-                  <SelectTrigger data-testid="select-edit-truck-active">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {formData.status === "not-in-service" && (
+                <div>
+                  <Label htmlFor="edit-monitoring">Monitoring</Label>
+                  <Select 
+                    value={formData.isActive ? "monitored" : "not-monitored"} 
+                    onValueChange={(v) => setFormData({ ...formData, isActive: v === "monitored" })}
+                  >
+                    <SelectTrigger data-testid="select-edit-truck-monitoring">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="monitored">Monitored</SelectItem>
+                      <SelectItem value="not-monitored">Not Monitored</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setEditingTruck(null)}>

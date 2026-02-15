@@ -114,16 +114,8 @@ async function main() {
       }
     }, 5 * 60 * 1000);
 
-    // Set up periodic offline device recovery (every 10 minutes)
-    // This attempts to reconnect devices that are marked offline (powered off)
-    // Uses a ping check before attempting connection to avoid crashing
-    setInterval(async () => {
-      try {
-        await connectionPool.recoverOfflineDevices();
-      } catch (err) {
-        logger.error('Failed to recover offline devices', { error: err.message });
-      }
-    }, 10 * 60 * 1000);
+    // Offline devices stay offline until an admin manually resets them
+    // via the admin dashboard "Set Online" button. No automatic recovery.
 
   } catch (err) {
     logger.error('Failed to start Device Manager', { error: err.message });
