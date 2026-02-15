@@ -577,6 +577,22 @@ export default function DevicesPage() {
                                   </div>
                                 );
                               }
+
+                              if (device.connectionStatus === "offline") {
+                                return (
+                                  <div className="inline-flex items-center justify-center px-3 py-1.5 rounded-md border text-xs font-normal bg-[#ededed] border-[#c0c0c0] text-[#9e9e9e]">
+                                    Offline
+                                  </div>
+                                );
+                              }
+
+                              if (device.connectionStatus === "disconnected") {
+                                return (
+                                  <div className="inline-flex items-center justify-center px-3 py-1.5 rounded-md border text-xs font-normal bg-[rgba(255,165,0,0.14)] border-[#ffa500] text-[#cc8400]">
+                                    Disconnected
+                                  </div>
+                                );
+                              }
                               
                               return (
                                 <div className={`inline-flex items-center justify-center px-3 py-1.5 rounded-md border text-xs font-normal ${
@@ -687,7 +703,7 @@ export default function DevicesPage() {
                                 >
                                   <RotateCcw className="h-4 w-4 text-green-600" />
                                 </Button>
-                              ) : (device.connectionStatus === "online" || device.connectionStatus === "reporting" || !device.connectionStatus) && (
+                              ) : (device.connectionStatus !== "disconnected") && (
                                 <Button
                                   variant="ghost"
                                   size="icon"

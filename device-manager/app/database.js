@@ -293,17 +293,18 @@ async function markDeviceDisconnected(deviceId, lastSuccessfulPoll, disconnectRe
   `, [deviceId, lastSuccessfulPoll]);
   
   // Update power_mon_devices with disconnect info
-  // Increment consecutive_disconnects to detect unstable connections
-  // Use consecutive_disconnects + 1 >= 5 to mark as unstable on the 5th disconnect
-  // (checking post-increment value to avoid off-by-one error)
+  // 'disconnected' = normal disconnect (device manager will retry)
+  // 'offline' = admin-initiated only (set via admin dashboard)
+  // 'unstable' = circuit breaker opened (set by markDeviceUnstable)
   await query(`
     UPDATE power_mon_devices 
     SET 
-      status = 'offline', 
+      status = 'disconnected', 
       connection_status = CASE 
         WHEN connection_status = 'unstable' THEN 'unstable'
-        WHEN consecutive_disconnects + 1 >= 5 THEN 'unstable' 
-        ELSE 'offline' 
+        WHEN connection_status = 'offline' THEN 'offline'
+        WHEN connection_status = 'no_power' THEN 'no_power'
+        ELSE 'disconnected' 
       END,
       data_status = CASE 
         WHEN connection_status = 'online' AND data_status = 'reporting' THEN 'stale'

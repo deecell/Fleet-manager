@@ -6,6 +6,18 @@
 
 ## Latest Updates (February 15, 2026)
 
+### Connection Status Semantics Fix (February 15, 2026)
+- **BREAKING FIX**: `connection_status = 'offline'` now means **admin-initiated only** (set via dashboard button)
+- Previously, any device disconnect was marked 'offline' — even a single disconnect (e.g., Kruse with 1 disconnect was shown as OFFLINE)
+- New status `'disconnected'` = normal disconnect, device manager will auto-retry on next poll cycle
+- Status hierarchy: `null` → `'online'` → `'reporting'` → `'disconnected'` → `'unstable'` / `'no_power'` / `'offline'`
+  - `disconnected`: Temporary, auto-recovers (stays in active device query)
+  - `unstable`: Circuit breaker opened after 5 rapid disconnects (excluded from polling, 5-min backoff)
+  - `no_power`: All rapid disconnects < 100ms (excluded from polling, 5-min backoff)
+  - `offline`: Admin-set only (excluded from polling, requires admin "Set Online" to restore)
+- Disabled auto-recovery of 'offline' devices — admin must use "Set Online" button intentionally
+- Frontend now shows distinct badges: "Disconnected" (orange), "Offline" (gray), "Unstable" (orange), "No Power" (red)
+
 ### Admin Dashboard: Live Online/Offline Device Control (February 15, 2026)
 - **Set Online**: Existing button (green refresh icon) resets `connection_status` to null so device manager reconnects automatically
 - **Set Offline**: New button (orange wifi-off icon) sets `connection_status` to 'offline' so device manager stops polling

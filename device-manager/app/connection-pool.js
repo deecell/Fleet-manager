@@ -1045,111 +1045,15 @@ class ConnectionPool {
 
   /**
    * Attempt to recover offline devices that have been waiting long enough
-   * Uses a ping check before attempting connection to avoid crashing
-   * on unreachable devices
+   * 
+   * NOTE: 'offline' status is now admin-initiated only (set via dashboard).
+   * Admin must use "Set Online" button to bring devices back.
+   * This function is kept but disabled — offline = intentional admin action.
    */
   async recoverOfflineDevices() {
-    logger.debug('Checking for offline devices ready for recovery');
-    
-    try {
-      // Get devices that have been offline for longer than the backoff period
-      const offlineDevices = await db.getOfflineDevicesForRecovery(OFFLINE_BACKOFF_MS);
-      
-      if (offlineDevices.length === 0) {
-        return { attempted: 0, recovered: 0, unreachable: 0 };
-      }
-      
-      logger.info('Attempting to recover offline devices', { 
-        count: offlineDevices.length,
-        devices: offlineDevices.map(d => d.device_name || d.serial_number)
-      });
-      
-      let recovered = 0;
-      let unreachable = 0;
-      
-      for (const device of offlineDevices) {
-        // First, ping the applink URL to check if the device router is reachable
-        // This prevents crashing the native library on unreachable devices
-        const isReachable = await pingApplinkUrl(device.applink_url);
-        
-        if (!isReachable) {
-          unreachable++;
-          logger.debug('Offline device still unreachable, skipping', { 
-            deviceId: device.device_id,
-            deviceName: device.device_name
-          });
-          // Update marked_offline_at to restart backoff timer
-          await db.updateMarkedOfflineAt(device.device_id);
-          continue;
-        }
-        
-        logger.info('Offline device reachable, attempting connection', { 
-          deviceId: device.device_id,
-          deviceName: device.device_name
-        });
-        
-        const cohortId = this.hashToCohort(device.serial_number);
-        
-        // Check if device is already in the pool (shouldn't be, but check anyway)
-        if (this.connections.has(device.device_id)) {
-          logger.warn('Offline device already in pool, skipping', { deviceId: device.device_id });
-          continue;
-        }
-        
-        // Create new connection with reset state
-        const conn = new DeviceConnection({
-          ...device,
-          cohort_id: cohortId,
-          consecutive_disconnects: 0, // Reset for fresh start
-        });
-        
-        // Add to pool
-        this.connections.set(device.device_id, conn);
-        
-        if (!this.cohorts.has(cohortId)) {
-          this.cohorts.set(cohortId, new Set());
-        }
-        this.cohorts.get(cohortId).add(device.device_id);
-        
-        // Attempt to connect
-        const result = await conn.connect();
-        
-        if (result.success) {
-          // Connection successful - device is back online
-          recovered++;
-          logger.info('Offline device recovered successfully', { 
-            deviceId: device.device_id,
-            serial: device.serial_number,
-            deviceName: device.device_name,
-            durationMs: result.durationMs
-          });
-        } else {
-          // Connection failed - remove from pool and try again later
-          this.connections.delete(device.device_id);
-          this.cohorts.get(cohortId)?.delete(device.device_id);
-          
-          // Update marked_offline_at to restart the backoff timer
-          await db.updateMarkedOfflineAt(device.device_id);
-          
-          logger.warn('Offline device recovery failed, will retry later', { 
-            deviceId: device.device_id,
-            serial: device.serial_number,
-            deviceName: device.device_name
-          });
-        }
-      }
-      
-      logger.info('Offline device recovery complete', { 
-        attempted: offlineDevices.length, 
-        recovered,
-        unreachable
-      });
-      
-      return { attempted: offlineDevices.length, recovered, unreachable };
-    } catch (err) {
-      logger.error('Error recovering offline devices', { error: err.message });
-      return { attempted: 0, recovered: 0, unreachable: 0, error: err.message };
-    }
+    // Offline status is admin-set only — do not auto-recover
+    // Admin must use "Set Online" button from the dashboard
+    return { attempted: 0, recovered: 0, unreachable: 0 };
   }
 
   /**
