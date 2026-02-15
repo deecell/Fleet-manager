@@ -126,11 +126,11 @@ async function getActiveDevicesWithCredentials() {
     const red = '\x1b[31m';
     const dim = '\x1b[2m';
     const reset = '\x1b[0m';
-    console.log(`${red}Skipping ${skippedResult.rows.length} offline/unstable devices:${reset}`);
+    console.log(`Skipping ${skippedResult.rows.length} offline/unstable devices:`);
     for (const d of skippedResult.rows) {
-      const name = (d.device_name || d.serial_number).padEnd(30);
       const status = `[${d.connection_status}]`.padEnd(12);
-      console.log(`${dim}  - ${name} ${status} (${d.consecutive_disconnects} disconnects)${reset}`);
+      const name = (d.device_name || d.serial_number).padEnd(30);
+      console.log(`        ${red}${status}${reset}${dim}${name}(${d.consecutive_disconnects} disconnects)${reset}`);
     }
   }
   
@@ -145,10 +145,11 @@ async function getActiveDevicesWithCredentials() {
     const yellow = '\x1b[33m';
     const dim = '\x1b[2m';
     const reset = '\x1b[0m';
-    console.log(`${yellow}Skipping ${inactiveTruckResult.rows.length} devices with inactive trucks:${reset}`);
+    console.log(`Skipping ${inactiveTruckResult.rows.length} devices with inactive trucks:`);
     for (const d of inactiveTruckResult.rows) {
+      const tag = `[inactive]`.padEnd(12);
       const name = (d.device_name || d.serial_number).padEnd(30);
-      console.log(`${dim}  - ${name} (${d.truck_number})${reset}`);
+      console.log(`        ${yellow}${tag}${reset}${dim}${name}(${d.truck_number})${reset}`);
     }
   }
   
