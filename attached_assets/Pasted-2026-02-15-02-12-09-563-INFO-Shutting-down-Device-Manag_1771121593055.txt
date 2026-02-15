@@ -1,0 +1,177 @@
+2026-02-15 02:12:09.563 INFO  Shutting down Device Manager  signal=SIGTERM
+2026-02-15 02:12:09.564 INFO  Polling scheduler stopped  totalPolls=169  successfulPolls=169  failedPolls=0  skippedPolls=0  ticksProcessed=186  lastTickTime=Sun Feb 15 2026 02:12:08 GMT+0000 (Coordinated Universal Time)  averagePollDurationMs=327.70980606175823
+2026-02-15 02:12:09.564 INFO  Polling scheduler stopped
+2026-02-15 02:12:09.564 INFO  SIM poller stopped
+2026-02-15 02:12:09.564 INFO  InHand poller stopped
+2026-02-15 02:12:09.564 INFO  InHand poller stopped
+2026-02-15 02:12:09.564 INFO  Backfill service stopped  totalBackfills=0  successfulBackfills=0  failedBackfills=0  totalSamplesBackfilled=0  lastCheckTime=Sun Feb 15 2026 02:12:03 GMT+0000 (Coordinated Universal Time)
+2026-02-15 02:12:09.564 INFO  Backfill service stopped
+Stopping device-manager.service - Deecell Device Manager...
+2026-02-15 02:12:09.570 INFO  DCL-Epler (TRL-01)             parked  v1= 26.57  v2=  0.0394  today=  132m  month= 19859m  since=2026-01-31 18:59:00
+2026-02-15 02:12:09.575 INFO  Batch writer stopped  totalWritten=169  totalBatches=104  failedBatches=0  queueHighWaterMark=3  lastFlushTime=Sun Feb 15 2026 02:12:09 GMT+0000 (Coordinated Universal Time)  averageFlushDurationMs=14.140806924014107  snapshotsWritten=169  recentSnapshotFailures=0  lastSnapshotWriteTime=Sun Feb 15 2026 02:12:09 GMT+0000 (Coordinated Universal Time)
+2026-02-15 02:12:09.575 INFO  Batch writer stopped
+2026-02-15 02:12:09.576 INFO  Disconnecting all devices
+2026-02-15 02:12:09.661 INFO  Disconnected  deviceId=3  serial=A3A5B30EA9B3FF98  cohort=4
+2026-02-15 02:12:09.754 INFO  Disconnected  deviceId=5  serial=B051375C222A5334  cohort=4
+2026-02-15 02:12:09.795 INFO  Disconnected  deviceId=6  serial=E747AAFD3EEB003C  cohort=4
+2026-02-15 02:12:09.815 INFO  Disconnected  deviceId=7  serial=96FE5E88572C1995  cohort=1
+2026-02-15 02:12:09.896 INFO  Disconnected  deviceId=9  serial=E6D8F89877415815  cohort=6
+2026-02-15 02:12:09.953 INFO  Disconnected  deviceId=10  serial=1B1034C2B3399A18  cohort=0
+2026-02-15 02:12:09.991 INFO  Disconnected  deviceId=11  serial=1A81067CFA117B5B  cohort=0
+2026-02-15 02:12:10.055 INFO  Disconnected  deviceId=12  serial=A93B7B8CC0D672FE  cohort=8
+2026-02-15 02:12:10.091 INFO  Disconnected  deviceId=17  serial=2622A846A1BD5441  cohort=5
+2026-02-15 02:12:10.091 INFO  All devices disconnected
+2026-02-15 02:12:10.091 INFO  Device connections closed
+2026-02-15 02:12:10.092 INFO  Metrics server stopped
+2026-02-15 02:12:10.092 INFO  Metrics server stopped
+2026-02-15 02:12:10.092 INFO  Database pool closed
+2026-02-15 02:12:10.092 INFO  Database closed
+2026-02-15 02:12:10.092 INFO  Device Manager shutdown complete
+device-manager.service: Deactivated successfully.
+Stopped device-manager.service - Deecell Device Manager.
+device-manager.service: Consumed 6.318s CPU time.
+Started device-manager.service - Deecell Device Manager.
+2026-02-15 02:12:13.052 INFO  PowerMon addon loaded successfully
+2026-02-15 02:12:13.057 INFO  Device Manager starting  pollInterval=10000  cohorts=10  batchFlushInterval=2000
+2026-02-15 02:12:13.057 INFO  Configuration validated
+2026-02-15 02:12:13.058 INFO  Database connection configured  host=deecell-fleet-production-postgres.cn4qsw8g8yyx.us-east-2.rds.amazonaws.com  database=deecell_fleet
+2026-02-15 02:12:13.058 INFO  Database pool initialized  poolSize=10
+2026-02-15 02:12:13.058 INFO  Database initialized
+2026-02-15 02:12:13.059 INFO  === STARTUP RECOVERY SWEEP ===
+2026-02-15 02:12:13.131 INFO  Recovery sweep: No stuck devices found
+2026-02-15 02:12:13.131 INFO  Initializing connection pool
+Skipping 5 offline/unstable devices:
+                  [offline]   DCL-Moeck-Shop                 (1 disconnects)
+                  [offline]   DCL-Kruse                      (1 disconnects)
+                  [offline]   DCL-Thibert                    (1 disconnects)
+                  [offline]   DCL-Elite-Hospitality          (1 disconnects)
+                  [offline]   DCL-Kalitta-Hospitality        (1 disconnects)
+2026-02-15 02:12:13.139 INFO  Found active devices  count=9
+2026-02-15 02:12:13.157 INFO  Connection pool initialized  devices=9  cohorts=6
+2026-02-15 02:12:13.158 INFO  Batch writer started  flushIntervalMs=2000  maxBatchSize=500
+2026-02-15 02:12:13.159 INFO  === STARTUP: Connecting to all devices ===  deviceCount=9  timestamp=2026-02-15T02:12:13.159Z
+2026-02-15 02:12:13.159 INFO  Connecting device 1/9  serialNumber=A3A5B30EA9B3FF98  deviceName=DCL-Moeck  cohort=4
+2026-02-15 02:12:13.159 INFO  Connecting to device  deviceId=3  serial=A3A5B30EA9B3FF98  cohort=4
+2026-02-15 02:12:13.166 INFO  Metrics server started  port=3001  metricsPath=/metrics  healthPath=/health
+2026-02-15 02:12:13.169 INFO  Connected successfully  deviceId=3  serial=A3A5B30EA9B3FF98  cohort=4  durationMs=9
+2026-02-15 02:12:13.173 INFO  Device 1/9 connected  serialNumber=A3A5B30EA9B3FF98  durationMs=9
+2026-02-15 02:12:13.173 INFO  Connecting device 2/9  serialNumber=B051375C222A5334  deviceName=DCL-Carter  cohort=4
+2026-02-15 02:12:13.173 INFO  Connecting to device  deviceId=5  serial=B051375C222A5334  cohort=4
+2026-02-15 02:12:13.182 INFO  Connected successfully  deviceId=5  serial=B051375C222A5334  cohort=4  durationMs=9
+2026-02-15 02:12:13.186 INFO  Device 2/9 connected  serialNumber=B051375C222A5334  durationMs=9
+2026-02-15 02:12:13.186 INFO  Connecting device 3/9  serialNumber=E747AAFD3EEB003C  deviceName=DCL-KTR  cohort=4
+2026-02-15 02:12:13.186 INFO  Connecting to device  deviceId=6  serial=E747AAFD3EEB003C  cohort=4
+2026-02-15 02:12:13.194 INFO  Connected successfully  deviceId=6  serial=E747AAFD3EEB003C  cohort=4  durationMs=8
+2026-02-15 02:12:13.198 INFO  Device 3/9 connected  serialNumber=E747AAFD3EEB003C  durationMs=8
+2026-02-15 02:12:13.199 INFO  Connecting device 4/9  serialNumber=96FE5E88572C1995  deviceName=DCL-Haynes  cohort=1
+2026-02-15 02:12:13.199 INFO  Connecting to device  deviceId=7  serial=96FE5E88572C1995  cohort=1
+2026-02-15 02:12:13.207 INFO  Connected successfully  deviceId=7  serial=96FE5E88572C1995  cohort=1  durationMs=8
+2026-02-15 02:12:13.211 INFO  Device 4/9 connected  serialNumber=96FE5E88572C1995  durationMs=8
+2026-02-15 02:12:13.211 INFO  Connecting device 5/9  serialNumber=E6D8F89877415815  deviceName=DCL-Brown  cohort=6
+2026-02-15 02:12:13.211 INFO  Connecting to device  deviceId=9  serial=E6D8F89877415815  cohort=6
+2026-02-15 02:12:13.219 INFO  Connected successfully  deviceId=9  serial=E6D8F89877415815  cohort=6  durationMs=8
+2026-02-15 02:12:13.223 INFO  Device 5/9 connected  serialNumber=E6D8F89877415815  durationMs=8
+2026-02-15 02:12:13.223 INFO  Connecting device 6/9  serialNumber=1B1034C2B3399A18  deviceName=DCL-Curtis-1  cohort=0
+2026-02-15 02:12:13.223 INFO  Connecting to device  deviceId=10  serial=1B1034C2B3399A18  cohort=0
+2026-02-15 02:12:13.232 INFO  Connected successfully  deviceId=10  serial=1B1034C2B3399A18  cohort=0  durationMs=9
+2026-02-15 02:12:13.236 INFO  Device 6/9 connected  serialNumber=1B1034C2B3399A18  durationMs=9
+2026-02-15 02:12:13.236 INFO  Connecting device 7/9  serialNumber=1A81067CFA117B5B  deviceName=DCL-Curtis-2  cohort=0
+2026-02-15 02:12:13.236 INFO  Connecting to device  deviceId=11  serial=1A81067CFA117B5B  cohort=0
+2026-02-15 02:12:13.244 INFO  Connected successfully  deviceId=11  serial=1A81067CFA117B5B  cohort=0  durationMs=8
+2026-02-15 02:12:13.248 INFO  Device 7/9 connected  serialNumber=1A81067CFA117B5B  durationMs=8
+2026-02-15 02:12:13.248 INFO  Connecting device 8/9  serialNumber=A93B7B8CC0D672FE  deviceName=DCL-Howard  cohort=8
+2026-02-15 02:12:13.248 INFO  Connecting to device  deviceId=12  serial=A93B7B8CC0D672FE  cohort=8
+2026-02-15 02:12:13.256 INFO  Connected successfully  deviceId=12  serial=A93B7B8CC0D672FE  cohort=8  durationMs=8
+2026-02-15 02:12:13.260 INFO  Device 8/9 connected  serialNumber=A93B7B8CC0D672FE  durationMs=8
+2026-02-15 02:12:13.260 INFO  Connecting device 9/9  serialNumber=2622A846A1BD5441  deviceName=DCL-Epler  cohort=5
+2026-02-15 02:12:13.260 INFO  Connecting to device  deviceId=17  serial=2622A846A1BD5441  cohort=5
+2026-02-15 02:12:13.269 INFO  Connected successfully  deviceId=17  serial=2622A846A1BD5441  cohort=5  durationMs=9
+2026-02-15 02:12:13.272 INFO  Device 9/9 connected  serialNumber=2622A846A1BD5441  durationMs=9
+2026-02-15 02:12:13.273 INFO  === STARTUP COMPLETE: Connection Summary ===  success=9  failed=0  skipped=0  timedOut=0  totalDurationMs=114  averageDurationMs=8
+2026-02-15 02:12:13.273 INFO  Starting polling scheduler  intervalMs=10000  cohorts=10  tickDurationMs=1000
+2026-02-15 02:12:13.273 INFO  Backfill service started  gapThresholdMs=30000  maxConcurrent=5
+2026-02-15 02:12:13.273 WARN  SIMPro API credentials not configured, SIM polling disabled
+2026-02-15 02:12:13.273 INFO  Starting InHand GPS location poller  interval=120000  baseUrl=https://iot.inhandnetworks.com
+2026-02-15 02:12:13.274 INFO  InHand API: Authenticating  username=andy@deecell.com  baseUrl=https://iot.inhandnetworks.com
+2026-02-15 02:12:13.278 INFO  Device Manager started successfully  devices=9  status=running
+2026-02-15 02:12:13.303 INFO  Fetched device info from PowerMon  deviceId=6  serial=E747AAFD3EEB003C  cohort=4  serialNumber=E747AAFD3EEB003C  firmwareVersion=1.34  hardwareRevision=PowerMon-W  deviceName=DCL-KTR
+2026-02-15 02:12:13.305 INFO  Updated device info  deviceId=6  serialNumber=E747AAFD3EEB003C  firmwareVersion=1.34  hardwareRevision=PowerMon-W  deviceName=DCL-KTR
+2026-02-15 02:12:13.532 INFO  InHand API: Authenticated successfully  expiresIn=3599  hasRefreshToken=true
+2026-02-15 02:12:13.672 INFO  InHand GPS locations updated  totalDevices=43  devicesWithLocation=4  simsMatched=4  trucksUpdated=4  unmatchedDevices=undefined  durationMs=398
+2026-02-15 02:12:13.790 INFO  Fetched device info from PowerMon  deviceId=9  serial=E6D8F89877415815  cohort=6  serialNumber=E6D8F89877415815  firmwareVersion=1.33  hardwareRevision=PowerMon-W  deviceName=DCL-Brown
+2026-02-15 02:12:13.792 INFO  Updated device info  deviceId=9  serialNumber=E6D8F89877415815  firmwareVersion=1.33  hardwareRevision=PowerMon-W  deviceName=DCL-Brown
+2026-02-15 02:12:13.821 INFO  Fetched device info from PowerMon  deviceId=17  serial=2622A846A1BD5441  cohort=5  serialNumber=2622A846A1BD5441  firmwareVersion=1.34  hardwareRevision=PowerMon-W  deviceName=DCL-Epler
+2026-02-15 02:12:13.824 INFO  Updated device info  deviceId=17  serialNumber=2622A846A1BD5441  firmwareVersion=1.34  hardwareRevision=PowerMon-W  deviceName=DCL-Epler
+2026-02-15 02:12:13.912 INFO  Fetched device info from PowerMon  deviceId=7  serial=96FE5E88572C1995  cohort=1  serialNumber=96FE5E88572C1995  firmwareVersion=1.18  hardwareRevision=PowerMon-W  deviceName=DCL-Haynes
+2026-02-15 02:12:13.914 INFO  Updated device info  deviceId=7  serialNumber=96FE5E88572C1995  firmwareVersion=1.18  hardwareRevision=PowerMon-W  deviceName=DCL-Haynes
+2026-02-15 02:12:13.958 INFO  Fetched device info from PowerMon  deviceId=11  serial=1A81067CFA117B5B  cohort=0  serialNumber=1A81067CFA117B5B  firmwareVersion=1.18  hardwareRevision=PowerMon-W  deviceName=DCL-Curtis-2
+2026-02-15 02:12:13.960 INFO  Updated device info  deviceId=11  serialNumber=1A81067CFA117B5B  firmwareVersion=1.18  hardwareRevision=PowerMon-W  deviceName=DCL-Curtis-2
+2026-02-15 02:12:14.093 INFO  Fetched device info from PowerMon  deviceId=5  serial=B051375C222A5334  cohort=4  serialNumber=B051375C222A5334  firmwareVersion=1.33  hardwareRevision=PowerMon-W  deviceName=DCL-Carter
+2026-02-15 02:12:14.096 INFO  Updated device info  deviceId=5  serialNumber=B051375C222A5334  firmwareVersion=1.33  hardwareRevision=PowerMon-W  deviceName=DCL-Carter
+2026-02-15 02:12:14.248 INFO  Fetched device info from PowerMon  deviceId=10  serial=1B1034C2B3399A18  cohort=0  serialNumber=1B1034C2B3399A18  firmwareVersion=1.33  hardwareRevision=PowerMon-W  deviceName=DCL-Curtis-1
+2026-02-15 02:12:14.250 INFO  Updated device info  deviceId=10  serialNumber=1B1034C2B3399A18  firmwareVersion=1.33  hardwareRevision=PowerMon-W  deviceName=DCL-Curtis-1
+=== New Polling Cycle ===
+Skipping 5 offline/unstable devices:
+                  [offline]   DCL-Moeck-Shop                 (1 disconnects)
+                  [offline]   DCL-Kruse                      (1 disconnects)
+                  [offline]   DCL-Thibert                    (1 disconnects)
+                  [offline]   DCL-Elite-Hospitality          (1 disconnects)
+                  [offline]   DCL-Kalitta-Hospitality        (1 disconnects)
+2026-02-15 02:12:14.371 INFO  Fetched device info from PowerMon  deviceId=3  serial=A3A5B30EA9B3FF98  cohort=4  serialNumber=A3A5B30EA9B3FF98  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Moeck
+2026-02-15 02:12:14.373 INFO  Updated device info  deviceId=3  serialNumber=A3A5B30EA9B3FF98  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Moeck
+2026-02-15 02:12:14.535 INFO  Fetched device info from PowerMon  deviceId=12  serial=A93B7B8CC0D672FE  cohort=8  serialNumber=A93B7B8CC0D672FE  firmwareVersion=1.33  hardwareRevision=PowerMon-W  deviceName=DCL-Howard
+2026-02-15 02:12:14.537 INFO  Updated device info  deviceId=12  serialNumber=A93B7B8CC0D672FE  firmwareVersion=1.33  hardwareRevision=PowerMon-W  deviceName=DCL-Howard
+2026-02-15 02:12:15.166 INFO  DCL-Curtis-1 (TRK-01)          parked  v1= 28.04  v2=  0.0352  today=  132m  month= 19859m  since=2025-12-29 23:38:19
+2026-02-15 02:12:15.173 INFO  DCL-Curtis-2 (TRK-02)          parked  v1= 26.57  v2=  0.0452  today=  132m  month= 19859m  since=2025-12-29 23:38:54
+2026-02-15 02:12:17.182 INFO  DCL-Haynes (RHR-01)            parked  v1= 26.20  v2=  0.0397  today=  132m  month= 19866m  since=2025-12-29 23:22:12
+2026-02-15 02:12:21.197 INFO  DCL-Carter (CTR-69)            parked  v1= 27.77  v2=  0.0420  today=  132m  month= 20286m  since=2025-12-03 17:15:48
+2026-02-15 02:12:21.203 INFO  DCL-Moeck (GFR-69)             parked  v1= 26.54  v2= 12.6816  today=  132m  month= 20292m  since=2025-12-23 05:46:33
+2026-02-15 02:12:25.213 INFO  DCL-Epler (TRL-01)             parked  v1= 26.57  v2=  0.0393  today=  132m  month= 19859m  since=2026-01-31 18:59:00
+2026-02-15 02:12:27.224 INFO  DCL-Brown (RBR-01)             parked  v1= 25.62  v2= 12.7035  today=  132m  month= 10737m  since=2026-02-14 16:49:37
+2026-02-15 02:12:29.234 INFO  DCL-Howard (MHR-01)            parked  v1= 27.76  v2=  0.0409  today=  132m  month= 19859m  since=2025-12-30 22:17:33
+=== New Polling Cycle ===
+Skipping 5 offline/unstable devices:
+                  [offline]   DCL-Moeck-Shop                 (1 disconnects)
+                  [offline]   DCL-Kruse                      (1 disconnects)
+                  [offline]   DCL-Thibert                    (1 disconnects)
+                  [offline]   DCL-Elite-Hospitality          (1 disconnects)
+                  [offline]   DCL-Kalitta-Hospitality        (1 disconnects)
+2026-02-15 02:12:31.247 INFO  DCL-Curtis-1 (TRK-01)          parked  v1= 28.04  v2=  0.0359  today=  133m  month= 19860m  since=2025-12-29 23:38:19
+2026-02-15 02:12:31.253 INFO  DCL-Curtis-2 (TRK-02)          parked  v1= 26.57  v2=  0.0461  today=  133m  month= 19860m  since=2025-12-29 23:38:54
+2026-02-15 02:12:33.263 INFO  DCL-Haynes (RHR-01)            parked  v1= 26.20  v2=  0.0401  today=  133m  month= 19867m  since=2025-12-29 23:22:12
+2026-02-15 02:12:35.277 INFO  DCL-Moeck (GFR-69)             parked  v1= 26.54  v2= 12.6822  today=  133m  month= 20293m  since=2025-12-23 05:46:33
+2026-02-15 02:12:35.283 INFO  DCL-Carter (CTR-69)            parked  v1= 27.77  v2=  0.0420  today=  133m  month= 20287m  since=2025-12-03 17:15:48
+2026-02-15 02:12:37.293 INFO  DCL-Epler (TRL-01)             parked  v1= 26.57  v2=  0.0395  today=  133m  month= 19860m  since=2026-01-31 18:59:00
+2026-02-15 02:12:39.301 INFO  DCL-Brown (RBR-01)             parked  v1= 25.62  v2= 12.7026  today=  133m  month= 10738m  since=2026-02-14 16:49:37
+2026-02-15 02:12:41.310 INFO  DCL-Howard (MHR-01)            parked  v1= 27.76  v2=  0.0417  today=  133m  month= 19860m  since=2025-12-30 22:17:33
+=== New Polling Cycle ===
+Skipping 5 offline/unstable devices:
+                  [offline]   DCL-Moeck-Shop                 (1 disconnects)
+                  [offline]   DCL-Kruse                      (1 disconnects)
+                  [offline]   DCL-Thibert                    (1 disconnects)
+                  [offline]   DCL-Elite-Hospitality          (1 disconnects)
+                  [offline]   DCL-Kalitta-Hospitality        (1 disconnects)
+2026-02-15 02:12:43.319 INFO  DCL-Curtis-2 (TRK-02)          parked  v1= 26.57  v2=  0.0454  today=  133m  month= 19860m  since=2025-12-29 23:38:54
+2026-02-15 02:12:45.329 INFO  DCL-Curtis-1 (TRK-01)          parked  v1= 28.04  v2=  0.0365  today=  133m  month= 19860m  since=2025-12-29 23:38:19
+2026-02-15 02:12:45.335 INFO  DCL-Haynes (RHR-01)            parked  v1= 26.20  v2=  0.0405  today=  133m  month= 19867m  since=2025-12-29 23:22:12
+2026-02-15 02:12:49.351 INFO  DCL-Carter (CTR-69)            parked  v1= 27.77  v2=  0.0408  today=  133m  month= 20287m  since=2025-12-03 17:15:48
+2026-02-15 02:12:49.357 INFO  DCL-Moeck (GFR-69)             parked  v1= 26.54  v2= 12.6817  today=  133m  month= 20293m  since=2025-12-23 05:46:33
+2026-02-15 02:12:51.366 INFO  DCL-Epler (TRL-01)             parked  v1= 26.57  v2=  0.0395  today=  133m  month= 19860m  since=2026-01-31 18:59:00
+2026-02-15 02:12:51.372 INFO  DCL-Brown (RBR-01)             parked  v1= 25.62  v2= 12.7027  today=  133m  month= 10738m  since=2026-02-14 16:49:37
+=== New Polling Cycle ===
+Skipping 5 offline/unstable devices:
+                  [offline]   DCL-Moeck-Shop                 (1 disconnects)
+                  [offline]   DCL-Kruse                      (1 disconnects)
+                  [offline]   DCL-Thibert                    (1 disconnects)
+                  [offline]   DCL-Elite-Hospitality          (1 disconnects)
+                  [offline]   DCL-Kalitta-Hospitality        (1 disconnects)
+2026-02-15 02:12:55.385 INFO  DCL-Howard (MHR-01)            parked  v1= 27.76  v2=  0.0415  today=  133m  month= 19860m  since=2025-12-30 22:17:33
+2026-02-15 02:12:57.393 INFO  DCL-Curtis-1 (TRK-01)          parked  v1= 28.04  v2=  0.0358  today=  133m  month= 19860m  since=2025-12-29 23:38:19
+2026-02-15 02:12:57.400 INFO  DCL-Curtis-2 (TRK-02)          parked  v1= 26.56  v2=  0.0452  today=  133m  month= 19860m  since=2025-12-29 23:38:54
+2026-02-15 02:12:57.406 INFO  DCL-Haynes (RHR-01)            parked  v1= 26.20  v2=  0.0399  today=  133m  month= 19867m  since=2025-12-29 23:22:12
+2026-02-15 02:13:01.426 INFO  DCL-Carter (CTR-69)            parked  v1= 27.76  v2=  0.0415  today=  133m  month= 20287m  since=2025-12-03 17:15:48
+2026-02-15 02:13:01.442 INFO  DCL-Moeck (GFR-69)             parked  v1= 26.54  v2= 12.6795  today=  133m  month= 20293m  since=2025-12-23 05:46:33
+2026-02-15 02:13:03.453 INFO  DCL-Epler (TRL-01)             parked  v1= 26.57  v2=  0.0401  today=  133m  month= 19860m  since=2026-01-31 18:59:00
+2026-02-15 02:13:05.463 INFO  DCL-Brown (RBR-01)             parked  v1= 25.62  v2= 12.7030  today=  133m  month= 10738m  since=2026-02-14 16:49:37
+2026-02-15 02:13:07.471 INFO  DCL-Howard (MHR-01)            parked  v1= 27.76  v2=  0.0418  today=  133m  month= 19860m  since=2025-12-30 22:17:33
+
