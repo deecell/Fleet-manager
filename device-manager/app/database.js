@@ -720,8 +720,8 @@ async function upsertDeviceSnapshot(snapshot) {
   // and calculate the full MTD at display time as: month_parked_minutes + today_parked_minutes
   monthParkedMinutes = baseMonthMinutes + todayParkedMinutes;
   
-  // Log parked status at info level for visibility
-  if (isCurrentlyParked) {
+  // Log device status at info level for visibility
+  {
     let truckLabel = `device#${snapshot.deviceId}`;
     try {
       const truckResult = await query(
@@ -733,6 +733,7 @@ async function upsertDeviceSnapshot(snapshot) {
         truckLabel = r.device_name ? `${r.device_name} (${r.truck_number})` : r.truck_number;
       }
     } catch (e) {}
+    const green = '\x1b[32m';
     const cyan = '\x1b[36m';
     const bold = '\x1b[1m';
     const dim = '\x1b[2m';
@@ -743,8 +744,10 @@ async function upsertDeviceSnapshot(snapshot) {
     const v2 = (snapshot.voltage2?.toFixed(4) || '-').padStart(8);
     const today = String(Math.round(todayParkedMinutes)).padStart(5);
     const month = String(Math.round(monthParkedMinutes)).padStart(6);
-    const since = parkedSince ? parkedSince.toISOString().replace('T', ' ').replace(/\.\d+Z/, '') : 'n/a';
-    console.log(`${dim}${ts}${rst} ${cyan}INFO ${rst} ${bold}${name}${rst} ${dim}parked${rst}  v1=${v1}  v2=${v2}  ${dim}today=${rst}${today}m  ${dim}month=${rst}${month}m  ${dim}since=${rst}${since}`);
+    const statusLabel = isCurrentlyParked ? `${dim}parked${rst}` : `${green}driving${rst}`;
+    const sinceTime = isCurrentlyParked ? parkedSince : drivingSince;
+    const since = sinceTime ? sinceTime.toISOString().replace('T', ' ').replace(/\.\d+Z/, '') : 'n/a';
+    console.log(`${dim}${ts}${rst} ${cyan}INFO ${rst} ${bold}${name}${rst} ${statusLabel}  v1=${v1}  v2=${v2}  ${dim}today=${rst}${today}m  ${dim}month=${rst}${month}m  ${dim}since=${rst}${since}`);
   }
   
   try {
