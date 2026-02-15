@@ -1,0 +1,126 @@
+=== New Polling Cycle ===
+Skipping 3 offline/unstable devices:
+                  [offline]   DCL-Kalitta-Hospitality        (1 disconnects)
+                  [offline]   DCL-Elite-Hospitality          (1 disconnects)
+                  [offline]   DCL-Epler                      (1 disconnects)
+Skipping 5 devices with inactive trucks:
+                  [inactive]  DCL-Brown                      (RBR-01)
+                  [inactive]  DCL-Kruse                      (WKR-01)
+                  [inactive]  DCL-Moeck-Shop                 (GFR-70)
+                  [inactive]  DCL-Thibert                    (RTR-01)
+                  [inactive]  DCL-Haynes                     (RHR-01)
+2026-02-15 01:23:55.699 INFO  DCL-Curtis-1 (TRK-01)          parked  v1= 28.69  v2=  0.0346  today=   84m  month= 19811m  since=2025-12-29 23:38:19
+2026-02-15 01:23:55.705 INFO  DCL-Curtis-2 (TRK-02)          parked  v1= 27.10  v2=  0.0448  today=   84m  month= 19811m  since=2025-12-29 23:38:54
+2026-02-15 01:24:01.744 INFO  DCL-Carter (CTR-69)            parked  v1= 28.43  v2=  0.0428  today=   84m  month= 20238m  since=2025-12-03 17:15:48
+2026-02-15 01:24:01.775 INFO  DCL-Moeck (GFR-69)             parked  v1= 26.86  v2= 12.6781  today=   84m  month= 20244m  since=2025-12-23 05:46:33
+2026-02-15 01:24:05.787 INFO  DCL-Howard (MHR-01)            parked  v1= 27.76  v2=  0.0422  today=   84m  month= 19811m  since=2025-12-30 22:17:33
+=== New Polling Cycle ===
+Skipping 3 offline/unstable devices:
+                  [offline]   DCL-Kalitta-Hospitality        (1 disconnects)
+                  [offline]   DCL-Elite-Hospitality          (1 disconnects)
+                  [offline]   DCL-Epler                      (1 disconnects)
+Skipping 4 devices with inactive trucks:
+                  [inactive]  DCL-Kruse                      (WKR-01)
+                  [inactive]  DCL-Moeck-Shop                 (GFR-70)
+                  [inactive]  DCL-Thibert                    (RTR-01)
+                  [inactive]  DCL-Haynes                     (RHR-01)
+2026-02-15 01:24:07.009 INFO  Found newly activated device  serialNumber=E6D8F89877415815  deviceName=DCL-Brown
+2026-02-15 01:24:07.011 INFO  Connecting to device  deviceId=9  serial=E6D8F89877415815  cohort=6
+2026-02-15 01:24:07.020 INFO  Connected successfully  deviceId=9  serial=E6D8F89877415815  cohort=6  durationMs=9
+2026-02-15 01:24:07.023 INFO  New device connection result  serialNumber=E6D8F89877415815  deviceName=DCL-Brown  success=true  durationMs=12  cohort=6
+2026-02-15 01:24:07.514 INFO  Fetched device info from PowerMon  deviceId=9  serial=E6D8F89877415815  cohort=6  serialNumber=E6D8F89877415815  firmwareVersion=1.33  hardwareRevision=PowerMon-W  deviceName=DCL-Brown
+2026-02-15 01:24:07.516 INFO  Updated device info  deviceId=9  serialNumber=E6D8F89877415815  firmwareVersion=1.33  hardwareRevision=PowerMon-W  deviceName=DCL-Brown
+2026-02-15 01:24:07.796 INFO  DCL-Curtis-1 (TRK-01)          parked  v1= 28.68  v2=  0.0345  today=   84m  month= 19811m  since=2025-12-29 23:38:19
+2026-02-15 01:24:07.802 INFO  DCL-Curtis-2 (TRK-02)          parked  v1= 27.09  v2=  0.0455  today=   84m  month= 19811m  since=2025-12-29 23:38:54
+2026-02-15 01:24:07.815 INFO  Refreshing device list
+2026-02-15 01:24:07.819 INFO  Found offline devices ready for recovery check  count=3  devices=DCL-Epler,DCL-Kalitta-Hospitality,DCL-Elite-Hospitality
+2026-02-15 01:24:07.820 INFO  Attempting to recover offline devices  count=3  devices=DCL-Epler,DCL-Kalitta-Hospitality,DCL-Elite-Hospitality
+Skipping 3 offline/unstable devices:
+                  [offline]   DCL-Kalitta-Hospitality        (1 disconnects)
+                  [offline]   DCL-Elite-Hospitality          (1 disconnects)
+                  [offline]   DCL-Epler                      (1 disconnects)
+Skipping 4 devices with inactive trucks:
+                  [inactive]  DCL-Kruse                      (WKR-01)
+                  [inactive]  DCL-Moeck-Shop                 (GFR-70)
+                  [inactive]  DCL-Thibert                    (RTR-01)
+                  [inactive]  DCL-Haynes                     (RHR-01)
+2026-02-15 01:24:07.823 INFO  Device list refreshed  total=7  added=0  removed=0  newDevices=
+2026-02-15 01:24:08.040 INFO  Offline device reachable, attempting connection  deviceId=17  deviceName=DCL-Epler
+2026-02-15 01:24:08.040 INFO  Connecting to device  deviceId=17  serial=2622A846A1BD5441  cohort=5
+2026-02-15 01:24:08.049 INFO  Connected successfully  deviceId=17  serial=2622A846A1BD5441  cohort=5  durationMs=9
+2026-02-15 01:24:08.054 INFO  Offline device recovered successfully  deviceId=17  serial=2622A846A1BD5441  deviceName=DCL-Epler  durationMs=9
+2026-02-15 01:24:08.070 INFO  InHand GPS locations updated  totalDevices=43  devicesWithLocation=4  simsMatched=4  trucksUpdated=4  unmatchedDevices=undefined  durationMs=253
+2026-02-15 01:24:08.199 INFO  Offline device reachable, attempting connection  deviceId=18  deviceName=DCL-Kalitta-Hospitality
+2026-02-15 01:24:08.199 INFO  Connecting to device  deviceId=18  serial=  cohort=0
+2026-02-15 01:24:08.208 INFO  Connected successfully  deviceId=18  serial=  cohort=0  durationMs=9
+2026-02-15 01:24:08.212 INFO  Offline device recovered successfully  deviceId=18  serial=  deviceName=DCL-Kalitta-Hospitality  durationMs=9
+2026-02-15 01:24:08.215 WARN  Rapid disconnect detected (error)  deviceId=18  serial=  cohort=0  reason=2  rapidDisconnects=1  connectionDurationMs=7
+2026-02-15 01:24:08.215 INFO  Device disconnected (unexpected)  deviceId=18  serial=  cohort=0  reason=2  isRapidDisconnect=true
+2026-02-15 01:24:08.221 INFO  Scheduling reconnect  deviceId=18  serial=  cohort=0  attempt=1  delayMs=1000
+2026-02-15 01:24:08.360 INFO  Offline device reachable, attempting connection  deviceId=15  deviceName=DCL-Elite-Hospitality
+2026-02-15 01:24:08.360 INFO  Connecting to device  deviceId=15  serial=623DECC4E318D957  cohort=4
+2026-02-15 01:24:08.369 INFO  Connected successfully  deviceId=15  serial=623DECC4E318D957  cohort=4  durationMs=9
+2026-02-15 01:24:08.374 INFO  Offline device recovered successfully  deviceId=15  serial=623DECC4E318D957  deviceName=DCL-Elite-Hospitality  durationMs=9
+2026-02-15 01:24:08.374 INFO  Offline device recovery complete  attempted=3  recovered=3  unreachable=0
+2026-02-15 01:24:08.374 WARN  Rapid disconnect detected (error)  deviceId=15  serial=623DECC4E318D957  cohort=4  reason=2  rapidDisconnects=1  connectionDurationMs=5
+2026-02-15 01:24:08.374 INFO  Device disconnected (unexpected)  deviceId=15  serial=623DECC4E318D957  cohort=4  reason=2  isRapidDisconnect=true
+2026-02-15 01:24:08.378 INFO  Scheduling reconnect  deviceId=15  serial=623DECC4E318D957  cohort=4  attempt=1  delayMs=1000
+2026-02-15 01:24:08.724 INFO  Fetched device info from PowerMon  deviceId=17  serial=2622A846A1BD5441  cohort=5  serialNumber=2622A846A1BD5441  firmwareVersion=1.34  hardwareRevision=PowerMon-W  deviceName=DCL-Epler
+2026-02-15 01:24:08.727 INFO  Updated device info  deviceId=17  serialNumber=2622A846A1BD5441  firmwareVersion=1.34  hardwareRevision=PowerMon-W  deviceName=DCL-Epler
+2026-02-15 01:24:09.221 INFO  Connecting to device  deviceId=18  serial=  cohort=0
+2026-02-15 01:24:09.230 INFO  Connected successfully  deviceId=18  serial=  cohort=0  durationMs=9
+2026-02-15 01:24:09.232 WARN  Rapid disconnect detected (error)  deviceId=18  serial=  cohort=0  reason=2  rapidDisconnects=2  connectionDurationMs=2
+2026-02-15 01:24:09.233 INFO  Device disconnected (unexpected)  deviceId=18  serial=  cohort=0  reason=2  isRapidDisconnect=true
+2026-02-15 01:24:09.234 WARN  Error fetching device info  deviceId=18  serial=  cohort=0  error=Not connected
+2026-02-15 01:24:09.236 INFO  Scheduling reconnect  deviceId=18  serial=  cohort=0  attempt=1  delayMs=1000
+2026-02-15 01:24:09.378 INFO  Connecting to device  deviceId=15  serial=623DECC4E318D957  cohort=4
+2026-02-15 01:24:09.387 INFO  Connected successfully  deviceId=15  serial=623DECC4E318D957  cohort=4  durationMs=9
+2026-02-15 01:24:09.390 WARN  Rapid disconnect detected (error)  deviceId=15  serial=623DECC4E318D957  cohort=4  reason=2  rapidDisconnects=2  connectionDurationMs=3
+2026-02-15 01:24:09.390 INFO  Device disconnected (unexpected)  deviceId=15  serial=623DECC4E318D957  cohort=4  reason=2  isRapidDisconnect=true
+2026-02-15 01:24:09.391 WARN  Error fetching device info  deviceId=15  serial=623DECC4E318D957  cohort=4  error=Not connected
+2026-02-15 01:24:09.393 INFO  Scheduling reconnect  deviceId=15  serial=623DECC4E318D957  cohort=4  attempt=1  delayMs=1000
+2026-02-15 01:24:10.236 INFO  Connecting to device  deviceId=18  serial=  cohort=0
+2026-02-15 01:24:10.245 INFO  Connected successfully  deviceId=18  serial=  cohort=0  durationMs=9
+2026-02-15 01:24:10.248 WARN  Rapid disconnect detected (error)  deviceId=18  serial=  cohort=0  reason=2  rapidDisconnects=3  connectionDurationMs=3
+2026-02-15 01:24:10.248 INFO  Device disconnected (unexpected)  deviceId=18  serial=  cohort=0  reason=2  isRapidDisconnect=true
+2026-02-15 01:24:10.249 WARN  Error fetching device info  deviceId=18  serial=  cohort=0  error=Not connected
+2026-02-15 01:24:10.251 INFO  Scheduling reconnect  deviceId=18  serial=  cohort=0  attempt=1  delayMs=1000
+2026-02-15 01:24:10.393 INFO  Connecting to device  deviceId=15  serial=623DECC4E318D957  cohort=4
+2026-02-15 01:24:10.402 INFO  Connected successfully  deviceId=15  serial=623DECC4E318D957  cohort=4  durationMs=9
+2026-02-15 01:24:10.406 WARN  Rapid disconnect detected (error)  deviceId=15  serial=623DECC4E318D957  cohort=4  reason=2  rapidDisconnects=3  connectionDurationMs=4
+2026-02-15 01:24:10.406 INFO  Device disconnected (unexpected)  deviceId=15  serial=623DECC4E318D957  cohort=4  reason=2  isRapidDisconnect=true
+2026-02-15 01:24:10.410 INFO  Scheduling reconnect  deviceId=15  serial=623DECC4E318D957  cohort=4  attempt=1  delayMs=1000
+2026-02-15 01:24:11.252 INFO  Connecting to device  deviceId=18  serial=  cohort=0
+2026-02-15 01:24:11.261 INFO  Connected successfully  deviceId=18  serial=  cohort=0  durationMs=8
+2026-02-15 01:24:11.263 WARN  Rapid disconnect detected (error)  deviceId=18  serial=  cohort=0  reason=2  rapidDisconnects=4  connectionDurationMs=3
+2026-02-15 01:24:11.263 INFO  Device disconnected (unexpected)  deviceId=18  serial=  cohort=0  reason=2  isRapidDisconnect=true
+2026-02-15 01:24:11.264 WARN  Error fetching device info  deviceId=18  serial=  cohort=0  error=Not connected
+2026-02-15 01:24:11.266 INFO  Scheduling reconnect  deviceId=18  serial=  cohort=0  attempt=1  delayMs=1000
+2026-02-15 01:24:11.410 INFO  Connecting to device  deviceId=15  serial=623DECC4E318D957  cohort=4
+2026-02-15 01:24:11.418 INFO  Connected successfully  deviceId=15  serial=623DECC4E318D957  cohort=4  durationMs=8
+2026-02-15 01:24:11.420 WARN  Rapid disconnect detected (error)  deviceId=15  serial=623DECC4E318D957  cohort=4  reason=2  rapidDisconnects=4  connectionDurationMs=2
+2026-02-15 01:24:11.421 INFO  Device disconnected (unexpected)  deviceId=15  serial=623DECC4E318D957  cohort=4  reason=2  isRapidDisconnect=true
+2026-02-15 01:24:11.423 WARN  Error fetching device info  deviceId=15  serial=623DECC4E318D957  cohort=4  error=Not connected
+2026-02-15 01:24:11.424 INFO  Scheduling reconnect  deviceId=15  serial=623DECC4E318D957  cohort=4  attempt=1  delayMs=1000
+2026-02-15 01:24:12.267 INFO  Connecting to device  deviceId=18  serial=  cohort=0
+2026-02-15 01:24:12.275 INFO  Connected successfully  deviceId=18  serial=  cohort=0  durationMs=8
+2026-02-15 01:24:12.278 WARN  Rapid disconnect detected (error)  deviceId=18  serial=  cohort=0  reason=2  rapidDisconnects=5  connectionDurationMs=3
+2026-02-15 01:24:12.278 ERROR Circuit breaker OPEN - device appears powered off (all connections < 100ms)  deviceId=18  serial=  cohort=0  rapidDisconnects=5  avgDurationMs=4  backoffMinutes=5  resetAt=2026-02-15T01:29:12.278Z
+2026-02-15 01:24:12.278 WARN  Marking device as no_power in database  deviceId=18
+2026-02-15 01:24:12.278 INFO  Device disconnected (unexpected)  deviceId=18  serial=  cohort=0  reason=2  isRapidDisconnect=true
+2026-02-15 01:24:12.279 WARN  Error fetching device info  deviceId=18  serial=  cohort=0  error=Not connected
+2026-02-15 01:24:12.282 INFO  Skipping reconnect - circuit breaker open  deviceId=18  serial=  cohort=0
+2026-02-15 01:24:12.424 INFO  Connecting to device  deviceId=15  serial=623DECC4E318D957  cohort=4
+2026-02-15 01:24:12.434 INFO  Connected successfully  deviceId=15  serial=623DECC4E318D957  cohort=4  durationMs=10
+2026-02-15 01:24:12.438 WARN  Rapid disconnect detected (error)  deviceId=15  serial=623DECC4E318D957  cohort=4  reason=2  rapidDisconnects=5  connectionDurationMs=4
+2026-02-15 01:24:12.438 ERROR Circuit breaker OPEN - device appears powered off (all connections < 100ms)  deviceId=15  serial=623DECC4E318D957  cohort=4  rapidDisconnects=5  avgDurationMs=4  backoffMinutes=5  resetAt=2026-02-15T01:29:12.438Z
+2026-02-15 01:24:12.438 WARN  Marking device as no_power in database  deviceId=15
+2026-02-15 01:24:12.438 INFO  Device disconnected (unexpected)  deviceId=15  serial=623DECC4E318D957  cohort=4  reason=2  isRapidDisconnect=true
+2026-02-15 01:24:12.442 INFO  Skipping reconnect - circuit breaker open  deviceId=15  serial=623DECC4E318D957  cohort=4
+2026-02-15 01:24:13.818 INFO  DCL-Carter (CTR-69)            parked  v1= 28.43  v2=  0.0424  today=   84m  month= 20238m  since=2025-12-03 17:15:48
+2026-02-15 01:24:13.824 INFO  DCL-Moeck (GFR-69)             parked  v1= 26.86  v2= 12.6820  today=   84m  month= 20244m  since=2025-12-23 05:46:33
+2026-02-15 01:24:13.830 INFO  DCL-Epler (TRL-01)             parked  v1= 26.75  v2=  0.0401  today=   84m  month= 19811m  since=2026-01-31 18:59:00
+terminate called without an active exception
+device-manager.service: Main process exited, code=dumped, status=6/ABRT
+device-manager.service: Failed with result 'core-dump'.
+device-manager.service: Consumed 7.489s CPU time.
