@@ -744,7 +744,7 @@ async function upsertDeviceSnapshot(snapshot) {
     const v2 = (snapshot.voltage2?.toFixed(4) || '-').padStart(8);
     const today = String(Math.round(todayParkedMinutes)).padStart(5);
     const month = String(Math.round(monthParkedMinutes)).padStart(6);
-    const statusLabel = isCurrentlyParked ? `${dim}parked${rst}` : `${green}driving${rst}`;
+    const statusLabel = isCurrentlyParked ? `${dim}parked ${rst}` : `${green}driving${rst}`;
     const sinceTime = isCurrentlyParked ? parkedSince : drivingSince;
     const since = sinceTime ? sinceTime.toISOString().replace('T', ' ').replace(/\.\d+Z/, '') : 'n/a';
     console.log(`${dim}${ts}${rst} ${cyan}INFO ${rst} ${bold}${name}${rst} ${statusLabel}  v1=${v1}  v2=${v2}  ${dim}today=${rst}${today}m  ${dim}month=${rst}${month}m  ${dim}since=${rst}${since}`);
