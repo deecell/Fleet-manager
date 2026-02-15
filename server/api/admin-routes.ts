@@ -505,6 +505,20 @@ router.post("/devices/:id/reset-status", adminMiddleware, async (req: Request, r
   }
 });
 
+router.post("/devices/:id/set-offline", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const result = await storage.setDeviceOffline(id);
+    if (!result) {
+      return res.status(404).json({ error: "Device not found" });
+    }
+    res.json({ success: true, device: result });
+  } catch (error) {
+    console.error("Error setting device offline:", error);
+    res.status(500).json({ error: "Failed to set device offline" });
+  }
+});
+
 router.delete("/devices/:id", adminMiddleware, async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id, 10);

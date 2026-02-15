@@ -772,8 +772,9 @@ class ConnectionPool {
   /**
    * Lightweight check for device changes
    * Called at the start of each polling cycle to quickly detect:
-   * - Newly activated trucks (add device to pool)
-   * - Newly deactivated trucks (remove device from pool)
+   * - Newly activated devices (add to pool)
+   * - Newly deactivated/offline devices (remove from pool)
+   * - Devices reset to online from admin dashboard (reconnect without restart)
    */
   async checkForNewDevices() {
     const devices = await db.getActiveDevicesWithCredentials();
@@ -782,20 +783,21 @@ class ConnectionPool {
     
     let added = 0;
     let removed = 0;
+    let reconnected = 0;
     
-    // Remove devices whose trucks are now inactive
+    // Remove devices that are no longer in the active query
+    // This handles: credentials deactivated, or device marked offline/unstable from admin
     for (const id of currentIds) {
       if (!activeIds.has(id)) {
         const conn = this.connections.get(id);
         if (conn) {
-          logger.info('Removing deactivated device from pool', { 
+          logger.info('Removing device from pool (no longer active)', { 
             deviceId: id,
             serialNumber: conn.serialNumber,
             deviceName: conn.deviceName
           });
           conn.disconnect();
           this.connections.delete(id);
-          // Remove from cohort
           for (const cohort of this.cohorts.values()) {
             cohort.delete(id);
           }
@@ -804,9 +806,9 @@ class ConnectionPool {
       }
     }
     
-    // Add devices that aren't in the pool yet
     for (const device of devices) {
       if (!currentIds.has(device.device_id)) {
+        // Device not in pool at all — add and connect
         logger.info('Found newly activated device', { 
           serialNumber: device.serial_number,
           deviceName: device.device_name
@@ -827,7 +829,6 @@ class ConnectionPool {
         
         await db.upsertDeviceSyncStatus(device.device_id, device.organization_id, cohortId);
         
-        // Attempt to connect
         const startTime = Date.now();
         const result = await conn.connect();
         const durationMs = Date.now() - startTime;
@@ -841,10 +842,37 @@ class ConnectionPool {
         });
         
         added++;
+      } else {
+        // Device already in pool — check if it needs reconnection
+        // This handles admin resetting a device from offline back to online
+        const conn = this.connections.get(device.device_id);
+        if (conn && conn.status === 'disconnected' && !conn.reconnectTimer) {
+          logger.info('Reconnecting device reset to online from admin dashboard', {
+            deviceId: device.device_id,
+            serialNumber: conn.serialNumber,
+            deviceName: conn.deviceName
+          });
+          
+          conn.rapidDisconnectCount = 0;
+          conn.isCircuitOpen = false;
+          conn.circuitResetAt = null;
+          conn.consecutiveFailures = 0;
+          
+          const result = await conn.connect();
+          
+          logger.info('Reconnection result', {
+            serialNumber: conn.serialNumber,
+            deviceName: conn.deviceName,
+            success: result.success,
+            durationMs: result.durationMs
+          });
+          
+          reconnected++;
+        }
       }
     }
     
-    return { added, removed };
+    return { added, removed, reconnected };
   }
 
   /**

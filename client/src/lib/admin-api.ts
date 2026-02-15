@@ -416,6 +416,19 @@ export function useResetDeviceStatus() {
   });
 }
 
+export function useSetDeviceOffline() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id }: { id: number }) =>
+      adminFetch<PowerMonDevice>(`/api/v1/admin/devices/${id}/set-offline`, {
+        method: "POST",
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/devices"] });
+    },
+  });
+}
+
 export function useAdminUsers(orgId?: number) {
   const queryKey = orgId 
     ? ["/api/v1/admin/organizations", orgId, "users"]

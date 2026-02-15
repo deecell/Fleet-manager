@@ -6,6 +6,15 @@
 
 ## Latest Updates (February 15, 2026)
 
+### Admin Dashboard: Live Online/Offline Device Control (February 15, 2026)
+- **Set Online**: Existing button (green refresh icon) resets `connection_status` to null so device manager reconnects automatically
+- **Set Offline**: New button (orange wifi-off icon) sets `connection_status` to 'offline' so device manager stops polling
+- **No restart required**: Device manager's `checkForNewDevices()` now detects status changes every polling cycle:
+  - Devices marked offline from admin dashboard are removed from the connection pool
+  - Devices reset to online from admin dashboard are reconnected (circuit breaker state cleared)
+- **Polling log improvement**: Now logs both "parked" AND "driving" devices (previously only logged parked, hiding devices with chassis voltage >= 13.0V)
+- **Log alignment**: Parked/driving status labels padded to equal width for consistent column alignment
+
 ### Separated Service Status (Truck) from Monitoring (Device) (February 15, 2026)
 - **Truck level**: Only has "In Service" / "Not In Service" status, controlled by fleet managers. All trucks are always monitored regardless of status.
 - **Device level**: Has "Monitoring On/Off" toggle on device credentials, controlled by admins only. This determines whether the device is polled by the device manager.

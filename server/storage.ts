@@ -65,6 +65,7 @@ export interface IStorage {
   unassignDevice(organizationId: number, deviceId: number): Promise<PowerMonDevice | undefined>;
   updateDeviceStatus(organizationId: number, id: number, status: string): Promise<void>;
   resetDeviceConnectionStatus(id: number): Promise<PowerMonDevice | undefined>;
+  setDeviceOffline(id: number): Promise<PowerMonDevice | undefined>;
   deleteDevice(organizationId: number, id: number): Promise<boolean>;
 
   // Device Credentials (tenant-scoped)

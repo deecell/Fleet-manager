@@ -309,6 +309,19 @@ export class DbStorage {
     return device;
   }
 
+  async setDeviceOffline(id: number): Promise<PowerMonDevice | undefined> {
+    const [device] = await db.update(powerMonDevices)
+      .set({
+        connectionStatus: 'offline',
+        status: 'offline',
+        markedOfflineAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(powerMonDevices.id, id))
+      .returning();
+    return device;
+  }
+
   async deleteDevice(organizationId: number, id: number): Promise<boolean> {
     const result = await db.delete(powerMonDevices)
       .where(and(eq(powerMonDevices.organizationId, organizationId), eq(powerMonDevices.id, id)));

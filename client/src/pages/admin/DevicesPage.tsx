@@ -43,8 +43,9 @@ import {
   useCreateDeviceCredential,
   useUpdateDeviceCredential,
   useResetDeviceStatus,
+  useSetDeviceOffline,
 } from "@/lib/admin-api";
-import { Plus, Pencil, Cpu, Link2, Unlink, Key, Search, Trash2, RotateCcw } from "lucide-react";
+import { Plus, Pencil, Cpu, Link2, Unlink, Key, Search, Trash2, RotateCcw, WifiOff } from "lucide-react";
 import type { PowerMonDevice } from "@shared/schema";
 import type { DeviceWithSnapshot } from "@/lib/admin-api";
 
@@ -74,6 +75,7 @@ export default function DevicesPage() {
   const unassignDevice = useUnassignDevice();
   const deleteDevice = useDeleteDevice();
   const resetDeviceStatus = useResetDeviceStatus();
+  const setDeviceOffline = useSetDeviceOffline();
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingDevice, setEditingDevice] = useState<PowerMonDevice | null>(null);
@@ -202,6 +204,15 @@ export default function DevicesPage() {
       toast({ title: `Device "${device.deviceName || device.serialNumber}" set back online` });
     } catch (error) {
       toast({ title: "Failed to reset device status", variant: "destructive" });
+    }
+  };
+
+  const handleSetOffline = async (device: PowerMonDevice) => {
+    try {
+      await setDeviceOffline.mutateAsync({ id: device.id });
+      toast({ title: `Device "${device.deviceName || device.serialNumber}" set to offline` });
+    } catch (error) {
+      toast({ title: "Failed to set device offline", variant: "destructive" });
     }
   };
 
@@ -665,7 +676,7 @@ export default function DevicesPage() {
                                   <Link2 className="h-4 w-4 text-blue-600" />
                                 </Button>
                               )}
-                              {(device.connectionStatus === "unstable" || device.connectionStatus === "offline" || device.connectionStatus === "no_power") && (
+                              {(device.connectionStatus === "unstable" || device.connectionStatus === "offline" || device.connectionStatus === "no_power") ? (
                                 <Button
                                   variant="ghost"
                                   size="icon"
@@ -675,6 +686,17 @@ export default function DevicesPage() {
                                   title="Set Online (reset connection status)"
                                 >
                                   <RotateCcw className="h-4 w-4 text-green-600" />
+                                </Button>
+                              ) : (device.connectionStatus === "online" || device.connectionStatus === "reporting" || !device.connectionStatus) && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleSetOffline(device)}
+                                  disabled={setDeviceOffline.isPending}
+                                  data-testid={`button-offline-device-${device.id}`}
+                                  title="Set Offline (stop polling)"
+                                >
+                                  <WifiOff className="h-4 w-4 text-orange-600" />
                                 </Button>
                               )}
                               <Button
