@@ -125,7 +125,7 @@ async function getActiveDevicesWithCredentials() {
     const reset = '\x1b[0m';
     console.log(`Skipping ${skippedResult.rows.length} offline/unstable devices:`);
     for (const d of skippedResult.rows) {
-      const status = `[${d.connection_status}]`.padEnd(12);
+      const status = `[${d.connection_status}]`.padEnd(11);
       const name = (d.device_name || d.serial_number).padEnd(30);
       console.log(`                  ${red}${status}${reset}${dim}${name} (${d.consecutive_disconnects} disconnects)${reset}`);
     }
