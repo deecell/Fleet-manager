@@ -246,7 +246,10 @@ class DeviceConnection {
             await db.markDeviceConnected(this.deviceId);
             
             // Fetch and update device info on first connection
-            await this.fetchAndUpdateDeviceInfo();
+            // Guard: skip if device already disconnected or circuit breaker opened
+            if (this.device && this.status === 'connected' && !this.isCircuitOpen) {
+              await this.fetchAndUpdateDeviceInfo();
+            }
             
             resolve({ success: true, durationMs });
           },
@@ -304,10 +307,26 @@ class DeviceConnection {
                 
                 this.rapidDisconnectDurations = [];
                 
+                // CRITICAL: Immediately null out native device reference to prevent
+                // any pending callbacks (getInfo, getMonitorData) from touching
+                // the native library in a corrupted state. This prevents the
+                // "terminate called without an active exception" C++ crash.
+                this.device = null;
+                this.status = 'disconnected';
+                
+                // Clear any pending reconnect timer
+                if (this.reconnectTimer) {
+                  clearTimeout(this.reconnectTimer);
+                  this.reconnectTimer = null;
+                }
+                
                 // Persist status to database immediately
                 // This ensures the device is skipped on process restart
                 db.markDeviceUnstable(this.deviceId, status)
                   .catch(err => this.log.error('Failed to mark device status in database', { error: err.message }));
+                
+                // Return early — do NOT fall through to reconnect/disconnect handling
+                return;
               }
             } else if (wasIntentional) {
               this.log.debug('Intentional disconnect (normal poll completion)', { reason });
@@ -387,11 +406,13 @@ class DeviceConnection {
    * Called on first successful connection to auto-populate device details
    */
   async fetchAndUpdateDeviceInfo() {
-    if (!this.device) return;
+    if (!this.device || this.status !== 'connected' || this.isCircuitOpen) return;
     
     try {
+      const device = this.device;
       // Get device info using callback API (method is 'getInfo' not 'getDeviceInfo')
-      this.device.getInfo((result) => {
+      device.getInfo((result) => {
+        if (!this.device || this.isCircuitOpen) return;
         if (!result.success) {
           this.log.warn('Failed to get device info', { code: result.code });
           return;
