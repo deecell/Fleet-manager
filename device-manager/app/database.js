@@ -831,15 +831,11 @@ async function upsertDeviceSnapshot(snapshot) {
 }
 
 /**
- * Startup recovery sweep: Reset devices stuck in unstable state
+ * Startup recovery sweep: Reset all non-online devices to give them a fresh start
  * 
- * When the device manager crashes (e.g., due to native library terminate()),
- * devices may be incorrectly left in 'unstable' status. This sweep resets
- * only unstable devices to a connectable state so they get picked up by
- * getActiveDevicesWithCredentials() and get a fresh connection attempt.
- * 
- * Offline devices are NOT auto-reset — they stay offline until an admin
- * manually sets them back online via the admin dashboard.
+ * When the device manager restarts (deploy, crash, etc.), devices may be
+ * left in 'unstable', 'no_power', or 'offline' status from the previous run.
+ * This sweep resets ALL of them so every device gets a fresh connection attempt.
  * 
  * Only resets devices that have active credentials and active trucks.
  * 
@@ -848,14 +844,15 @@ async function upsertDeviceSnapshot(snapshot) {
 async function startupRecoverySweep() {
   logger.info('=== STARTUP RECOVERY SWEEP ===');
   
-  const unstableResult = await query(`
+  const resetResult = await query(`
     UPDATE power_mon_devices d
     SET 
       connection_status = NULL,
       consecutive_disconnects = 0,
       marked_unstable_at = NULL,
+      marked_offline_at = NULL,
       updated_at = NOW()
-    WHERE d.connection_status IN ('unstable', 'no_power')
+    WHERE d.connection_status IN ('unstable', 'no_power', 'offline')
       AND EXISTS (
         SELECT 1 FROM device_credentials c 
         WHERE c.device_id = d.id AND c.is_active = true
@@ -867,14 +864,14 @@ async function startupRecoverySweep() {
   `);
   
   const summary = {
-    unstableReset: unstableResult.rows.length,
-    unstableDevices: unstableResult.rows.map(d => d.device_name || d.serial_number),
+    devicesReset: resetResult.rows.length,
+    devices: resetResult.rows.map(d => d.device_name || d.serial_number),
   };
   
-  if (summary.unstableReset > 0) {
-    logger.info('Recovery sweep reset unstable devices', summary);
+  if (summary.devicesReset > 0) {
+    logger.info('Recovery sweep reset devices', summary);
   } else {
-    logger.info('Recovery sweep: No stuck unstable devices found');
+    logger.info('Recovery sweep: No stuck devices found');
   }
   
   return summary;
