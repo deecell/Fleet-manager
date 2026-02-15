@@ -744,13 +744,14 @@ async function upsertDeviceSnapshot(snapshot) {
     const bold = '\x1b[1m';
     const dim = '\x1b[2m';
     const rst = '\x1b[0m';
+    const ts = new Date().toISOString().replace('T', ' ').replace('Z', '');
     const name = truckLabel.padEnd(30);
     const v1 = (snapshot.voltage1?.toFixed(2) || '-').padStart(6);
     const v2 = (snapshot.voltage2?.toFixed(4) || '-').padStart(8);
     const today = String(Math.round(todayParkedMinutes)).padStart(5);
     const month = String(Math.round(monthParkedMinutes)).padStart(6);
     const since = parkedSince ? parkedSince.toISOString().replace('T', ' ').replace(/\.\d+Z/, '') : 'n/a';
-    console.log(`${cyan}INFO ${rst} ${bold}${name}${rst} ${dim}parked${rst}  v1=${v1}  v2=${v2}  ${dim}today=${rst}${today}m  ${dim}month=${rst}${month}m  ${dim}since=${rst}${since}`);
+    console.log(`${dim}${ts}${rst} ${cyan}INFO ${rst} ${bold}${name}${rst} ${dim}parked${rst}  v1=${v1}  v2=${v2}  ${dim}today=${rst}${today}m  ${dim}month=${rst}${month}m  ${dim}since=${rst}${since}`);
   }
   
   try {
