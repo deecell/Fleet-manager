@@ -110,17 +110,17 @@ async function getActiveDevicesWithCredentials() {
     LEFT JOIN device_sync_status s ON s.device_id = d.id
     LEFT JOIN trucks t ON t.id = d.truck_id
     WHERE (d.truck_id IS NULL OR t.is_active = true)
-      AND (d.connection_status IS NULL OR d.connection_status NOT IN ('unstable', 'offline'))
+      AND (d.connection_status IS NULL OR d.connection_status NOT IN ('unstable', 'offline', 'no_power'))
     ORDER BY d.id
   `);
   
-  // Log any skipped unstable/offline devices for visibility
+  // Log any skipped unstable/offline/no_power devices for visibility
   const skippedResult = await query(`
     SELECT d.serial_number, d.device_name, d.connection_status, d.consecutive_disconnects 
     FROM power_mon_devices d
     LEFT JOIN trucks t ON t.id = d.truck_id
     WHERE (d.truck_id IS NULL OR t.is_active = true) 
-      AND d.connection_status IN ('unstable', 'offline')
+      AND d.connection_status IN ('unstable', 'offline', 'no_power')
   `);
   if (skippedResult.rows.length > 0) {
     const red = '\x1b[31m';
@@ -349,20 +349,24 @@ async function markDeviceStale(deviceId) {
 }
 
 /**
- * Mark device as unstable (circuit breaker triggered)
+ * Mark device as unstable or no_power (circuit breaker triggered)
  * Called when the in-memory circuit breaker opens to persist the status
  * This ensures the device is skipped on process restart
+ * @param {number} deviceId
+ * @param {string} status - 'unstable' or 'no_power'
  */
-async function markDeviceUnstable(deviceId) {
-  logger.warn('Marking device as unstable in database', { deviceId });
+async function markDeviceUnstable(deviceId, status = 'unstable') {
+  const validStatuses = ['unstable', 'no_power'];
+  if (!validStatuses.includes(status)) status = 'unstable';
+  logger.warn(`Marking device as ${status} in database`, { deviceId });
   await query(`
     UPDATE power_mon_devices 
     SET 
-      connection_status = 'unstable',
+      connection_status = $2,
       marked_unstable_at = NOW(),
       updated_at = NOW()
     WHERE id = $1
-  `, [deviceId]);
+  `, [deviceId, status]);
 }
 
 /**
@@ -842,7 +846,7 @@ async function startupRecoverySweep() {
       consecutive_disconnects = 0,
       marked_unstable_at = NULL,
       updated_at = NOW()
-    WHERE d.connection_status = 'unstable'
+    WHERE d.connection_status IN ('unstable', 'no_power')
       AND EXISTS (
         SELECT 1 FROM device_credentials c 
         WHERE c.device_id = d.id AND c.is_active = true
@@ -850,7 +854,7 @@ async function startupRecoverySweep() {
       AND (d.truck_id IS NULL OR EXISTS (
         SELECT 1 FROM trucks t WHERE t.id = d.truck_id AND t.is_active = true
       ))
-    RETURNING d.id, d.device_name, d.serial_number
+    RETURNING d.id, d.device_name, d.serial_number, d.connection_status
   `);
   
   const summary = {

@@ -4,14 +4,32 @@
 
 ---
 
-## Latest Updates (February 14, 2026)
+## Latest Updates (February 15, 2026)
+
+### "No Power" Device Status Detection (February 15, 2026)
+- Added `no_power` connection status to distinguish powered-off devices from software-unstable devices
+- **Detection logic**: When circuit breaker opens, if ALL rapid disconnects had connection durations under 100ms, device is marked `no_power` instead of `unstable` — indicates the PowerMon is reachable on the network but can't sustain a connection because trailer batteries are off
+- Updated `markDeviceUnstable()` to accept a `status` parameter ('unstable' or 'no_power')
+- Updated device polling query to also skip `no_power` devices
+- Updated startup recovery sweep to also reset `no_power` devices on restart
+- Admin dashboard shows red "No Power" badge and orange "Unstable" badge in the data status column
+- "Set Online" button now also appears for `no_power` devices
+- Crash culprit attribution remains `unstable` (can't measure durations when process crashes)
+
+### Device Manager Log Reformatting (February 14-15, 2026)
+- Replaced raw JSON log output with colorized, human-readable format
+- Logger outputs: dim timestamp, colored level tag (red/yellow/cyan/gray), bold message, key=value pairs
+- "Truck parked" logs now show truck name instead of deviceId, both voltages (v1/v2), shorter key names
+- Skipped device lists formatted as multi-line with bullets (one per line)
+- Polling cycle banner shortened to `=== New Polling Cycle ===`
+- Fixed `[object Object]` rendering for offline/unstable device list
 
 ### "Set Online" Button for Admin Device Management (February 14, 2026)
 - Added `resetDeviceConnectionStatus()` method to `IStorage` interface and `DbStorage` implementation
 - Resets `connectionStatus` to null, `consecutiveDisconnects` to 0, clears `markedUnstableAt`/`markedOfflineAt`, sets `status` to 'online'
 - Added `useResetDeviceStatus()` mutation hook in `admin-api.ts`
 - Added green rotate icon button in admin Devices table actions column
-- Button only appears when device `connectionStatus` is 'unstable' or 'offline'
+- Button only appears when device `connectionStatus` is 'unstable', 'offline', or 'no_power'
 - Clicking shows success toast with device name confirmation
 
 ---

@@ -266,26 +266,48 @@ class DeviceConnection {
             
             if (isRapidDisconnect) {
               this.rapidDisconnectCount++;
+              const connDurationMs = Date.now() - this.lastConnectedAt;
+              if (!this.rapidDisconnectDurations) this.rapidDisconnectDurations = [];
+              this.rapidDisconnectDurations.push(connDurationMs);
               this.log.warn('Rapid disconnect detected (error)', { 
                 reason, 
                 rapidDisconnects: this.rapidDisconnectCount,
-                connectionDurationMs: Date.now() - this.lastConnectedAt
+                connectionDurationMs: connDurationMs
               });
               
               // Check if we should open the circuit breaker
               if (this.rapidDisconnectCount >= MAX_RAPID_DISCONNECTS) {
                 this.isCircuitOpen = true;
                 this.circuitResetAt = Date.now() + UNSTABLE_BACKOFF_MS;
-                this.log.error('Circuit breaker OPEN - too many rapid disconnects', {
-                  rapidDisconnects: this.rapidDisconnectCount,
-                  backoffMinutes: UNSTABLE_BACKOFF_MS / 60000,
-                  resetAt: new Date(this.circuitResetAt).toISOString()
-                });
                 
-                // Persist unstable status to database immediately
+                // Detect "no power" pattern: all rapid disconnects under 100ms
+                // This means the device is reachable on the network but the 
+                // PowerMon can't sustain a connection (batteries off)
+                const NO_POWER_THRESHOLD_MS = 100;
+                const allInstant = this.rapidDisconnectDurations.every(d => d < NO_POWER_THRESHOLD_MS);
+                const status = allInstant ? 'no_power' : 'unstable';
+                
+                if (allInstant) {
+                  this.log.error('Circuit breaker OPEN - device appears powered off (all connections < 100ms)', {
+                    rapidDisconnects: this.rapidDisconnectCount,
+                    avgDurationMs: Math.round(this.rapidDisconnectDurations.reduce((a, b) => a + b, 0) / this.rapidDisconnectDurations.length),
+                    backoffMinutes: UNSTABLE_BACKOFF_MS / 60000,
+                    resetAt: new Date(this.circuitResetAt).toISOString()
+                  });
+                } else {
+                  this.log.error('Circuit breaker OPEN - too many rapid disconnects', {
+                    rapidDisconnects: this.rapidDisconnectCount,
+                    backoffMinutes: UNSTABLE_BACKOFF_MS / 60000,
+                    resetAt: new Date(this.circuitResetAt).toISOString()
+                  });
+                }
+                
+                this.rapidDisconnectDurations = [];
+                
+                // Persist status to database immediately
                 // This ensures the device is skipped on process restart
-                db.markDeviceUnstable(this.deviceId)
-                  .catch(err => this.log.error('Failed to mark device unstable in database', { error: err.message }));
+                db.markDeviceUnstable(this.deviceId, status)
+                  .catch(err => this.log.error('Failed to mark device status in database', { error: err.message }));
               }
             } else if (wasIntentional) {
               this.log.debug('Intentional disconnect (normal poll completion)', { reason });

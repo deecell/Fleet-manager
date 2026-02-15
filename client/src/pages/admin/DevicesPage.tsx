@@ -562,6 +562,22 @@ export default function DevicesPage() {
                                 );
                               }
                               
+                              if (device.connectionStatus === "no_power") {
+                                return (
+                                  <div className="inline-flex items-center justify-center px-3 py-1.5 rounded-md border text-xs font-normal bg-[rgba(255,0,0,0.08)] border-[#ff4444] text-[#cc0000]">
+                                    No Power
+                                  </div>
+                                );
+                              }
+                              
+                              if (device.connectionStatus === "unstable") {
+                                return (
+                                  <div className="inline-flex items-center justify-center px-3 py-1.5 rounded-md border text-xs font-normal bg-[rgba(255,165,0,0.14)] border-[#ffa500] text-[#cc8400]">
+                                    Unstable
+                                  </div>
+                                );
+                              }
+                              
                               return (
                                 <div className={`inline-flex items-center justify-center px-3 py-1.5 rounded-md border text-xs font-normal ${
                                   device.dataStatus === "reporting" 
@@ -660,7 +676,7 @@ export default function DevicesPage() {
                                   <Link2 className="h-4 w-4 text-blue-600" />
                                 </Button>
                               )}
-                              {(device.connectionStatus === "unstable" || device.connectionStatus === "offline") && (
+                              {(device.connectionStatus === "unstable" || device.connectionStatus === "offline" || device.connectionStatus === "no_power") && (
                                 <Button
                                   variant="ghost"
                                   size="icon"
