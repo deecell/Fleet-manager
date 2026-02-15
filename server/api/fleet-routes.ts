@@ -161,7 +161,7 @@ router.get("/trucks/:id", tenantMiddleware, async (req: Request, res: Response) 
 
 router.post("/trucks", tenantMiddleware, async (req: Request, res: Response) => {
   try {
-    const data = insertTruckSchema.omit({ organizationId: true }).parse(req.body);
+    const { isActive, ...data } = insertTruckSchema.omit({ organizationId: true }).parse(req.body);
     const truck = await storage.createTruck({
       ...data,
       organizationId: req.organizationId!,
@@ -179,10 +179,7 @@ router.post("/trucks", tenantMiddleware, async (req: Request, res: Response) => 
 router.patch("/trucks/:id", tenantMiddleware, async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id, 10);
-    const data = insertTruckSchema.omit({ organizationId: true, fleetId: true }).partial().parse(req.body);
-    if (data.status === "in-service") {
-      data.isActive = true;
-    }
+    const { isActive, ...data } = insertTruckSchema.omit({ organizationId: true, fleetId: true }).partial().parse(req.body);
     const truck = await storage.updateTruck(req.organizationId!, id, data);
     if (!truck) {
       return res.status(404).json({ error: "Truck not found" });

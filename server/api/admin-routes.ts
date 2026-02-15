@@ -349,9 +349,6 @@ router.patch("/trucks/:id", adminMiddleware, async (req: Request, res: Response)
       return res.status(400).json({ error: "Organization ID required" });
     }
     const data = insertTruckSchema.omit({ organizationId: true }).partial().parse(req.body);
-    if (data.status === "in-service") {
-      data.isActive = true;
-    }
     const truck = await storage.updateTruck(orgId, id, data);
     if (!truck) {
       return res.status(404).json({ error: "Truck not found" });

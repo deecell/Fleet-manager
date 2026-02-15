@@ -6,6 +6,15 @@
 
 ## Latest Updates (February 15, 2026)
 
+### Separated Service Status (Truck) from Monitoring (Device) (February 15, 2026)
+- **Truck level**: Only has "In Service" / "Not In Service" status, controlled by fleet managers. All trucks are always monitored regardless of status.
+- **Device level**: Has "Monitoring On/Off" toggle on device credentials, controlled by admins only. This determines whether the device is polled by the device manager.
+- Removed all `t.is_active` (truck) checks from device manager polling queries — only `c.is_active` (device credential) matters now
+- Removed "Monitoring" column and toggle from Truck admin UI
+- Added Monitoring On/Off toggle button in the device credentials dialog (admin only)
+- Fleet routes now strip `isActive` from truck create/update payloads to prevent clients from setting it
+- Updated device manager logging: replaced "inactive trucks" log with "monitoring disabled" log for devices with `is_active = false` credentials
+
 ### "No Power" Device Status Detection (February 15, 2026)
 - Added `no_power` connection status to distinguish powered-off devices from software-unstable devices
 - **Detection logic**: When circuit breaker opens, if ALL rapid disconnects had connection durations under 100ms, device is marked `no_power` instead of `unstable` — indicates the PowerMon is reachable on the network but can't sustain a connection because trailer batteries are off

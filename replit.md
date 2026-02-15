@@ -64,6 +64,10 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
   - **Base URL**: `https://iot.inhandnetworks.com`
   - **Matching**: `device.mobileNumber` (MSISDN) → `sims.msisdn` → `sims.truck_id` → update truck lat/long
   - **Fallback matching**: `info.iccid` → `sims.iccid`, `info.imsi` → `sims.imsi`
+- **Monitoring Architecture**: Service status and monitoring are separated:
+  - **Truck level**: Only has "In Service" / "Not In Service" status (fleet manager controlled). All trucks are always monitored.
+  - **Device level**: `is_active` on `device_credentials` controls whether the device is polled (admin-only). Fleet routes strip `isActive` from truck payloads.
+  - Device manager queries only check `c.is_active` (credential), not `t.is_active` (truck).
 - **Circuit Breaker**: Protects against unstable devices that crash the native library:
   - Database query filters out `connection_status = 'unstable'` devices
   - Rapid disconnect detection (within 5 seconds of connect)

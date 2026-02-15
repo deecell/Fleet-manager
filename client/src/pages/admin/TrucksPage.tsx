@@ -65,7 +65,6 @@ export default function TrucksPage() {
     vinNumber: "",
     licensePlate: "",
     status: "in-service",
-    isActive: true,
   });
 
   const resetForm = () => {
@@ -79,7 +78,6 @@ export default function TrucksPage() {
       vinNumber: "",
       licensePlate: "",
       status: "in-service",
-      isActive: true,
     });
   };
 
@@ -129,7 +127,6 @@ export default function TrucksPage() {
       vinNumber: truck.vinNumber || "",
       licensePlate: truck.licensePlate || "",
       status: truck.status || "in-service",
-      isActive: truck.isActive ?? true,
     });
     setEditingTruck(truck);
   };
@@ -241,7 +238,6 @@ export default function TrucksPage() {
                     <TableHead>Make/Model</TableHead>
                     <TableHead>VIN</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Monitoring</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -267,24 +263,6 @@ export default function TrucksPage() {
                         ) : (
                           <Badge variant="secondary">
                             Not In Service
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {truck.status === "in-service" || truck.isActive ? (
-                          <Badge 
-                            className="rounded-md font-medium"
-                            style={{ backgroundColor: 'rgba(0, 201, 80, 0.14)', color: '#00953b' }}
-                          >
-                            Monitored
-                          </Badge>
-                        ) : (
-                          <Badge 
-                            variant="secondary"
-                            className="rounded-md font-medium"
-                            style={{ backgroundColor: 'rgba(99, 99, 99, 0.14)', color: '#636363' }}
-                          >
-                            Not Monitored
                           </Badge>
                         )}
                       </TableCell>
@@ -416,7 +394,7 @@ export default function TrucksPage() {
               </div>
               <div>
                 <Label htmlFor="status">Status</Label>
-                <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v, isActive: v === "in-service" ? true : formData.isActive })}>
+                <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
                   <SelectTrigger data-testid="select-truck-status">
                     <SelectValue />
                   </SelectTrigger>
@@ -426,23 +404,6 @@ export default function TrucksPage() {
                   </SelectContent>
                 </Select>
               </div>
-              {formData.status === "not-in-service" && (
-                <div>
-                  <Label htmlFor="monitoring">Monitoring</Label>
-                  <Select 
-                    value={formData.isActive ? "monitored" : "not-monitored"} 
-                    onValueChange={(v) => setFormData({ ...formData, isActive: v === "monitored" })}
-                  >
-                    <SelectTrigger data-testid="select-truck-monitoring">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="monitored">Monitored</SelectItem>
-                      <SelectItem value="not-monitored">Not Monitored</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
@@ -516,7 +477,7 @@ export default function TrucksPage() {
               </div>
               <div>
                 <Label htmlFor="edit-status">Status</Label>
-                <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v, isActive: v === "in-service" ? true : formData.isActive })}>
+                <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
                   <SelectTrigger data-testid="select-edit-truck-status">
                     <SelectValue />
                   </SelectTrigger>
@@ -526,23 +487,6 @@ export default function TrucksPage() {
                   </SelectContent>
                 </Select>
               </div>
-              {formData.status === "not-in-service" && (
-                <div>
-                  <Label htmlFor="edit-monitoring">Monitoring</Label>
-                  <Select 
-                    value={formData.isActive ? "monitored" : "not-monitored"} 
-                    onValueChange={(v) => setFormData({ ...formData, isActive: v === "monitored" })}
-                  >
-                    <SelectTrigger data-testid="select-edit-truck-monitoring">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="monitored">Monitored</SelectItem>
-                      <SelectItem value="not-monitored">Not Monitored</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setEditingTruck(null)}>

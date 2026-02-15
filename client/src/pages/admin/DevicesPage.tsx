@@ -551,17 +551,6 @@ export default function DevicesPage() {
                           </TableCell>
                           <TableCell>
                             {(() => {
-                              const truck = device.truckId ? allTrucks.find(t => t.id === device.truckId) : null;
-                              const isTruckInactive = truck && truck.isActive === false;
-                              
-                              if (isTruckInactive) {
-                                return (
-                                  <div className="inline-flex items-center justify-center px-3 py-1.5 rounded-md border text-xs font-normal bg-[rgba(128,128,128,0.14)] border-[#808080] text-[#666666]">
-                                    INACTIVE
-                                  </div>
-                                );
-                              }
-                              
                               if (device.connectionStatus === "no_power") {
                                 return (
                                   <div className="inline-flex items-center justify-center px-3 py-1.5 rounded-md border text-xs font-normal bg-[rgba(255,0,0,0.08)] border-[#ff4444] text-[#cc0000]">
@@ -927,15 +916,48 @@ export default function DevicesPage() {
               ) : (
                 <>
                   {credentialData?.credential && (
-                    <div className="bg-muted p-3 rounded-md">
-                      <Label className="text-xs text-muted-foreground">Current URL</Label>
-                      <p className="font-mono text-sm break-all mt-1">
-                        {credentialData.credential.applinkUrl || "Not set"}
-                      </p>
-                      <div className="flex gap-4 mt-2 text-xs">
-                        <span className={credentialData.credential.isActive ? "text-green-700" : "text-[#636363]"}>
-                          Status: {credentialData.credential.isActive ? "Active" : "Inactive"}
-                        </span>
+                    <div className="bg-muted p-3 rounded-md space-y-3">
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Current URL</Label>
+                        <p className="font-mono text-sm break-all mt-1">
+                          {credentialData.credential.applinkUrl || "Not set"}
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <div>
+                          <Label className="text-xs text-muted-foreground">Monitoring</Label>
+                          <p className="text-sm mt-0.5">
+                            {credentialData.credential.isActive ? (
+                              <span className="text-green-700 font-medium">On</span>
+                            ) : (
+                              <span className="text-[#636363] font-medium">Off</span>
+                            )}
+                          </p>
+                        </div>
+                        <Button
+                          variant={credentialData.credential.isActive ? "outline" : "default"}
+                          size="sm"
+                          data-testid="button-toggle-monitoring"
+                          disabled={updateCredential.isPending}
+                          onClick={async () => {
+                            try {
+                              await updateCredential.mutateAsync({
+                                deviceId: credentialsDevice!.id,
+                                organizationId: credentialsDevice!.organizationId,
+                                isActive: !credentialData.credential.isActive,
+                              });
+                              toast({ 
+                                title: credentialData.credential.isActive 
+                                  ? "Monitoring turned off" 
+                                  : "Monitoring turned on" 
+                              });
+                            } catch {
+                              toast({ title: "Failed to update monitoring", variant: "destructive" });
+                            }
+                          }}
+                        >
+                          {credentialData.credential.isActive ? "Turn Off" : "Turn On"}
+                        </Button>
                       </div>
                     </div>
                   )}

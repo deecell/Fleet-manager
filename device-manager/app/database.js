@@ -108,9 +108,7 @@ async function getActiveDevicesWithCredentials() {
     FROM power_mon_devices d
     INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = true
     LEFT JOIN device_sync_status s ON s.device_id = d.id
-    LEFT JOIN trucks t ON t.id = d.truck_id
-    WHERE (d.truck_id IS NULL OR t.is_active = true)
-      AND (d.connection_status IS NULL OR d.connection_status NOT IN ('unstable', 'offline', 'no_power'))
+    WHERE (d.connection_status IS NULL OR d.connection_status NOT IN ('unstable', 'offline', 'no_power'))
     ORDER BY d.id
   `);
   
@@ -118,9 +116,8 @@ async function getActiveDevicesWithCredentials() {
   const skippedResult = await query(`
     SELECT d.serial_number, d.device_name, d.connection_status, d.consecutive_disconnects 
     FROM power_mon_devices d
-    LEFT JOIN trucks t ON t.id = d.truck_id
-    WHERE (d.truck_id IS NULL OR t.is_active = true) 
-      AND d.connection_status IN ('unstable', 'offline', 'no_power')
+    INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = true
+    WHERE d.connection_status IN ('unstable', 'offline', 'no_power')
   `);
   if (skippedResult.rows.length > 0) {
     const red = '\x1b[31m';
@@ -134,22 +131,21 @@ async function getActiveDevicesWithCredentials() {
     }
   }
   
-  // Log devices skipped due to inactive trucks
-  const inactiveTruckResult = await query(`
-    SELECT d.serial_number, d.device_name, t.truck_number
+  // Log devices skipped due to monitoring disabled
+  const disabledResult = await query(`
+    SELECT d.serial_number, d.device_name
     FROM power_mon_devices d
-    INNER JOIN trucks t ON t.id = d.truck_id
-    WHERE t.is_active = false
+    INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = false
   `);
-  if (inactiveTruckResult.rows.length > 0) {
+  if (disabledResult.rows.length > 0) {
     const yellow = '\x1b[33m';
     const dim = '\x1b[2m';
     const reset = '\x1b[0m';
-    console.log(`Skipping ${inactiveTruckResult.rows.length} devices with inactive trucks:`);
-    for (const d of inactiveTruckResult.rows) {
+    console.log(`Skipping ${disabledResult.rows.length} devices with monitoring disabled:`);
+    for (const d of disabledResult.rows) {
       const tag = `[inactive]`.padEnd(12);
       const name = (d.device_name || d.serial_number).padEnd(30);
-      console.log(`                  ${yellow}${tag}${reset}${dim}${name} (${d.truck_number})${reset}`);
+      console.log(`                  ${yellow}${tag}${reset}${dim}${name}${reset}`);
     }
   }
   
@@ -398,9 +394,7 @@ async function getOfflineDevicesForRecovery(backoffMs = 600000) {
     FROM power_mon_devices d
     INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = true
     LEFT JOIN device_sync_status s ON s.device_id = d.id
-    LEFT JOIN trucks t ON t.id = d.truck_id
-    WHERE (d.truck_id IS NULL OR t.is_active = true)
-      AND d.connection_status = 'offline'
+    WHERE d.connection_status = 'offline'
       AND (
         d.marked_offline_at IS NULL 
         OR d.marked_offline_at < NOW() - INTERVAL '1 millisecond' * $1
@@ -457,9 +451,7 @@ async function getUnstableDevicesReadyForRecovery(backoffMs = 300000) {
     FROM power_mon_devices d
     INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = true
     LEFT JOIN device_sync_status s ON s.device_id = d.id
-    LEFT JOIN trucks t ON t.id = d.truck_id
-    WHERE (d.truck_id IS NULL OR t.is_active = true)
-      AND d.connection_status = 'unstable'
+    WHERE d.connection_status = 'unstable'
       AND (
         d.marked_unstable_at IS NULL 
         OR d.marked_unstable_at < NOW() - INTERVAL '1 millisecond' * $1
@@ -860,9 +852,6 @@ async function startupRecoverySweep() {
         SELECT 1 FROM device_credentials c 
         WHERE c.device_id = d.id AND c.is_active = true
       )
-      AND (d.truck_id IS NULL OR EXISTS (
-        SELECT 1 FROM trucks t WHERE t.id = d.truck_id AND t.is_active = true
-      ))
     RETURNING d.id, d.device_name, d.serial_number, d.connection_status
   `);
   
