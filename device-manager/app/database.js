@@ -123,12 +123,13 @@ async function getActiveDevicesWithCredentials() {
       AND d.connection_status IN ('unstable', 'offline')
   `);
   if (skippedResult.rows.length > 0) {
-    logger.warn('Skipping offline/unstable devices', { 
-      devices: skippedResult.rows.map(d => ({
-        name: d.device_name || d.serial_number,
-        status: d.connection_status
-      }))
-    });
+    const red = '\x1b[31m';
+    const dim = '\x1b[2m';
+    const reset = '\x1b[0m';
+    console.log(`${red}Skipping ${skippedResult.rows.length} offline/unstable devices:${reset}`);
+    for (const d of skippedResult.rows) {
+      console.log(`${dim}  - ${d.device_name || d.serial_number} [${d.connection_status}] (${d.consecutive_disconnects} disconnects)${reset}`);
+    }
   }
   
   // Log devices skipped due to inactive trucks
