@@ -8,13 +8,17 @@
 
 ### Circuit Breaker Crash Fix (February 15, 2026)
 - **Problem**: When a no-power device (e.g., Kalitta-Hospitality) was set back online, the 5 rapid connect/disconnect cycles crashed the native C++ library with `terminate called without an active exception`
-- **Root cause**: After the 5th rapid disconnect opened the circuit breaker, the native device reference (`this.device`) was still alive. Pending `getInfo` callbacks from `fetchAndUpdateDeviceInfo()` would fire on the corrupted native object, causing a C++ abort
-- **Fix**: When circuit breaker opens, immediately:
-  1. Null out `this.device` — prevents any pending native callbacks from touching the library
-  2. Clear reconnect timers — no more reconnect attempts
-  3. Return early from `onDisconnect` handler — skip all further DB/reconnect logic
-- **Additional guards**: `fetchAndUpdateDeviceInfo()` now checks `this.status === 'connected'` and `!this.isCircuitOpen` before calling native methods. The `onConnect` handler also guards against racing disconnects.
-- **Result**: Circuit breaker opens cleanly, device marked as `no_power`/`unstable` in DB, no crash
+- **Root cause**: The native C++ library's internal state gets corrupted during rapid connect/disconnect cycles. The crash occurs on ANY subsequent native call (even on other devices), not just the problematic one.
+- **Fix — Fail-fast approach**: Instead of allowing 5 reconnect attempts, detect the first rapid disconnect and immediately mark the device as `no_power`:
+  1. After `connect()` resolves, wait 50ms for any rapid disconnect to fire
+  2. If `conn.status === 'disconnected'` and `rapidDisconnectCount > 0`, immediately remove from pool and mark `no_power`
+  3. This prevents the reconnect cycle from ever starting (no 5 attempts, no crash)
+- **Applied to all 3 connection paths**:
+  1. `connectAll()` — startup initial connections
+  2. `checkForNewDevices()` — newly activated devices
+  3. `checkForNewDevices()` — admin-reset reconnections
+- **Additional guards**: When circuit breaker does open (for devices already in the pool), immediately null out `this.device`, clear reconnect timers, and return early. `fetchAndUpdateDeviceInfo()` checks `this.status === 'connected'` and `!this.isCircuitOpen`.
+- **Result**: No-power devices are detected on first connect attempt, no reconnect cycle, no crash
 
 ### Connection Status Semantics Fix (February 15, 2026)
 - **BREAKING FIX**: `connection_status = 'offline'` now means **admin-initiated only** (set via dashboard button)

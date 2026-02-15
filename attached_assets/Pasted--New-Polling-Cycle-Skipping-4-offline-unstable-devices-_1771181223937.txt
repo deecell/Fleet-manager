@@ -1,0 +1,30 @@
+=== New Polling Cycle ===
+Skipping 4 offline/unstable devices:
+                  [offline]  DCL-Moeck-Shop                 (1 disconnects)
+                  [offline]  DCL-Thibert                    (1 disconnects)
+                  [offline]  DCL-Elite-Hospitality          (1 disconnects)
+                  [offline]  DCL-Epler                      (1 disconnects)
+2026-02-15 18:45:52.586 INFO  DCL-Curtis-2 (TRK-02)          parked   v1= 27.10  v2=  0.0450  today= 1126m  month= 20853m  since=2025-12-29 23:38:54
+2026-02-15 18:45:52.593 INFO  DCL-Curtis-1 (TRK-01)          parked   v1= 28.82  v2=  0.0368  today= 1126m  month= 20853m  since=2025-12-29 23:38:19
+2026-02-15 18:45:52.766 INFO  Connecting to device  deviceId=18  serial=  cohort=0
+2026-02-15 18:45:52.774 INFO  Connected successfully  deviceId=18  serial=  cohort=0  durationMs=8
+2026-02-15 18:45:52.776 WARN  Rapid disconnect detected (error)  deviceId=18  serial=  cohort=0  reason=2  rapidDisconnects=3  connectionDurationMs=2
+2026-02-15 18:45:52.777 INFO  Device disconnected (unexpected)  deviceId=18  serial=  cohort=0  reason=2  isRapidDisconnect=true
+2026-02-15 18:45:52.780 INFO  Scheduling reconnect  deviceId=18  serial=  cohort=0  attempt=1  delayMs=1000
+2026-02-15 18:45:53.780 INFO  Connecting to device  deviceId=18  serial=  cohort=0
+2026-02-15 18:45:53.791 INFO  Connected successfully  deviceId=18  serial=  cohort=0  durationMs=11
+2026-02-15 18:45:53.794 WARN  Rapid disconnect detected (error)  deviceId=18  serial=  cohort=0  reason=2  rapidDisconnects=4  connectionDurationMs=3
+2026-02-15 18:45:53.794 INFO  Device disconnected (unexpected)  deviceId=18  serial=  cohort=0  reason=2  isRapidDisconnect=true
+2026-02-15 18:45:53.798 INFO  Scheduling reconnect  deviceId=18  serial=  cohort=0  attempt=1  delayMs=1000
+2026-02-15 18:45:54.601 INFO  DCL-Haynes (RHR-01)            parked   v1= 26.17  v2=  0.0418  today= 1126m  month= 20860m  since=2025-12-29 23:22:12
+2026-02-15 18:45:54.798 INFO  Connecting to device  deviceId=18  serial=  cohort=0
+2026-02-15 18:45:54.806 INFO  Connected successfully  deviceId=18  serial=  cohort=0  durationMs=8
+2026-02-15 18:45:54.808 WARN  Rapid disconnect detected (error)  deviceId=18  serial=  cohort=0  reason=2  rapidDisconnects=5  connectionDurationMs=2
+2026-02-15 18:45:54.809 ERROR Circuit breaker OPEN - device appears powered off (all connections < 100ms)  deviceId=18  serial=  cohort=0  rapidDisconnects=5  avgDurationMs=3  backoffMinutes=5  resetAt=2026-02-15T18:50:54.808Z
+2026-02-15 18:45:54.809 WARN  Marking device as no_power in database  deviceId=18
+2026-02-15 18:45:56.612 INFO  DCL-KTR (KTR-01)               parked   v1= 26.54  v2= 12.8560  today=  245m  month=   350m  since=2026-02-15 14:41:13
+terminate called without an active exception
+device-manager.service: Main process exited, code=dumped, status=6/ABRT
+device-manager.service: Failed with result 'core-dump'.
+device-manager.service: Consumed 3.127s CPU time.
+
