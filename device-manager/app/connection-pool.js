@@ -278,22 +278,26 @@ class DeviceConnection {
                 connectionDurationMs: connDurationMs
               });
               
-              // Check if we should open the circuit breaker
-              if (this.rapidDisconnectCount >= MAX_RAPID_DISCONNECTS) {
+              // Instant disconnect (< 100ms) = unmistakably no-power.
+              // Open circuit breaker immediately on FIRST instant disconnect
+              // to prevent native library corruption. A 2-3ms connection
+              // duration is physically impossible from a transient network issue.
+              const NO_POWER_THRESHOLD_MS = 100;
+              const isInstantDisconnect = connDurationMs < NO_POWER_THRESHOLD_MS;
+              const shouldOpenCircuit = isInstantDisconnect || 
+                this.rapidDisconnectCount >= MAX_RAPID_DISCONNECTS;
+              
+              if (shouldOpenCircuit) {
                 this.isCircuitOpen = true;
                 this.circuitResetAt = Date.now() + UNSTABLE_BACKOFF_MS;
                 
-                // Detect "no power" pattern: all rapid disconnects under 100ms
-                // This means the device is reachable on the network but the 
-                // PowerMon can't sustain a connection (batteries off)
-                const NO_POWER_THRESHOLD_MS = 100;
                 const allInstant = this.rapidDisconnectDurations.every(d => d < NO_POWER_THRESHOLD_MS);
                 const status = allInstant ? 'no_power' : 'unstable';
                 
-                if (allInstant) {
-                  this.log.error('Circuit breaker OPEN - device appears powered off (all connections < 100ms)', {
+                if (isInstantDisconnect) {
+                  this.log.error('Circuit breaker OPEN - instant disconnect, device appears powered off', {
                     rapidDisconnects: this.rapidDisconnectCount,
-                    avgDurationMs: Math.round(this.rapidDisconnectDurations.reduce((a, b) => a + b, 0) / this.rapidDisconnectDurations.length),
+                    connectionDurationMs: connDurationMs,
                     backoffMinutes: UNSTABLE_BACKOFF_MS / 60000,
                     resetAt: new Date(this.circuitResetAt).toISOString()
                   });

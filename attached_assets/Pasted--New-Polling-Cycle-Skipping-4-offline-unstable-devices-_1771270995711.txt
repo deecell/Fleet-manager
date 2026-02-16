@@ -1,0 +1,39 @@
+=== New Polling Cycle ===
+Skipping 4 offline/unstable devices:
+                  [no_power] DCL-Moeck-Shop                 (0 disconnects)
+                  [no_power] DCL-Brown                      (0 disconnects)
+                  [offline]  DCL-Thibert                    (1 disconnects)
+                  [offline]  DCL-Epler                      (1 disconnects)
+2026-02-16 19:42:20.241 INFO  Device disconnected (unexpected)  deviceId=7  serial=96FE5E88572C1995  cohort=1  reason=2  isRapidDisconnect=false
+2026-02-16 19:42:20.246 INFO  Scheduling reconnect  deviceId=7  serial=96FE5E88572C1995  cohort=1  attempt=1  delayMs=1000
+2026-02-16 19:42:20.507 INFO  DCL-Curtis-1 (TRK-01)          parked   v1= 28.80  v2=  0.0370  today= 1182m  month= 22151m  since=2025-12-29 23:38:19
+2026-02-16 19:42:20.514 INFO  DCL-Kalitta-Hospitality (TRK-01) parked   v1= 53.19  v2=  0.0404  today=    0m  month=     0m  since=2026-02-16 19:41:58
+2026-02-16 19:42:20.520 INFO  DCL-Curtis-2 (TRK-02)          parked   v1= 27.17  v2=  0.0464  today= 1182m  month= 22349m  since=2025-12-29 23:38:54
+2026-02-16 19:42:21.246 INFO  Connecting to device  deviceId=7  serial=96FE5E88572C1995  cohort=1
+2026-02-16 19:42:21.254 INFO  Connected successfully  deviceId=7  serial=96FE5E88572C1995  cohort=1  durationMs=8
+2026-02-16 19:42:21.257 WARN  Rapid disconnect detected (error)  deviceId=7  serial=96FE5E88572C1995  cohort=1  reason=2  rapidDisconnects=1  connectionDurationMs=3
+2026-02-16 19:42:21.257 INFO  Device disconnected (unexpected)  deviceId=7  serial=96FE5E88572C1995  cohort=1  reason=2  isRapidDisconnect=true
+2026-02-16 19:42:21.282 INFO  Scheduling reconnect  deviceId=7  serial=96FE5E88572C1995  cohort=1  attempt=1  delayMs=1000
+2026-02-16 19:42:22.283 INFO  Connecting to device  deviceId=7  serial=96FE5E88572C1995  cohort=1
+2026-02-16 19:42:22.292 INFO  Connected successfully  deviceId=7  serial=96FE5E88572C1995  cohort=1  durationMs=9
+2026-02-16 19:42:22.294 WARN  Rapid disconnect detected (error)  deviceId=7  serial=96FE5E88572C1995  cohort=1  reason=2  rapidDisconnects=2  connectionDurationMs=2
+2026-02-16 19:42:22.294 INFO  Device disconnected (unexpected)  deviceId=7  serial=96FE5E88572C1995  cohort=1  reason=2  isRapidDisconnect=true
+2026-02-16 19:42:22.297 INFO  Scheduling reconnect  deviceId=7  serial=96FE5E88572C1995  cohort=1  attempt=1  delayMs=1000
+2026-02-16 19:42:23.298 INFO  Connecting to device  deviceId=7  serial=96FE5E88572C1995  cohort=1
+2026-02-16 19:42:23.307 INFO  Connected successfully  deviceId=7  serial=96FE5E88572C1995  cohort=1  durationMs=9
+2026-02-16 19:42:23.310 WARN  Rapid disconnect detected (error)  deviceId=7  serial=96FE5E88572C1995  cohort=1  reason=2  rapidDisconnects=3  connectionDurationMs=3
+2026-02-16 19:42:23.310 ERROR Circuit breaker OPEN - device appears powered off (all connections < 100ms)  deviceId=7  serial=96FE5E88572C1995  cohort=1  rapidDisconnects=3  avgDurationMs=3  backoffMinutes=5  resetAt=2026-02-16T19:47:23.310Z
+2026-02-16 19:42:23.310 WARN  Marking device as no_power in database  deviceId=7
+2026-02-16 19:42:28.248 INFO  InHand GPS locations updated  totalDevices=43  devicesWithLocation=4  simsMatched=4  trucksUpdated=4  unmatchedDevices=undefined  durationMs=259
+2026-02-16 19:42:40.309 INFO  Device disconnected (unexpected)  deviceId=5  serial=B051375C222A5334  cohort=4  reason=2  isRapidDisconnect=false
+2026-02-16 19:42:40.313 INFO  Scheduling reconnect  deviceId=5  serial=B051375C222A5334  cohort=4  attempt=1  delayMs=1000
+2026-02-16 19:42:40.333 INFO  Device disconnected (unexpected)  deviceId=3  serial=A3A5B30EA9B3FF98  cohort=4  reason=2  isRapidDisconnect=false
+2026-02-16 19:42:40.333 INFO  Device disconnected (unexpected)  deviceId=6  serial=E747AAFD3EEB003C  cohort=4  reason=2  isRapidDisconnect=false
+2026-02-16 19:42:40.333 INFO  Device disconnected (unexpected)  deviceId=15  serial=623DECC4E318D957  cohort=4  reason=2  isRapidDisconnect=false
+2026-02-16 19:42:40.336 INFO  Scheduling reconnect  deviceId=3  serial=A3A5B30EA9B3FF98  cohort=4  attempt=1  delayMs=1000
+2026-02-16 19:42:40.337 INFO  Scheduling reconnect  deviceId=6  serial=E747AAFD3EEB003C  cohort=4  attempt=1  delayMs=1000
+terminate called without an active exception
+device-manager.service: Main process exited, code=dumped, status=6/ABRT
+device-manager.service: Failed with result 'core-dump'.
+device-manager.service: Consumed 38.072s CPU time.
+

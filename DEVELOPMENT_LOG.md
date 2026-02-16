@@ -6,6 +6,15 @@
 
 ## Latest Updates (February 16, 2026)
 
+### Instant Circuit Breaker for No-Power Devices (February 16, 2026 - Evening)
+- **Problem**: Even with `MAX_RAPID_DISCONNECTS = 3`, the Kalitta trailer (device 7) caused a native library crash. It connected and disconnected 3 times in 2-3ms each, the circuit breaker opened correctly, but the native library was already corrupted from those 3 cycles. 17 seconds later: `terminate called without an active exception` → SIGABRT → core dump.
+- **Root cause**: 3 rapid connect/disconnect cycles of a no-power device (each lasting only 2-3ms) is enough to corrupt the native C++ library's internal state. The corruption manifests later when other devices trigger native callbacks.
+- **Fix**: **Instant circuit breaker for sub-100ms disconnects**. If a device connects and disconnects in < 100ms, the circuit breaker opens immediately on the **first** occurrence — no need to wait for 3 cycles. A 2-3ms connection duration is physically impossible from a transient network issue; it's unmistakably a no-power device.
+  - `< 100ms disconnect` → circuit breaker opens on **1st** rapid disconnect → `no_power`
+  - `100ms - 5000ms disconnect` → circuit breaker opens after **3** rapid disconnects → `unstable`
+- **Why this is safe**: Transient network issues (router reboots, WiFi hiccups) produce disconnects in the 100ms-5000ms range. Only a device with no battery power disconnects in 2-3ms. There is zero risk of false positives at the < 100ms threshold.
+- **Previous approach**: Lowering `MAX_RAPID_DISCONNECTS` from 5 to 3 was insufficient — the native library corrupts during the rapid connect/disconnect cycles themselves, not just from the count.
+
 ### False No-Power Detection Fix (February 16, 2026)
 - **Problem**: Devices that were working fine (Carter, Brown, Curtis-1, Curtis-2) were falsely marked as `no_power` after a transient network issue (router reboot, WiFi hiccup, etc.)
 - **Root cause**: The fail-fast detection (50ms wait after connect, mark `no_power` on first rapid disconnect) was too aggressive. A single rapid disconnect — which can happen due to any brief network blip — immediately and permanently marked the device as `no_power`.
@@ -13,7 +22,7 @@
   1. **Removed fail-fast** 50ms checks from all 3 connection paths (`connectAll()`, `checkForNewDevices()` new devices, `checkForNewDevices()` reconnections)
   2. **Lowered circuit breaker threshold** from 5 to 3 rapid disconnects (`MAX_RAPID_DISCONNECTS = 3`). At 3 cycles the native library is still stable (crash was observed at 5). This catches genuine no-power devices faster while still giving transient issues a chance to recover.
   3. The existing `device = null` protection at circuit breaker open (added Feb 15) prevents the C++ crash
-- **Why 3 instead of 5**: Looking at the original Kalitta crash log, the native library was still functioning at `rapidDisconnects=3`. The crash occurred after the 5th cycle. Lowering to 3 opens the circuit breaker before the native library reaches a corrupted state.
+- **Why 3 instead of 5**: Looking at the original Kalitta crash log, the native library was still functioning at `rapidDisconnects=3`. The crash occurred after the 5th cycle. Lowering to 3 opens the circuit breaker before the native library reaches a corrupted state. **UPDATE**: Even 3 was not safe enough — see "Instant Circuit Breaker" entry above.
 - **Startup recovery sweep**: Still only resets `unstable` devices (not `no_power` or `offline`) — unchanged from Feb 15 fix
 - **Result**: Transient disconnects recover naturally through the reconnect cycle. Only devices that fail 3 consecutive rapid connect/disconnect cycles get marked.
 
