@@ -49,7 +49,7 @@ if (process.env.SIMULATION_MODE === 'true' || process.env.SIMULATION_MODE === '1
  */
 // Circuit breaker configuration
 const RAPID_DISCONNECT_THRESHOLD_MS = 5000; // Disconnect within 5s of connect = rapid
-const MAX_RAPID_DISCONNECTS = 5; // After 5 rapid disconnects, mark as unstable
+const MAX_RAPID_DISCONNECTS = 3; // After 3 rapid disconnects, mark as unstable/no_power
 const UNSTABLE_BACKOFF_MS = 300000; // 5 minutes backoff for unstable devices
 const OFFLINE_BACKOFF_MS = 600000; // 10 minutes backoff for offline devices
 
@@ -684,36 +684,7 @@ class ConnectionPool {
       });
       
       if (result.success) {
-        // Wait briefly to detect rapid disconnect before moving on
-        await new Promise(r => setTimeout(r, 50));
-        
-        if (conn.status === 'disconnected' && conn.rapidDisconnectCount > 0) {
-          // Device rapidly disconnected — remove from pool to protect native library
-          logger.warn(`Device ${deviceIndex}/${deviceCount} rapidly disconnected on startup — removing`, {
-            serialNumber: conn.serialNumber,
-            deviceName: conn.deviceName,
-            rapidDisconnects: conn.rapidDisconnectCount
-          });
-          
-          if (conn.reconnectTimer) {
-            clearTimeout(conn.reconnectTimer);
-            conn.reconnectTimer = null;
-          }
-          conn.device = null;
-          conn.isCircuitOpen = true;
-          
-          this.connections.delete(conn.deviceId);
-          for (const cohort of this.cohorts.values()) {
-            cohort.delete(conn.deviceId);
-          }
-          
-          await db.markDeviceUnstable(conn.deviceId, 'no_power')
-            .catch(err => logger.error('Failed to mark startup device as no_power', { error: err.message }));
-          
-          results.failed++;
-        } else {
-          results.success++;
-        }
+        results.success++;
         logger.info(`Device ${deviceIndex}/${deviceCount} connected`, {
           serialNumber: conn.serialNumber,
           durationMs: deviceDuration
@@ -891,47 +862,7 @@ class ConnectionPool {
           cohort: cohortId
         });
         
-        // After initial connect, wait briefly to let any rapid disconnect fire
-        // The native library disconnect callback fires asynchronously within ~5ms
         if (result.success) {
-          await new Promise(r => setTimeout(r, 50));
-        }
-        
-        // Check if the device rapidly disconnected right after connecting
-        // If so, it's likely a no-power or unstable device — remove from pool
-        // immediately to prevent the native library from crashing during
-        // further rapid reconnect cycles
-        if (result.success && conn.status === 'disconnected' && conn.rapidDisconnectCount > 0) {
-          logger.warn('New device rapidly disconnected after connect — removing from pool to protect native library', {
-            deviceId: device.device_id,
-            serialNumber: device.serial_number,
-            deviceName: device.device_name,
-            rapidDisconnects: conn.rapidDisconnectCount
-          });
-          
-          // Clear reconnect timer to stop the reconnect cycle
-          if (conn.reconnectTimer) {
-            clearTimeout(conn.reconnectTimer);
-            conn.reconnectTimer = null;
-          }
-          
-          // Null out native device reference
-          conn.device = null;
-          conn.isCircuitOpen = true;
-          
-          // Remove from pool
-          this.connections.delete(device.device_id);
-          this.cohorts.get(cohortId)?.delete(device.device_id);
-          
-          // Mark as no_power in the database
-          await db.markDeviceUnstable(device.device_id, 'no_power')
-            .catch(err => logger.error('Failed to mark new device as no_power', { error: err.message }));
-          
-          logger.info('New device marked as no_power and removed from pool', {
-            deviceId: device.device_id,
-            deviceName: device.device_name
-          });
-        } else {
           added++;
         }
       } else {
@@ -952,47 +883,14 @@ class ConnectionPool {
           
           const result = await conn.connect();
           
-          // Wait briefly to let any rapid disconnect fire
-          if (result.success) {
-            await new Promise(r => setTimeout(r, 50));
-          }
+          logger.info('Reconnection result', {
+            serialNumber: conn.serialNumber,
+            deviceName: conn.deviceName,
+            success: result.success,
+            durationMs: result.durationMs
+          });
           
-          // Check if device rapidly disconnected — remove from pool to protect native library
-          if (result.success && conn.status === 'disconnected' && conn.rapidDisconnectCount > 0) {
-            logger.warn('Reconnected device rapidly disconnected — removing from pool', {
-              deviceId: device.device_id,
-              serialNumber: conn.serialNumber,
-              deviceName: conn.deviceName,
-              rapidDisconnects: conn.rapidDisconnectCount
-            });
-            
-            if (conn.reconnectTimer) {
-              clearTimeout(conn.reconnectTimer);
-              conn.reconnectTimer = null;
-            }
-            conn.device = null;
-            conn.isCircuitOpen = true;
-            
-            this.connections.delete(device.device_id);
-            for (const cohort of this.cohorts.values()) {
-              cohort.delete(device.device_id);
-            }
-            
-            await db.markDeviceUnstable(device.device_id, 'no_power')
-              .catch(err => logger.error('Failed to mark reconnected device as no_power', { error: err.message }));
-            
-            logger.info('Reconnected device marked as no_power and removed from pool', {
-              deviceId: device.device_id,
-              deviceName: conn.deviceName
-            });
-          } else {
-            logger.info('Reconnection result', {
-              serialNumber: conn.serialNumber,
-              deviceName: conn.deviceName,
-              success: result.success,
-              durationMs: result.durationMs
-            });
-            
+          if (result.success) {
             reconnected++;
           }
         }
