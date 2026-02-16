@@ -18,32 +18,33 @@ Fixed a critical crash loop in the device manager caused by no-power devices (e.
 
 ## Fix
 
-### A. Fail-Fast No-Power Detection
+### A. Lowered Circuit Breaker Threshold (5 → 3 rapid disconnects)
 
-Instead of allowing 5 reconnect attempts before opening the circuit breaker, detect the first rapid disconnect immediately:
+The native C++ library was observed to still be stable at 3 rapid disconnect cycles but crashed at 5. By lowering `MAX_RAPID_DISCONNECTS` from 5 to 3, the circuit breaker opens before the native library reaches a corrupted state.
 
-1. After `connect()` resolves, wait 50ms for the async `onDisconnect` callback to fire
-2. If `conn.status === 'disconnected'` AND `rapidDisconnectCount > 0`, immediately:
-   - Null out the native device reference (`conn.device = null`)
-   - Clear any reconnect timer
-   - Remove from connection pool
-   - Mark as `no_power` in database
-3. No reconnect cycle ever starts — crash is prevented
+- A genuine no-power device disconnects in ~3ms every time — hits 3 within ~3 seconds
+- A transient network issue typically recovers on the 1st or 2nd reconnect attempt
+- At circuit breaker open: `device = null` prevents any further native calls
 
-Applied to all 3 connection paths:
+### B. Removed Fail-Fast Detection (was too aggressive)
+
+The original fail-fast approach (wait 50ms after connect, mark `no_power` if any rapid disconnect) caused false positives. A single transient disconnect (network blip, router reboot) would permanently mark a healthy device as `no_power`. This was removed from all 3 connection paths:
+
 - `connectAll()` — startup
-- `checkForNewDevices()` — newly activated devices
+- `checkForNewDevices()` — newly activated devices  
 - `checkForNewDevices()` — admin-reset reconnections
 
-### B. Startup Recovery Sweep
+Devices now go through the normal reconnect cycle. Only after 3 consecutive rapid disconnects does the circuit breaker open and mark the device.
+
+### C. Startup Recovery Sweep
 
 - **Before**: Reset both `unstable` AND `no_power` devices to NULL on restart
 - **After**: Only resets `unstable` devices. `no_power` devices stay marked and are excluded from polling until admin explicitly clicks "Set Online"
 - This breaks the crash loop — the device that crashed the process doesn't get auto-retried on restart
 
-### C. Circuit Breaker Guards
+### D. Circuit Breaker Guards
 
-When circuit breaker opens (for devices already in the pool that reach 5 rapid disconnects):
+When circuit breaker opens (at 3 rapid disconnects):
 - Immediately null out `this.device` to prevent pending native callbacks from touching corrupted state
 - Clear reconnect timers and return early
 - `fetchAndUpdateDeviceInfo()` checks `this.status === 'connected'` AND `!this.isCircuitOpen` before making native calls
@@ -58,8 +59,8 @@ When circuit breaker opens (for devices already in the pool that reach 5 rapid d
 | `online` | Connected, waiting for first data | Device manager | Yes | N/A | N/A |
 | `reporting` | Connected and returning data | Device manager | Yes | N/A | N/A |
 | `disconnected` | Temporary unexpected disconnect | Device manager | Yes (stays in active query) | Yes — auto-reconnect on next poll | Automatic |
-| `unstable` | Circuit breaker opened (5 rapid disconnects, connection durations vary) | Device manager | No (excluded from query) | Yes — auto-reset on startup recovery sweep | Automatic on restart, or admin "Set Online" |
-| `no_power` | Circuit breaker opened (5 rapid disconnects, ALL connections < 100ms) | Device manager | No (excluded from query) | No — NOT reset on startup | Admin "Set Online" only |
+| `unstable` | Circuit breaker opened (3 rapid disconnects, connection durations vary) | Device manager | No (excluded from query) | Yes — auto-reset on startup recovery sweep | Automatic on restart, or admin "Set Online" |
+| `no_power` | Circuit breaker opened (3 rapid disconnects, ALL connections < 100ms) | Device manager | No (excluded from query) | No — NOT reset on startup | Admin "Set Online" only |
 | `offline` | Admin manually stopped polling | Admin dashboard | No (excluded from query) | No | Admin "Set Online" only |
 
 ---
@@ -69,7 +70,7 @@ When circuit breaker opens (for devices already in the pool that reach 5 rapid d
 | Parameter | Value | Description |
 |-----------|-------|-------------|
 | `RAPID_DISCONNECT_THRESHOLD_MS` | 5000ms | Disconnect within 5s of connect = "rapid" |
-| `MAX_RAPID_DISCONNECTS` | 5 | Opens circuit breaker after 5 rapid disconnects |
+| `MAX_RAPID_DISCONNECTS` | 3 | Opens circuit breaker after 3 rapid disconnects |
 | `UNSTABLE_BACKOFF_MS` | 300000ms (5 min) | In-process cooldown before retry |
 | `NO_POWER_THRESHOLD_MS` | 100ms | If ALL disconnect durations < 100ms → `no_power` |
 
@@ -121,7 +122,7 @@ All trucks are always monitored. Truck service status is purely operational. Dev
 | Action | Button | Effect | Device Manager Response |
 |--------|--------|--------|------------------------|
 | Set Offline | Orange wifi-off icon | Sets `connection_status = 'offline'` | `checkForNewDevices()` detects on next cycle, removes from pool |
-| Set Online | Green refresh icon | Resets `connection_status = NULL`, clears counters | `checkForNewDevices()` detects on next cycle, reconnects (with fail-fast protection) |
+| Set Online | Green refresh icon | Resets `connection_status = NULL`, clears counters | `checkForNewDevices()` detects on next cycle, reconnects (circuit breaker at 3 rapid disconnects protects against no-power) |
 | Toggle Monitoring | In device credentials dialog | Sets `device_credentials.is_active` | Device included/excluded from polling query |
 
 No device manager restart required for any admin action.
@@ -143,7 +144,7 @@ No device manager restart required for any admin action.
 
 ## Files Changed
 
-- `device-manager/app/connection-pool.js` — fail-fast detection, circuit breaker guards, `checkForNewDevices()` offline removal
+- `device-manager/app/connection-pool.js` — circuit breaker threshold (5→3), circuit breaker guards (`device=null`), `checkForNewDevices()` offline removal
 - `device-manager/app/database.js` — startup recovery sweep (exclude `no_power`), `markDeviceDisconnected()`, active devices query filter
 - `server/api/admin-routes.ts` — Set Offline endpoint
 - `server/db-storage.ts` — `setDeviceOffline()`, `resetDeviceConnectionStatus()`

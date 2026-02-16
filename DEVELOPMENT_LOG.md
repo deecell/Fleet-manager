@@ -4,22 +4,25 @@
 
 ---
 
-## Latest Updates (February 15, 2026)
+## Latest Updates (February 16, 2026)
+
+### False No-Power Detection Fix (February 16, 2026)
+- **Problem**: Devices that were working fine (Carter, Brown, Curtis-1, Curtis-2) were falsely marked as `no_power` after a transient network issue (router reboot, WiFi hiccup, etc.)
+- **Root cause**: The fail-fast detection (50ms wait after connect, mark `no_power` on first rapid disconnect) was too aggressive. A single rapid disconnect — which can happen due to any brief network blip — immediately and permanently marked the device as `no_power`.
+- **Fix**:
+  1. **Removed fail-fast** 50ms checks from all 3 connection paths (`connectAll()`, `checkForNewDevices()` new devices, `checkForNewDevices()` reconnections)
+  2. **Lowered circuit breaker threshold** from 5 to 3 rapid disconnects (`MAX_RAPID_DISCONNECTS = 3`). At 3 cycles the native library is still stable (crash was observed at 5). This catches genuine no-power devices faster while still giving transient issues a chance to recover.
+  3. The existing `device = null` protection at circuit breaker open (added Feb 15) prevents the C++ crash
+- **Why 3 instead of 5**: Looking at the original Kalitta crash log, the native library was still functioning at `rapidDisconnects=3`. The crash occurred after the 5th cycle. Lowering to 3 opens the circuit breaker before the native library reaches a corrupted state.
+- **Startup recovery sweep**: Still only resets `unstable` devices (not `no_power` or `offline`) — unchanged from Feb 15 fix
+- **Result**: Transient disconnects recover naturally through the reconnect cycle. Only devices that fail 3 consecutive rapid connect/disconnect cycles get marked.
 
 ### Circuit Breaker Crash Fix (February 15, 2026)
 - **Problem**: When a no-power device (e.g., Kalitta-Hospitality) was set back online, the 5 rapid connect/disconnect cycles crashed the native C++ library with `terminate called without an active exception`
 - **Root cause**: The native C++ library's internal state gets corrupted during rapid connect/disconnect cycles. The crash occurs on ANY subsequent native call (even on other devices), not just the problematic one.
-- **Fix — Fail-fast approach**: Instead of allowing 5 reconnect attempts, detect the first rapid disconnect and immediately mark the device as `no_power`:
-  1. After `connect()` resolves, wait 50ms for any rapid disconnect to fire
-  2. If `conn.status === 'disconnected'` and `rapidDisconnectCount > 0`, immediately remove from pool and mark `no_power`
-  3. This prevents the reconnect cycle from ever starting (no 5 attempts, no crash)
-- **Applied to all 3 connection paths**:
-  1. `connectAll()` — startup initial connections
-  2. `checkForNewDevices()` — newly activated devices
-  3. `checkForNewDevices()` — admin-reset reconnections
-- **Additional guards**: When circuit breaker does open (for devices already in the pool), immediately null out `this.device`, clear reconnect timers, and return early. `fetchAndUpdateDeviceInfo()` checks `this.status === 'connected'` and `!this.isCircuitOpen`.
+- **Circuit breaker guards**: When circuit breaker opens (for devices already in the pool), immediately null out `this.device`, clear reconnect timers, and return early. `fetchAndUpdateDeviceInfo()` checks `this.status === 'connected'` and `!this.isCircuitOpen`.
 - **Startup recovery sweep change**: No longer auto-resets `no_power` devices on startup. Previously, the sweep reset both `unstable` and `no_power` to NULL, causing Kalitta to reconnect on every restart and crash the process in a loop. Now only `unstable` devices are reset on startup — `no_power` devices require admin "Set Online" to retry.
-- **Result**: No-power devices are detected on first connect attempt, no reconnect cycle, no crash. No-power devices also don't cause crash loops on restart.
+- **Result**: No-power devices don't cause crash loops on restart.
 
 ### Connection Status Semantics Fix (February 15, 2026)
 - **BREAKING FIX**: `connection_status = 'offline'` now means **admin-initiated only** (set via dashboard button)
@@ -27,7 +30,7 @@
 - New status `'disconnected'` = normal disconnect, device manager will auto-retry on next poll cycle
 - Status hierarchy: `null` → `'online'` → `'reporting'` → `'disconnected'` → `'unstable'` / `'no_power'` / `'offline'`
   - `disconnected`: Temporary, auto-recovers (stays in active device query)
-  - `unstable`: Circuit breaker opened after 5 rapid disconnects (excluded from polling, 5-min backoff)
+  - `unstable`: Circuit breaker opened after 3 rapid disconnects (excluded from polling, 5-min backoff)
   - `no_power`: All rapid disconnects < 100ms (excluded from polling, 5-min backoff)
   - `offline`: Admin-set only (excluded from polling, requires admin "Set Online" to restore)
 - Disabled auto-recovery of 'offline' devices — admin must use "Set Online" button intentionally
