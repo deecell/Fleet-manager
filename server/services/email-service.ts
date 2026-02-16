@@ -296,40 +296,52 @@ export function isEmailConfigured(): boolean {
   return !!SENDGRID_API_KEY;
 }
 
-// SendGrid Dynamic Template ID for user invitations
-const INVITATION_TEMPLATE_ID = "d-b2c71a5b055144bfa4ae32d4663a1f9f";
-
 export async function sendInvitationEmail(
   email: string,
   inviteeFirstName: string,
   organizationName: string,
   invitationToken: string
 ): Promise<boolean> {
-  if (!SENDGRID_API_KEY) {
-    console.error("SendGrid API key not configured");
-    return false;
-  }
-
   const inviteUrl = `${APP_URL}/accept-invitation?token=${invitationToken}`;
+  const greeting = inviteeFirstName ? `Hi ${inviteeFirstName},` : "Hi there,";
 
-  try {
-    await sgMail.send({
-      to: email,
-      from: {
-        email: SENDER_EMAIL,
-        name: SENDER_NAME,
-      },
-      templateId: INVITATION_TEMPLATE_ID,
-      dynamicTemplateData: {
-        name: inviteeFirstName || "there",
-        Organization: organizationName,
-        invite_url: inviteUrl,
-      },
-    });
-    console.log(`Invitation email sent successfully to ${email}`);
-    return true;
-  } catch (error: any) {
-    console.error("Failed to send invitation email:", error.response?.body || error.message);
-    return false;
-  }
+  const content = `
+    <p style="margin: 0 0 16px 0; color: #18181b; font-size: 16px;">${greeting}</p>
+    <p style="margin: 0 0 24px 0; color: #3f3f46; font-size: 14px; line-height: 1.6;">
+      You've been invited to join <strong>${organizationName}</strong> on Deecell Fleet Manager.
+      Click the button below to create your password and access your fleet dashboard:
+    </p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 24px 0;">
+      <tr>
+        <td align="center">
+          <a href="${inviteUrl}" style="display: inline-block; background-color: #FA4B1E; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 32px; border-radius: 6px;">
+            Accept Invitation
+          </a>
+        </td>
+      </tr>
+    </table>
+    <p style="margin: 0 0 16px 0; color: #3f3f46; font-size: 14px; line-height: 1.6;">
+      <strong>What you can do:</strong>
+    </p>
+    <ul style="margin: 0 0 24px 0; padding-left: 20px; color: #3f3f46; font-size: 14px; line-height: 1.8;">
+      <li>Monitor real-time battery status and voltage across your fleet</li>
+      <li>Track idle-reduction fuel savings and CO&#8322; emissions reduction</li>
+      <li>View historical performance data and trends</li>
+      <li>Receive alerts for low battery and maintenance needs</li>
+    </ul>
+    <p style="margin: 0 0 16px 0; color: #71717a; font-size: 12px;">
+      This invitation expires in 7 days. If you didn't expect this invitation, you can safely ignore this email.
+    </p>
+    <hr style="border: none; border-top: 1px solid #e4e4e7; margin: 24px 0;">
+    <p style="margin: 0; color: #71717a; font-size: 12px;">
+      If the button doesn't work, copy and paste this link into your browser:<br>
+      <a href="${inviteUrl}" style="color: #FA4B1E; word-break: break-all;">${inviteUrl}</a>
+    </p>
+  `;
+
+  return sendEmail({
+    to: email,
+    subject: `You're invited to join ${organizationName} on Deecell Fleet Manager`,
+    html: getEmailWrapper(content),
+  });
 }

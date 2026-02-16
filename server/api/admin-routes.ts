@@ -750,14 +750,17 @@ router.post("/organizations/:orgId/users", adminMiddleware, async (req: Request,
           expiresAt,
         });
         
-        await sendInvitationEmail(
+        invitationEmailSent = await sendInvitationEmail(
           user.email,
           user.firstName || user.name || "",
           orgName,
           token
         );
-        invitationEmailSent = true;
-        console.log(`Invitation email sent to ${user.email}`);
+        if (invitationEmailSent) {
+          console.log(`Invitation email sent to ${user.email}`);
+        } else {
+          console.error(`Invitation email failed for ${user.email} (sendInvitationEmail returned false)`);
+        }
       } catch (emailError) {
         console.error(`Failed to send invitation email to ${user.email}:`, emailError);
       }
