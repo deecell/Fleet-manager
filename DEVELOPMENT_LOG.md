@@ -6,14 +6,14 @@
 
 ## Latest Updates (February 16, 2026)
 
-### Instant Circuit Breaker for No-Power Devices (February 16, 2026 - Evening)
-- **Problem**: Even with `MAX_RAPID_DISCONNECTS = 3`, the Kalitta trailer (device 7) caused a native library crash. It connected and disconnected 3 times in 2-3ms each, the circuit breaker opened correctly, but the native library was already corrupted from those 3 cycles. 17 seconds later: `terminate called without an active exception` → SIGABRT → core dump.
-- **Root cause**: 3 rapid connect/disconnect cycles of a no-power device (each lasting only 2-3ms) is enough to corrupt the native C++ library's internal state. The corruption manifests later when other devices trigger native callbacks.
-- **Fix**: **Instant circuit breaker for sub-100ms disconnects**. If a device connects and disconnects in < 100ms, the circuit breaker opens immediately on the **first** occurrence — no need to wait for 3 cycles. A 2-3ms connection duration is physically impossible from a transient network issue; it's unmistakably a no-power device.
-  - `< 100ms disconnect` → circuit breaker opens on **1st** rapid disconnect → `no_power`
-  - `100ms - 5000ms disconnect` → circuit breaker opens after **3** rapid disconnects → `unstable`
-- **Why this is safe**: Transient network issues (router reboots, WiFi hiccups) produce disconnects in the 100ms-5000ms range. Only a device with no battery power disconnects in 2-3ms. There is zero risk of false positives at the < 100ms threshold.
-- **Previous approach**: Lowering `MAX_RAPID_DISCONNECTS` from 5 to 3 was insufficient — the native library corrupts during the rapid connect/disconnect cycles themselves, not just from the count.
+### Circuit Breaker Tuning: 2 Instant Disconnects (February 17, 2026)
+- **Problem with 1-disconnect threshold**: The instant circuit breaker (open on 1st sub-100ms disconnect) caused widespread false positives. Moeck, Haynes, Kruse, Elite-Hospitality, and others were falsely marked `no_power` — only 2 of 14 devices remained active. A single transient network hiccup can produce a fast disconnect.
+- **Problem with 3-disconnect threshold**: The native C++ library crashes after 3 rapid connect/disconnect cycles of a no-power device (each lasting 2-3ms). The corruption manifests later when other devices trigger native callbacks (SIGABRT core dump).
+- **Fix**: **2 instant disconnects** is the sweet spot.
+  - `< 100ms disconnect × 2` → circuit breaker opens on **2nd** instant disconnect → `no_power`
+  - `100ms - 5000ms disconnect × 3` → circuit breaker opens after **3** rapid disconnects → `unstable`
+- **Why 2 works**: The native library is stable through 2 rapid cycles (crash observed at 3+). Two consecutive sub-100ms disconnects is extremely unlikely from a transient network issue but guaranteed from a genuine no-power device (which disconnects in 2-3ms every time).
+- **Progression**: 5 → 3 → 1 → 2. Each step informed by production data.
 
 ### False No-Power Detection Fix (February 16, 2026)
 - **Problem**: Devices that were working fine (Carter, Brown, Curtis-1, Curtis-2) were falsely marked as `no_power` after a transient network issue (router reboot, WiFi hiccup, etc.)

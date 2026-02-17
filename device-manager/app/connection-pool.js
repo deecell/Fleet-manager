@@ -278,13 +278,16 @@ class DeviceConnection {
                 connectionDurationMs: connDurationMs
               });
               
-              // Instant disconnect (< 100ms) = unmistakably no-power.
-              // Open circuit breaker immediately on FIRST instant disconnect
-              // to prevent native library corruption. A 2-3ms connection
-              // duration is physically impossible from a transient network issue.
+              // Instant disconnect (< 100ms) = likely no-power.
+              // Open circuit breaker after 2 instant disconnects to prevent
+              // native library corruption (crashes at 3+ cycles).
+              // Using 2 instead of 1: a single transient network hiccup can
+              // produce a fast disconnect, but two consecutive < 100ms
+              // disconnects is almost certainly a no-power device.
               const NO_POWER_THRESHOLD_MS = 100;
               const isInstantDisconnect = connDurationMs < NO_POWER_THRESHOLD_MS;
-              const shouldOpenCircuit = isInstantDisconnect || 
+              const instantDisconnectCount = (this.rapidDisconnectDurations || []).filter(d => d < NO_POWER_THRESHOLD_MS).length;
+              const shouldOpenCircuit = (isInstantDisconnect && instantDisconnectCount >= 2) || 
                 this.rapidDisconnectCount >= MAX_RAPID_DISCONNECTS;
               
               if (shouldOpenCircuit) {
@@ -294,9 +297,10 @@ class DeviceConnection {
                 const allInstant = this.rapidDisconnectDurations.every(d => d < NO_POWER_THRESHOLD_MS);
                 const status = allInstant ? 'no_power' : 'unstable';
                 
-                if (isInstantDisconnect) {
-                  this.log.error('Circuit breaker OPEN - instant disconnect, device appears powered off', {
+                if (isInstantDisconnect && instantDisconnectCount >= 2) {
+                  this.log.error('Circuit breaker OPEN - 2 instant disconnects, device appears powered off', {
                     rapidDisconnects: this.rapidDisconnectCount,
+                    instantDisconnects: instantDisconnectCount,
                     connectionDurationMs: connDurationMs,
                     backoffMinutes: UNSTABLE_BACKOFF_MS / 60000,
                     resetAt: new Date(this.circuitResetAt).toISOString()

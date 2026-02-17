@@ -18,17 +18,17 @@ Fixed a critical crash loop in the device manager caused by no-power devices (e.
 
 ## Fix
 
-### A. Instant Circuit Breaker for No-Power Devices (< 100ms)
+### A. Two-Tier Circuit Breaker for No-Power Devices
 
-Even with `MAX_RAPID_DISCONNECTS = 3`, the native C++ library crashed. Three rapid connect/disconnect cycles (each lasting 2-3ms) corrupted the library's internal state, causing SIGABRT 17 seconds later when other devices triggered native callbacks.
+Even with `MAX_RAPID_DISCONNECTS = 3`, the native C++ library crashed. Three rapid connect/disconnect cycles (each lasting 2-3ms) corrupted the library's internal state, causing SIGABRT 17 seconds later when other devices triggered native callbacks. Opening on 1st instant disconnect caused widespread false positives (10 of 14 devices falsely marked).
 
-**New behavior**: If a device connects and disconnects in **< 100ms**, the circuit breaker opens immediately on the **first** occurrence:
+**Final behavior** (tuned through production iterations: 5 → 3 → 1 → 2):
 
-- `< 100ms disconnect` → circuit breaker opens on **1st** rapid disconnect → `no_power`
-- `100ms - 5000ms disconnect` → circuit breaker opens after **3** rapid disconnects → `unstable`
+- `< 100ms disconnect × 2` → circuit breaker opens on **2nd** instant disconnect → `no_power`
+- `100ms - 5000ms disconnect × 3` → circuit breaker opens after **3** rapid disconnects → `unstable`
 - At circuit breaker open: `device = null` prevents any further native calls
 
-**Why this is safe**: A 2-3ms connection duration is physically impossible from a transient network issue. Only a device with no battery power disconnects that fast. Transient issues produce disconnects in the 100ms-5000ms range.
+**Why 2 works**: The native library is stable through 2 rapid cycles (crash observed at 3+). Two consecutive sub-100ms disconnects is extremely unlikely from a transient network issue but guaranteed from a genuine no-power device (which disconnects in 2-3ms every time). A single transient hiccup CAN produce one fast disconnect, so 1 was too aggressive.
 
 ### B. Removed Fail-Fast Detection (was too aggressive)
 
@@ -64,7 +64,7 @@ When circuit breaker opens (at 3 rapid disconnects):
 | `reporting` | Connected and returning data | Device manager | Yes | N/A | N/A |
 | `disconnected` | Temporary unexpected disconnect | Device manager | Yes (stays in active query) | Yes — auto-reconnect on next poll | Automatic |
 | `unstable` | Circuit breaker opened (3 rapid disconnects > 100ms each) | Device manager | No (excluded from query) | Yes — auto-reset on startup recovery sweep | Automatic on restart, or admin "Set Online" |
-| `no_power` | Instant circuit breaker (1st disconnect < 100ms) | Device manager | No (excluded from query) | No — NOT reset on startup | Admin "Set Online" only |
+| `no_power` | Circuit breaker after 2 instant disconnects (< 100ms each) | Device manager | No (excluded from query) | No — NOT reset on startup | Admin "Set Online" only |
 | `offline` | Admin manually stopped polling | Admin dashboard | No (excluded from query) | No | Admin "Set Online" only |
 
 ---
@@ -76,7 +76,7 @@ When circuit breaker opens (at 3 rapid disconnects):
 | `RAPID_DISCONNECT_THRESHOLD_MS` | 5000ms | Disconnect within 5s of connect = "rapid" |
 | `MAX_RAPID_DISCONNECTS` | 3 | Opens circuit breaker after 3 rapid disconnects (for > 100ms disconnects) |
 | `UNSTABLE_BACKOFF_MS` | 300000ms (5 min) | In-process cooldown before retry |
-| `NO_POWER_THRESHOLD_MS` | 100ms | Disconnect < 100ms → instant circuit breaker on 1st occurrence → `no_power` |
+| `NO_POWER_THRESHOLD_MS` | 100ms | Disconnect < 100ms × 2 occurrences → circuit breaker opens → `no_power` |
 
 ---
 
