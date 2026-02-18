@@ -6,6 +6,15 @@
 
 ## Latest Updates (February 16, 2026)
 
+### Auto-Reset No-Power on Startup (February 18, 2026)
+- **Problem**: Overnight, all devices were falsely marked `no_power` (even with 2-disconnect threshold). Network instability during the night (WiFi cycling, Bluetooth contention) caused 2 fast disconnects on healthy devices, permanently marking them until manual admin reset.
+- **Fix**: Startup recovery sweep now resets BOTH `unstable` AND `no_power` devices (previously only `unstable`). This is safe because:
+  - The 2-disconnect threshold means the native library only goes through 2 rapid cycles on startup (safe — crashes at 3+)
+  - Genuine no-power devices get re-marked within seconds (2 quick 2-3ms cycles) without crashing
+  - Overnight false positives self-heal on next device manager restart
+- **`offline` is still NOT auto-reset** — admin must explicitly click "Set Online"
+- **Progression**: The original reason for excluding `no_power` from startup reset was crash prevention (at threshold 5). With threshold 2, auto-reset is safe.
+
 ### Circuit Breaker Tuning: 2 Instant Disconnects (February 17, 2026)
 - **Problem with 1-disconnect threshold**: The instant circuit breaker (open on 1st sub-100ms disconnect) caused widespread false positives. Moeck, Haynes, Kruse, Elite-Hospitality, and others were falsely marked `no_power` — only 2 of 14 devices remained active. A single transient network hiccup can produce a fast disconnect.
 - **Problem with 3-disconnect threshold**: The native C++ library crashes after 3 rapid connect/disconnect cycles of a no-power device (each lasting 2-3ms). The corruption manifests later when other devices trigger native callbacks (SIGABRT core dump).

@@ -42,9 +42,11 @@ Devices now go through the normal reconnect cycle. For non-instant disconnects (
 
 ### C. Startup Recovery Sweep
 
-- **Before**: Reset both `unstable` AND `no_power` devices to NULL on restart
-- **After**: Only resets `unstable` devices. `no_power` devices stay marked and are excluded from polling until admin explicitly clicks "Set Online"
-- This breaks the crash loop — the device that crashed the process doesn't get auto-retried on restart
+- Resets both `unstable` AND `no_power` devices to NULL on restart
+- This is safe because the 2-disconnect threshold means the native library only goes through 2 rapid cycles (safe — crashes at 3+)
+- Genuine no-power devices get re-marked within seconds on startup without crashing
+- Overnight false positives self-heal automatically on next device manager restart
+- `offline` devices are NOT auto-reset — admin must click "Set Online"
 
 ### D. Circuit Breaker Guards
 
@@ -64,7 +66,7 @@ When circuit breaker opens (at 3 rapid disconnects):
 | `reporting` | Connected and returning data | Device manager | Yes | N/A | N/A |
 | `disconnected` | Temporary unexpected disconnect | Device manager | Yes (stays in active query) | Yes — auto-reconnect on next poll | Automatic |
 | `unstable` | Circuit breaker opened (3 rapid disconnects > 100ms each) | Device manager | No (excluded from query) | Yes — auto-reset on startup recovery sweep | Automatic on restart, or admin "Set Online" |
-| `no_power` | Circuit breaker after 2 instant disconnects (< 100ms each) | Device manager | No (excluded from query) | No — NOT reset on startup | Admin "Set Online" only |
+| `no_power` | Circuit breaker after 2 instant disconnects (< 100ms each) | Device manager | No (excluded from query) | Yes — auto-reset on startup | Automatic on restart, or admin "Set Online" |
 | `offline` | Admin manually stopped polling | Admin dashboard | No (excluded from query) | No | Admin "Set Online" only |
 
 ---

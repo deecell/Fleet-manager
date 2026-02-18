@@ -829,16 +829,18 @@ async function upsertDeviceSnapshot(snapshot) {
 /**
  * Startup recovery sweep: Reset devices stuck in unstable/no_power state
  * 
- * When the device manager crashes (e.g., due to native library terminate()),
- * devices may be incorrectly left in 'unstable' or 'no_power' status. This
- * sweep resets them so they get a fresh connection attempt.
+ * When the device manager crashes or restarts, devices may be left in
+ * 'unstable' or 'no_power' status. This sweep resets them so they get
+ * a fresh connection attempt.
+ * 
+ * Both 'unstable' AND 'no_power' are now auto-reset on startup because
+ * the circuit breaker threshold of 2 instant disconnects is safe for the
+ * native library (crashes only at 3+). Genuine no-power devices get
+ * re-marked within seconds (2 quick 2-3ms cycles) without crashing.
+ * This also prevents overnight false positives from persisting.
  * 
  * Offline devices are NOT auto-reset — they stay offline until an admin
  * manually sets them back online via the admin dashboard.
- * 
- * No-power devices are NOT auto-reset — they crashed the native C++ library
- * during rapid connect/disconnect cycles. Admin must explicitly "Set Online"
- * from the dashboard to retry. This prevents crash loops on restart.
  * 
  * Only resets devices that have active credentials.
  * 
@@ -854,7 +856,7 @@ async function startupRecoverySweep() {
       consecutive_disconnects = 0,
       marked_unstable_at = NULL,
       updated_at = NOW()
-    WHERE d.connection_status IN ('unstable')
+    WHERE d.connection_status IN ('unstable', 'no_power')
       AND EXISTS (
         SELECT 1 FROM device_credentials c 
         WHERE c.device_id = d.id AND c.is_active = true
