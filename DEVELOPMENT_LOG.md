@@ -6,14 +6,12 @@
 
 ## Latest Updates (February 16, 2026)
 
-### Auto-Reset No-Power on Startup (February 18, 2026)
-- **Problem**: Overnight, all devices were falsely marked `no_power` (even with 2-disconnect threshold). Network instability during the night (WiFi cycling, Bluetooth contention) caused 2 fast disconnects on healthy devices, permanently marking them until manual admin reset.
-- **Fix**: Startup recovery sweep now resets BOTH `unstable` AND `no_power` devices (previously only `unstable`). This is safe because:
-  - The 2-disconnect threshold means the native library only goes through 2 rapid cycles on startup (safe — crashes at 3+)
-  - Genuine no-power devices get re-marked within seconds (2 quick 2-3ms cycles) without crashing
-  - Overnight false positives self-heal on next device manager restart
+### Auto-Reset No-Power + Connection Cooldown (February 20, 2026)
+- **Problem**: Overnight, all devices were falsely marked `no_power` (even with 2-disconnect threshold). Network instability during the night caused 2 fast disconnects on healthy devices.
+- **Fix 1**: Startup recovery sweep now resets BOTH `unstable` AND `no_power` devices (previously only `unstable`). Safe because the 2-disconnect threshold means the native library only goes through 2 rapid cycles on startup (crashes at 3+).
+- **Fix 2 (crash prevention)**: After resetting `no_power` devices, reconnecting all of them back-to-back caused a SIGABRT crash — the aggregate rapid cycling across multiple devices (6+ devices within 80ms) corrupted the native library even though each individual device stayed under the threshold. Added a **2-second cooldown delay** after any rapid disconnect in both `connectAll()` and `checkForNewDevices()` before connecting the next device. This lets the native library stabilize between no-power devices.
 - **`offline` is still NOT auto-reset** — admin must explicitly click "Set Online"
-- **Progression**: The original reason for excluding `no_power` from startup reset was crash prevention (at threshold 5). With threshold 2, auto-reset is safe.
+- **Crash sequence observed**: startup sweep reset 12 devices → `checkForNewDevices()` reconnected all back-to-back → 6 devices rapid-disconnected within 80ms → `terminate called without an active exception` → SIGABRT. After auto-restart, only 2 genuine no-power devices hit the threshold (with cooldown spacing from restart delay), remaining devices connected fine.
 
 ### Circuit Breaker Tuning: 2 Instant Disconnects (February 17, 2026)
 - **Problem with 1-disconnect threshold**: The instant circuit breaker (open on 1st sub-100ms disconnect) caused widespread false positives. Moeck, Haynes, Kruse, Elite-Hospitality, and others were falsely marked `no_power` — only 2 of 14 devices remained active. A single transient network hiccup can produce a fast disconnect.

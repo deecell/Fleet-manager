@@ -717,6 +717,15 @@ class ConnectionPool {
           reason: result.reason || result.error
         });
       }
+      
+      // Cooldown after rapid disconnect to protect native library.
+      // Multiple rapid disconnects in quick succession across different devices
+      // can corrupt the native C++ library even if each device individually stays
+      // under the circuit breaker threshold. A 2-second pause lets the library stabilize.
+      if (conn.rapidDisconnectCount > 0 || conn.isCircuitOpen) {
+        logger.info('Cooldown after rapid disconnect before next device', { delayMs: 2000 });
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
     }
 
     results.totalDurationMs = Date.now() - totalStartTime;
@@ -900,6 +909,14 @@ class ConnectionPool {
           
           if (result.success) {
             reconnected++;
+          }
+          
+          // Cooldown after rapid disconnect to protect native library.
+          // Multiple rapid disconnects across different devices in quick succession
+          // can corrupt the native C++ library. A 2-second pause lets it stabilize.
+          if (conn.rapidDisconnectCount > 0 || conn.isCircuitOpen) {
+            logger.info('Cooldown after rapid disconnect before next reconnection', { delayMs: 2000 });
+            await new Promise(resolve => setTimeout(resolve, 2000));
           }
         }
       }
