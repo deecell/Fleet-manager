@@ -42,10 +42,10 @@ Devices now go through the normal reconnect cycle. For non-instant disconnects (
 
 ### C. Startup Recovery Sweep
 
-- Resets both `unstable` AND `no_power` devices to NULL on restart
-- This is safe because the 2-disconnect threshold means the native library only goes through 2 rapid cycles (safe — crashes at 3+)
-- Genuine no-power devices get re-marked within seconds on startup without crashing
-- Overnight false positives self-heal automatically on next device manager restart
+- Only resets `unstable` devices to NULL on restart
+- `no_power` devices are NOT reset on startup — doing so causes crash loops because the aggregate rapid cycling across multiple devices corrupts the native library's global state (even with cooldowns)
+- Instead, `no_power` uses a **TTL-based quarantine** (4 hours) — devices auto-expire and get retried without manual intervention
+- After any circuit breaker event, the process self-restarts to discard corrupted native state
 - `offline` devices are NOT auto-reset — admin must click "Set Online"
 
 ### D. Circuit Breaker Guards
@@ -66,7 +66,7 @@ When circuit breaker opens (at 3 rapid disconnects):
 | `reporting` | Connected and returning data | Device manager | Yes | N/A | N/A |
 | `disconnected` | Temporary unexpected disconnect | Device manager | Yes (stays in active query) | Yes — auto-reconnect on next poll | Automatic |
 | `unstable` | Circuit breaker opened (3 rapid disconnects > 100ms each) | Device manager | No (excluded from query) | Yes — auto-reset on startup recovery sweep | Automatic on restart, or admin "Set Online" |
-| `no_power` | Circuit breaker after 2 instant disconnects (< 100ms each) | Device manager | No (excluded from query) | Yes — auto-reset on startup | Automatic on restart, or admin "Set Online" |
+| `no_power` | Circuit breaker after 2 instant disconnects (< 100ms each) | Device manager | No (excluded from query) | No — TTL quarantine (4 hours), then auto-retry | Automatic after 4h, or admin "Set Online" |
 | `offline` | Admin manually stopped polling | Admin dashboard | No (excluded from query) | No | Admin "Set Online" only |
 
 ---

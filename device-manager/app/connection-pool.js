@@ -330,8 +330,27 @@ class DeviceConnection {
                 
                 // Persist status to database immediately
                 // This ensures the device is skipped on process restart
+                // CRITICAL: Schedule graceful process exit after circuit breaker.
+                // Any rapid connect/disconnect cycle corrupts the native C++ library's
+                // global state. The corruption is cumulative and manifests asynchronously
+                // on later native callbacks (SIGABRT crash). The ONLY safe action is to
+                // exit the process so systemd restarts it with a clean native library.
+                // We delay 3 seconds to allow the DB write and any in-flight writes to complete.
+                logger.error('NATIVE LIBRARY COMPROMISED - scheduling graceful restart', {
+                  deviceId: this.deviceId,
+                  deviceName: this.deviceName,
+                  status,
+                  restartInMs: 3000
+                });
+                
                 db.markDeviceUnstable(this.deviceId, status)
                   .catch(err => this.log.error('Failed to mark device status in database', { error: err.message }));
+                
+                // Exit regardless of DB write success — corrupted native state MUST be discarded
+                setTimeout(() => {
+                  logger.error('Exiting process for clean native library restart');
+                  process.exit(1);
+                }, 3000);
                 
                 // Return early — do NOT fall through to reconnect/disconnect handling
                 return;
@@ -718,14 +737,6 @@ class ConnectionPool {
         });
       }
       
-      // Cooldown after rapid disconnect to protect native library.
-      // Multiple rapid disconnects in quick succession across different devices
-      // can corrupt the native C++ library even if each device individually stays
-      // under the circuit breaker threshold. A 2-second pause lets the library stabilize.
-      if (conn.rapidDisconnectCount > 0 || conn.isCircuitOpen) {
-        logger.info('Cooldown after rapid disconnect before next device', { delayMs: 2000 });
-        await new Promise(resolve => setTimeout(resolve, 2000));
-      }
     }
 
     results.totalDurationMs = Date.now() - totalStartTime;
@@ -909,14 +920,6 @@ class ConnectionPool {
           
           if (result.success) {
             reconnected++;
-          }
-          
-          // Cooldown after rapid disconnect to protect native library.
-          // Multiple rapid disconnects across different devices in quick succession
-          // can corrupt the native C++ library. A 2-second pause lets it stabilize.
-          if (conn.rapidDisconnectCount > 0 || conn.isCircuitOpen) {
-            logger.info('Cooldown after rapid disconnect before next reconnection', { delayMs: 2000 });
-            await new Promise(resolve => setTimeout(resolve, 2000));
           }
         }
       }

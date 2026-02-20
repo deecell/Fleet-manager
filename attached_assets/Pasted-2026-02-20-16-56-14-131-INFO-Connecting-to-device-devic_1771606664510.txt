@@ -1,0 +1,187 @@
+2026-02-20 16:56:14.131 INFO  Connecting to device  deviceId=7  serial=96FE5E88572C1995  cohort=1
+2026-02-20 16:56:14.139 INFO  Connected successfully  deviceId=7  serial=96FE5E88572C1995  cohort=1  durationMs=8
+2026-02-20 16:56:14.142 WARN  Rapid disconnect detected (error)  deviceId=7  serial=96FE5E88572C1995  cohort=1  reason=2  rapidDisconnects=2  connectionDurationMs=3
+2026-02-20 16:56:14.142 ERROR Circuit breaker OPEN - 2 instant disconnects, device appears powered off  deviceId=7  serial=96FE5E88572C1995  cohort=1  rapidDisconnects=2  instantDisconnects=2  connectionDurationMs=3  backoffMinutes=5  resetAt=2026-02-20T17:01:14.142Z
+2026-02-20 16:56:14.142 WARN  Marking device as no_power in database  deviceId=7
+2026-02-20 16:56:15.126 INFO  Connecting device 6/14  serialNumber=E844BD0A2017EB7A  deviceName=DCL-Kruse  cohort=5
+2026-02-20 16:56:15.127 INFO  Connecting to device  deviceId=8  serial=E844BD0A2017EB7A  cohort=5
+2026-02-20 16:56:15.135 INFO  Connected successfully  deviceId=8  serial=E844BD0A2017EB7A  cohort=5  durationMs=9
+2026-02-20 16:56:15.139 INFO  Device 6/14 connected  serialNumber=E844BD0A2017EB7A  durationMs=9
+2026-02-20 16:56:15.139 INFO  Connecting device 7/14  serialNumber=E6D8F89877415815  deviceName=DCL-Brown  cohort=6
+2026-02-20 16:56:15.139 INFO  Connecting to device  deviceId=9  serial=E6D8F89877415815  cohort=6
+terminate called without an active exception
+device-manager.service: Main process exited, code=dumped, status=6/ABRT
+device-manager.service: Failed with result 'core-dump'.
+device-manager.service: Consumed 2.996s CPU time.
+device-manager.service: Scheduled restart job, restart counter is at 44.
+Started device-manager.service - Deecell Device Manager.
+2026-02-20 16:56:28.462 INFO  PowerMon addon loaded successfully
+2026-02-20 16:56:28.468 INFO  Device Manager starting  pollInterval=10000  cohorts=10  batchFlushInterval=2000
+2026-02-20 16:56:28.468 INFO  Configuration validated
+2026-02-20 16:56:28.468 INFO  Database connection configured  host=deecell-fleet-production-postgres.cn4qsw8g8yyx.us-east-2.rds.amazonaws.com  database=deecell_fleet
+2026-02-20 16:56:28.469 INFO  Database pool initialized  poolSize=10
+2026-02-20 16:56:28.469 INFO  Database initialized
+2026-02-20 16:56:28.469 WARN  === CRASH ATTRIBUTION: Previous crash detected ===  deviceId=9  deviceName=DCL-Brown  crashTime=2026-02-20T16:56:15.139Z
+2026-02-20 16:56:28.469 WARN  Marking crash culprit device as unstable  deviceId=9
+2026-02-20 16:56:28.546 INFO  === STARTUP RECOVERY SWEEP ===
+2026-02-20 16:56:28.550 INFO  Recovery sweep reset devices  devicesReset=4  devices=DCL-Moeck-Shop,DCL-Carter,DCL-Haynes,DCL-Brown
+2026-02-20 16:56:28.550 INFO  Initializing connection pool
+Skipping 1 offline/unstable devices:
+                  [offline]  DCL-Thibert                    (1 disconnects)
+2026-02-20 16:56:28.557 INFO  Found active devices  count=14
+2026-02-20 16:56:28.585 INFO  Connection pool initialized  devices=14  cohorts=8
+2026-02-20 16:56:28.586 INFO  Batch writer started  flushIntervalMs=2000  maxBatchSize=500
+2026-02-20 16:56:28.587 INFO  === STARTUP: Connecting to all devices ===  deviceCount=14  timestamp=2026-02-20T16:56:28.587Z
+2026-02-20 16:56:28.587 INFO  Connecting device 1/14  serialNumber=A3A5B30EA9B3FF98  deviceName=DCL-Moeck  cohort=4
+2026-02-20 16:56:28.587 INFO  Connecting to device  deviceId=3  serial=A3A5B30EA9B3FF98  cohort=4
+2026-02-20 16:56:28.594 INFO  Metrics server started  port=3001  metricsPath=/metrics  healthPath=/health
+2026-02-20 16:56:28.596 INFO  Connected successfully  deviceId=3  serial=A3A5B30EA9B3FF98  cohort=4  durationMs=9
+2026-02-20 16:56:28.599 WARN  Rapid disconnect detected (error)  deviceId=3  serial=A3A5B30EA9B3FF98  cohort=4  reason=2  rapidDisconnects=1  connectionDurationMs=3
+2026-02-20 16:56:28.599 INFO  Device disconnected (unexpected)  deviceId=3  serial=A3A5B30EA9B3FF98  cohort=4  reason=2  isRapidDisconnect=true
+2026-02-20 16:56:28.602 INFO  Device 1/14 connected  serialNumber=A3A5B30EA9B3FF98  durationMs=9
+2026-02-20 16:56:28.602 INFO  Cooldown after rapid disconnect before next device  delayMs=2000
+2026-02-20 16:56:28.625 INFO  Scheduling reconnect  deviceId=3  serial=A3A5B30EA9B3FF98  cohort=4  attempt=1  delayMs=1000
+2026-02-20 16:56:29.627 INFO  Connecting to device  deviceId=3  serial=A3A5B30EA9B3FF98  cohort=4
+2026-02-20 16:56:29.635 INFO  Connected successfully  deviceId=3  serial=A3A5B30EA9B3FF98  cohort=4  durationMs=8
+2026-02-20 16:56:29.638 WARN  Rapid disconnect detected (error)  deviceId=3  serial=A3A5B30EA9B3FF98  cohort=4  reason=2  rapidDisconnects=2  connectionDurationMs=3
+2026-02-20 16:56:29.639 ERROR Circuit breaker OPEN - 2 instant disconnects, device appears powered off  deviceId=3  serial=A3A5B30EA9B3FF98  cohort=4  rapidDisconnects=2  instantDisconnects=2  connectionDurationMs=3  backoffMinutes=5  resetAt=2026-02-20T17:01:29.638Z
+2026-02-20 16:56:29.639 WARN  Marking device as no_power in database  deviceId=3
+2026-02-20 16:56:30.603 INFO  Connecting device 2/14  serialNumber=1982A3044D3599E2  deviceName=DCL-Moeck-Shop  cohort=9
+2026-02-20 16:56:30.604 INFO  Connecting to device  deviceId=4  serial=1982A3044D3599E2  cohort=9
+2026-02-20 16:56:30.613 INFO  Connected successfully  deviceId=4  serial=1982A3044D3599E2  cohort=9  durationMs=8
+2026-02-20 16:56:30.615 WARN  Rapid disconnect detected (error)  deviceId=4  serial=1982A3044D3599E2  cohort=9  reason=2  rapidDisconnects=1  connectionDurationMs=3
+2026-02-20 16:56:30.615 INFO  Device disconnected (unexpected)  deviceId=4  serial=1982A3044D3599E2  cohort=9  reason=2  isRapidDisconnect=true
+2026-02-20 16:56:30.617 INFO  Device 2/14 connected  serialNumber=1982A3044D3599E2  durationMs=8
+2026-02-20 16:56:30.617 INFO  Cooldown after rapid disconnect before next device  delayMs=2000
+2026-02-20 16:56:30.619 INFO  Scheduling reconnect  deviceId=4  serial=1982A3044D3599E2  cohort=9  attempt=1  delayMs=1000
+2026-02-20 16:56:31.620 INFO  Connecting to device  deviceId=4  serial=1982A3044D3599E2  cohort=9
+2026-02-20 16:56:31.629 INFO  Connected successfully  deviceId=4  serial=1982A3044D3599E2  cohort=9  durationMs=9
+2026-02-20 16:56:31.631 WARN  Rapid disconnect detected (error)  deviceId=4  serial=1982A3044D3599E2  cohort=9  reason=2  rapidDisconnects=2  connectionDurationMs=2
+2026-02-20 16:56:31.631 ERROR Circuit breaker OPEN - 2 instant disconnects, device appears powered off  deviceId=4  serial=1982A3044D3599E2  cohort=9  rapidDisconnects=2  instantDisconnects=2  connectionDurationMs=2  backoffMinutes=5  resetAt=2026-02-20T17:01:31.631Z
+2026-02-20 16:56:31.631 WARN  Marking device as no_power in database  deviceId=4
+2026-02-20 16:56:32.617 INFO  Connecting device 3/14  serialNumber=B051375C222A5334  deviceName=DCL-Carter  cohort=4
+2026-02-20 16:56:32.617 INFO  Connecting to device  deviceId=5  serial=B051375C222A5334  cohort=4
+2026-02-20 16:56:32.626 INFO  Connected successfully  deviceId=5  serial=B051375C222A5334  cohort=4  durationMs=9
+2026-02-20 16:56:32.630 INFO  Device 3/14 connected  serialNumber=B051375C222A5334  durationMs=9
+2026-02-20 16:56:32.630 INFO  Connecting device 4/14  serialNumber=E747AAFD3EEB003C  deviceName=DCL-KTR  cohort=4
+2026-02-20 16:56:32.630 INFO  Connecting to device  deviceId=6  serial=E747AAFD3EEB003C  cohort=4
+2026-02-20 16:56:32.638 INFO  Connected successfully  deviceId=6  serial=E747AAFD3EEB003C  cohort=4  durationMs=8
+2026-02-20 16:56:32.642 INFO  Device 4/14 connected  serialNumber=E747AAFD3EEB003C  durationMs=8
+2026-02-20 16:56:32.643 INFO  Connecting device 5/14  serialNumber=96FE5E88572C1995  deviceName=DCL-Haynes  cohort=1
+2026-02-20 16:56:32.643 INFO  Connecting to device  deviceId=7  serial=96FE5E88572C1995  cohort=1
+2026-02-20 16:56:32.651 INFO  Connected successfully  deviceId=7  serial=96FE5E88572C1995  cohort=1  durationMs=8
+2026-02-20 16:56:32.655 INFO  Device 5/14 connected  serialNumber=96FE5E88572C1995  durationMs=8
+2026-02-20 16:56:32.656 INFO  Connecting device 6/14  serialNumber=E844BD0A2017EB7A  deviceName=DCL-Kruse  cohort=5
+2026-02-20 16:56:32.656 INFO  Connecting to device  deviceId=8  serial=E844BD0A2017EB7A  cohort=5
+2026-02-20 16:56:32.664 INFO  Connected successfully  deviceId=8  serial=E844BD0A2017EB7A  cohort=5  durationMs=8
+2026-02-20 16:56:32.668 INFO  Device 6/14 connected  serialNumber=E844BD0A2017EB7A  durationMs=8
+2026-02-20 16:56:32.668 INFO  Connecting device 7/14  serialNumber=E6D8F89877415815  deviceName=DCL-Brown  cohort=6
+2026-02-20 16:56:32.668 INFO  Connecting to device  deviceId=9  serial=E6D8F89877415815  cohort=6
+2026-02-20 16:56:32.677 INFO  Connected successfully  deviceId=9  serial=E6D8F89877415815  cohort=6  durationMs=9
+2026-02-20 16:56:32.681 INFO  Device 7/14 connected  serialNumber=E6D8F89877415815  durationMs=9
+2026-02-20 16:56:32.681 INFO  Connecting device 8/14  serialNumber=1B1034C2B3399A18  deviceName=DCL-Curtis-1  cohort=0
+2026-02-20 16:56:32.681 INFO  Connecting to device  deviceId=10  serial=1B1034C2B3399A18  cohort=0
+2026-02-20 16:56:32.690 INFO  Connected successfully  deviceId=10  serial=1B1034C2B3399A18  cohort=0  durationMs=9
+2026-02-20 16:56:32.694 INFO  Device 8/14 connected  serialNumber=1B1034C2B3399A18  durationMs=9
+2026-02-20 16:56:32.694 INFO  Connecting device 9/14  serialNumber=1A81067CFA117B5B  deviceName=DCL-Curtis-2  cohort=0
+2026-02-20 16:56:32.694 INFO  Connecting to device  deviceId=11  serial=1A81067CFA117B5B  cohort=0
+2026-02-20 16:56:32.700 INFO  Fetched device info from PowerMon  deviceId=6  serial=E747AAFD3EEB003C  cohort=4  serialNumber=E747AAFD3EEB003C  firmwareVersion=1.34  hardwareRevision=PowerMon-W  deviceName=DCL-KTR
+2026-02-20 16:56:32.702 INFO  Updated device info  deviceId=6  serialNumber=E747AAFD3EEB003C  firmwareVersion=1.34  hardwareRevision=PowerMon-W  deviceName=DCL-KTR
+2026-02-20 16:56:32.703 INFO  Connected successfully  deviceId=11  serial=1A81067CFA117B5B  cohort=0  durationMs=9
+terminate called without an active exception
+device-manager.service: Main process exited, code=dumped, status=6/ABRT
+device-manager.service: Failed with result 'core-dump'.
+device-manager.service: Consumed 2.997s CPU time.
+device-manager.service: Scheduled restart job, restart counter is at 45.
+Started device-manager.service - Deecell Device Manager.
+2026-02-20 16:56:45.922 INFO  PowerMon addon loaded successfully
+2026-02-20 16:56:45.927 INFO  Device Manager starting  pollInterval=10000  cohorts=10  batchFlushInterval=2000
+2026-02-20 16:56:45.927 INFO  Configuration validated
+2026-02-20 16:56:45.928 INFO  Database connection configured  host=deecell-fleet-production-postgres.cn4qsw8g8yyx.us-east-2.rds.amazonaws.com  database=deecell_fleet
+2026-02-20 16:56:45.928 INFO  Database pool initialized  poolSize=10
+2026-02-20 16:56:45.928 INFO  Database initialized
+2026-02-20 16:56:45.928 INFO  === STARTUP RECOVERY SWEEP ===
+2026-02-20 16:56:46.001 INFO  Recovery sweep reset devices  devicesReset=2  devices=DCL-Moeck,DCL-Moeck-Shop
+2026-02-20 16:56:46.002 INFO  Initializing connection pool
+Skipping 1 offline/unstable devices:
+                  [offline]  DCL-Thibert                    (1 disconnects)
+2026-02-20 16:56:46.011 INFO  Found active devices  count=14
+2026-02-20 16:56:46.038 INFO  Connection pool initialized  devices=14  cohorts=8
+2026-02-20 16:56:46.039 INFO  Batch writer started  flushIntervalMs=2000  maxBatchSize=500
+2026-02-20 16:56:46.039 INFO  === STARTUP: Connecting to all devices ===  deviceCount=14  timestamp=2026-02-20T16:56:46.039Z
+2026-02-20 16:56:46.039 INFO  Connecting device 1/14  serialNumber=A3A5B30EA9B3FF98  deviceName=DCL-Moeck  cohort=4
+2026-02-20 16:56:46.040 INFO  Connecting to device  deviceId=3  serial=A3A5B30EA9B3FF98  cohort=4
+2026-02-20 16:56:46.047 INFO  Metrics server started  port=3001  metricsPath=/metrics  healthPath=/health
+2026-02-20 16:56:46.049 INFO  Connected successfully  deviceId=3  serial=A3A5B30EA9B3FF98  cohort=4  durationMs=9
+2026-02-20 16:56:46.051 WARN  Rapid disconnect detected (error)  deviceId=3  serial=A3A5B30EA9B3FF98  cohort=4  reason=0  rapidDisconnects=1  connectionDurationMs=2
+2026-02-20 16:56:46.052 INFO  Device disconnected (unexpected)  deviceId=3  serial=A3A5B30EA9B3FF98  cohort=4  reason=0  isRapidDisconnect=true
+2026-02-20 16:56:46.053 INFO  Device 1/14 connected  serialNumber=A3A5B30EA9B3FF98  durationMs=9
+2026-02-20 16:56:46.053 INFO  Cooldown after rapid disconnect before next device  delayMs=2000
+2026-02-20 16:56:46.076 INFO  Scheduling reconnect  deviceId=3  serial=A3A5B30EA9B3FF98  cohort=4  attempt=1  delayMs=1000
+2026-02-20 16:56:47.078 INFO  Connecting to device  deviceId=3  serial=A3A5B30EA9B3FF98  cohort=4
+2026-02-20 16:56:47.086 INFO  Connected successfully  deviceId=3  serial=A3A5B30EA9B3FF98  cohort=4  durationMs=8
+2026-02-20 16:56:47.089 WARN  Rapid disconnect detected (error)  deviceId=3  serial=A3A5B30EA9B3FF98  cohort=4  reason=2  rapidDisconnects=2  connectionDurationMs=3
+2026-02-20 16:56:47.089 ERROR Circuit breaker OPEN - 2 instant disconnects, device appears powered off  deviceId=3  serial=A3A5B30EA9B3FF98  cohort=4  rapidDisconnects=2  instantDisconnects=2  connectionDurationMs=3  backoffMinutes=5  resetAt=2026-02-20T17:01:47.089Z
+2026-02-20 16:56:47.089 WARN  Marking device as no_power in database  deviceId=3
+2026-02-20 16:56:48.053 INFO  Connecting device 2/14  serialNumber=1982A3044D3599E2  deviceName=DCL-Moeck-Shop  cohort=9
+2026-02-20 16:56:48.053 INFO  Connecting to device  deviceId=4  serial=1982A3044D3599E2  cohort=9
+2026-02-20 16:56:48.061 INFO  Connected successfully  deviceId=4  serial=1982A3044D3599E2  cohort=9  durationMs=8
+2026-02-20 16:56:48.064 WARN  Rapid disconnect detected (error)  deviceId=4  serial=1982A3044D3599E2  cohort=9  reason=2  rapidDisconnects=1  connectionDurationMs=3
+2026-02-20 16:56:48.064 INFO  Device disconnected (unexpected)  deviceId=4  serial=1982A3044D3599E2  cohort=9  reason=2  isRapidDisconnect=true
+2026-02-20 16:56:48.065 INFO  Device 2/14 connected  serialNumber=1982A3044D3599E2  durationMs=8
+2026-02-20 16:56:48.066 INFO  Cooldown after rapid disconnect before next device  delayMs=2000
+2026-02-20 16:56:48.068 INFO  Scheduling reconnect  deviceId=4  serial=1982A3044D3599E2  cohort=9  attempt=1  delayMs=1000
+ç2026-02-20 16:56:49.069 INFO  Connecting to device  deviceId=4  serial=1982A3044D3599E2  cohort=9
+2026-02-20 16:56:49.077 INFO  Connected successfully  deviceId=4  serial=1982A3044D3599E2  cohort=9  durationMs=8
+2026-02-20 16:56:49.080 WARN  Rapid disconnect detected (error)  deviceId=4  serial=1982A3044D3599E2  cohort=9  reason=2  rapidDisconnects=2  connectionDurationMs=3
+2026-02-20 16:56:49.080 ERROR Circuit breaker OPEN - 2 instant disconnects, device appears powered off  deviceId=4  serial=1982A3044D3599E2  cohort=9  rapidDisconnects=2  instantDisconnects=2  connectionDurationMs=3  backoffMinutes=5  resetAt=2026-02-20T17:01:49.080Z
+2026-02-20 16:56:49.080 WARN  Marking device as no_power in database  deviceId=4
+2026-02-20 16:56:50.065 INFO  Connecting device 3/14  serialNumber=B051375C222A5334  deviceName=DCL-Carter  cohort=4
+2026-02-20 16:56:50.065 INFO  Connecting to device  deviceId=5  serial=B051375C222A5334  cohort=4
+2026-02-20 16:56:50.074 INFO  Connected successfully  deviceId=5  serial=B051375C222A5334  cohort=4  durationMs=9
+2026-02-20 16:56:50.078 INFO  Device 3/14 connected  serialNumber=B051375C222A5334  durationMs=9
+2026-02-20 16:56:50.078 INFO  Connecting device 4/14  serialNumber=E747AAFD3EEB003C  deviceName=DCL-KTR  cohort=4
+2026-02-20 16:56:50.078 INFO  Connecting to device  deviceId=6  serial=E747AAFD3EEB003C  cohort=4
+2026-02-20 16:56:50.086 INFO  Connected successfully  deviceId=6  serial=E747AAFD3EEB003C  cohort=4  durationMs=8
+2026-02-20 16:56:50.090 INFO  Device 4/14 connected  serialNumber=E747AAFD3EEB003C  durationMs=8
+2026-02-20 16:56:50.090 INFO  Connecting device 5/14  serialNumber=96FE5E88572C1995  deviceName=DCL-Haynes  cohort=1
+2026-02-20 16:56:50.090 INFO  Connecting to device  deviceId=7  serial=96FE5E88572C1995  cohort=1
+2026-02-20 16:56:50.099 INFO  Connected successfully  deviceId=7  serial=96FE5E88572C1995  cohort=1  durationMs=9
+2026-02-20 16:56:50.103 INFO  Device 5/14 connected  serialNumber=96FE5E88572C1995  durationMs=9
+2026-02-20 16:56:50.103 INFO  Connecting device 6/14  serialNumber=E844BD0A2017EB7A  deviceName=DCL-Kruse  cohort=5
+2026-02-20 16:56:50.103 INFO  Connecting to device  deviceId=8  serial=E844BD0A2017EB7A  cohort=5
+2026-02-20 16:56:50.112 INFO  Connected successfully  deviceId=8  serial=E844BD0A2017EB7A  cohort=5  durationMs=8
+2026-02-20 16:56:50.116 INFO  Device 6/14 connected  serialNumber=E844BD0A2017EB7A  durationMs=8
+2026-02-20 16:56:50.116 INFO  Connecting device 7/14  serialNumber=E6D8F89877415815  deviceName=DCL-Brown  cohort=6
+2026-02-20 16:56:50.116 INFO  Connecting to device  deviceId=9  serial=E6D8F89877415815  cohort=6
+2026-02-20 16:56:50.124 INFO  Connected successfully  deviceId=9  serial=E6D8F89877415815  cohort=6  durationMs=8
+2026-02-20 16:56:50.126 WARN  Rapid disconnect detected (error)  deviceId=9  serial=E6D8F89877415815  cohort=6  reason=2  rapidDisconnects=1  connectionDurationMs=2
+2026-02-20 16:56:50.126 INFO  Device disconnected (unexpected)  deviceId=9  serial=E6D8F89877415815  cohort=6  reason=2  isRapidDisconnect=true
+2026-02-20 16:56:50.128 INFO  Device 7/14 connected  serialNumber=E6D8F89877415815  durationMs=8
+2026-02-20 16:56:50.128 INFO  Cooldown after rapid disconnect before next device  delayMs=2000
+2026-02-20 16:56:50.130 INFO  Scheduling reconnect  deviceId=9  serial=E6D8F89877415815  cohort=6  attempt=1  delayMs=1000
+2026-02-20 16:56:50.160 INFO  Fetched device info from PowerMon  deviceId=6  serial=E747AAFD3EEB003C  cohort=4  serialNumber=E747AAFD3EEB003C  firmwareVersion=1.34  hardwareRevision=PowerMon-W  deviceName=DCL-KTR
+2026-02-20 16:56:50.163 INFO  Updated device info  deviceId=6  serialNumber=E747AAFD3EEB003C  firmwareVersion=1.34  hardwareRevision=PowerMon-W  deviceName=DCL-KTR
+2026-02-20 16:56:50.419 INFO  Fetched device info from PowerMon  deviceId=7  serial=96FE5E88572C1995  cohort=1  serialNumber=96FE5E88572C1995  firmwareVersion=1.18  hardwareRevision=PowerMon-W  deviceName=DCL-Haynes
+2026-02-20 16:56:50.421 INFO  Updated device info  deviceId=7  serialNumber=96FE5E88572C1995  firmwareVersion=1.18  hardwareRevision=PowerMon-W  deviceName=DCL-Haynes
+2026-02-20 16:56:50.502 INFO  Fetched device info from PowerMon  deviceId=5  serial=B051375C222A5334  cohort=4  serialNumber=B051375C222A5334  firmwareVersion=1.33  hardwareRevision=PowerMon-W  deviceName=DCL-Carter
+2026-02-20 16:56:50.505 INFO  Updated device info  deviceId=5  serialNumber=B051375C222A5334  firmwareVersion=1.33  hardwareRevision=PowerMon-W  deviceName=DCL-Carter
+2026-02-20 16:56:50.818 INFO  Fetched device info from PowerMon  deviceId=8  serial=E844BD0A2017EB7A  cohort=5  serialNumber=E844BD0A2017EB7A  firmwareVersion=1.18  hardwareRevision=PowerMon-W  deviceName=DCL-Kruse
+2026-02-20 16:56:50.821 INFO  Updated device info  deviceId=8  serialNumber=E844BD0A2017EB7A  firmwareVersion=1.18  hardwareRevision=PowerMon-W  deviceName=DCL-Kruse
+2026-02-20 16:56:51.130 INFO  Connecting to device  deviceId=9  serial=E6D8F89877415815  cohort=6
+2026-02-20 16:56:51.139 INFO  Connected successfully  deviceId=9  serial=E6D8F89877415815  cohort=6  durationMs=9
+2026-02-20 16:56:51.142 WARN  Rapid disconnect detected (error)  deviceId=9  serial=E6D8F89877415815  cohort=6  reason=2  rapidDisconnects=2  connectionDurationMs=3
+2026-02-20 16:56:51.142 ERROR Circuit breaker OPEN - 2 instant disconnects, device appears powered off  deviceId=9  serial=E6D8F89877415815  cohort=6  rapidDisconnects=2  instantDisconnects=2  connectionDurationMs=3  backoffMinutes=5  resetAt=2026-02-20T17:01:51.142Z
+2026-02-20 16:56:51.142 WARN  Marking device as no_power in database  deviceId=9
+2026-02-20 16:56:52.128 INFO  Connecting device 8/14  serialNumber=1B1034C2B3399A18  deviceName=DCL-Curtis-1  cohort=0
+2026-02-20 16:56:52.128 INFO  Connecting to device  deviceId=10  serial=1B1034C2B3399A18  cohort=0
+2026-02-20 16:56:52.137 INFO  Connected successfully  deviceId=10  serial=1B1034C2B3399A18  cohort=0  durationMs=9
+2026-02-20 16:56:52.142 INFO  Device 8/14 connected  serialNumber=1B1034C2B3399A18  durationMs=9
+2026-02-20 16:56:52.142 INFO  Connecting device 9/14  serialNumber=1A81067CFA117B5B  deviceName=DCL-Curtis-2  cohort=0
+2026-02-20 16:56:52.142 INFO  Connecting to device  deviceId=11  serial=1A81067CFA117B5B  cohort=0
+2026-02-20 16:56:52.150 INFO  Connected successfully  deviceId=11  serial=1A81067CFA117B5B  cohort=0  durationMs=8
+2026-02-20 16:56:52.152 WARN  Rapid disconnect detected (error)  deviceId=11  serial=1A81067CFA117B5B  cohort=0  reason=2  rapidDisconnects=1  connectionDurationMs=2
+2026-02-20 16:56:52.152 INFO  Device disconnected (unexpected)  deviceId=11  serial=1A81067CFA117B5B  cohort=0  reason=2  isRapidDisconnect=true
+2026-02-20 16:56:52.155 INFO  Device 9/14 connected  serialNumber=1A81067CFA117B5B  durationMs=8
+2026-02-20 16:56:52.155 INFO  Cooldown after rapid disconnect before next device  delayMs=2000
+2026-02-20 16:56:52.156 INFO  Scheduling reconnect  deviceId=11  serial=1A81067CFA117B5B  cohort=0  attempt=1  delayMs=1000

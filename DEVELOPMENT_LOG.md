@@ -6,12 +6,20 @@
 
 ## Latest Updates (February 16, 2026)
 
-### Auto-Reset No-Power + Connection Cooldown (February 20, 2026)
-- **Problem**: Overnight, all devices were falsely marked `no_power` (even with 2-disconnect threshold). Network instability during the night caused 2 fast disconnects on healthy devices.
-- **Fix 1**: Startup recovery sweep now resets BOTH `unstable` AND `no_power` devices (previously only `unstable`). Safe because the 2-disconnect threshold means the native library only goes through 2 rapid cycles on startup (crashes at 3+).
-- **Fix 2 (crash prevention)**: After resetting `no_power` devices, reconnecting all of them back-to-back caused a SIGABRT crash — the aggregate rapid cycling across multiple devices (6+ devices within 80ms) corrupted the native library even though each individual device stayed under the threshold. Added a **2-second cooldown delay** after any rapid disconnect in both `connectAll()` and `checkForNewDevices()` before connecting the next device. This lets the native library stabilize between no-power devices.
-- **`offline` is still NOT auto-reset** — admin must explicitly click "Set Online"
-- **Crash sequence observed**: startup sweep reset 12 devices → `checkForNewDevices()` reconnected all back-to-back → 6 devices rapid-disconnected within 80ms → `terminate called without an active exception` → SIGABRT. After auto-restart, only 2 genuine no-power devices hit the threshold (with cooldown spacing from restart delay), remaining devices connected fine.
+### Definitive Circuit Breaker Fix: TTL Quarantine + Self-Restart (February 20, 2026)
+- **Root cause (finally understood)**: ANY rapid connect/disconnect cycle corrupts the native C++ library's shared global state. The corruption is cumulative across devices and manifests asynchronously — a later callback on an innocent device triggers `std::terminate()` → SIGABRT. No amount of cooldowns or delays can fix this because the damage is done the instant a rapid disconnect happens.
+- **Previous failed approaches**: 
+  - Auto-reset `no_power` on startup → crash loop (12 devices reconnect, multiple rapid-disconnect, aggregate corruption → SIGABRT)
+  - 2-second cooldown between connections → still crashed (corruption from earlier devices manifests on later devices)
+- **Definitive 3-part fix**:
+  1. **No startup reset of `no_power`**: Startup sweep only resets `unstable` devices. `no_power` stays quarantined.
+  2. **TTL-based quarantine (4 hours)**: Instead of requiring manual admin "Set Online", `no_power` devices auto-expire after 4 hours. The `getActiveDevicesWithCredentials()` query checks `marked_unstable_at` and includes expired `no_power` devices for retry. Overnight false positives self-heal by morning. Genuine no-power devices get re-quarantined in seconds.
+  3. **Process self-restart after circuit breaker**: When any device triggers the circuit breaker (marked `no_power` or `unstable`), the process schedules `process.exit(1)` after 3 seconds (for DB writes to complete). Systemd restarts it with a fresh native library. This is the ONLY safe way to handle native library corruption — discard the entire process.
+- **Connection status hierarchy (final)**:
+  - `null` → `online` → `reporting` → `disconnected` (normal operation)
+  - `unstable`: Circuit breaker after 3 rapid disconnects (>100ms each). Auto-reset on startup.
+  - `no_power`: Circuit breaker after 2 instant disconnects (<100ms each). NOT reset on startup. Auto-expires after 4 hours. Admin can also manually "Set Online".
+  - `offline`: Admin-set only. Never auto-reset.
 
 ### Circuit Breaker Tuning: 2 Instant Disconnects (February 17, 2026)
 - **Problem with 1-disconnect threshold**: The instant circuit breaker (open on 1st sub-100ms disconnect) caused widespread false positives. Moeck, Haynes, Kruse, Elite-Hospitality, and others were falsely marked `no_power` — only 2 of 14 devices remained active. A single transient network hiccup can produce a fast disconnect.

@@ -112,9 +112,69 @@ async function getActiveDevicesWithCredentials() {
     ORDER BY d.id
   `);
   
+  // Also include no_power devices whose quarantine TTL has expired (4 hours).
+  // These get a fresh retry — if genuinely no-power, they'll be re-marked quickly.
+  // The process self-restarts after any circuit breaker event to discard corrupted
+  // native library state, so retrying expired devices is safe.
+  const NO_POWER_TTL_HOURS = 4;
+  const expiredResult = await query(`
+    SELECT 
+      d.id as device_id,
+      d.organization_id,
+      d.serial_number,
+      d.device_name,
+      d.truck_id,
+      d.status,
+      d.connection_status as device_connection_status,
+      d.consecutive_disconnects,
+      d.battery_voltage,
+      d.number_of_batteries,
+      d.battery_ah,
+      c.applink_url,
+      c.connection_key,
+      c.access_key,
+      s.cohort_id,
+      s.last_successful_poll_at,
+      s.connection_status,
+      s.backfill_status,
+      s.gap_start_at
+    FROM power_mon_devices d
+    INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = true
+    LEFT JOIN device_sync_status s ON s.device_id = d.id
+    WHERE d.connection_status = 'no_power'
+      AND d.marked_unstable_at IS NOT NULL
+      AND d.marked_unstable_at < NOW() - INTERVAL '1 hour' * $1
+    ORDER BY d.id
+  `, [NO_POWER_TTL_HOURS]);
+  
+  if (expiredResult.rows.length > 0) {
+    const green = '\x1b[32m';
+    const dim = '\x1b[2m';
+    const rst = '\x1b[0m';
+    console.log(`${green}Retrying ${expiredResult.rows.length} no_power devices (quarantine expired after ${NO_POWER_TTL_HOURS}h):${rst}`);
+    for (const d of expiredResult.rows) {
+      const name = (d.device_name || d.serial_number).padEnd(30);
+      console.log(`                  ${green}[retry]${rst}    ${dim}${name}${rst}`);
+    }
+    
+    // Reset their status so they can be connected
+    for (const d of expiredResult.rows) {
+      await query(`
+        UPDATE power_mon_devices
+        SET connection_status = NULL, consecutive_disconnects = 0, marked_unstable_at = NULL, updated_at = NOW()
+        WHERE id = $1
+      `, [d.device_id]);
+    }
+    
+    // Add expired devices to the active set
+    result.rows.push(...expiredResult.rows);
+  }
+  
   // Log any skipped unstable/offline/no_power devices for visibility
   const skippedResult = await query(`
-    SELECT d.serial_number, d.device_name, d.connection_status, d.consecutive_disconnects 
+    SELECT d.serial_number, d.device_name, d.connection_status, d.consecutive_disconnects,
+      d.marked_unstable_at,
+      EXTRACT(EPOCH FROM (NOW() - d.marked_unstable_at)) / 3600 as hours_quarantined
     FROM power_mon_devices d
     INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = true
     WHERE d.connection_status IN ('unstable', 'offline', 'no_power')
@@ -122,12 +182,15 @@ async function getActiveDevicesWithCredentials() {
   if (skippedResult.rows.length > 0) {
     const red = '\x1b[31m';
     const dim = '\x1b[2m';
-    const reset = '\x1b[0m';
+    const rst = '\x1b[0m';
     console.log(`Skipping ${skippedResult.rows.length} offline/unstable devices:`);
     for (const d of skippedResult.rows) {
       const status = `[${d.connection_status}]`.padEnd(11);
       const name = (d.device_name || d.serial_number).padEnd(30);
-      console.log(`                  ${red}${status}${reset}${dim}${name} (${d.consecutive_disconnects} disconnects)${reset}`);
+      const ttlInfo = d.connection_status === 'no_power' && d.hours_quarantined 
+        ? ` (retry in ${Math.max(0, NO_POWER_TTL_HOURS - Math.floor(d.hours_quarantined))}h)`
+        : '';
+      console.log(`                  ${red}${status}${rst}${dim}${name} (${d.consecutive_disconnects} disconnects)${ttlInfo}${rst}`);
     }
   }
   
@@ -827,20 +890,20 @@ async function upsertDeviceSnapshot(snapshot) {
 }
 
 /**
- * Startup recovery sweep: Reset devices stuck in unstable/no_power state
+ * Startup recovery sweep: Reset devices stuck in unstable state
  * 
  * When the device manager crashes or restarts, devices may be left in
- * 'unstable' or 'no_power' status. This sweep resets them so they get
- * a fresh connection attempt.
+ * 'unstable' status. This sweep resets them so they get a fresh 
+ * connection attempt.
  * 
- * Both 'unstable' AND 'no_power' are now auto-reset on startup because
- * the circuit breaker threshold of 2 instant disconnects is safe for the
- * native library (crashes only at 3+). Genuine no-power devices get
- * re-marked within seconds (2 quick 2-3ms cycles) without crashing.
- * This also prevents overnight false positives from persisting.
+ * 'no_power' devices are NOT reset on startup. Any rapid connect/disconnect
+ * cycle corrupts the native C++ library's global state. The corruption is
+ * cumulative across devices and manifests asynchronously (later, when 
+ * another device triggers a native callback → SIGABRT crash). Instead,
+ * no_power has a TTL-based quarantine — devices auto-expire after 4 hours
+ * and become eligible for retry without manual intervention.
  * 
- * Offline devices are NOT auto-reset — they stay offline until an admin
- * manually sets them back online via the admin dashboard.
+ * 'offline' devices are NOT auto-reset — admin must click "Set Online".
  * 
  * Only resets devices that have active credentials.
  * 
@@ -856,7 +919,7 @@ async function startupRecoverySweep() {
       consecutive_disconnects = 0,
       marked_unstable_at = NULL,
       updated_at = NOW()
-    WHERE d.connection_status IN ('unstable', 'no_power')
+    WHERE d.connection_status IN ('unstable')
       AND EXISTS (
         SELECT 1 FROM device_credentials c 
         WHERE c.device_id = d.id AND c.is_active = true
