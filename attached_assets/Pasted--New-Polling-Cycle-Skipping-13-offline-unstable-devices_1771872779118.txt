@@ -1,0 +1,293 @@
+=== New Polling Cycle ===
+Skipping 13 offline/unstable devices:
+                  [no_power] DCL-Moeck                      (0 disconnects) (retry in 4h)
+                  [no_power] DCL-Carter                     (0 disconnects) (retry in 3h)
+                  [no_power] DCL-KTR                        (0 disconnects) (retry in 4h)
+                  [no_power] DCL-Haynes                     (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Kruse                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Brown                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Curtis-1                   (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Curtis-2                   (0 disconnects) (retry in 3h)
+                  [offline]  DCL-Thibert                    (1 disconnects)
+                  [no_power] DCL-Elite-Hospitality          (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Epler                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Kalitta-Hospitality        (0 disconnects) (retry in 3h)
+                  [no_power] DCL-NHRA-Tech-Trailer          (0 disconnects) (retry in 3h)
+2026-02-23 18:50:54.738 INFO  Found newly activated device  serialNumber=1982A3044D3599E2  deviceName=DCL-Moeck-Shop
+2026-02-23 18:50:54.740 INFO  Connecting to device  deviceId=4  serial=1982A3044D3599E2  cohort=9
+2026-02-23 18:50:54.748 INFO  Connected successfully  deviceId=4  serial=1982A3044D3599E2  cohort=9  durationMs=8
+2026-02-23 18:50:54.752 INFO  New device connection result  serialNumber=1982A3044D3599E2  deviceName=DCL-Moeck-Shop  success=true  durationMs=12  cohort=9
+2026-02-23 18:50:55.082 INFO  Fetched device info from PowerMon  deviceId=4  serial=1982A3044D3599E2  cohort=9  serialNumber=E18590457A387E04  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Moeck-Shop
+2026-02-23 18:50:55.085 INFO  Updated device info  deviceId=4  serialNumber=E18590457A387E04  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Moeck-Shop
+2026-02-23 18:51:03.793 INFO  DCL-Howard (MHR-01)            parked   v1= 27.70  v2=  0.0426  today= 1131m  month= 32378m  since=2025-12-30 22:17:33
+=== New Polling Cycle ===
+Skipping 13 offline/unstable devices:
+                  [no_power] DCL-Moeck                      (0 disconnects) (retry in 4h)
+                  [no_power] DCL-Carter                     (0 disconnects) (retry in 3h)
+                  [no_power] DCL-KTR                        (0 disconnects) (retry in 4h)
+                  [no_power] DCL-Haynes                     (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Kruse                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Brown                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Curtis-1                   (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Curtis-2                   (0 disconnects) (retry in 3h)
+                  [offline]  DCL-Thibert                    (1 disconnects)
+                  [no_power] DCL-Elite-Hospitality          (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Epler                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Kalitta-Hospitality        (0 disconnects) (retry in 3h)
+                  [no_power] DCL-NHRA-Tech-Trailer          (0 disconnects) (retry in 3h)
+2026-02-23 18:51:05.810 INFO  DCL-Moeck-Shop (GFR-70)        driving  v1= 27.10  v2= 13.3964  today= 1131m  month= 19618m  since=2026-02-23 18:51:05
+2026-02-23 18:51:13.822 INFO  DCL-Howard (MHR-01)            parked   v1= 27.70  v2=  0.0427  today= 1131m  month= 32378m  since=2025-12-30 22:17:33
+=== New Polling Cycle ===
+Skipping 13 offline/unstable devices:
+                  [no_power] DCL-Moeck                      (0 disconnects) (retry in 4h)
+                  [no_power] DCL-Carter                     (0 disconnects) (retry in 3h)
+                  [no_power] DCL-KTR                        (0 disconnects) (retry in 4h)
+                  [no_power] DCL-Haynes                     (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Kruse                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Brown                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Curtis-1                   (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Curtis-2                   (0 disconnects) (retry in 3h)
+                  [offline]  DCL-Thibert                    (1 disconnects)
+                  [no_power] DCL-Elite-Hospitality          (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Epler                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Kalitta-Hospitality        (0 disconnects) (retry in 3h)
+                  [no_power] DCL-NHRA-Tech-Trailer          (0 disconnects) (retry in 3h)
+2026-02-23 18:51:15.831 INFO  DCL-Moeck-Shop (GFR-70)        driving  v1= 27.09  v2= 13.4139  today= 1131m  month= 19618m  since=2026-02-23 18:51:05
+2026-02-23 18:51:23.842 INFO  DCL-Howard (MHR-01)            parked   v1= 27.70  v2=  0.0429  today= 1131m  month= 32378m  since=2025-12-30 22:17:33
+=== New Polling Cycle ===
+Skipping 13 offline/unstable devices:
+                  [no_power] DCL-Moeck                      (0 disconnects) (retry in 4h)
+                  [no_power] DCL-Carter                     (0 disconnects) (retry in 3h)
+                  [no_power] DCL-KTR                        (0 disconnects) (retry in 4h)
+                  [no_power] DCL-Haynes                     (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Kruse                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Brown                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Curtis-1                   (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Curtis-2                   (0 disconnects) (retry in 3h)
+                  [offline]  DCL-Thibert                    (1 disconnects)
+                  [no_power] DCL-Elite-Hospitality          (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Epler                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Kalitta-Hospitality        (0 disconnects) (retry in 3h)
+                  [no_power] DCL-NHRA-Tech-Trailer          (0 disconnects) (retry in 3h)
+2026-02-23 18:51:25.858 INFO  DCL-Moeck-Shop (GFR-70)        driving  v1= 27.08  v2= 13.4185  today= 1131m  month= 19618m  since=2026-02-23 18:51:05
+2026-02-23 18:51:35.873 INFO  DCL-Howard (MHR-01)            parked   v1= 27.70  v2=  0.0437  today= 1132m  month= 32379m  since=2025-12-30 22:17:33
+=== New Polling Cycle ===
+Skipping 13 offline/unstable devices:
+                  [no_power] DCL-Moeck                      (0 disconnects) (retry in 4h)
+                  [no_power] DCL-Carter                     (0 disconnects) (retry in 3h)
+                  [no_power] DCL-KTR                        (0 disconnects) (retry in 4h)
+                  [no_power] DCL-Haynes                     (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Kruse                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Brown                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Curtis-1                   (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Curtis-2                   (0 disconnects) (retry in 3h)
+                  [offline]  DCL-Thibert                    (1 disconnects)
+                  [no_power] DCL-Elite-Hospitality          (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Epler                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Kalitta-Hospitality        (0 disconnects) (retry in 3h)
+                  [no_power] DCL-NHRA-Tech-Trailer          (0 disconnects) (retry in 3h)
+2026-02-23 18:51:37.883 INFO  DCL-Moeck-Shop (GFR-70)        driving  v1= 27.09  v2= 13.3984  today= 1131m  month= 19618m  since=2026-02-23 18:51:05
+2026-02-23 18:51:45.896 INFO  DCL-Howard (MHR-01)            parked   v1= 27.70  v2=  0.0432  today= 1132m  month= 32379m  since=2025-12-30 22:17:33
+=== New Polling Cycle ===
+Skipping 13 offline/unstable devices:
+                  [no_power] DCL-Moeck                      (0 disconnects) (retry in 4h)
+                  [no_power] DCL-Carter                     (0 disconnects) (retry in 3h)
+                  [no_power] DCL-KTR                        (0 disconnects) (retry in 4h)
+                  [no_power] DCL-Haynes                     (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Kruse                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Brown                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Curtis-1                   (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Curtis-2                   (0 disconnects) (retry in 3h)
+                  [offline]  DCL-Thibert                    (1 disconnects)
+                  [no_power] DCL-Elite-Hospitality          (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Epler                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Kalitta-Hospitality        (0 disconnects) (retry in 3h)
+                  [no_power] DCL-NHRA-Tech-Trailer          (0 disconnects) (retry in 3h)
+2026-02-23 18:51:47.905 INFO  DCL-Moeck-Shop (GFR-70)        driving  v1= 27.11  v2= 13.4196  today= 1131m  month= 19618m  since=2026-02-23 18:51:05
+2026-02-23 18:51:55.917 INFO  DCL-Howard (MHR-01)            parked   v1= 27.70  v2=  0.0430  today= 1132m  month= 32379m  since=2025-12-30 22:17:33
+=== New Polling Cycle ===
+Skipping 13 offline/unstable devices:
+                  [no_power] DCL-Moeck                      (0 disconnects) (retry in 4h)
+                  [no_power] DCL-Carter                     (0 disconnects) (retry in 3h)
+                  [no_power] DCL-KTR                        (0 disconnects) (retry in 4h)
+                  [no_power] DCL-Haynes                     (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Kruse                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Brown                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Curtis-1                   (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Curtis-2                   (0 disconnects) (retry in 3h)
+                  [offline]  DCL-Thibert                    (1 disconnects)
+                  [no_power] DCL-Elite-Hospitality          (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Epler                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Kalitta-Hospitality        (0 disconnects) (retry in 3h)
+                  [no_power] DCL-NHRA-Tech-Trailer          (0 disconnects) (retry in 3h)
+2026-02-23 18:51:57.926 INFO  DCL-Moeck-Shop (GFR-70)        driving  v1= 27.11  v2= 13.3980  today= 1131m  month= 19618m  since=2026-02-23 18:51:05
+2026-02-23 18:52:07.938 INFO  DCL-Howard (MHR-01)            parked   v1= 27.71  v2=  0.0430  today= 1132m  month= 32379m  since=2025-12-30 22:17:33
+2026-02-23 18:52:07.944 INFO  DCL-Moeck-Shop (GFR-70)        driving  v1= 27.10  v2= 13.4202  today= 1131m  month= 19618m  since=2026-02-23 18:51:05
+=== New Polling Cycle ===
+Skipping 13 offline/unstable devices:
+                  [no_power] DCL-Moeck                      (0 disconnects) (retry in 4h)
+                  [no_power] DCL-Carter                     (0 disconnects) (retry in 3h)
+                  [no_power] DCL-KTR                        (0 disconnects) (retry in 4h)
+                  [no_power] DCL-Haynes                     (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Kruse                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Brown                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Curtis-1                   (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Curtis-2                   (0 disconnects) (retry in 3h)
+                  [offline]  DCL-Thibert                    (1 disconnects)
+                  [no_power] DCL-Elite-Hospitality          (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Epler                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Kalitta-Hospitality        (0 disconnects) (retry in 3h)
+                  [no_power] DCL-NHRA-Tech-Trailer          (0 disconnects) (retry in 3h)
+2026-02-23 18:52:10.932 INFO  Device disconnected (unexpected)  deviceId=4  serial=1982A3044D3599E2  cohort=9  reason=2  isRapidDisconnect=false
+2026-02-23 18:52:10.937 INFO  Scheduling reconnect  deviceId=4  serial=1982A3044D3599E2  cohort=9  attempt=1  delayMs=1000
+2026-02-23 18:52:11.936 INFO  Connecting to device  deviceId=4  serial=1982A3044D3599E2  cohort=9
+2026-02-23 18:52:11.945 INFO  Connected successfully  deviceId=4  serial=1982A3044D3599E2  cohort=9  durationMs=9
+2026-02-23 18:52:11.948 WARN  Rapid disconnect detected (error)  deviceId=4  serial=1982A3044D3599E2  cohort=9  reason=2  rapidDisconnects=1  connectionDurationMs=3
+2026-02-23 18:52:11.948 INFO  Device disconnected (unexpected)  deviceId=4  serial=1982A3044D3599E2  cohort=9  reason=2  isRapidDisconnect=true
+2026-02-23 18:52:11.974 INFO  Scheduling reconnect  deviceId=4  serial=1982A3044D3599E2  cohort=9  attempt=1  delayMs=1000
+2026-02-23 18:52:12.975 INFO  Connecting to device  deviceId=4  serial=1982A3044D3599E2  cohort=9
+2026-02-23 18:52:12.984 INFO  Connected successfully  deviceId=4  serial=1982A3044D3599E2  cohort=9  durationMs=9
+terminate called without an active exception
+device-manager.service: Main process exited, code=dumped, status=6/ABRT
+device-manager.service: Failed with result 'core-dump'.
+device-manager.service: Consumed 3.341s CPU time.
+device-manager.service: Scheduled restart job, restart counter is at 280.
+Started device-manager.service - Deecell Device Manager.
+2026-02-23 18:52:26.210 INFO  PowerMon addon loaded successfully
+2026-02-23 18:52:26.216 INFO  Device Manager starting  pollInterval=10000  cohorts=10  batchFlushInterval=2000
+2026-02-23 18:52:26.216 INFO  Configuration validated
+2026-02-23 18:52:26.217 INFO  Database connection configured  host=deecell-fleet-production-postgres.cn4qsw8g8yyx.us-east-2.rds.amazonaws.com  database=deecell_fleet
+2026-02-23 18:52:26.217 INFO  Database pool initialized  poolSize=10
+2026-02-23 18:52:26.217 INFO  Database initialized
+2026-02-23 18:52:26.217 INFO  === STARTUP RECOVERY SWEEP ===
+2026-02-23 18:52:26.289 INFO  Recovery sweep: No stuck devices found
+2026-02-23 18:52:26.289 INFO  Initializing connection pool
+Skipping 13 offline/unstable devices:
+                  [no_power] DCL-Moeck                      (0 disconnects) (retry in 4h)
+                  [no_power] DCL-Carter                     (0 disconnects) (retry in 3h)
+                  [no_power] DCL-KTR                        (0 disconnects) (retry in 4h)
+                  [no_power] DCL-Haynes                     (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Kruse                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Brown                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Curtis-1                   (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Curtis-2                   (0 disconnects) (retry in 3h)
+                  [offline]  DCL-Thibert                    (1 disconnects)
+                  [no_power] DCL-Elite-Hospitality          (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Epler                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Kalitta-Hospitality        (0 disconnects) (retry in 3h)
+                  [no_power] DCL-NHRA-Tech-Trailer          (0 disconnects) (retry in 3h)
+2026-02-23 18:52:26.301 INFO  Found active devices  count=2
+2026-02-23 18:52:26.306 INFO  Connection pool initialized  devices=2  cohorts=2
+2026-02-23 18:52:26.307 INFO  Batch writer started  flushIntervalMs=2000  maxBatchSize=500
+2026-02-23 18:52:26.308 INFO  === STARTUP: Connecting to all devices ===  deviceCount=2  timestamp=2026-02-23T18:52:26.308Z
+2026-02-23 18:52:26.308 INFO  Connecting device 1/2  serialNumber=E18590457A387E04  deviceName=DCL-Moeck-Shop  cohort=2
+2026-02-23 18:52:26.308 INFO  Connecting to device  deviceId=4  serial=E18590457A387E04  cohort=2
+2026-02-23 18:52:26.315 INFO  Metrics server started  port=3001  metricsPath=/metrics  healthPath=/health
+2026-02-23 18:52:26.317 INFO  Connected successfully  deviceId=4  serial=E18590457A387E04  cohort=2  durationMs=9
+2026-02-23 18:52:26.321 WARN  Rapid disconnect detected (error)  deviceId=4  serial=E18590457A387E04  cohort=2  reason=2  rapidDisconnects=2  connectionDurationMs=4
+2026-02-23 18:52:26.321 INFO  Device disconnected (unexpected)  deviceId=4  serial=E18590457A387E04  cohort=2  reason=2  isRapidDisconnect=true
+2026-02-23 18:52:26.322 INFO  Device 1/2 connected  serialNumber=E18590457A387E04  durationMs=9
+2026-02-23 18:52:26.322 INFO  Connecting device 2/2  serialNumber=A93B7B8CC0D672FE  deviceName=DCL-Howard  cohort=8
+2026-02-23 18:52:26.322 INFO  Connecting to device  deviceId=12  serial=A93B7B8CC0D672FE  cohort=8
+2026-02-23 18:52:26.331 INFO  Connected successfully  deviceId=12  serial=A93B7B8CC0D672FE  cohort=8  durationMs=9
+2026-02-23 18:52:26.337 INFO  Device 2/2 connected  serialNumber=A93B7B8CC0D672FE  durationMs=9
+2026-02-23 18:52:26.337 INFO  === STARTUP COMPLETE: Connection Summary ===  success=2  failed=0  skipped=0  timedOut=0  totalDurationMs=29  averageDurationMs=9
+2026-02-23 18:52:26.337 INFO  Starting polling scheduler  intervalMs=10000  cohorts=10  tickDurationMs=1000
+2026-02-23 18:52:26.338 INFO  Backfill service started  gapThresholdMs=30000  maxConcurrent=5
+2026-02-23 18:52:26.338 WARN  SIMPro API credentials not configured, SIM polling disabled
+2026-02-23 18:52:26.338 INFO  Starting InHand GPS location poller  interval=120000  baseUrl=https://iot.inhandnetworks.com
+2026-02-23 18:52:26.339 INFO  InHand API: Authenticating  username=andy@deecell.com  baseUrl=https://iot.inhandnetworks.com
+2026-02-23 18:52:26.343 INFO  Device Manager started successfully  devices=2  status=running
+2026-02-23 18:52:26.358 INFO  Scheduling reconnect  deviceId=4  serial=E18590457A387E04  cohort=2  attempt=1  delayMs=1000
+2026-02-23 18:52:26.686 INFO  InHand API: Authenticated successfully  expiresIn=3599  hasRefreshToken=true
+2026-02-23 18:52:26.862 INFO  InHand GPS locations updated  totalDevices=43  devicesWithLocation=6  simsMatched=4  trucksUpdated=4  unmatchedDevices=[object Object],[object Object]  durationMs=524
+=== New Polling Cycle ===
+Skipping 13 offline/unstable devices:
+                  [no_power] DCL-Moeck                      (0 disconnects) (retry in 4h)
+                  [no_power] DCL-Carter                     (0 disconnects) (retry in 3h)
+                  [no_power] DCL-KTR                        (0 disconnects) (retry in 4h)
+                  [no_power] DCL-Haynes                     (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Kruse                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Brown                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Curtis-1                   (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Curtis-2                   (0 disconnects) (retry in 3h)
+                  [offline]  DCL-Thibert                    (1 disconnects)
+                  [no_power] DCL-Elite-Hospitality          (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Epler                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Kalitta-Hospitality        (0 disconnects) (retry in 3h)
+                  [no_power] DCL-NHRA-Tech-Trailer          (0 disconnects) (retry in 3h)
+2026-02-23 18:52:27.358 INFO  Connecting to device  deviceId=4  serial=E18590457A387E04  cohort=2
+2026-02-23 18:52:27.368 INFO  Connected successfully  deviceId=4  serial=E18590457A387E04  cohort=2  durationMs=10
+2026-02-23 18:52:27.371 WARN  Rapid disconnect detected (error)  deviceId=4  serial=E18590457A387E04  cohort=2  reason=2  rapidDisconnects=3  connectionDurationMs=3
+2026-02-23 18:52:27.371 ERROR Circuit breaker OPEN - 2 instant disconnects, device appears powered off  deviceId=4  serial=E18590457A387E04  cohort=2  rapidDisconnects=3  instantDisconnects=2  connectionDurationMs=3  backoffMinutes=5  resetAt=2026-02-23T18:57:27.371Z
+2026-02-23 18:52:27.371 ERROR NATIVE LIBRARY COMPROMISED - scheduling graceful restart  deviceId=4  deviceName=DCL-Moeck-Shop  status=no_power  restartInMs=3000
+2026-02-23 18:52:27.371 WARN  Marking device as no_power in database  deviceId=4
+2026-02-23 18:52:27.884 INFO  Fetched device info from PowerMon  deviceId=12  serial=A93B7B8CC0D672FE  cohort=8  serialNumber=A93B7B8CC0D672FE  firmwareVersion=1.33  hardwareRevision=PowerMon-W  deviceName=DCL-Howard
+2026-02-23 18:52:27.887 INFO  Updated device info  deviceId=12  serialNumber=A93B7B8CC0D672FE  firmwareVersion=1.33  hardwareRevision=PowerMon-W  deviceName=DCL-Howard
+2026-02-23 18:52:30.371 ERROR Exiting process for clean native library restart
+device-manager.service: Main process exited, code=exited, status=1/FAILURE
+device-manager.service: Failed with result 'exit-code'.
+device-manager.service: Consumed 2.954s CPU time.
+device-manager.service: Scheduled restart job, restart counter is at 281.
+Started device-manager.service - Deecell Device Manager.
+2026-02-23 18:52:43.420 INFO  PowerMon addon loaded successfully
+2026-02-23 18:52:43.425 INFO  Device Manager starting  pollInterval=10000  cohorts=10  batchFlushInterval=2000
+2026-02-23 18:52:43.425 INFO  Configuration validated
+2026-02-23 18:52:43.426 INFO  Database connection configured  host=deecell-fleet-production-postgres.cn4qsw8g8yyx.us-east-2.rds.amazonaws.com  database=deecell_fleet
+2026-02-23 18:52:43.426 INFO  Database pool initialized  poolSize=10
+2026-02-23 18:52:43.426 INFO  Database initialized
+2026-02-23 18:52:43.426 INFO  === STARTUP RECOVERY SWEEP ===
+2026-02-23 18:52:43.497 INFO  Recovery sweep: No stuck devices found
+2026-02-23 18:52:43.498 INFO  Initializing connection pool
+Skipping 14 offline/unstable devices:
+                  [no_power] DCL-Moeck                      (0 disconnects) (retry in 4h)
+                  [no_power] DCL-Carter                     (0 disconnects) (retry in 3h)
+                  [no_power] DCL-KTR                        (0 disconnects) (retry in 4h)
+                  [no_power] DCL-Haynes                     (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Kruse                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Brown                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Curtis-1                   (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Curtis-2                   (0 disconnects) (retry in 3h)
+                  [offline]  DCL-Thibert                    (1 disconnects)
+                  [no_power] DCL-Elite-Hospitality          (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Epler                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Kalitta-Hospitality        (0 disconnects) (retry in 3h)
+                  [no_power] DCL-NHRA-Tech-Trailer          (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Moeck-Shop                 (0 disconnects) (retry in 4h)
+2026-02-23 18:52:43.509 INFO  Found active devices  count=1
+2026-02-23 18:52:43.512 INFO  Connection pool initialized  devices=1  cohorts=1
+2026-02-23 18:52:43.513 INFO  Batch writer started  flushIntervalMs=2000  maxBatchSize=500
+2026-02-23 18:52:43.513 INFO  === STARTUP: Connecting to all devices ===  deviceCount=1  timestamp=2026-02-23T18:52:43.513Z
+2026-02-23 18:52:43.513 INFO  Connecting device 1/1  serialNumber=A93B7B8CC0D672FE  deviceName=DCL-Howard  cohort=8
+2026-02-23 18:52:43.513 INFO  Connecting to device  deviceId=12  serial=A93B7B8CC0D672FE  cohort=8
+2026-02-23 18:52:43.520 INFO  Metrics server started  port=3001  metricsPath=/metrics  healthPath=/health
+2026-02-23 18:52:43.523 INFO  Connected successfully  deviceId=12  serial=A93B7B8CC0D672FE  cohort=8  durationMs=9
+2026-02-23 18:52:43.527 INFO  Device 1/1 connected  serialNumber=A93B7B8CC0D672FE  durationMs=9
+2026-02-23 18:52:43.527 INFO  === STARTUP COMPLETE: Connection Summary ===  success=1  failed=0  skipped=0  timedOut=0  totalDurationMs=14  averageDurationMs=9
+2026-02-23 18:52:43.527 INFO  Starting polling scheduler  intervalMs=10000  cohorts=10  tickDurationMs=1000
+2026-02-23 18:52:43.528 INFO  Backfill service started  gapThresholdMs=30000  maxConcurrent=5
+2026-02-23 18:52:43.528 WARN  SIMPro API credentials not configured, SIM polling disabled
+2026-02-23 18:52:43.528 INFO  Starting InHand GPS location poller  interval=120000  baseUrl=https://iot.inhandnetworks.com
+2026-02-23 18:52:43.529 INFO  InHand API: Authenticating  username=andy@deecell.com  baseUrl=https://iot.inhandnetworks.com
+2026-02-23 18:52:43.533 INFO  Device Manager started successfully  devices=1  status=running
+2026-02-23 18:52:43.838 INFO  InHand API: Authenticated successfully  expiresIn=3599  hasRefreshToken=true
+2026-02-23 18:52:43.958 INFO  Fetched device info from PowerMon  deviceId=12  serial=A93B7B8CC0D672FE  cohort=8  serialNumber=A93B7B8CC0D672FE  firmwareVersion=1.33  hardwareRevision=PowerMon-W  deviceName=DCL-Howard
+2026-02-23 18:52:43.961 INFO  Updated device info  deviceId=12  serialNumber=A93B7B8CC0D672FE  firmwareVersion=1.33  hardwareRevision=PowerMon-W  deviceName=DCL-Howard
+2026-02-23 18:52:44.013 INFO  InHand GPS locations updated  totalDevices=43  devicesWithLocation=6  simsMatched=4  trucksUpdated=4  unmatchedDevices=[object Object],[object Object]  durationMs=484
+=== New Polling Cycle ===
+Skipping 14 offline/unstable devices:
+                  [no_power] DCL-Moeck                      (0 disconnects) (retry in 4h)
+                  [no_power] DCL-Carter                     (0 disconnects) (retry in 3h)
+                  [no_power] DCL-KTR                        (0 disconnects) (retry in 4h)
+                  [no_power] DCL-Haynes                     (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Kruse                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Brown                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Curtis-1                   (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Curtis-2                   (0 disconnects) (retry in 3h)
+                  [offline]  DCL-Thibert                    (1 disconnects)
+                  [no_power] DCL-Elite-Hospitality          (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Epler                      (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Kalitta-Hospitality        (0 disconnects) (retry in 3h)
+                  [no_power] DCL-NHRA-Tech-Trailer          (0 disconnects) (retry in 3h)
+                  [no_power] DCL-Moeck-Shop                 (0 disconnects) (retry in 4h)
+
