@@ -803,7 +803,7 @@ async function upsertDeviceSnapshot(snapshot) {
     const dim = '\x1b[2m';
     const rst = '\x1b[0m';
     const ts = new Date().toISOString().replace('T', ' ').replace('Z', '');
-    const name = truckLabel.padEnd(30);
+    const name = truckLabel.padEnd(40);
     const v1 = (snapshot.voltage1?.toFixed(2) || '-').padStart(6);
     const v2 = (snapshot.voltage2?.toFixed(4) || '-').padStart(8);
     const today = String(Math.round(todayParkedMinutes)).padStart(5);
