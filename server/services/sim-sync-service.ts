@@ -122,19 +122,10 @@ export class SimSyncService {
         }
       }
 
-      // Process each SIM with rate limiting (100ms delay between API calls)
       for (const simProSim of simProResponse.sims) {
         try {
-          // Small delay to avoid API rate limiting
-          await new Promise(resolve => setTimeout(resolve, 100));
+          const deviceName = simProSim.custom_field1 || simProSim.custom_field2 || null;
           
-          // Get detailed SIM info to access custom fields
-          const simDetails = await this.client.getSimDetails(simProSim.msisdn);
-          
-          // The device name is stored in custom_field1 in SIMPro
-          const deviceName = simDetails.custom_field1 || simDetails.custom_field2;
-          
-          // Try to match to a PowerMon device
           let matchedDevice = null;
           let matchedTruck = null;
           
@@ -142,7 +133,6 @@ export class SimSyncService {
             matchedDevice = devicesByName.get(deviceName.toLowerCase());
             if (matchedDevice) {
               result.simsMatched++;
-              // Get the truck associated with this device
               if (matchedDevice.truckId) {
                 const [truck] = await db
                   .select()
@@ -153,7 +143,6 @@ export class SimSyncService {
             }
           }
 
-          // Check if SIM already exists in our database
           const [existingSim] = await db
             .select()
             .from(sims)
@@ -171,7 +160,7 @@ export class SimSyncService {
             deviceName: deviceName || null,
             status: simProSim.status,
             workflowStatus: simProSim.workflow_status || null,
-            ipAddress: simDetails.ip_address || null,
+            ipAddress: simProSim.ip_address || null,
             isActive: true,
           };
 

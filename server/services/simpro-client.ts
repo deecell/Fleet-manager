@@ -24,6 +24,14 @@ export interface SimProSim {
   imsi?: string;
   status: string;
   workflow_status?: string;
+  account_number?: string;
+  tariff_name?: string;
+  ip_address?: string;
+  custom_field1?: string;
+  custom_field2?: string;
+  custom_field3?: string;
+  custom_field4?: string;
+  custom_field5?: string;
 }
 
 export interface SimProSimsResponse {
@@ -133,10 +141,11 @@ export class SimProClient {
 
       if (!response.ok) {
         let errorBody: unknown;
+        const bodyText = await response.text();
         try {
-          errorBody = await response.json();
+          errorBody = JSON.parse(bodyText);
         } catch {
-          errorBody = await response.text();
+          errorBody = bodyText;
         }
         throw new SimProApiError(
           `SIMPro API error: ${response.status} ${response.statusText}`,
