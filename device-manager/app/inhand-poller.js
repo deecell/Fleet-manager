@@ -272,7 +272,7 @@ class InHandPoller {
         devicesWithLocation: devicesWithLocation.length,
         simsMatched,
         trucksUpdated,
-        unmatchedDevices: unmatched.length > 0 ? unmatched : undefined,
+        unmatchedDevices: unmatched.length > 0 ? unmatched.map(d => `${d.name}(msisdn=${d.msisdn},iccid=${d.iccid})`).join('; ') : undefined,
         durationMs: duration,
       });
 
