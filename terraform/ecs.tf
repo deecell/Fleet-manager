@@ -96,6 +96,16 @@ resource "aws_ecs_task_definition" "main" {
             name      = "SENDGRID_API_KEY"
             valueFrom = aws_secretsmanager_secret.sendgrid_api_key[0].arn
           }
+        ] : [],
+        var.enable_simpro ? [
+          {
+            name      = "SIMPRO_API_CLIENT"
+            valueFrom = aws_secretsmanager_secret.simpro_api_client[0].arn
+          },
+          {
+            name      = "SIMPRO_API_KEY"
+            valueFrom = aws_secretsmanager_secret.simpro_api_key[0].arn
+          }
         ] : []
       )
 

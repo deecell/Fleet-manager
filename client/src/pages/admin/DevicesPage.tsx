@@ -145,25 +145,45 @@ export default function DevicesPage() {
     let totalCreated = 0;
     let totalUpdated = 0;
     let totalFound = 0;
-    let totalErrors: string[] = [];
+    let allErrors: string[] = [];
 
     for (const org of orgsToSync) {
       try {
         const result = await syncSims.mutateAsync(org.id);
+        if (result.result.errors.length > 0) {
+          allErrors = allErrors.concat(result.result.errors.map(e => `${org.name}: ${e}`));
+          if (result.result.errors.some(e => e.toLowerCase().includes("not configured"))) {
+            toast({
+              title: "SIMPro Not Configured",
+              description: "The SIMPRO_API_CLIENT and SIMPRO_API_KEY environment variables are not set on this server.",
+              variant: "destructive",
+            });
+            return;
+          }
+        }
         totalFound += result.result.simsFound;
         totalCreated += result.result.simsCreated;
         totalUpdated += result.result.simsUpdated;
-        totalErrors = totalErrors.concat(result.result.errors);
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Unknown error";
-        totalErrors.push(`${org.name}: ${msg}`);
+        if (msg.includes("not configured") || msg.includes("503")) {
+          toast({
+            title: "SIMPro Not Configured",
+            description: "The SIMPRO_API_CLIENT and SIMPRO_API_KEY environment variables are not set on this server.",
+            variant: "destructive",
+          });
+          return;
+        }
+        allErrors.push(`${org.name}: ${msg}`);
       }
     }
 
     toast({
       title: "SIM Sync Complete",
-      description: `Found ${totalFound} SIMs. Created ${totalCreated}, updated ${totalUpdated}.${totalErrors.length > 0 ? ` Errors: ${totalErrors.length}` : ""}`,
-      variant: totalErrors.length > 0 ? "destructive" : "default",
+      description: allErrors.length > 0
+        ? `Found ${totalFound} SIMs. Created ${totalCreated}, updated ${totalUpdated}. ${allErrors.length} error(s): ${allErrors.slice(0, 3).join("; ")}${allErrors.length > 3 ? "..." : ""}`
+        : `Found ${totalFound} SIMs. Created ${totalCreated}, updated ${totalUpdated}.`,
+      variant: allErrors.length > 0 ? "destructive" : "default",
     });
   };
 

@@ -53,11 +53,18 @@ resource "aws_iam_role_policy" "ecs_execution" {
         Action = [
           "secretsmanager:GetSecretValue"
         ]
-        Resource = [
-          aws_secretsmanager_secret.database_url.arn,
-          aws_secretsmanager_secret.session_secret.arn,
-          aws_secretsmanager_secret.admin_password.arn
-        ]
+        Resource = concat(
+          [
+            aws_secretsmanager_secret.database_url.arn,
+            aws_secretsmanager_secret.session_secret.arn,
+            aws_secretsmanager_secret.admin_password.arn
+          ],
+          aws_secretsmanager_secret.openai_api_key[*].arn,
+          aws_secretsmanager_secret.eia_api_key[*].arn,
+          aws_secretsmanager_secret.sendgrid_api_key[*].arn,
+          aws_secretsmanager_secret.simpro_api_client[*].arn,
+          aws_secretsmanager_secret.simpro_api_key[*].arn
+        )
       }
     ]
   })

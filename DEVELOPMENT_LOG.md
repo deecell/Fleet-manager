@@ -4,7 +4,22 @@
 
 ---
 
-## Latest Updates (February 16, 2026)
+## Latest Updates (April 13, 2026)
+
+### Sync SIMs Button + ECS SIMPro Credentials (April 13, 2026)
+- **Added "Sync SIMs" button** to admin Devices page (next to "Register Device")
+  - Syncs SIMs from SIMPro/Wireless Logic API for selected org (or all orgs)
+  - Shows spinner while syncing, toast with results (found/created/updated counts)
+  - Detects "SIMPro not configured" errors early and stops with clear message
+- **Fixed ECS missing SIMPro credentials**: The production web app (ECS Fargate) didn't have `SIMPRO_API_CLIENT` and `SIMPRO_API_KEY` injected — they were only configured for EC2 device manager
+  - Updated `terraform/ecs.tf`: Added SIMPro secrets to ECS task definition container secrets (conditional on `enable_simpro`)
+  - Updated `terraform/iam.tf`: Added SIMPro secret ARNs (plus OpenAI, EIA, SendGrid) to ECS execution role's `secretsmanager:GetSecretValue` permissions
+  - **Action required**: Run `terraform apply` from MacBook to deploy these IAM/ECS changes, then the next ECS deploy will pick them up
+- **Files changed**: `client/src/lib/admin-api.ts`, `client/src/pages/admin/DevicesPage.tsx`, `terraform/ecs.tf`, `terraform/iam.tf`
+
+---
+
+## Previous Updates (February 16, 2026)
 
 ### Definitive Circuit Breaker Fix: TTL Quarantine + Self-Restart (February 20, 2026)
 - **Root cause (finally understood)**: ANY rapid connect/disconnect cycle corrupts the native C++ library's shared global state. The corruption is cumulative across devices and manifests asynchronously — a later callback on an innocent device triggers `std::terminate()` → SIGABRT. No amount of cooldowns or delays can fix this because the damage is done the instant a rapid disconnect happens.
