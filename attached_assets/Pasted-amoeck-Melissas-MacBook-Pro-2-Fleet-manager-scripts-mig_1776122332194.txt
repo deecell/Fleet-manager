@@ -1,0 +1,43 @@
+amoeck@Melissas-MacBook-Pro-2 Fleet-manager % ./scripts/migrations/2026-04-13_add_simpro_to_ecs.sh
+=== Add SIMPro Credentials to ECS Web App ===
+
+This will:
+  1. Get the current ECS task definition
+  2. Add SIMPRO_API_CLIENT and SIMPRO_API_KEY secrets
+  3. Register a new task definition revision
+  4. Update the ECS service to use it
+
+Continue? (y/n) y
+
+Step 1: Looking up SIMPro secret ARNs...
+  SIMPRO_API_CLIENT: arn:aws:secretsmanager:us-east-2:892213647605:secret:deecell-fleet-production/simpro-api-client-6w8Hjm
+  SIMPRO_API_KEY:    arn:aws:secretsmanager:us-east-2:892213647605:secret:deecell-fleet-production/simpro-api-key-ju6McR
+
+Step 2: Getting current task definition...
+  Current revision: 200
+
+Step 3: Creating new task definition with SIMPro secrets...
+  New revision: 201
+
+Step 4: Updating ECS service to use new revision...
+arn:aws:ecs:us-east-2:892213647605:task-definition/deecell-fleet-production:201
+
+Done! ECS will roll out the new task definition.
+It typically takes 2-3 minutes for the new container to start.
+
+You can check progress with:
+  aws ecs describe-services --cluster deecell-fleet-production-cluster --services deecell-fleet --region us-east-2 --query 'services[0].deployments[*].{status:status,running:runningCount,desired:desiredCount,revision:taskDefinition}' --output table
+
+amoeck@Melissas-MacBook-Pro-2 Fleet-manager % 
+amoeck@Melissas-MacBook-Pro-2 Fleet-manager % 
+amoeck@Melissas-MacBook-Pro-2 Fleet-manager % 
+amoeck@Melissas-MacBook-Pro-2 Fleet-manager % aws ecs describe-services --cluster deecell-fleet-production-cluster --services deecell-fleet --region us-east-2 --query 'services[0].deployments[*].{status:status,running:runningCount,desired:desiredCount,revision:taskDefinition}' --output table
+----------------------------------------------------------------------------------------------------------------------
+|                                                  DescribeServices                                                  |
++---------+-----------------------------------------------------------------------------------+----------+-----------+
+| desired |                                     revision                                      | running  |  status   |
++---------+-----------------------------------------------------------------------------------+----------+-----------+
+|  1      |  arn:aws:ecs:us-east-2:892213647605:task-definition/deecell-fleet-production:201  |  0       |  PRIMARY  |
+|  1      |  arn:aws:ecs:us-east-2:892213647605:task-definition/deecell-fleet-production:200  |  1       |  ACTIVE   |
++---------+-----------------------------------------------------------------------------------+----------+-----------+
+amoeck@Melissas-MacBook-Pro-2 Fleet-manager % 
