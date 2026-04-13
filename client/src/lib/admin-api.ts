@@ -542,3 +542,23 @@ export function useUpdateDeviceCredential() {
     },
   });
 }
+
+interface SimSyncResult {
+  success: boolean;
+  result: {
+    simsFound: number;
+    simsMatched: number;
+    simsCreated: number;
+    simsUpdated: number;
+    errors: string[];
+  };
+}
+
+export function useSyncSims() {
+  return useMutation({
+    mutationFn: (organizationId: number) =>
+      adminFetch<SimSyncResult>(`/api/v1/admin/organizations/${organizationId}/sims/sync`, {
+        method: "POST",
+      }),
+  });
+}

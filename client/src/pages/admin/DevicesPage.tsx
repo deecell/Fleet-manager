@@ -44,8 +44,9 @@ import {
   useUpdateDeviceCredential,
   useResetDeviceStatus,
   useSetDeviceOffline,
+  useSyncSims,
 } from "@/lib/admin-api";
-import { Plus, Pencil, Cpu, Link2, Unlink, Key, Search, Trash2, RotateCcw, WifiOff } from "lucide-react";
+import { Plus, Pencil, Cpu, Link2, Unlink, Key, Search, Trash2, RotateCcw, WifiOff, RefreshCw } from "lucide-react";
 import type { PowerMonDevice } from "@shared/schema";
 import type { DeviceWithSnapshot } from "@/lib/admin-api";
 
@@ -76,6 +77,7 @@ export default function DevicesPage() {
   const deleteDevice = useDeleteDevice();
   const resetDeviceStatus = useResetDeviceStatus();
   const setDeviceOffline = useSetDeviceOffline();
+  const syncSims = useSyncSims();
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingDevice, setEditingDevice] = useState<PowerMonDevice | null>(null);
@@ -126,6 +128,42 @@ export default function DevicesPage() {
       batteryAh: "200",
       numberOfBatteries: "2",
       status: "offline",
+    });
+  };
+
+  const handleSyncSims = async () => {
+    const orgs = orgsData?.organizations || [];
+    const orgsToSync = selectedOrgId 
+      ? orgs.filter(o => o.id === selectedOrgId) 
+      : orgs;
+    
+    if (orgsToSync.length === 0) {
+      toast({ title: "No organizations to sync", variant: "destructive" });
+      return;
+    }
+
+    let totalCreated = 0;
+    let totalUpdated = 0;
+    let totalFound = 0;
+    let totalErrors: string[] = [];
+
+    for (const org of orgsToSync) {
+      try {
+        const result = await syncSims.mutateAsync(org.id);
+        totalFound += result.result.simsFound;
+        totalCreated += result.result.simsCreated;
+        totalUpdated += result.result.simsUpdated;
+        totalErrors = totalErrors.concat(result.result.errors);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Unknown error";
+        totalErrors.push(`${org.name}: ${msg}`);
+      }
+    }
+
+    toast({
+      title: "SIM Sync Complete",
+      description: `Found ${totalFound} SIMs. Created ${totalCreated}, updated ${totalUpdated}.${totalErrors.length > 0 ? ` Errors: ${totalErrors.length}` : ""}`,
+      variant: totalErrors.length > 0 ? "destructive" : "default",
     });
   };
 
@@ -368,14 +406,25 @@ export default function DevicesPage() {
               Register and manage PowerMon devices
             </p>
           </div>
-          <Button 
-            onClick={() => setIsCreateOpen(true)} 
-            disabled={!selectedOrgId}
-            data-testid="button-create-device"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Register Device
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={handleSyncSims}
+              disabled={syncSims.isPending}
+              data-testid="button-sync-sims"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${syncSims.isPending ? "animate-spin" : ""}`} />
+              {syncSims.isPending ? "Syncing..." : "Sync SIMs"}
+            </Button>
+            <Button 
+              onClick={() => setIsCreateOpen(true)} 
+              disabled={!selectedOrgId}
+              data-testid="button-create-device"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Register Device
+            </Button>
+          </div>
         </div>
 
         <Card className="mb-6">
