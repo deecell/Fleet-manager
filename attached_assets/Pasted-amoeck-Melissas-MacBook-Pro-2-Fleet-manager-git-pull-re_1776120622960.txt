@@ -1,0 +1,30 @@
+amoeck@Melissas-MacBook-Pro-2 Fleet-manager % git pull
+remote: Enumerating objects: 52, done.
+remote: Counting objects: 100% (52/52), done.
+remote: Compressing objects: 100% (9/9), done.
+remote: Total 39 (delta 33), reused 36 (delta 30), pack-reused 0 (from 0)
+Unpacking objects: 100% (39/39), 997.39 KiB | 3.47 MiB/s, done.
+From https://github.com/deecell/Fleet-manager
+   b1ca73b..e146db8  main       -> origin/main
+Updating b1ca73b..e146db8
+Fast-forward
+ attached_assets/Screenshot_2026-04-13_at_1.39.05_PM_1776112767033.png | Bin 0 -> 302528 bytes
+ attached_assets/Screenshot_2026-04-13_at_1.41.31_PM_1776112902827.png | Bin 0 -> 28386 bytes
+ attached_assets/Screenshot_2026-04-13_at_1.54.08_PM_1776113658756.png | Bin 0 -> 362446 bytes
+ attached_assets/Screenshot_2026-04-13_at_2.04.24_PM_1776114273751.png | Bin 0 -> 437710 bytes
+ attached_assets/Screenshot_2026-04-13_at_3.14.38_PM_1776118488382.png | Bin 0 -> 110948 bytes
+ client/src/lib/admin-api.ts                                           |  20 ++++++++++++++++++++
+ client/src/pages/admin/DevicesPage.tsx                                |  67 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++---------
+ device-manager/app/database.js                                        |   2 +-
+ device-manager/app/inhand-poller.js                                   |   2 +-
+ 9 files changed, 80 insertions(+), 11 deletions(-)
+ create mode 100644 attached_assets/Screenshot_2026-04-13_at_1.39.05_PM_1776112767033.png
+ create mode 100644 attached_assets/Screenshot_2026-04-13_at_1.41.31_PM_1776112902827.png
+ create mode 100644 attached_assets/Screenshot_2026-04-13_at_1.54.08_PM_1776113658756.png
+ create mode 100644 attached_assets/Screenshot_2026-04-13_at_2.04.24_PM_1776114273751.png
+ create mode 100644 attached_assets/Screenshot_2026-04-13_at_3.14.38_PM_1776118488382.png
+amoeck@Melissas-MacBook-Pro-2 Fleet-manager % cat ./scripts/migrations/2026-04-13_add_simpro_to_ecs.sh
+cat: ./scripts/migrations/2026-04-13_add_simpro_to_ecs.sh: No such file or directory
+amoeck@Melissas-MacBook-Pro-2 Fleet-manager % git pull
+Already up to date.
+amoeck@Melissas-MacBook-Pro-2 Fleet-manager % 
