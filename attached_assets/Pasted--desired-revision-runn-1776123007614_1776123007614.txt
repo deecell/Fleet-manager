@@ -1,0 +1,23 @@
+| desired |                                     revision                                      | running  |  status   |
++---------+-----------------------------------------------------------------------------------+----------+-----------+
+|  1      |  arn:aws:ecs:us-east-2:892213647605:task-definition/deecell-fleet-production:201  |  0       |  PRIMARY  |
+|  1      |  arn:aws:ecs:us-east-2:892213647605:task-definition/deecell-fleet-production:200  |  1       |  ACTIVE   |
++---------+-----------------------------------------------------------------------------------+----------+-----------+
+amoeck@Melissas-MacBook-Pro-2 Fleet-manager % aws ecs describe-services --cluster deecell-fleet-production-cluster --services deecell-fleet --region us-east-2 --query 'services[0].deployments[*].{status:status,running:runningCount,desired:desiredCount,revision:taskDefinition}' --output table
+----------------------------------------------------------------------------------------------------------------------
+|                                                  DescribeServices                                                  |
++---------+-----------------------------------------------------------------------------------+----------+-----------+
+| desired |                                     revision                                      | running  |  status   |
++---------+-----------------------------------------------------------------------------------+----------+-----------+
+|  1      |  arn:aws:ecs:us-east-2:892213647605:task-definition/deecell-fleet-production:201  |  0       |  PRIMARY  |
+|  1      |  arn:aws:ecs:us-east-2:892213647605:task-definition/deecell-fleet-production:200  |  1       |  ACTIVE   |
++---------+-----------------------------------------------------------------------------------+----------+-----------+
+amoeck@Melissas-MacBook-Pro-2 Fleet-manager % aws ecs describe-services --cluster deecell-fleet-production-cluster --services deecell-fleet --region us-east-2 --query 'services[0].deployments[*].{status:status,running:runningCount,desired:desiredCount,revision:taskDefinition}' --output table
+----------------------------------------------------------------------------------------------------------------------
+|                                                  DescribeServices                                                  |
++---------+-----------------------------------------------------------------------------------+----------+-----------+
+| desired |                                     revision                                      | running  |  status   |
++---------+-----------------------------------------------------------------------------------+----------+-----------+
+|  1      |  arn:aws:ecs:us-east-2:892213647605:task-definition/deecell-fleet-production:200  |  1       |  PRIMARY  |
++---------+-----------------------------------------------------------------------------------+----------+-----------+
+amoeck@Melissas-MacBook-Pro-2 Fleet-manager % 
