@@ -138,7 +138,10 @@ class SimSync {
       }
 
       const existingSimsResult = await pool.query(
-        'SELECT id, iccid, organization_id, truck_id FROM sims'
+        `SELECT id, iccid, organization_id, device_id, truck_id,
+                simpro_id, msisdn, imsi, eid, device_name,
+                status, workflow_status, ip_address
+         FROM sims`
       );
       const existingByIccid = new Map();
       for (const row of existingSimsResult.rows) {
@@ -152,7 +155,8 @@ class SimSync {
         uniqueDeviceNames: devicesByName.size,
       });
 
-      const toUpsert = [];
+      const toCreate = [];
+      const toUpdate = [];
 
       for (const sim of allSims) {
         try {
@@ -172,36 +176,79 @@ class SimSync {
             continue;
           }
 
-          const orgId = matchedDevice ? matchedDevice.organization_id : existingSim.organization_id;
-          if (!orgId) continue;
+          if (existingSim) {
+            const newOrgId = matchedDevice ? matchedDevice.organization_id : existingSim.organization_id;
+            const newDeviceId = matchedDevice ? matchedDevice.id : existingSim.device_id;
+            const newTruckId = matchedDevice ? matchedDevice.truck_id : existingSim.truck_id;
+            const newDeviceName = deviceName || existingSim.device_name;
 
-          const truckId = matchedDevice ? matchedDevice.truck_id : (existingSim?.truck_id || null);
+            const changed =
+              existingSim.organization_id !== newOrgId ||
+              existingSim.device_id !== newDeviceId ||
+              existingSim.truck_id !== newTruckId ||
+              existingSim.device_name !== newDeviceName ||
+              existingSim.simpro_id !== sim.id ||
+              existingSim.msisdn !== sim.msisdn ||
+              existingSim.imsi !== (sim.imsi || null) ||
+              existingSim.status !== sim.status ||
+              existingSim.workflow_status !== (sim.workflow_status || null) ||
+              existingSim.ip_address !== (sim.ip_address || null);
 
-          toUpsert.push({
-            existingId: existingSim?.id || null,
-            organizationId: orgId,
-            deviceId: matchedDevice?.id || null,
-            truckId,
-            simproId: sim.id,
-            iccid: sim.iccid,
-            msisdn: sim.msisdn,
-            imsi: sim.imsi || null,
-            eid: sim.eid || null,
-            deviceName: deviceName || null,
-            status: sim.status,
-            workflowStatus: sim.workflow_status || null,
-            ipAddress: sim.ip_address || null,
-          });
+            if (!changed) {
+              result.simsSkipped++;
+              continue;
+            }
+
+            toUpdate.push({
+              existingId: existingSim.id,
+              organizationId: newOrgId,
+              deviceId: newDeviceId,
+              truckId: newTruckId,
+              simproId: sim.id,
+              msisdn: sim.msisdn,
+              imsi: sim.imsi || null,
+              eid: sim.eid || existingSim.eid || null,
+              deviceName: newDeviceName,
+              status: sim.status,
+              workflowStatus: sim.workflow_status || null,
+              ipAddress: sim.ip_address || null,
+            });
+          } else {
+            const orgId = matchedDevice.organization_id;
+            toCreate.push({
+              organizationId: orgId,
+              deviceId: matchedDevice.id,
+              truckId: matchedDevice.truck_id,
+              simproId: sim.id,
+              iccid: sim.iccid,
+              msisdn: sim.msisdn,
+              imsi: sim.imsi || null,
+              eid: sim.eid || null,
+              deviceName: deviceName,
+              status: sim.status,
+              workflowStatus: sim.workflow_status || null,
+              ipAddress: sim.ip_address || null,
+            });
+          }
         } catch (err) {
           result.errors.push(`${sim.msisdn}: ${err.message}`);
         }
       }
 
-      for (let i = 0; i < toUpsert.length; i += UPSERT_BATCH_SIZE) {
-        const batch = toUpsert.slice(i, i + UPSERT_BATCH_SIZE);
-        const batchResult = await this.upsertBatch(pool, batch);
-        result.simsCreated += batchResult.created;
-        result.simsUpdated += batchResult.updated;
+      if (toUpdate.length > 0) {
+        for (let i = 0; i < toUpdate.length; i += UPSERT_BATCH_SIZE) {
+          const batch = toUpdate.slice(i, i + UPSERT_BATCH_SIZE);
+          await this.batchUpdate(pool, batch);
+        }
+        result.simsUpdated = toUpdate.length;
+      }
+
+      if (toCreate.length > 0) {
+        for (let i = 0; i < toCreate.length; i += UPSERT_BATCH_SIZE) {
+          const batch = toCreate.slice(i, i + UPSERT_BATCH_SIZE);
+          await this.batchInsert(pool, batch);
+        }
+        result.simsCreated = toCreate.length;
       }
 
       const duration = Date.now() - startTime;
@@ -227,88 +274,63 @@ class SimSync {
     }
   }
 
-  async upsertBatch(pool, batch) {
-    const counts = { created: 0, updated: 0 };
-
-    const updates = batch.filter(b => b.existingId);
-    const inserts = batch.filter(b => !b.existingId);
-
-    if (updates.length > 0) {
-      const client = await pool.connect();
-      try {
-        await client.query('BEGIN');
-        for (const row of updates) {
-          await client.query(
-            `UPDATE sims SET
-              organization_id = $1, device_id = $2, truck_id = $3,
-              simpro_id = $4, msisdn = $5, imsi = $6, eid = $7,
-              device_name = $8, status = $9, workflow_status = $10,
-              ip_address = $11, is_active = true,
-              last_sync_at = NOW(), updated_at = NOW()
-            WHERE id = $12`,
-            [
-              row.organizationId, row.deviceId, row.truckId,
-              row.simproId, row.msisdn, row.imsi, row.eid,
-              row.deviceName, row.status, row.workflowStatus,
-              row.ipAddress, row.existingId,
-            ]
-          );
-        }
-        await client.query('COMMIT');
-        counts.updated = updates.length;
-      } catch (err) {
-        await client.query('ROLLBACK');
-        throw err;
-      } finally {
-        client.release();
+  async batchUpdate(pool, batch) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      for (const row of batch) {
+        await client.query(
+          `UPDATE sims SET
+            organization_id = $1, device_id = $2, truck_id = $3,
+            simpro_id = $4, msisdn = $5, imsi = $6, eid = $7,
+            device_name = $8, status = $9, workflow_status = $10,
+            ip_address = $11, is_active = true,
+            last_sync_at = NOW(), updated_at = NOW()
+          WHERE id = $12`,
+          [
+            row.organizationId, row.deviceId, row.truckId,
+            row.simproId, row.msisdn, row.imsi, row.eid,
+            row.deviceName, row.status, row.workflowStatus,
+            row.ipAddress, row.existingId,
+          ]
+        );
       }
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
     }
+  }
 
-    if (inserts.length > 0) {
-      const client = await pool.connect();
-      try {
-        await client.query('BEGIN');
-        for (const row of inserts) {
-          await client.query(
-            `INSERT INTO sims (
-              organization_id, device_id, truck_id, simpro_id,
-              iccid, msisdn, imsi, eid, device_name,
-              status, workflow_status, ip_address, is_active,
-              last_sync_at, created_at, updated_at
-            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,true,NOW(),NOW(),NOW())
-            ON CONFLICT (iccid) DO UPDATE SET
-              organization_id = EXCLUDED.organization_id,
-              device_id = EXCLUDED.device_id,
-              truck_id = EXCLUDED.truck_id,
-              simpro_id = EXCLUDED.simpro_id,
-              msisdn = EXCLUDED.msisdn,
-              imsi = EXCLUDED.imsi,
-              eid = EXCLUDED.eid,
-              device_name = EXCLUDED.device_name,
-              status = EXCLUDED.status,
-              workflow_status = EXCLUDED.workflow_status,
-              ip_address = EXCLUDED.ip_address,
-              is_active = true,
-              last_sync_at = NOW(),
-              updated_at = NOW()`,
-            [
-              row.organizationId, row.deviceId, row.truckId, row.simproId,
-              row.iccid, row.msisdn, row.imsi, row.eid, row.deviceName,
-              row.status, row.workflowStatus, row.ipAddress,
-            ]
-          );
-        }
-        await client.query('COMMIT');
-        counts.created = inserts.length;
-      } catch (err) {
-        await client.query('ROLLBACK');
-        throw err;
-      } finally {
-        client.release();
+  async batchInsert(pool, batch) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      for (const row of batch) {
+        await client.query(
+          `INSERT INTO sims (
+            organization_id, device_id, truck_id, simpro_id,
+            iccid, msisdn, imsi, eid, device_name,
+            status, workflow_status, ip_address, is_active,
+            last_sync_at, created_at, updated_at
+          ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,true,NOW(),NOW(),NOW())
+          ON CONFLICT (iccid) DO NOTHING`,
+          [
+            row.organizationId, row.deviceId, row.truckId, row.simproId,
+            row.iccid, row.msisdn, row.imsi, row.eid, row.deviceName,
+            row.status, row.workflowStatus, row.ipAddress,
+          ]
+        );
       }
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
     }
-
-    return counts;
   }
 
   async fetchAllSims(result) {
