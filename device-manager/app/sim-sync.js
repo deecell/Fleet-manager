@@ -102,19 +102,6 @@ class SimSync {
 
       result.simsFound = allSims.length;
 
-      if (allSims.length > 0) {
-        const sample = allSims[0];
-        logger.info('SIM listing sample', {
-          keys: Object.keys(sample),
-          id: sample.id,
-          iccid: sample.iccid,
-          msisdn: sample.msisdn,
-          custom_field1: sample.custom_field1 || null,
-          custom_field2: sample.custom_field2 || null,
-          status: sample.status,
-        });
-      }
-
       const devicesResult = await pool.query(
         `SELECT d.id, d.device_name, d.organization_id, d.truck_id
          FROM power_mon_devices d
@@ -157,13 +144,15 @@ class SimSync {
         return !hasCustomField && !hasStoredName;
       });
 
-      logger.info('SIM sync context loaded', {
-        simCount: allSims.length,
-        deviceCount: devicesResult.rows.length,
-        existingSimCount: existingSimsResult.rows.length,
-        uniqueDeviceNames: devicesByName.size,
-        simsNeedingDetails: simsNeedingDetails.length,
-      });
+      const cyan = '\x1b[36m';
+      const green = '\x1b[32m';
+      const yellow = '\x1b[33m';
+      const dim = '\x1b[2m';
+      const bold = '\x1b[1m';
+      const rst = '\x1b[0m';
+      const simTag = `${cyan}SIM${rst}`;
+
+      console.log(`${simTag}  ${bold}Sync started${rst}  ${dim}sims=${allSims.length}  devices=${devicesByName.size}  existing=${existingSimsResult.rows.length}  needDetails=${simsNeedingDetails.length}${rst}`);
 
       if (simsNeedingDetails.length > 0) {
         const detailsByIccid = new Map();
@@ -180,15 +169,6 @@ class SimSync {
                 }
               }
               result.detailsFetched += details.length;
-              if (i === 0 && details.length > 0) {
-                const sample = details[0];
-                logger.info('SIM detail sample', {
-                  iccid: sample.iccid,
-                  custom_field1: sample.custom_field1 || null,
-                  custom_field2: sample.custom_field2 || null,
-                  keys: Object.keys(sample).join(','),
-                });
-              }
             }
           } catch (err) {
             logger.warn('SIM details batch fetch failed', {
@@ -207,10 +187,7 @@ class SimSync {
           }
         }
 
-        logger.info('SIM details fetched', {
-          requested: simsNeedingDetails.length,
-          received: detailsByIccid.size,
-        });
+        console.log(`${simTag}  ${dim}Fetched details: ${detailsByIccid.size}/${simsNeedingDetails.length}${rst}`);
       }
 
       const toCreate = [];
@@ -314,17 +291,11 @@ class SimSync {
       }
 
       const duration = Date.now() - startTime;
-      logger.info('SIM sync complete', {
-        simsFound: result.simsFound,
-        simsMatched: result.simsMatched,
-        simsCreated: result.simsCreated,
-        simsUpdated: result.simsUpdated,
-        simsSkipped: result.simsSkipped,
-        detailsFetched: result.detailsFetched,
-        pages: result.pages,
-        errorCount: result.errors.length,
-        durationMs: duration,
-      });
+      const matchColor = result.simsMatched > 0 ? green : yellow;
+      const createColor = result.simsCreated > 0 ? green : dim;
+      const updateColor = result.simsUpdated > 0 ? green : dim;
+      const errColor = result.errors.length > 0 ? yellow : dim;
+      console.log(`${simTag}  ${bold}Sync complete${rst}  ${dim}found=${rst}${result.simsFound}  ${dim}matched=${rst}${matchColor}${result.simsMatched}${rst}  ${dim}created=${rst}${createColor}${result.simsCreated}${rst}  ${dim}updated=${rst}${updateColor}${result.simsUpdated}${rst}  ${dim}skipped=${rst}${result.simsSkipped}  ${dim}errors=${rst}${errColor}${result.errors.length}${rst}  ${dim}${duration}ms${rst}`);
 
       if (result.errors.length > 0) {
         logger.warn('SIM sync errors', { errors: result.errors.slice(0, 10) });
