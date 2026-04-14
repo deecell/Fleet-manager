@@ -1,0 +1,56 @@
+2026-04-14 22:28:08.673 INFO  === STARTUP COMPLETE: Connection Summary ===  success=17  failed=0  skipped=0  timedOut=0  totalDurationMs=227  averageDurationMs=9
+2026-04-14 22:28:08.673 INFO  Starting polling scheduler  intervalMs=10000  cohorts=10  tickDurationMs=1000
+2026-04-14 22:28:08.673 INFO  Backfill service started  gapThresholdMs=30000  maxConcurrent=5
+2026-04-14 22:28:08.674 INFO  Starting SIM location poller  interval=60000  baseUrl=https://simpro4.wirelesslogic.com/api/v3
+2026-04-14 22:28:08.674 INFO  Starting InHand GPS location poller  interval=120000  baseUrl=https://iot.inhandnetworks.com
+2026-04-14 22:28:08.674 INFO  InHand API: Authenticating  username=andy@deecell.com  baseUrl=https://iot.inhandnetworks.com
+2026-04-14 22:28:08.679 INFO  Starting SIM sync service  interval=600000  baseUrl=https://simpro4.wirelesslogic.com/api/v3
+2026-04-14 22:28:08.679 INFO  Device Manager started successfully  devices=17  status=running
+2026-04-14 22:28:08.942 INFO  InHand API: Authenticated successfully  expiresIn=3599  hasRefreshToken=true
+2026-04-14 22:28:09.093 INFO  InHand GPS locations updated  totalDevices=48  devicesWithLocation=12  simsMatched=8  trucksUpdated=8  unmatchedDevices=RF3022529634065(msisdn=null,iccid=8931086125129524336F); IR302_10(msisdn=883190603748135,iccid=89444611503508862610); IR302_13(msisdn=883190603748137,iccid=89444611503508862677); IR302_15(msisdn=883190603748136,iccid=89444611503508862651)  durationMs=418
+2026-04-14 22:28:09.150 INFO  Fetched device info from PowerMon  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  serialNumber=A8839FDD47E0D9B9  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Radian-1
+2026-04-14 22:28:09.153 INFO  Updated device info  deviceId=21  serialNumber=A8839FDD47E0D9B9  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Radian-1
+2026-04-14 22:28:09.185 INFO  Fetched device info from PowerMon  deviceId=5  serial=B051375C222A5334  cohort=4  serialNumber=B051375C222A5334  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Carter
+2026-04-14 22:28:09.187 INFO  Updated device info  deviceId=5  serialNumber=B051375C222A5334  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Carter
+2026-04-14 22:28:09.292 INFO  Fetched device info from PowerMon  deviceId=18  serial=4E0A83432AEE8967  cohort=5  serialNumber=4E0A83432AEE8967  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Kalitta-Hospitality
+2026-04-14 22:28:09.294 INFO  Updated device info  deviceId=18  serialNumber=4E0A83432AEE8967  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Kalitta-Hospitality
+2026-04-14 22:28:09.304 INFO  Fetched device info from PowerMon  deviceId=17  serial=2622A846A1BD5441  cohort=5  serialNumber=2622A846A1BD5441  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Epler
+2026-04-14 22:28:09.307 INFO  Updated device info  deviceId=17  serialNumber=2622A846A1BD5441  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Epler
+2026-04-14 22:28:09.310 INFO  Fetched device info from PowerMon  deviceId=7  serial=96FE5E88572C1995  cohort=1  serialNumber=96FE5E88572C1995  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Haynes
+2026-04-14 22:28:09.313 INFO  Updated device info  deviceId=7  serialNumber=96FE5E88572C1995  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Haynes
+2026-04-14 22:28:09.354 INFO  Fetched device info from PowerMon  deviceId=10  serial=1B1034C2B3399A18  cohort=0  serialNumber=1B1034C2B3399A18  firmwareVersion=1.33  hardwareRevision=PowerMon-W  deviceName=DCL-Curtis-1
+2026-04-14 22:28:09.356 INFO  Updated device info  deviceId=10  serialNumber=1B1034C2B3399A18  firmwareVersion=1.33  hardwareRevision=PowerMon-W  deviceName=DCL-Curtis-1
+2026-04-14 22:28:09.364 INFO  SIM locations updated  simsPolled=16  locationsUpdated=16  trucksUpdated=16  durationMs=690
+2026-04-14 22:28:09.672 INFO  Connecting to device  deviceId=13  serial=292240386041C12B  cohort=1
+2026-04-14 22:28:09.682 INFO  Connected successfully  deviceId=13  serial=292240386041C12B  cohort=1  durationMs=10
+2026-04-14 22:28:09.685 INFO  onDisconnect fired  deviceId=13  serial=292240386041C12B  cohort=1  reason=2  connDurationMs=3  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=1
+2026-04-14 22:28:09.685 WARN  Rapid disconnect detected (error)  deviceId=13  serial=292240386041C12B  cohort=1  reason=2  rapidDisconnects=2  connectionDurationMs=3
+2026-04-14 22:28:09.685 ERROR Circuit breaker OPEN - 2 instant disconnects, device appears powered off  deviceId=13  serial=292240386041C12B  cohort=1  rapidDisconnects=2  instantDisconnects=2  connectionDurationMs=3  backoffMinutes=5  resetAt=2026-04-14T22:33:09.685Z
+2026-04-14 22:28:09.685 ERROR NATIVE LIBRARY COMPROMISED - scheduling graceful restart  deviceId=13  deviceName=DCL-Thibert  status=no_power  restartInMs=3000
+2026-04-14 22:28:09.685 WARN  Marking device as no_power in database  deviceId=13
+2026-04-14 22:28:09.706 INFO  Fetched device info from PowerMon  deviceId=3  serial=A998463C2C69ABFD  cohort=6  serialNumber=A998463C2C69ABFD  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Moeck
+2026-04-14 22:28:09.708 INFO  Updated device info  deviceId=3  serialNumber=A998463C2C69ABFD  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Moeck
+2026-04-14 22:28:09.841 INFO  Fetched device info from PowerMon  deviceId=26  serial=FE0B7F3AFF982430  cohort=4  serialNumber=FE0B7F3AFF982430  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Penske01
+2026-04-14 22:28:09.843 INFO  Updated device info  deviceId=26  serialNumber=FE0B7F3AFF982430  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Penske01
+=== New Polling Cycle ===
+Skipping 2 offline/unstable devices:
+                  [no_power]  DCL-Thibert                              (0 disconnects) (retry in 30m)
+                  [no_power]  DCL-NHRA-Tech-Trailer                    (0 disconnects) (retry in 2m)
+2026-04-14 22:28:09.901 INFO  Removing device from pool (no longer active)  deviceId=13  serialNumber=292240386041C12B  deviceName=DCL-Thibert
+2026-04-14 22:28:09.902 INFO  Disconnected  deviceId=13  serial=292240386041C12B  cohort=1
+2026-04-14 22:28:10.096 INFO  Fetched device info from PowerMon  deviceId=9  serial=E6D8F89877415815  cohort=6  serialNumber=E6D8F89877415815  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Brown
+2026-04-14 22:28:10.098 INFO  Updated device info  deviceId=9  serialNumber=E6D8F89877415815  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Brown
+2026-04-14 22:28:10.455 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.94  v2=  0.0374  today= 1348m  month= 20068m  since=2025-12-29 23:38:19
+2026-04-14 22:28:10.747 INFO  Fetched device info from PowerMon  deviceId=11  serial=1A81067CFA117B5B  cohort=0  serialNumber=1A81067CFA117B5B  firmwareVersion=1.18  hardwareRevision=PowerMon-W  deviceName=DCL-Curtis-2
+2026-04-14 22:28:10.749 INFO  Updated device info  deviceId=11  serialNumber=1A81067CFA117B5B  firmwareVersion=1.18  hardwareRevision=PowerMon-W  deviceName=DCL-Curtis-2
+2026-04-14 22:28:10.939 INFO  Fetched device info from PowerMon  deviceId=8  serial=E844BD0A2017EB7A  cohort=5  serialNumber=E844BD0A2017EB7A  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Kruse
+2026-04-14 22:28:10.941 INFO  Updated device info  deviceId=8  serialNumber=E844BD0A2017EB7A  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Kruse
+2026-04-14 22:28:11.528 INFO  Fetched device info from PowerMon  deviceId=20  serial=E18590457A387E04  cohort=2  serialNumber=E18590457A387E04  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Moeck-Shop
+2026-04-14 22:28:11.530 INFO  Updated device info  deviceId=20  serialNumber=E18590457A387E04  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Moeck-Shop
+2026-04-14 22:28:12.466 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 28.79  v2=  0.0452  today= 1348m  month= 20068m  since=2025-12-29 23:38:54
+2026-04-14 22:28:12.473 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.64  v2=  0.0394  today= 1348m  month= 20068m  since=2025-12-29 23:22:12
+terminate called without an active exception
+device-manager.service: Main process exited, code=dumped, status=6/ABRT
+device-manager.service: Failed with result 'core-dump'.
+device-manager.service: Consumed 4.908s CPU time.
+
