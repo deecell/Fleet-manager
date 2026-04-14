@@ -1,0 +1,20 @@
+=== New Polling Cycle ===
+Skipping 6 offline/unstable devices:
+                  [no_power]  DCL-Carter                               (0 disconnects) (retry in 1h)
+                  [no_power]  DCL-Epler                                (0 disconnects) (retry in 2h)
+                  [no_power]  DCL-NHRA-Tech-Trailer                    (0 disconnects) (retry in 2h)
+                  [no_power]  DCL-Moeck-Shop                           (0 disconnects) (retry in 2h)
+                  [no_power]  DCL-Radian-1                             (0 disconnects) (retry in 3h)
+                  [no_power]  DCL-Radian-2                             (0 disconnects) (retry in 2h)
+2026-04-14 18:38:15.286 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.68  v2=  0.0375  today= 1118m  month= 19838m  since=2025-12-29 23:38:19
+2026-04-14 18:38:15.292 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 27.26  v2=  0.0454  today= 1118m  month= 19838m  since=2025-12-29 23:38:54
+2026-04-14 18:38:15.297 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.86  v2=  0.0384  today= 1118m  month= 19683m  since=2026-01-09 21:34:37
+2026-04-14 18:38:15.303 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.65  v2=  0.0399  today= 1118m  month= 19838m  since=2025-12-29 23:22:12
+2026-04-14 18:38:19.313 INFO  DCL-KTR (KTR-01)                         driving  v1= 25.65  v2= 13.1469  today=    2m  month=   143m  since=2026-04-14 18:36:56
+2026-04-14 18:38:19.319 INFO  DCL-Penske01 (LFG-001)                   parked   v1= 13.69  v2=  0.0495  today= 1118m  month=  7226m  since=2026-04-09 15:26:18
+2026-04-14 18:38:19.325 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 26.61  v2= 13.6720  today=    0m  month=     1m  since=2026-04-13 07:25:56
+2026-04-14 18:38:21.333 INFO  DCL-Kruse (WKR-01)                       parked   v1= 28.72  v2=  0.0358  today= 1118m  month= 19838m  since=2025-12-29 23:27:57
+2026-04-14 18:38:21.339 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 55.77  v2=  0.0392  today= 1118m  month= 19721m  since=2026-02-16 19:41:58
+2026-04-14 18:38:21.345 INFO  DCL-Brown (RBR-01)                       parked   v1= 26.50  v2= 12.7369  today=  227m  month=  4429m  since=2026-04-14 14:51:26
+2026-04-14 18:38:21.350 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.50  v2= 12.0321  today= 1118m  month= 18147m  since=2026-03-15 23:59:48
+2026-04-14 18:38:23.359 INFO  DCL-Howard (MHR-01)                      parked   v1= 27.76  v2=  0.0440  today= 1118m  month= 19838m  since=2025-12-30 22:17:33
