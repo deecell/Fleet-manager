@@ -174,23 +174,25 @@ class SimSync {
           if (!deviceName && detailErrors < MAX_DETAIL_ERRORS) {
             try {
               await this.delay(DETAIL_FETCH_DELAY_MS);
-              const details = await this.fetchSimDetails(sim.iccid);
+              const details = await this.fetchSimDetails(sim.id);
               if (details) {
                 deviceName = details.custom_field1 || details.custom_field2 || null;
                 sim.ip_address = sim.ip_address || details.ip_address || null;
                 result.detailsFetched++;
                 if (result.detailsFetched <= 3) {
                   logger.info('SIM detail fetched', {
+                    simproId: sim.id,
                     iccid: sim.iccid,
                     custom_field1: details.custom_field1 || null,
                     custom_field2: details.custom_field2 || null,
+                    keys: Object.keys(details).join(','),
                   });
                 }
               }
             } catch (err) {
               detailErrors++;
               if (detailErrors <= 3) {
-                logger.warn('SIM detail fetch failed', { iccid: sim.iccid, error: err.message });
+                logger.warn('SIM detail fetch failed', { simproId: sim.id, iccid: sim.iccid, error: err.message });
               }
               if (detailErrors >= MAX_DETAIL_ERRORS) {
                 logger.warn('Too many detail errors, stopping detail fetches this cycle');
@@ -451,11 +453,11 @@ class SimSync {
     });
   }
 
-  async fetchSimDetails(iccid) {
+  async fetchSimDetails(simproId) {
     const baseUrl = config.simpro.baseUrl.endsWith('/')
       ? config.simpro.baseUrl
       : config.simpro.baseUrl + '/';
-    const fullUrl = new URL(`sims/${iccid}`, baseUrl);
+    const fullUrl = new URL(`sims/${simproId}`, baseUrl);
     const isHttps = fullUrl.protocol === 'https:';
     const httpClient = isHttps ? https : http;
 
