@@ -257,6 +257,19 @@ class DeviceConnection {
             clearTimeout(timeout);
             db.recordActiveDevice(null);
             
+            const connDurationMs = this.lastConnectedAt ? Date.now() - this.lastConnectedAt : null;
+            const hadSuccessfulPoll = this.lastSuccessfulPollAt && this.lastConnectedAt && 
+              this.lastSuccessfulPollAt.getTime() >= this.lastConnectedAt;
+            
+            this.log.info('onDisconnect fired', {
+              reason: reason || 'none',
+              connDurationMs,
+              hadSuccessfulPoll: !!hadSuccessfulPoll,
+              wasConnected: this.status === 'connected',
+              consecutiveFailures: this.consecutiveFailures,
+              rapidDisconnects: this.rapidDisconnectCount,
+            });
+            
             // Check if this was an intentional disconnect (normal poll completion)
             // If intentional, don't count toward rapid disconnect threshold
             const wasIntentional = this.intentionalDisconnect;
@@ -265,11 +278,10 @@ class DeviceConnection {
             // Check for rapid disconnect (disconnect within threshold of connect)
             // Only count as rapid if NOT intentional (error/unexpected disconnects)
             const isRapidDisconnect = !wasIntentional && this.lastConnectedAt && 
-              (Date.now() - this.lastConnectedAt) < RAPID_DISCONNECT_THRESHOLD_MS;
+              connDurationMs !== null && connDurationMs < RAPID_DISCONNECT_THRESHOLD_MS;
             
             if (isRapidDisconnect) {
               this.rapidDisconnectCount++;
-              const connDurationMs = Date.now() - this.lastConnectedAt;
               if (!this.rapidDisconnectDurations) this.rapidDisconnectDurations = [];
               this.rapidDisconnectDurations.push(connDurationMs);
               this.log.warn('Rapid disconnect detected (error)', { 
