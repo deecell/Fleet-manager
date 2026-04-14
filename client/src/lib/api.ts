@@ -263,7 +263,7 @@ export function useLegacyTrucks() {
       fw: device?.firmwareVersion || "1.0.0",
       v1: snapshot?.voltage1 ?? 0,
       v2: snapshot?.voltage2 ?? 0,
-      p: (snapshot?.power ?? 0) / 1000,
+      p: snapshot?.power ?? 0,
       wh: calculatedKwh,
       ah: snapshot?.charge ?? 0,
       temp: tempFahrenheit,
