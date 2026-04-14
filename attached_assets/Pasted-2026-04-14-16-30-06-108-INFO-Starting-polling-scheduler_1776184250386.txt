@@ -1,0 +1,23 @@
+2026-04-14 16:30:06.108 INFO  Starting polling scheduler  intervalMs=10000  cohorts=10  tickDurationMs=1000
+2026-04-14 16:30:06.109 INFO  Backfill service started  gapThresholdMs=30000  maxConcurrent=5
+2026-04-14 16:30:06.109 INFO  Starting SIM location poller  interval=60000  baseUrl=https://simpro4.wirelesslogic.com/api/v3
+2026-04-14 16:30:06.109 INFO  Starting InHand GPS location poller  interval=120000  baseUrl=https://iot.inhandnetworks.com
+2026-04-14 16:30:06.110 INFO  InHand API: Authenticating  username=andy@deecell.com  baseUrl=https://iot.inhandnetworks.com
+2026-04-14 16:30:06.115 INFO  Starting SIM sync service  interval=600000  baseUrl=https://simpro4.wirelesslogic.com/api/v3
+2026-04-14 16:30:06.115 INFO  Device Manager started successfully  devices=7  status=running
+2026-04-14 16:30:06.121 INFO  Fetched device info from PowerMon  deviceId=6  serial=E747AAFD3EEB003C  cohort=4  serialNumber=E747AAFD3EEB003C  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-KTR
+2026-04-14 16:30:06.123 INFO  Updated device info  deviceId=6  serialNumber=E747AAFD3EEB003C  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-KTR
+2026-04-14 16:30:06.257 INFO  Fetched device info from PowerMon  deviceId=12  serial=A93B7B8CC0D672FE  cohort=8  serialNumber=A93B7B8CC0D672FE  firmwareVersion=1.33  hardwareRevision=PowerMon-W  deviceName=DCL-Howard
+2026-04-14 16:30:06.260 INFO  Updated device info  deviceId=12  serialNumber=A93B7B8CC0D672FE  firmwareVersion=1.33  hardwareRevision=PowerMon-W  deviceName=DCL-Howard
+2026-04-14 16:30:06.419 INFO  Fetched device info from PowerMon  deviceId=9  serial=E6D8F89877415815  cohort=6  serialNumber=E6D8F89877415815  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Brown
+2026-04-14 16:30:06.421 INFO  Updated device info  deviceId=9  serialNumber=E6D8F89877415815  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Brown
+2026-04-14 16:30:06.472 INFO  InHand API: Authenticated successfully  expiresIn=3599  hasRefreshToken=true
+2026-04-14 16:30:06.618 INFO  InHand GPS locations updated  totalDevices=48  devicesWithLocation=12  simsMatched=0  trucksUpdated=0  unmatchedDevices=RF3022512551396(msisdn=null,iccid=89444611503504616275); RF3022529634065(msisdn=null,iccid=8931086125129524336F); IR302_3(msisdn=883190603571832,iccid=89444611503504517911); IR302_10(msisdn=883190603748135,iccid=89444611503508862610); IR302_13(msisdn=883190603748137,iccid=89444611503508862677); IR302_15(msisdn=883190603748136,iccid=89444611503508862651); IR302_21(msisdn=883190603657503,iccid=89444611503507318085); IR302_25(msisdn=883190603657502,iccid=89444611503507318135); IR302_32(msisdn=883190603659432,iccid=89444611503507317871); IR302_37(msisdn=883190603659407,iccid=89444611503507317822); IR302_40(msisdn=883190603571828,iccid=89444611503504517861); IR302_44(msisdn=883190603571827,iccid=89444611503504517903)  durationMs=508
+2026-04-14 16:30:06.709 INFO  Fetched device info from PowerMon  deviceId=13  serial=292240386041C12B  cohort=1  serialNumber=292240386041C12B  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Thibert
+2026-04-14 16:30:06.712 INFO  Updated device info  deviceId=13  serialNumber=292240386041C12B  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Thibert
+2026-04-14 16:30:06.722 INFO  Fetched device info from PowerMon  deviceId=15  serial=623DECC4E318D957  cohort=4  serialNumber=623DECC4E318D957  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Elite-Hospitality
+2026-04-14 16:30:06.725 INFO  Updated device info  deviceId=15  serialNumber=623DECC4E318D957  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Elite-Hospitality
+2026-04-14 16:30:06.730 INFO  Fetched device info from PowerMon  deviceId=11  serial=1A81067CFA117B5B  cohort=0  serialNumber=1A81067CFA117B5B  firmwareVersion=1.18  hardwareRevision=PowerMon-W  deviceName=DCL-Curtis-2
+2026-04-14 16:30:06.732 INFO  Updated device info  deviceId=11  serialNumber=1A81067CFA117B5B  firmwareVersion=1.18  hardwareRevision=PowerMon-W  deviceName=DCL-Curtis-2
+2026-04-14 16:30:06.906 INFO  Fetched device info from PowerMon  deviceId=7  serial=96FE5E88572C1995  cohort=1  serialNumber=96FE5E88572C1995  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Haynes
+2026-04-14 16:30:06.909 INFO  Updated device info  deviceId=7  serialNumber=96FE5E88572C1995  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Haynes
