@@ -501,7 +501,7 @@ export default function DevicesPage() {
                         </div>
                       </TableHead>
                       <TableHead className="text-white font-medium text-center">V2</TableHead>
-                      <TableHead className="text-white font-medium text-center">P (kW)</TableHead>
+                      <TableHead className="text-white font-medium text-center">P (W)</TableHead>
                       <TableHead className="text-white font-medium text-center">kWh</TableHead>
                       <TableHead 
                         className="text-white font-medium text-center cursor-pointer select-none"
@@ -648,7 +648,7 @@ export default function DevicesPage() {
                                   : "text-muted-foreground"
                               : "text-muted-foreground"
                           }`}>
-                            {snapshot?.power != null ? (snapshot.power / 1000).toFixed(2) : "-"}
+                            {snapshot?.power != null ? snapshot.power.toFixed(1) : "-"}
                           </TableCell>
                           <TableCell className="text-center text-muted-foreground">
                             {calculatedKwh != null ? calculatedKwh.toFixed(2) : "-"}
