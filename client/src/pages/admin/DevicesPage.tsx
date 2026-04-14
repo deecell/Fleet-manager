@@ -44,9 +44,8 @@ import {
   useUpdateDeviceCredential,
   useResetDeviceStatus,
   useSetDeviceOffline,
-  useSyncSims,
 } from "@/lib/admin-api";
-import { Plus, Pencil, Cpu, Link2, Unlink, Key, Search, Trash2, RotateCcw, WifiOff, RefreshCw } from "lucide-react";
+import { Plus, Pencil, Cpu, Link2, Unlink, Key, Search, Trash2, RotateCcw, WifiOff } from "lucide-react";
 import type { PowerMonDevice } from "@shared/schema";
 import type { DeviceWithSnapshot } from "@/lib/admin-api";
 
@@ -77,7 +76,6 @@ export default function DevicesPage() {
   const deleteDevice = useDeleteDevice();
   const resetDeviceStatus = useResetDeviceStatus();
   const setDeviceOffline = useSetDeviceOffline();
-  const syncSims = useSyncSims();
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingDevice, setEditingDevice] = useState<PowerMonDevice | null>(null);
@@ -131,40 +129,6 @@ export default function DevicesPage() {
     });
   };
 
-  const handleSyncSims = async () => {
-    try {
-      const result = await syncSims.mutateAsync(selectedOrgId || undefined);
-      const r = result.result;
-
-      if (r.errors.some(e => e.toLowerCase().includes("not configured"))) {
-        toast({
-          title: "SIMPro Not Configured",
-          description: "The SIMPRO_API_CLIENT and SIMPRO_API_KEY environment variables are not set on this server.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      toast({
-        title: "SIM Sync Complete",
-        description: r.errors.length > 0
-          ? `Found ${r.simsFound} SIMs. Matched ${r.simsMatched}. Created ${r.simsCreated}, updated ${r.simsUpdated}. ${r.errors.length} error(s): ${r.errors.slice(0, 3).join("; ")}${r.errors.length > 3 ? "..." : ""}`
-          : `Found ${r.simsFound} SIMs. Matched ${r.simsMatched}. Created ${r.simsCreated}, updated ${r.simsUpdated}.`,
-        variant: r.errors.length > 0 ? "destructive" : "default",
-      });
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Unknown error";
-      if (msg.includes("not configured") || msg.includes("503")) {
-        toast({
-          title: "SIMPro Not Configured",
-          description: "The SIMPRO_API_CLIENT and SIMPRO_API_KEY environment variables are not set on this server.",
-          variant: "destructive",
-        });
-        return;
-      }
-      toast({ title: "SIM Sync Failed", description: msg, variant: "destructive" });
-    }
-  };
 
   const handleCreate = async () => {
     if (!selectedOrgId) return;
@@ -406,15 +370,6 @@ export default function DevicesPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={handleSyncSims}
-              disabled={syncSims.isPending}
-              data-testid="button-sync-sims"
-            >
-              <RefreshCw className={`h-4 w-4 mr-2 ${syncSims.isPending ? "animate-spin" : ""}`} />
-              {syncSims.isPending ? "Syncing..." : "Sync SIMs"}
-            </Button>
             <Button 
               onClick={() => setIsCreateOpen(true)} 
               disabled={!selectedOrgId}

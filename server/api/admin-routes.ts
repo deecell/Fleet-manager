@@ -934,45 +934,6 @@ router.get("/simpro/test-usage-location", adminMiddleware, async (req: Request, 
   }
 });
 
-router.post("/sims/sync", adminMiddleware, async (req: Request, res: Response) => {
-  try {
-    const simService = getSimSyncService();
-
-    if (!simService.isConfigured()) {
-      return res.status(503).json({
-        error: "SIMPro not configured",
-        message: "Set SIMPRO_API_CLIENT and SIMPRO_API_KEY environment variables."
-      });
-    }
-
-    const result = await simService.syncSims();
-    res.json({ success: true, result });
-  } catch (error) {
-    console.error("Error syncing SIMs:", error);
-    res.status(500).json({ error: "Failed to sync SIMs" });
-  }
-});
-
-router.post("/organizations/:orgId/sims/sync", adminMiddleware, async (req: Request, res: Response) => {
-  try {
-    const orgId = parseInt(req.params.orgId, 10);
-    const simService = getSimSyncService();
-    
-    if (!simService.isConfigured()) {
-      return res.status(503).json({
-        error: "SIMPro not configured",
-        message: "Set SIMPRO_API_CLIENT and SIMPRO_API_KEY environment variables."
-      });
-    }
-    
-    const result = await simService.syncSims(orgId);
-    res.json({ success: true, result });
-  } catch (error) {
-    console.error("Error syncing SIMs:", error);
-    res.status(500).json({ error: "Failed to sync SIMs" });
-  }
-});
-
 router.post("/organizations/:orgId/sims/sync-locations", adminMiddleware, async (req: Request, res: Response) => {
   try {
     const orgId = parseInt(req.params.orgId, 10);

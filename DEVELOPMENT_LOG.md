@@ -4,13 +4,22 @@
 
 ---
 
-## Latest Updates (April 13, 2026)
+## Latest Updates (April 14, 2026)
+
+### SIM Sync Moved to Device Manager (April 14, 2026)
+- **Removed "Sync SIMs" button** from admin Devices page — webapp is no longer responsible for SIM syncing
+- **Removed sync API routes** (`POST /sims/sync`, `POST /organizations/:orgId/sims/sync`) from webapp admin routes
+- **Created `device-manager/app/sim-sync.js`** — standalone backend service running on EC2 alongside other pollers
+  - Runs on startup (5s delay) and every 10 minutes
+  - Fetches all SIMs from SIMPro listing API in a single call
+  - Fetches individual SIM details for `custom_field1` (device name) when not in listing, rate-limited with auto-stop after 5 errors
+  - Matches SIMs to PowerMon devices by device name, assigns correct `organization_id` from the matched device
+  - Only creates new SIM records for SIMs matching a known device (prevents orphan records)
+  - Duplicate device name detection: if two orgs share the same device name, skips those matches to prevent cross-tenant data corruption
+  - Integrated into device manager lifecycle (start/stop/shutdown)
+- **Read-only SIM endpoints remain** in webapp: list SIMs, location history, SIMPro status check
 
 ### Sync SIMs Button + ECS SIMPro Credentials (April 13, 2026)
-- **Added "Sync SIMs" button** to admin Devices page (next to "Register Device")
-  - Syncs SIMs from SIMPro/Wireless Logic API for selected org (or all orgs)
-  - Shows spinner while syncing, toast with results (found/created/updated counts)
-  - Detects "SIMPro not configured" errors early and stops with clear message
 - **Fixed ECS missing SIMPro credentials**: The production web app (ECS Fargate) didn't have `SIMPRO_API_CLIENT` and `SIMPRO_API_KEY` injected — they were only configured for EC2 device manager
   - Updated `terraform/ecs.tf`: Added SIMPro secrets to ECS task definition container secrets (conditional on `enable_simpro`)
   - Updated `terraform/iam.tf`: Added SIMPro secret ARNs (plus OpenAI, EIA, SendGrid) to ECS execution role's `secretsmanager:GetSecretValue` permissions

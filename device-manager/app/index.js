@@ -19,6 +19,7 @@ const { backfillService } = require('./backfill-service');
 const { startMetricsServer, stopMetricsServer } = require('./metrics');
 const { simPoller } = require('./sim-poller');
 const { inhandPoller } = require('./inhand-poller');
+const { simSync } = require('./sim-sync');
 
 let isShuttingDown = false;
 
@@ -89,6 +90,9 @@ async function main() {
     // Start InHand Networks GPS location poller (polls every 2 minutes)
     inhandPoller.start();
 
+    // Start SIM sync service (syncs SIMs from SIMPro every 10 minutes)
+    simSync.start();
+
     logger.info('Device Manager started successfully', {
       devices: deviceCount,
       status: 'running',
@@ -147,6 +151,10 @@ async function shutdown(signal) {
     // 1c. Stop InHand GPS location poller
     inhandPoller.stop();
     logger.info('InHand poller stopped');
+
+    // 1d. Stop SIM sync service
+    simSync.stop();
+    logger.info('SIM sync stopped');
 
     // 2. Wait for active backfill operations to complete
     await backfillService.stop();
