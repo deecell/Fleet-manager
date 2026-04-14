@@ -1,0 +1,19 @@
+2026-04-14T22:15:12.928000+00:00 ecs/deecell-fleet/b564a5a824b8439abc6f7cb145da9912 Database "deecell_fleet" already exists
+2026-04-14T22:15:12.930000+00:00 ecs/deecell-fleet/b564a5a824b8439abc6f7cb145da9912 RDS PostgreSQL connection successful
+2026-04-14T22:15:12.932000+00:00 ecs/deecell-fleet/b564a5a824b8439abc6f7cb145da9912 10:15:12 PM [express] GET /api/health 200 in 31ms :: {"status":"ok","version":"2026.01.27","rds":"con…
+2026-04-14T22:15:21.073000+00:00 ecs/deecell-fleet/b564a5a824b8439abc6f7cb145da9912 Database "deecell_fleet" already exists
+2026-04-14T22:15:21.076000+00:00 ecs/deecell-fleet/b564a5a824b8439abc6f7cb145da9912 RDS PostgreSQL connection successful
+2026-04-14T22:15:21.077000+00:00 ecs/deecell-fleet/b564a5a824b8439abc6f7cb145da9912 10:15:21 PM [express] GET /api/health 200 in 30ms :: {"status":"ok","version":"2026.01.27","rds":"con…
+2026-04-14T22:15:21.189000+00:00 ecs/deecell-fleet/b564a5a824b8439abc6f7cb145da9912 Database "deecell_fleet" already exists
+2026-04-14T22:15:21.191000+00:00 ecs/deecell-fleet/b564a5a824b8439abc6f7cb145da9912 RDS PostgreSQL connection successful
+2026-04-14T22:15:21.192000+00:00 ecs/deecell-fleet/b564a5a824b8439abc6f7cb145da9912 10:15:21 PM [express] GET /api/health 200 in 26ms :: {"status":"ok","version":"2026.01.27","rds":"con…
+2026-04-14T22:15:42.947000+00:00 ecs/deecell-fleet/b564a5a824b8439abc6f7cb145da9912 Database "deecell_fleet" already exists
+2026-04-14T22:15:42.949000+00:00 ecs/deecell-fleet/b564a5a824b8439abc6f7cb145da9912 RDS PostgreSQL connection successful
+2026-04-14T22:15:42.951000+00:00 ecs/deecell-fleet/b564a5a824b8439abc6f7cb145da9912 10:15:42 PM [express] GET /api/health 200 in 32ms :: {"status":"ok","version":"2026.01.27","rds":"con…
+2026-04-14T22:15:51.108000+00:00 ecs/deecell-fleet/b564a5a824b8439abc6f7cb145da9912 Database "deecell_fleet" already exists
+2026-04-14T22:15:51.111000+00:00 ecs/deecell-fleet/b564a5a824b8439abc6f7cb145da9912 RDS PostgreSQL connection successful
+2026-04-14T22:15:51.113000+00:00 ecs/deecell-fleet/b564a5a824b8439abc6f7cb145da9912 10:15:51 PM [express] GET /api/health 200 in 35ms :: {"status":"ok","version":"2026.01.27","rds":"con…
+2026-04-14T22:15:51.218000+00:00 ecs/deecell-fleet/b564a5a824b8439abc6f7cb145da9912 Database "deecell_fleet" already exists
+2026-04-14T22:15:51.220000+00:00 ecs/deecell-fleet/b564a5a824b8439abc6f7cb145da9912 RDS PostgreSQL connection successful
+2026-04-14T22:15:51.221000+00:00 ecs/deecell-fleet/b564a5a824b8439abc6f7cb145da9912 10:15:51 PM [express] GET /api/health 200 in 25ms :: {"status":"ok","version":"2026.01.27","rds":"con…
+
