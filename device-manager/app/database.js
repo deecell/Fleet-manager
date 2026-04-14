@@ -491,6 +491,42 @@ async function updateMarkedOfflineAt(deviceId) {
 }
 
 /**
+ * Get no_power devices whose quarantine TTL has expired
+ * Returns devices marked no_power for longer than the quarantine period
+ */
+async function getNoPowerDevicesReadyForRecovery(quarantineMs = 4 * 60 * 60 * 1000) {
+  const result = await query(`
+    SELECT 
+      d.id as device_id,
+      d.organization_id,
+      d.serial_number,
+      d.device_name,
+      d.truck_id,
+      d.status,
+      d.consecutive_disconnects,
+      d.marked_unstable_at,
+      d.battery_voltage,
+      d.number_of_batteries,
+      d.battery_ah,
+      c.applink_url,
+      c.connection_key,
+      c.access_key,
+      s.cohort_id,
+      s.last_successful_poll_at,
+      s.connection_status
+    FROM power_mon_devices d
+    INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = true
+    LEFT JOIN device_sync_status s ON s.device_id = d.id
+    WHERE d.connection_status = 'no_power'
+      AND d.marked_unstable_at IS NOT NULL
+      AND d.marked_unstable_at < NOW() - INTERVAL '1 millisecond' * $1
+    ORDER BY d.marked_unstable_at ASC
+  `, [quarantineMs]);
+  
+  return result.rows;
+}
+
+/**
  * Get unstable devices that are ready for recovery attempt
  * Returns devices marked unstable for longer than the backoff period
  * @param {number} backoffMs - Backoff period in milliseconds (default 5 minutes)
@@ -1030,6 +1066,7 @@ module.exports = {
   markDeviceStale,
   markDeviceUnstable,
   getUnstableDevicesReadyForRecovery,
+  getNoPowerDevicesReadyForRecovery,
   getOfflineDevicesForRecovery,
   updateMarkedOfflineAt,
   resetDeviceStability,

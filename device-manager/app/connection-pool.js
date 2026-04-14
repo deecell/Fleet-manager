@@ -51,6 +51,8 @@ if (process.env.SIMULATION_MODE === 'true' || process.env.SIMULATION_MODE === '1
 const RAPID_DISCONNECT_THRESHOLD_MS = 5000; // Disconnect within 5s of connect = rapid
 const MAX_RAPID_DISCONNECTS = 3; // After 3 rapid disconnects, mark as unstable/no_power
 const UNSTABLE_BACKOFF_MS = 300000; // 5 minutes backoff for unstable devices
+const NO_POWER_QUARANTINE_MS = 4 * 60 * 60 * 1000; // 4 hours quarantine for no_power devices
+const NO_POWER_RETRY_INTERVAL_MS = 30 * 60 * 1000; // Check every 30 minutes
 const OFFLINE_BACKOFF_MS = 600000; // 10 minutes backoff for offline devices
 const NO_POWER_INSTANT_THRESHOLD_MS = 200; // Connection shorter than this = "instant" (was 100ms)
 const POST_ERROR_RECONNECT_DELAY_MS = 5000; // Longer delay after a poll failure before reconnecting
@@ -324,7 +326,7 @@ class DeviceConnection {
                 this.isCircuitOpen = true;
                 this.circuitResetAt = Date.now() + UNSTABLE_BACKOFF_MS;
                 
-                const allInstant = this.rapidDisconnectDurations.every(d => d < NO_POWER_THRESHOLD_MS);
+                const allInstant = this.rapidDisconnectDurations.every(d => d < NO_POWER_INSTANT_THRESHOLD_MS);
                 const status = allInstant ? 'no_power' : 'unstable';
                 
                 if (isInstantDisconnect && instantDisconnectCount >= 2) {
@@ -1134,6 +1136,89 @@ class ConnectionPool {
       return { attempted: unstableDevices.length, recovered };
     } catch (err) {
       logger.error('Error recovering unstable devices', { error: err.message });
+      return { attempted: 0, recovered: 0, error: err.message };
+    }
+  }
+
+  /**
+   * Periodically retry no_power devices whose 4-hour quarantine has expired.
+   * Tries them one at a time with a 5-second gap between attempts to avoid
+   * overwhelming the native library. If the device connects and gets a good
+   * first poll, it stays in the pool. If it fails, the quarantine timer resets.
+   */
+  async recoverNoPowerDevices() {
+    try {
+      const devices = await db.getNoPowerDevicesReadyForRecovery(NO_POWER_QUARANTINE_MS);
+      
+      if (devices.length === 0) {
+        return { attempted: 0, recovered: 0 };
+      }
+      
+      const green = '\x1b[32m';
+      const yellow = '\x1b[33m';
+      const dim = '\x1b[2m';
+      const rst = '\x1b[0m';
+      
+      console.log(`${green}[no_power retry] ${devices.length} device(s) past 4h quarantine, attempting recovery:${rst}`);
+      for (const d of devices) {
+        const name = (d.device_name || d.serial_number).padEnd(30);
+        const hours = d.marked_unstable_at 
+          ? ((Date.now() - new Date(d.marked_unstable_at).getTime()) / 3600000).toFixed(1)
+          : '?';
+        console.log(`                  ${green}[retry]${rst}    ${dim}${name}${rst}  ${dim}(quarantined ${hours}h ago)${rst}`);
+      }
+      
+      let recovered = 0;
+      
+      for (const device of devices) {
+        if (this.connections.has(device.device_id)) {
+          logger.warn('no_power device already in pool, skipping', { deviceId: device.device_id });
+          continue;
+        }
+        
+        const cohortId = this.hashToCohort(device.serial_number);
+        
+        const conn = new DeviceConnection({
+          ...device,
+          cohort_id: cohortId,
+          consecutive_disconnects: 0,
+        });
+        
+        this.connections.set(device.device_id, conn);
+        
+        if (!this.cohorts.has(cohortId)) {
+          this.cohorts.set(cohortId, new Set());
+        }
+        this.cohorts.get(cohortId).add(device.device_id);
+        
+        const result = await conn.connect();
+        
+        if (result.success) {
+          recovered++;
+          const name = (device.device_name || device.serial_number).padEnd(30);
+          console.log(`                  ${green}[recovered]${rst} ${name}  ${dim}connected in ${result.durationMs}ms${rst}`);
+          
+          await db.resetDeviceStability(device.device_id);
+        } else {
+          this.connections.delete(device.device_id);
+          this.cohorts.get(cohortId)?.delete(device.device_id);
+          
+          await db.markDeviceUnstable(device.device_id, 'no_power');
+          
+          const name = (device.device_name || device.serial_number).padEnd(30);
+          console.log(`                  ${yellow}[still off]${rst} ${name}  ${dim}will retry in 4h${rst}`);
+        }
+        
+        if (devices.indexOf(device) < devices.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 5000));
+        }
+      }
+      
+      console.log(`${green}[no_power retry] Complete: ${recovered}/${devices.length} recovered${rst}`);
+      
+      return { attempted: devices.length, recovered };
+    } catch (err) {
+      logger.error('Error recovering no_power devices', { error: err.message });
       return { attempted: 0, recovered: 0, error: err.message };
     }
   }

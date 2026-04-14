@@ -118,6 +118,16 @@ async function main() {
       }
     }, 5 * 60 * 1000);
 
+    // Set up periodic no_power device recovery (every 30 minutes)
+    // Retries devices whose 4-hour quarantine has expired, one at a time
+    setInterval(async () => {
+      try {
+        await connectionPool.recoverNoPowerDevices();
+      } catch (err) {
+        logger.error('Failed to recover no_power devices', { error: err.message });
+      }
+    }, 30 * 60 * 1000);
+
     // Offline devices stay offline until an admin manually resets them
     // via the admin dashboard "Set Online" button. No automatic recovery.
 
