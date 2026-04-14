@@ -185,12 +185,12 @@ async function getActiveDevicesWithCredentials() {
     const rst = '\x1b[0m';
     console.log(`Skipping ${skippedResult.rows.length} offline/unstable devices:`);
     for (const d of skippedResult.rows) {
-      const status = `[${d.connection_status}]`.padEnd(11);
-      const name = (d.device_name || d.serial_number).padEnd(30);
+      const status = `[${d.connection_status}]`.padEnd(12);
+      const name = (d.device_name || d.serial_number).padEnd(40);
       const ttlInfo = d.connection_status === 'no_power' && d.hours_quarantined 
         ? ` (retry in ${Math.max(0, NO_POWER_TTL_HOURS - Math.floor(d.hours_quarantined))}h)`
         : '';
-      console.log(`                  ${red}${status}${rst}${dim}${name} (${d.consecutive_disconnects} disconnects)${ttlInfo}${rst}`);
+      console.log(`                  ${red}${status}${rst}${dim}${name}(${d.consecutive_disconnects} disconnects)${ttlInfo}${rst}`);
     }
   }
   
