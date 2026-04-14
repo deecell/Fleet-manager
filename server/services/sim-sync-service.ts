@@ -124,7 +124,17 @@ export class SimSyncService {
 
       for (const simProSim of simProResponse.sims) {
         try {
-          const deviceName = simProSim.custom_field1 || simProSim.custom_field2 || null;
+          let deviceName = simProSim.custom_field1 || simProSim.custom_field2 || null;
+
+          if (!deviceName && this.client) {
+            try {
+              await new Promise(resolve => setTimeout(resolve, 200));
+              const details = await this.client.getSimDetails(simProSim.msisdn);
+              deviceName = details.custom_field1 || details.custom_field2 || null;
+              simProSim.ip_address = simProSim.ip_address || details.ip_address;
+            } catch {
+            }
+          }
           
           let matchedDevice = null;
           let matchedTruck = null;
