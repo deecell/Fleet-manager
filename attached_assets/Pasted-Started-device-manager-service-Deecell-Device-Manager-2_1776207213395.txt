@@ -1,0 +1,141 @@
+Started device-manager.service - Deecell Device Manager.
+2026-04-14 22:53:09.025 INFO  PowerMon addon loaded successfully
+2026-04-14 22:53:09.032 INFO  Device Manager starting  pollInterval=10000  cohorts=10  batchFlushInterval=2000
+2026-04-14 22:53:09.032 INFO  Configuration validated
+2026-04-14 22:53:09.033 INFO  Database connection configured  host=deecell-fleet-production-postgres.cn4qsw8g8yyx.us-east-2.rds.amazonaws.com  database=deecell_fleet
+2026-04-14 22:53:09.033 INFO  Database pool initialized  poolSize=10
+2026-04-14 22:53:09.033 INFO  Database initialized
+2026-04-14 22:53:09.033 INFO  === STARTUP RECOVERY SWEEP ===
+2026-04-14 22:53:09.112 INFO  Recovery sweep: No stuck devices found
+2026-04-14 22:53:09.112 INFO  Initializing connection pool
+Skipping 3 offline/unstable devices:
+                  [no_power]  DCL-Thibert                              (0 disconnects) (retry in 5m)
+                  [no_power]  DCL-NHRA-Tech-Trailer                    (0 disconnects) (retry in 7m)
+                  [no_power]  DCL-Radian-2                             (0 disconnects) (retry in 6m)
+2026-04-14 22:53:09.124 INFO  Found active devices  count=15
+2026-04-14 22:53:09.154 INFO  Connection pool initialized  devices=15  cohorts=7
+2026-04-14 22:53:09.156 INFO  Batch writer started  flushIntervalMs=2000  maxBatchSize=500
+2026-04-14 22:53:09.156 INFO  === STARTUP: Connecting to all devices ===  deviceCount=15  timestamp=2026-04-14T22:53:09.156Z
+2026-04-14 22:53:09.156 INFO  Connecting device 1/15  serialNumber=A998463C2C69ABFD  deviceName=DCL-Moeck  cohort=6
+2026-04-14 22:53:09.156 INFO  Connecting to device  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+2026-04-14 22:53:09.164 INFO  Metrics server started  port=3001  metricsPath=/metrics  healthPath=/health
+2026-04-14 22:53:09.167 INFO  Connected successfully  deviceId=3  serial=A998463C2C69ABFD  cohort=6  durationMs=11
+2026-04-14 22:53:09.171 INFO  Device 1/15 connected  serialNumber=A998463C2C69ABFD  durationMs=11
+2026-04-14 22:53:09.171 INFO  Connecting device 2/15  serialNumber=B051375C222A5334  deviceName=DCL-Carter  cohort=4
+2026-04-14 22:53:09.171 INFO  Connecting to device  deviceId=5  serial=B051375C222A5334  cohort=4
+2026-04-14 22:53:09.180 INFO  Connected successfully  deviceId=5  serial=B051375C222A5334  cohort=4  durationMs=9
+2026-04-14 22:53:09.183 INFO  onDisconnect fired  deviceId=5  serial=B051375C222A5334  cohort=4  reason=2  connDurationMs=3  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=0
+2026-04-14 22:53:09.183 WARN  Rapid disconnect detected (error)  deviceId=5  serial=B051375C222A5334  cohort=4  reason=2  rapidDisconnects=1  connectionDurationMs=3
+2026-04-14 22:53:09.183 INFO  Device disconnected (unexpected)  deviceId=5  serial=B051375C222A5334  cohort=4  reason=2  isRapidDisconnect=true
+2026-04-14 22:53:09.184 INFO  Device 2/15 connected  serialNumber=B051375C222A5334  durationMs=9
+2026-04-14 22:53:09.185 INFO  Connecting device 3/15  serialNumber=E747AAFD3EEB003C  deviceName=DCL-KTR  cohort=4
+2026-04-14 22:53:09.185 INFO  Connecting to device  deviceId=6  serial=E747AAFD3EEB003C  cohort=4
+2026-04-14 22:53:09.194 INFO  Connected successfully  deviceId=6  serial=E747AAFD3EEB003C  cohort=4  durationMs=9
+2026-04-14 22:53:09.198 INFO  Device 3/15 connected  serialNumber=E747AAFD3EEB003C  durationMs=9
+2026-04-14 22:53:09.198 INFO  Connecting device 4/15  serialNumber=96FE5E88572C1995  deviceName=DCL-Haynes  cohort=1
+2026-04-14 22:53:09.198 INFO  Connecting to device  deviceId=7  serial=96FE5E88572C1995  cohort=1
+2026-04-14 22:53:09.207 INFO  Connected successfully  deviceId=7  serial=96FE5E88572C1995  cohort=1  durationMs=9
+2026-04-14 22:53:09.211 INFO  Device 4/15 connected  serialNumber=96FE5E88572C1995  durationMs=9
+2026-04-14 22:53:09.211 INFO  Connecting device 5/15  serialNumber=E844BD0A2017EB7A  deviceName=DCL-Kruse  cohort=5
+2026-04-14 22:53:09.211 INFO  Connecting to device  deviceId=8  serial=E844BD0A2017EB7A  cohort=5
+2026-04-14 22:53:09.220 INFO  Connected successfully  deviceId=8  serial=E844BD0A2017EB7A  cohort=5  durationMs=9
+2026-04-14 22:53:09.226 INFO  Device 5/15 connected  serialNumber=E844BD0A2017EB7A  durationMs=9
+2026-04-14 22:53:09.226 INFO  Connecting device 6/15  serialNumber=E6D8F89877415815  deviceName=DCL-Brown  cohort=6
+2026-04-14 22:53:09.226 INFO  Connecting to device  deviceId=9  serial=E6D8F89877415815  cohort=6
+2026-04-14 22:53:09.235 INFO  Connected successfully  deviceId=9  serial=E6D8F89877415815  cohort=6  durationMs=9
+2026-04-14 22:53:09.239 INFO  Scheduling reconnect  deviceId=5  serial=B051375C222A5334  cohort=4  attempt=1  delayMs=1000
+2026-04-14 22:53:09.240 INFO  Device 6/15 connected  serialNumber=E6D8F89877415815  durationMs=9
+2026-04-14 22:53:09.240 INFO  Connecting device 7/15  serialNumber=1B1034C2B3399A18  deviceName=DCL-Curtis-1  cohort=0
+2026-04-14 22:53:09.240 INFO  Connecting to device  deviceId=10  serial=1B1034C2B3399A18  cohort=0
+2026-04-14 22:53:09.249 INFO  Connected successfully  deviceId=10  serial=1B1034C2B3399A18  cohort=0  durationMs=9
+2026-04-14 22:53:09.253 INFO  Device 7/15 connected  serialNumber=1B1034C2B3399A18  durationMs=9
+2026-04-14 22:53:09.253 INFO  Connecting device 8/15  serialNumber=1A81067CFA117B5B  deviceName=DCL-Curtis-2  cohort=0
+2026-04-14 22:53:09.253 INFO  Connecting to device  deviceId=11  serial=1A81067CFA117B5B  cohort=0
+2026-04-14 22:53:09.261 INFO  Connected successfully  deviceId=11  serial=1A81067CFA117B5B  cohort=0  durationMs=8
+2026-04-14 22:53:09.265 INFO  Device 8/15 connected  serialNumber=1A81067CFA117B5B  durationMs=8
+2026-04-14 22:53:09.266 INFO  Connecting device 9/15  serialNumber=A93B7B8CC0D672FE  deviceName=DCL-Howard  cohort=8
+2026-04-14 22:53:09.266 INFO  Connecting to device  deviceId=12  serial=A93B7B8CC0D672FE  cohort=8
+2026-04-14 22:53:09.274 INFO  Connected successfully  deviceId=12  serial=A93B7B8CC0D672FE  cohort=8  durationMs=8
+2026-04-14 22:53:09.278 INFO  Device 9/15 connected  serialNumber=A93B7B8CC0D672FE  durationMs=8
+2026-04-14 22:53:09.279 INFO  Connecting device 10/15  serialNumber=623DECC4E318D957  deviceName=DCL-Elite-Hospitality  cohort=4
+2026-04-14 22:53:09.279 INFO  Connecting to device  deviceId=15  serial=623DECC4E318D957  cohort=4
+2026-04-14 22:53:09.290 INFO  Connected successfully  deviceId=15  serial=623DECC4E318D957  cohort=4  durationMs=11
+2026-04-14 22:53:09.294 INFO  Device 10/15 connected  serialNumber=623DECC4E318D957  durationMs=11
+2026-04-14 22:53:09.294 INFO  Connecting device 11/15  serialNumber=2622A846A1BD5441  deviceName=DCL-Epler  cohort=5
+2026-04-14 22:53:09.294 INFO  Connecting to device  deviceId=17  serial=2622A846A1BD5441  cohort=5
+2026-04-14 22:53:09.303 INFO  Connected successfully  deviceId=17  serial=2622A846A1BD5441  cohort=5  durationMs=9
+2026-04-14 22:53:09.307 INFO  Device 11/15 connected  serialNumber=2622A846A1BD5441  durationMs=9
+2026-04-14 22:53:09.307 INFO  Connecting device 12/15  serialNumber=4E0A83432AEE8967  deviceName=DCL-Kalitta-Hospitality  cohort=5
+2026-04-14 22:53:09.307 INFO  Connecting to device  deviceId=18  serial=4E0A83432AEE8967  cohort=5
+2026-04-14 22:53:09.316 INFO  Connected successfully  deviceId=18  serial=4E0A83432AEE8967  cohort=5  durationMs=9
+2026-04-14 22:53:09.320 INFO  Device 12/15 connected  serialNumber=4E0A83432AEE8967  durationMs=9
+2026-04-14 22:53:09.320 INFO  Connecting device 13/15  serialNumber=E18590457A387E04  deviceName=DCL-Moeck-Shop  cohort=2
+2026-04-14 22:53:09.320 INFO  Connecting to device  deviceId=20  serial=E18590457A387E04  cohort=2
+2026-04-14 22:53:09.328 INFO  Connected successfully  deviceId=20  serial=E18590457A387E04  cohort=2  durationMs=8
+2026-04-14 22:53:09.332 INFO  Device 13/15 connected  serialNumber=E18590457A387E04  durationMs=8
+2026-04-14 22:53:09.332 INFO  Connecting device 14/15  serialNumber=A8839FDD47E0D9B9  deviceName=DCL-Radian-1  cohort=1
+2026-04-14 22:53:09.332 INFO  Connecting to device  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1
+2026-04-14 22:53:09.341 INFO  Connected successfully  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  durationMs=9
+2026-04-14 22:53:09.345 INFO  Device 14/15 connected  serialNumber=A8839FDD47E0D9B9  durationMs=9
+2026-04-14 22:53:09.345 INFO  Connecting device 15/15  serialNumber=FE0B7F3AFF982430  deviceName=DCL-Penske01  cohort=4
+2026-04-14 22:53:09.345 INFO  Connecting to device  deviceId=26  serial=FE0B7F3AFF982430  cohort=4
+2026-04-14 22:53:09.354 INFO  Connected successfully  deviceId=26  serial=FE0B7F3AFF982430  cohort=4  durationMs=9
+2026-04-14 22:53:09.358 INFO  Device 15/15 connected  serialNumber=FE0B7F3AFF982430  durationMs=9
+2026-04-14 22:53:09.358 INFO  === STARTUP COMPLETE: Connection Summary ===  success=15  failed=0  skipped=0  timedOut=0  totalDurationMs=202  averageDurationMs=9
+2026-04-14 22:53:09.359 INFO  Starting polling scheduler  intervalMs=10000  cohorts=10  tickDurationMs=1000
+2026-04-14 22:53:09.359 INFO  Backfill service started  gapThresholdMs=30000  maxConcurrent=5
+2026-04-14 22:53:09.359 INFO  Starting SIM location poller  interval=60000  baseUrl=https://simpro4.wirelesslogic.com/api/v3
+2026-04-14 22:53:09.359 INFO  Starting InHand GPS location poller  interval=120000  baseUrl=https://iot.inhandnetworks.com
+2026-04-14 22:53:09.360 INFO  InHand API: Authenticating  username=andy@deecell.com  baseUrl=https://iot.inhandnetworks.com
+2026-04-14 22:53:09.365 INFO  Starting SIM sync service  interval=600000  baseUrl=https://simpro4.wirelesslogic.com/api/v3
+2026-04-14 22:53:09.365 INFO  Device Manager started successfully  devices=15  status=running
+2026-04-14 22:53:09.401 INFO  Fetched device info from PowerMon  deviceId=6  serial=E747AAFD3EEB003C  cohort=4  serialNumber=E747AAFD3EEB003C  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-KTR
+2026-04-14 22:53:09.403 INFO  Updated device info  deviceId=6  serialNumber=E747AAFD3EEB003C  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-KTR
+2026-04-14 22:53:09.425 INFO  Fetched device info from PowerMon  deviceId=12  serial=A93B7B8CC0D672FE  cohort=8  serialNumber=A93B7B8CC0D672FE  firmwareVersion=1.33  hardwareRevision=PowerMon-W  deviceName=DCL-Howard
+2026-04-14 22:53:09.428 INFO  Updated device info  deviceId=12  serialNumber=A93B7B8CC0D672FE  firmwareVersion=1.33  hardwareRevision=PowerMon-W  deviceName=DCL-Howard
+2026-04-14 22:53:09.604 INFO  Fetched device info from PowerMon  deviceId=3  serial=A998463C2C69ABFD  cohort=6  serialNumber=A998463C2C69ABFD  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Moeck
+2026-04-14 22:53:09.607 INFO  Updated device info  deviceId=3  serialNumber=A998463C2C69ABFD  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Moeck
+2026-04-14 22:53:09.669 INFO  InHand API: Authenticated successfully  expiresIn=3599  hasRefreshToken=true
+2026-04-14 22:53:09.823 INFO  Fetched device info from PowerMon  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  serialNumber=A8839FDD47E0D9B9  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Radian-1
+2026-04-14 22:53:09.824 INFO  InHand GPS locations updated  totalDevices=48  devicesWithLocation=12  simsMatched=8  trucksUpdated=8  unmatchedDevices=RF3022529634065(msisdn=null,iccid=8931086125129524336F); IR302_10(msisdn=883190603748135,iccid=89444611503508862610); IR302_13(msisdn=883190603748137,iccid=89444611503508862677); IR302_15(msisdn=883190603748136,iccid=89444611503508862651)  durationMs=464
+2026-04-14 22:53:09.825 INFO  Updated device info  deviceId=21  serialNumber=A8839FDD47E0D9B9  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Radian-1
+2026-04-14 22:53:09.871 INFO  Fetched device info from PowerMon  deviceId=15  serial=623DECC4E318D957  cohort=4  serialNumber=623DECC4E318D957  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Elite-Hospitality
+2026-04-14 22:53:09.873 INFO  Updated device info  deviceId=15  serialNumber=623DECC4E318D957  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Elite-Hospitality
+2026-04-14 22:53:09.918 INFO  Fetched device info from PowerMon  deviceId=8  serial=E844BD0A2017EB7A  cohort=5  serialNumber=E844BD0A2017EB7A  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Kruse
+2026-04-14 22:53:09.921 INFO  Updated device info  deviceId=8  serialNumber=E844BD0A2017EB7A  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Kruse
+2026-04-14 22:53:09.933 INFO  Fetched device info from PowerMon  deviceId=20  serial=E18590457A387E04  cohort=2  serialNumber=E18590457A387E04  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Moeck-Shop
+2026-04-14 22:53:09.935 INFO  Updated device info  deviceId=20  serialNumber=E18590457A387E04  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Moeck-Shop
+2026-04-14 22:53:09.948 INFO  Fetched device info from PowerMon  deviceId=7  serial=96FE5E88572C1995  cohort=1  serialNumber=96FE5E88572C1995  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Haynes
+2026-04-14 22:53:09.949 INFO  Updated device info  deviceId=7  serialNumber=96FE5E88572C1995  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Haynes
+2026-04-14 22:53:09.965 INFO  Fetched device info from PowerMon  deviceId=18  serial=4E0A83432AEE8967  cohort=5  serialNumber=4E0A83432AEE8967  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Kalitta-Hospitality
+2026-04-14 22:53:09.967 INFO  Updated device info  deviceId=18  serialNumber=4E0A83432AEE8967  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Kalitta-Hospitality
+2026-04-14 22:53:09.978 INFO  SIM locations updated  simsPolled=16  locationsUpdated=16  trucksUpdated=16  durationMs=619
+2026-04-14 22:53:10.010 INFO  Fetched device info from PowerMon  deviceId=26  serial=FE0B7F3AFF982430  cohort=4  serialNumber=FE0B7F3AFF982430  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Penske01
+2026-04-14 22:53:10.012 INFO  Updated device info  deviceId=26  serialNumber=FE0B7F3AFF982430  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Penske01
+2026-04-14 22:53:10.241 INFO  Connecting to device  deviceId=5  serial=B051375C222A5334  cohort=4
+2026-04-14 22:53:10.250 INFO  Connected successfully  deviceId=5  serial=B051375C222A5334  cohort=4  durationMs=9
+2026-04-14 22:53:10.252 INFO  onDisconnect fired  deviceId=5  serial=B051375C222A5334  cohort=4  reason=2  connDurationMs=2  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=1
+2026-04-14 22:53:10.252 WARN  Rapid disconnect detected (error)  deviceId=5  serial=B051375C222A5334  cohort=4  reason=2  rapidDisconnects=2  connectionDurationMs=2
+2026-04-14 22:53:10.253 ERROR Circuit breaker OPEN - 2 instant disconnects, device appears powered off  deviceId=5  serial=B051375C222A5334  cohort=4  rapidDisconnects=2  instantDisconnects=2  connectionDurationMs=2  backoffMinutes=5  resetAt=2026-04-14T22:58:10.253Z
+2026-04-14 22:53:10.253 ERROR NATIVE LIBRARY COMPROMISED - blocking all native calls, scheduling graceful restart  deviceId=5  deviceName=DCL-Carter  status=no_power  restartInMs=3000
+2026-04-14 22:53:10.253 WARN  Marking device as no_power in database  deviceId=5
+2026-04-14 22:53:10.264 INFO  Fetched device info from PowerMon  deviceId=17  serial=2622A846A1BD5441  cohort=5  serialNumber=2622A846A1BD5441  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Epler
+2026-04-14 22:53:10.266 INFO  Updated device info  deviceId=17  serialNumber=2622A846A1BD5441  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Epler
+2026-04-14 22:53:10.341 INFO  Fetched device info from PowerMon  deviceId=10  serial=1B1034C2B3399A18  cohort=0  serialNumber=1B1034C2B3399A18  firmwareVersion=1.33  hardwareRevision=PowerMon-W  deviceName=DCL-Curtis-1
+2026-04-14 22:53:10.343 INFO  Updated device info  deviceId=10  serialNumber=1B1034C2B3399A18  firmwareVersion=1.33  hardwareRevision=PowerMon-W  deviceName=DCL-Curtis-1
+2026-04-14 22:53:10.438 INFO  Fetched device info from PowerMon  deviceId=11  serial=1A81067CFA117B5B  cohort=0  serialNumber=1A81067CFA117B5B  firmwareVersion=1.18  hardwareRevision=PowerMon-W  deviceName=DCL-Curtis-2
+2026-04-14 22:53:10.440 INFO  Updated device info  deviceId=11  serialNumber=1A81067CFA117B5B  firmwareVersion=1.18  hardwareRevision=PowerMon-W  deviceName=DCL-Curtis-2
+=== New Polling Cycle ===
+Skipping 4 offline/unstable devices:
+                  [no_power]  DCL-Carter                               (0 disconnects) (retry in 30m)
+                  [no_power]  DCL-Thibert                              (0 disconnects) (retry in 5m)
+                  [no_power]  DCL-NHRA-Tech-Trailer                    (0 disconnects) (retry in 7m)
+                  [no_power]  DCL-Radian-2                             (0 disconnects) (retry in 6m)
+2026-04-14 22:53:10.489 INFO  Removing device from pool (no longer active)  deviceId=5  serialNumber=B051375C222A5334  deviceName=DCL-Carter
+2026-04-14 22:53:10.489 INFO  Disconnected  deviceId=5  serial=B051375C222A5334  cohort=4
+2026-04-14 22:53:10.533 INFO  Fetched device info from PowerMon  deviceId=9  serial=E6D8F89877415815  cohort=6  serialNumber=E6D8F89877415815  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Brown
+2026-04-14 22:53:10.536 INFO  Updated device info  deviceId=9  serialNumber=E6D8F89877415815  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Brown
+2026-04-14 22:53:13.253 ERROR Exiting process for clean native library restart
+device-manager.service: Main process exited, code=exited, status=1/FAILURE
+device-manager.service: Failed with result 'exit-code'.
+device-manager.service: Consumed 4.829s CPU time.
