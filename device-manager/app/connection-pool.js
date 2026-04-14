@@ -52,6 +52,9 @@ const RAPID_DISCONNECT_THRESHOLD_MS = 5000; // Disconnect within 5s of connect =
 const MAX_RAPID_DISCONNECTS = 3; // After 3 rapid disconnects, mark as unstable/no_power
 const UNSTABLE_BACKOFF_MS = 300000; // 5 minutes backoff for unstable devices
 const OFFLINE_BACKOFF_MS = 600000; // 10 minutes backoff for offline devices
+const NO_POWER_INSTANT_THRESHOLD_MS = 200; // Connection shorter than this = "instant" (was 100ms)
+const POST_ERROR_RECONNECT_DELAY_MS = 5000; // Longer delay after a poll failure before reconnecting
+const RAPID_DISCONNECT_GRACE_RECONNECTS = 2; // Don't count rapid disconnects for the first N reconnects after a poll failure
 
 /**
  * Ping an applink URL to check if the device router is reachable
@@ -130,6 +133,8 @@ class DeviceConnection {
     this.isCircuitOpen = false; // If true, don't try to connect
     this.circuitResetAt = null; // When to try again
     this.intentionalDisconnect = false; // Flag to track intentional vs error disconnects
+    this.graceReconnectsRemaining = 0; // Grace period after poll failure — don't count rapid disconnects
+    this.hadRecentPollFailure = false; // Track if last disconnect was preceded by a poll failure
     
     this.log = logger.child({ 
       deviceId: this.deviceId, 
@@ -281,6 +286,20 @@ class DeviceConnection {
               connDurationMs !== null && connDurationMs < RAPID_DISCONNECT_THRESHOLD_MS;
             
             if (isRapidDisconnect) {
+              if (this.graceReconnectsRemaining > 0) {
+                this.graceReconnectsRemaining--;
+                this.log.info('Rapid disconnect during grace period, not counting', {
+                  reason,
+                  connectionDurationMs: connDurationMs,
+                  graceRemaining: this.graceReconnectsRemaining,
+                });
+                this.status = 'disconnected';
+                db.markDeviceDisconnected(this.deviceId, this.lastSuccessfulPollAt, reason)
+                  .catch(err => this.log.error('Failed to update disconnect status', { error: err.message }));
+                this.scheduleReconnect();
+                return;
+              }
+
               this.rapidDisconnectCount++;
               if (!this.rapidDisconnectDurations) this.rapidDisconnectDurations = [];
               this.rapidDisconnectDurations.push(connDurationMs);
@@ -290,15 +309,14 @@ class DeviceConnection {
                 connectionDurationMs: connDurationMs
               });
               
-              // Instant disconnect (< 100ms) = likely no-power.
+              // Instant disconnect (< 200ms) = likely no-power.
               // Open circuit breaker after 2 instant disconnects to prevent
               // native library corruption (crashes at 3+ cycles).
               // Using 2 instead of 1: a single transient network hiccup can
-              // produce a fast disconnect, but two consecutive < 100ms
+              // produce a fast disconnect, but two consecutive instant
               // disconnects is almost certainly a no-power device.
-              const NO_POWER_THRESHOLD_MS = 100;
-              const isInstantDisconnect = connDurationMs < NO_POWER_THRESHOLD_MS;
-              const instantDisconnectCount = (this.rapidDisconnectDurations || []).filter(d => d < NO_POWER_THRESHOLD_MS).length;
+              const isInstantDisconnect = connDurationMs < NO_POWER_INSTANT_THRESHOLD_MS;
+              const instantDisconnectCount = (this.rapidDisconnectDurations || []).filter(d => d < NO_POWER_INSTANT_THRESHOLD_MS).length;
               const shouldOpenCircuit = (isInstantDisconnect && instantDisconnectCount >= 2) || 
                 this.rapidDisconnectCount >= MAX_RAPID_DISCONNECTS;
               
@@ -502,6 +520,11 @@ class DeviceConnection {
 
             // Mark as disconnected if too many failures
             if (this.consecutiveFailures >= 3) {
+              this.hadRecentPollFailure = true;
+              this.graceReconnectsRemaining = RAPID_DISCONNECT_GRACE_RECONNECTS;
+              this.log.info('Poll failure threshold reached, granting reconnect grace period', {
+                graceReconnects: RAPID_DISCONNECT_GRACE_RECONNECTS,
+              });
               // Persist the failure to DB first (this increments consecutive_disconnects)
               db.markDeviceDisconnected(this.deviceId, this.lastSuccessfulPollAt)
                 .then(() => {
@@ -519,6 +542,8 @@ class DeviceConnection {
           const data = result.data;
           this.lastSuccessfulPollAt = this.lastPollAt;
           this.consecutiveFailures = 0;
+          this.hadRecentPollFailure = false;
+          this.graceReconnectsRemaining = 0;
           
           // Reset rapid disconnect counter on successful poll
           // This gives the device a clean slate after stable operation
@@ -584,10 +609,15 @@ class DeviceConnection {
       return;
     }
 
-    const delay = Math.min(
+    let delay = Math.min(
       config.connection.baseReconnectDelayMs * Math.pow(2, this.reconnectAttempts),
       config.connection.maxReconnectDelayMs
     );
+
+    if (this.hadRecentPollFailure && this.reconnectAttempts === 0) {
+      delay = Math.max(delay, POST_ERROR_RECONNECT_DELAY_MS);
+      this.log.info('Using longer reconnect delay after poll failure', { delayMs: delay });
+    }
 
     this.status = 'reconnecting';
     this.reconnectAttempts++;
