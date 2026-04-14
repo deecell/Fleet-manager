@@ -6,6 +6,17 @@
 
 ## Latest Updates (April 14, 2026)
 
+### Global Native Library Shutdown Flag (April 14, 2026)
+- **Problem**: When a device (e.g., DCL-Thibert) triggers the circuit breaker, the process schedules a graceful exit in 3 seconds. During that window, other devices continue polling via the native C++ library, which is now corrupted. This causes `terminate called without an active exception` → core dump (SIGABRT)
+- **Fix**: Added `nativeLibraryShutdown` module-level flag in `connection-pool.js`
+  - Set to `true` immediately when any circuit breaker fires
+  - Checked before ALL native library calls: `connect()`, `poll()`, `fetchAndUpdateDeviceInfo()`, `disconnect()`
+  - When flag is set: `connect()` returns skipped, `poll()` returns null, `fetchAndUpdateDeviceInfo()` returns early, `disconnect()` nulls device reference without calling native disconnect
+  - Result: The 3-second graceful exit window is now safe — no device touches the native library after corruption is detected
+- **Before**: Process crashed with core dump within seconds of circuit breaker
+- **After**: Process exits cleanly via `process.exit(1)` after 3 seconds, systemd restarts with clean native state
+- **Files changed**: `device-manager/app/connection-pool.js`
+
 ### Periodic No-Power Device Auto-Retry (April 14, 2026)
 - **Added `recoverNoPowerDevices()`** to connection pool — periodically retries `no_power` devices whose 30-minute quarantine has expired
   - Runs every 30 minutes via `setInterval` in `index.js`

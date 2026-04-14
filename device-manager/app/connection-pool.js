@@ -47,6 +47,11 @@ if (process.env.SIMULATION_MODE === 'true' || process.env.SIMULATION_MODE === '1
 /**
  * Connection state for a single device
  */
+// Global shutdown flag - set when any device triggers a circuit breaker crash.
+// Prevents ALL devices from making native library calls during the graceful exit window,
+// since the native C++ library's global state is corrupted and any call can SIGABRT.
+let nativeLibraryShutdown = false;
+
 // Circuit breaker configuration
 const RAPID_DISCONNECT_THRESHOLD_MS = 5000; // Disconnect within 5s of connect = rapid
 const MAX_RAPID_DISCONNECTS = 3; // After 3 rapid disconnects, mark as unstable/no_power
@@ -194,6 +199,11 @@ class DeviceConnection {
       return Promise.resolve({ success: false, durationMs: Date.now() - connectStartTime });
     }
 
+    if (nativeLibraryShutdown) {
+      this.log.debug('Skipping connection - native library shutdown in progress');
+      return Promise.resolve({ success: false, durationMs: 0, skipped: true });
+    }
+
     if (this.status === 'connected') {
       return Promise.resolve({ success: true, durationMs: 0 });
     }
@@ -229,10 +239,13 @@ class DeviceConnection {
           this.log.warn('Connection timeout', { durationMs });
           this.status = 'disconnected';
           if (this.device) {
-            // Mark as non-intentional error disconnect before native teardown
-            this.intentionalDisconnect = false;
-            this.device.disconnect();
-            this.device = null;
+            if (nativeLibraryShutdown) {
+              this.device = null;
+            } else {
+              this.intentionalDisconnect = false;
+              this.device.disconnect();
+              this.device = null;
+            }
           }
           resolve({ success: false, durationMs, timedOut: true });
         }, 15000);
@@ -368,7 +381,8 @@ class DeviceConnection {
                 // on later native callbacks (SIGABRT crash). The ONLY safe action is to
                 // exit the process so systemd restarts it with a clean native library.
                 // We delay 3 seconds to allow the DB write and any in-flight writes to complete.
-                logger.error('NATIVE LIBRARY COMPROMISED - scheduling graceful restart', {
+                nativeLibraryShutdown = true;
+                logger.error('NATIVE LIBRARY COMPROMISED - blocking all native calls, scheduling graceful restart', {
                   deviceId: this.deviceId,
                   deviceName: this.deviceName,
                   status,
@@ -441,14 +455,17 @@ class DeviceConnection {
    */
   disconnect(intentional = true) {
     if (this.device) {
-      try {
-        // Mark as intentional so circuit breaker doesn't count it
-        this.intentionalDisconnect = intentional;
-        this.device.disconnect();
-      } catch (err) {
-        this.log.warn('Error during disconnect', { error: err.message });
+      if (nativeLibraryShutdown) {
+        this.device = null;
+      } else {
+        try {
+          this.intentionalDisconnect = intentional;
+          this.device.disconnect();
+        } catch (err) {
+          this.log.warn('Error during disconnect', { error: err.message });
+        }
+        this.device = null;
       }
-      this.device = null;
     }
     
     if (this.reconnectTimer) {
@@ -465,7 +482,7 @@ class DeviceConnection {
    * Called on first successful connection to auto-populate device details
    */
   async fetchAndUpdateDeviceInfo() {
-    if (!this.device || this.status !== 'connected' || this.isCircuitOpen) return;
+    if (nativeLibraryShutdown || !this.device || this.status !== 'connected' || this.isCircuitOpen) return;
     
     try {
       const device = this.device;
@@ -503,7 +520,7 @@ class DeviceConnection {
    * Poll the device for current data
    */
   poll() {
-    if (this.status !== 'connected' || !this.device) {
+    if (nativeLibraryShutdown || this.status !== 'connected' || !this.device) {
       return Promise.resolve(null);
     }
 
@@ -606,6 +623,8 @@ class DeviceConnection {
    * Schedule a reconnection attempt with exponential backoff
    */
   scheduleReconnect() {
+    if (nativeLibraryShutdown) return;
+
     if (this.reconnectAttempts >= config.connection.maxReconnectAttempts) {
       this.log.error('Max reconnect attempts reached');
       return;
