@@ -69,7 +69,7 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
   - **Device level**: `is_active` on `device_credentials` controls whether the device is polled (admin-only). Fleet routes strip `isActive` from truck payloads.
   - Device manager queries only check `c.is_active` (credential), not `t.is_active` (truck).
 - **Circuit Breaker**: Protects against devices that corrupt the native C++ library:
-  - `no_power` (2 instant disconnects <200ms): TTL quarantine for 4 hours. Auto-retried every 30 minutes (after quarantine expires). Process self-restarts after marking to discard corrupted native state.
+  - `no_power` (2 instant disconnects <200ms): 30-minute quarantine, auto-retried every 30 minutes. On startup, ALL no_power devices are retried. Process self-restarts after marking to discard corrupted native state.
   - `unstable` (3 rapid disconnects >100ms): Auto-reset on startup. Process self-restarts.
   - `offline` (admin-set): Never auto-reset, requires admin "Set Online".
   - After any circuit breaker event, the process exits gracefully (3s delay for DB writes) and systemd restarts it with a clean native library.

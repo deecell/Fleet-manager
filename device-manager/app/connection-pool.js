@@ -51,7 +51,7 @@ if (process.env.SIMULATION_MODE === 'true' || process.env.SIMULATION_MODE === '1
 const RAPID_DISCONNECT_THRESHOLD_MS = 5000; // Disconnect within 5s of connect = rapid
 const MAX_RAPID_DISCONNECTS = 3; // After 3 rapid disconnects, mark as unstable/no_power
 const UNSTABLE_BACKOFF_MS = 300000; // 5 minutes backoff for unstable devices
-const NO_POWER_QUARANTINE_MS = 4 * 60 * 60 * 1000; // 4 hours quarantine for no_power devices
+const NO_POWER_QUARANTINE_MS = 30 * 60 * 1000; // 30 minutes quarantine for no_power devices
 const NO_POWER_RETRY_INTERVAL_MS = 30 * 60 * 1000; // Check every 30 minutes
 const OFFLINE_BACKOFF_MS = 600000; // 10 minutes backoff for offline devices
 const NO_POWER_INSTANT_THRESHOLD_MS = 200; // Connection shorter than this = "instant" (was 100ms)
@@ -1162,14 +1162,14 @@ class ConnectionPool {
       const ts = new Date().toISOString().slice(11, 19);
       
       console.log('');
-      console.log(`${dim}${ts}${rst} ${green}AUTO ${rst} ${bold}Retrying ${devices.length} no_power device(s) (quarantine expired after 4h):${rst}`);
+      console.log(`${dim}${ts}${rst} ${green}AUTO ${rst} ${bold}Retrying ${devices.length} no_power device(s) (quarantine expired after 30m):${rst}`);
       for (const d of devices) {
         const tag = '[retry]'.padEnd(12);
         const name = (d.device_name || d.serial_number).padEnd(41);
-        const hours = d.marked_unstable_at 
-          ? ((Date.now() - new Date(d.marked_unstable_at).getTime()) / 3600000).toFixed(1)
+        const mins = d.marked_unstable_at 
+          ? Math.round((Date.now() - new Date(d.marked_unstable_at).getTime()) / 60000)
           : '?';
-        console.log(`                  ${green}${tag}${rst}${dim}${name}${rst}${dim}(${hours}h since quarantine)${rst}`);
+        console.log(`                  ${green}${tag}${rst}${dim}${name}${rst}${dim}(quarantined ${mins}m ago)${rst}`);
       }
       
       let recovered = 0;
@@ -1213,7 +1213,7 @@ class ConnectionPool {
           
           const tag = '[still off]'.padEnd(12);
           const name = (device.device_name || device.serial_number).padEnd(41);
-          console.log(`${dim}${rts}${rst} ${yellow}AUTO ${rst} ${yellow}${tag}${rst}${dim}${name}will retry in 4h${rst}`);
+          console.log(`${dim}${rts}${rst} ${yellow}AUTO ${rst} ${yellow}${tag}${rst}${dim}${name}will retry in 30m${rst}`);
         }
         
         if (devices.indexOf(device) < devices.length - 1) {

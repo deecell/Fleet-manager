@@ -7,15 +7,17 @@
 ## Latest Updates (April 14, 2026)
 
 ### Periodic No-Power Device Auto-Retry (April 14, 2026)
-- **Added `recoverNoPowerDevices()`** to connection pool — periodically retries `no_power` devices whose 4-hour quarantine has expired
+- **Added `recoverNoPowerDevices()`** to connection pool — periodically retries `no_power` devices whose 30-minute quarantine has expired
   - Runs every 30 minutes via `setInterval` in `index.js`
   - Tries devices one at a time with 5-second gaps to protect the native library
   - If device connects successfully → calls `resetDeviceStability()` to bring it back online
-  - If device fails again → resets `marked_unstable_at` to restart the 4-hour quarantine timer
-  - Compact colored log output: `[no_power retry]` header, per-device `[retry]`/`[recovered]`/`[still off]` lines
+  - If device fails again → resets `marked_unstable_at` to restart the 30-minute quarantine timer
+  - Compact colored log output with `AUTO` tag: `[retry]`/`[recovered]`/`[still off]` per device
+- **Startup: retries ALL no_power devices** — on process restart, every no_power device is retried regardless of quarantine time (fresh native library = safe to try all)
 - **Added `getNoPowerDevicesReadyForRecovery()`** DB query in `database.js`
-  - Selects `no_power` devices where `marked_unstable_at < NOW() - 4 hours` and `is_active = true`
-- **Behavior summary**: `no_power` quarantine is 4h, check runs every 30m, `unstable` backoff is 5m (checked every 5m), `offline` is admin-only (never auto-recovered)
+  - Selects `no_power` devices where `marked_unstable_at < NOW() - 30 minutes` and `is_active = true`
+- **Skipped device log updated**: Shows exact minutes remaining (`retry in 12m`) instead of hours
+- **Behavior summary**: `no_power` quarantine is 30m (check every 30m), `unstable` backoff is 5m (checked every 5m), `offline` is admin-only (never auto-recovered)
 - **Files changed**: `device-manager/app/connection-pool.js`, `device-manager/app/database.js`, `device-manager/app/index.js`
 
 ### SIM Sync Moved to Device Manager (April 14, 2026)
