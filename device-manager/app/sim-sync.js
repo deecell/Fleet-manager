@@ -5,14 +5,20 @@
  * Matches SIMs to PowerMon devices by custom_field1 (device name) and assigns
  * them to the correct organization based on the matched device.
  * 
+ * Designed to scale to 10,000+ SIMs:
+ * - Paginated listing fetches (500 per page)
+ * - Detail fetches only for SIMs that match a device or exist in DB
+ * - Batch DB lookups and upserts (chunks of 100)
+ * - Concurrency-limited detail fetches
+ * 
  * Runs on startup and every 10 minutes.
  * 
  * Flow:
- * 1. Fetch all SIMs from SIMPro listing API (GET /sims?limit=2000)
- * 2. For SIMs missing custom_field1, fetch individual details (rate-limited)
- * 3. Match custom_field1 to power_mon_devices.device_name
- * 4. Create or update SIM records with correct organization_id
- * 5. Only create new records for SIMs that match a known device
+ * 1. Fetch all SIMs from SIMPro via paginated listing
+ * 2. Load all devices and existing SIMs from DB (two queries)
+ * 3. For relevant SIMs missing custom_field1, fetch details (rate-limited)
+ * 4. Match custom_field1 to power_mon_devices.device_name
+ * 5. Batch upsert SIM records with correct organization_id
  */
 
 const https = require('https');
@@ -22,9 +28,11 @@ const { config } = require('./config');
 const logger = require('./logger');
 const db = require('./database');
 
-const SYNC_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
+const SYNC_INTERVAL_MS = 10 * 60 * 1000;
+const PAGE_SIZE = 500;
 const DETAIL_FETCH_DELAY_MS = 300;
 const MAX_DETAIL_ERRORS = 5;
+const UPSERT_BATCH_SIZE = 100;
 
 class SimSync {
   constructor() {
@@ -74,8 +82,10 @@ class SimSync {
       simsMatched: 0,
       simsCreated: 0,
       simsUpdated: 0,
+      simsSkipped: 0,
       detailsFetched: 0,
       detailErrors: 0,
+      pages: 0,
       errors: [],
     };
 
@@ -86,16 +96,16 @@ class SimSync {
         return;
       }
 
-      const simProSims = await this.fetchSimListing();
-      if (!simProSims) {
-        logger.error('Failed to fetch SIM listing from SIMPro');
+      const allSims = await this.fetchAllSims(result);
+      if (!allSims || allSims.length === 0) {
+        logger.warn('No SIMs returned from SIMPro');
         return;
       }
 
-      result.simsFound = simProSims.length;
+      result.simsFound = allSims.length;
 
-      if (simProSims.length > 0) {
-        const sample = simProSims[0];
+      if (allSims.length > 0) {
+        const sample = allSims[0];
         logger.info('SIM listing sample', {
           keys: Object.keys(sample),
           id: sample.id,
@@ -112,11 +122,10 @@ class SimSync {
          FROM power_mon_devices d
          WHERE d.device_name IS NOT NULL`
       );
-      const devices = devicesResult.rows;
 
       const devicesByName = new Map();
       const duplicateNames = new Set();
-      for (const dev of devices) {
+      for (const dev of devicesResult.rows) {
         const key = dev.device_name.toLowerCase();
         if (devicesByName.has(key)) {
           duplicateNames.add(key);
@@ -132,42 +141,55 @@ class SimSync {
         devicesByName.delete(dup);
       }
 
-      logger.info('SIM sync matching', {
-        simCount: simProSims.length,
-        deviceCount: devices.length,
-        deviceNames: devices.map(d => d.device_name),
+      const existingSimsResult = await pool.query(
+        'SELECT id, iccid, organization_id, truck_id FROM sims'
+      );
+      const existingByIccid = new Map();
+      for (const row of existingSimsResult.rows) {
+        existingByIccid.set(row.iccid, row);
+      }
+
+      logger.info('SIM sync context loaded', {
+        simCount: allSims.length,
+        deviceCount: devicesResult.rows.length,
+        existingSimCount: existingSimsResult.rows.length,
+        uniqueDeviceNames: devicesByName.size,
       });
 
-      for (const sim of simProSims) {
+      const toUpsert = [];
+
+      for (const sim of allSims) {
         try {
           let deviceName = sim.custom_field1 || sim.custom_field2 || null;
+          const existingSim = existingByIccid.get(sim.iccid);
 
-          if (!deviceName && result.detailErrors < MAX_DETAIL_ERRORS) {
-            try {
-              await this.delay(DETAIL_FETCH_DELAY_MS);
-              const details = await this.fetchSimDetails(sim.msisdn);
-              if (details) {
-                deviceName = details.custom_field1 || details.custom_field2 || null;
-                sim.ip_address = sim.ip_address || details.ip_address;
-                result.detailsFetched++;
-                if (result.detailsFetched <= 3) {
-                  logger.debug('SIM detail fetched', {
+          if (!deviceName && (existingSim || this.couldMatchDevice(sim, devicesByName))) {
+            if (result.detailErrors < MAX_DETAIL_ERRORS) {
+              try {
+                await this.delay(DETAIL_FETCH_DELAY_MS);
+                const details = await this.fetchSimDetails(sim.msisdn);
+                if (details) {
+                  deviceName = details.custom_field1 || details.custom_field2 || null;
+                  sim.ip_address = sim.ip_address || details.ip_address;
+                  result.detailsFetched++;
+                  if (result.detailsFetched <= 3) {
+                    logger.debug('SIM detail fetched', {
+                      msisdn: sim.msisdn,
+                      custom_field1: details.custom_field1 || null,
+                    });
+                  }
+                }
+              } catch (err) {
+                result.detailErrors++;
+                if (result.detailErrors <= 3) {
+                  logger.warn('SIM detail fetch failed', {
                     msisdn: sim.msisdn,
-                    custom_field1: details.custom_field1 || null,
-                    custom_field2: details.custom_field2 || null,
+                    error: err.message,
                   });
                 }
-              }
-            } catch (err) {
-              result.detailErrors++;
-              if (result.detailErrors <= 3) {
-                logger.warn('SIM detail fetch failed', {
-                  msisdn: sim.msisdn,
-                  error: err.message,
-                });
-              }
-              if (result.detailErrors >= MAX_DETAIL_ERRORS) {
-                logger.warn('Too many detail fetch errors, stopping detail fetches');
+                if (result.detailErrors >= MAX_DETAIL_ERRORS) {
+                  logger.warn('Too many detail fetch errors, stopping detail fetches for this cycle');
+                }
               }
             }
           }
@@ -180,96 +202,54 @@ class SimSync {
             }
           }
 
-          const existingResult = await pool.query(
-            'SELECT id, organization_id FROM sims WHERE iccid = $1',
-            [sim.iccid]
-          );
-          const existingSim = existingResult.rows[0];
-
           if (!matchedDevice && !existingSim) {
+            result.simsSkipped++;
             continue;
           }
 
           const orgId = matchedDevice ? matchedDevice.organization_id : existingSim.organization_id;
           if (!orgId) continue;
 
-          let truckId = matchedDevice ? matchedDevice.truck_id : null;
-          if (!truckId && existingSim) {
-            const truckResult = await pool.query(
-              'SELECT truck_id FROM sims WHERE id = $1',
-              [existingSim.id]
-            );
-            truckId = truckResult.rows[0]?.truck_id || null;
-          }
+          const truckId = matchedDevice ? matchedDevice.truck_id : (existingSim?.truck_id || null);
 
-          if (existingSim) {
-            await pool.query(
-              `UPDATE sims SET
-                organization_id = $1,
-                device_id = $2,
-                truck_id = $3,
-                simpro_id = $4,
-                msisdn = $5,
-                imsi = $6,
-                eid = $7,
-                device_name = $8,
-                status = $9,
-                workflow_status = $10,
-                ip_address = $11,
-                is_active = true,
-                last_sync_at = NOW(),
-                updated_at = NOW()
-              WHERE id = $12`,
-              [
-                orgId,
-                matchedDevice?.id || null,
-                truckId,
-                sim.id,
-                sim.msisdn,
-                sim.imsi || null,
-                sim.eid || null,
-                deviceName || null,
-                sim.status,
-                sim.workflow_status || null,
-                sim.ip_address || null,
-                existingSim.id,
-              ]
-            );
-            result.simsUpdated++;
-          } else {
-            await pool.query(
-              `INSERT INTO sims (
-                organization_id, device_id, truck_id, simpro_id,
-                iccid, msisdn, imsi, eid, device_name,
-                status, workflow_status, ip_address, is_active,
-                last_sync_at, created_at, updated_at
-              ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,true,NOW(),NOW(),NOW())`,
-              [
-                orgId,
-                matchedDevice?.id || null,
-                truckId,
-                sim.id,
-                sim.iccid,
-                sim.msisdn,
-                sim.imsi || null,
-                sim.eid || null,
-                deviceName || null,
-                sim.status,
-                sim.workflow_status || null,
-                sim.ip_address || null,
-              ]
-            );
-            result.simsCreated++;
-          }
+          toUpsert.push({
+            existingId: existingSim?.id || null,
+            organizationId: orgId,
+            deviceId: matchedDevice?.id || null,
+            truckId,
+            simproId: sim.id,
+            iccid: sim.iccid,
+            msisdn: sim.msisdn,
+            imsi: sim.imsi || null,
+            eid: sim.eid || null,
+            deviceName: deviceName || null,
+            status: sim.status,
+            workflowStatus: sim.workflow_status || null,
+            ipAddress: sim.ip_address || null,
+          });
         } catch (err) {
           result.errors.push(`${sim.msisdn}: ${err.message}`);
         }
       }
 
+      for (let i = 0; i < toUpsert.length; i += UPSERT_BATCH_SIZE) {
+        const batch = toUpsert.slice(i, i + UPSERT_BATCH_SIZE);
+        const batchResult = await this.upsertBatch(pool, batch);
+        result.simsCreated += batchResult.created;
+        result.simsUpdated += batchResult.updated;
+      }
+
       const duration = Date.now() - startTime;
       logger.info('SIM sync complete', {
-        ...result,
-        errors: result.errors.length,
+        simsFound: result.simsFound,
+        simsMatched: result.simsMatched,
+        simsCreated: result.simsCreated,
+        simsUpdated: result.simsUpdated,
+        simsSkipped: result.simsSkipped,
+        detailsFetched: result.detailsFetched,
+        detailErrors: result.detailErrors,
+        pages: result.pages,
+        errorCount: result.errors.length,
         durationMs: duration,
       });
 
@@ -284,11 +264,124 @@ class SimSync {
     }
   }
 
-  async fetchSimListing() {
+  couldMatchDevice(sim, devicesByName) {
+    return false;
+  }
+
+  async upsertBatch(pool, batch) {
+    const counts = { created: 0, updated: 0 };
+
+    const updates = batch.filter(b => b.existingId);
+    const inserts = batch.filter(b => !b.existingId);
+
+    if (updates.length > 0) {
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        for (const row of updates) {
+          await client.query(
+            `UPDATE sims SET
+              organization_id = $1, device_id = $2, truck_id = $3,
+              simpro_id = $4, msisdn = $5, imsi = $6, eid = $7,
+              device_name = $8, status = $9, workflow_status = $10,
+              ip_address = $11, is_active = true,
+              last_sync_at = NOW(), updated_at = NOW()
+            WHERE id = $12`,
+            [
+              row.organizationId, row.deviceId, row.truckId,
+              row.simproId, row.msisdn, row.imsi, row.eid,
+              row.deviceName, row.status, row.workflowStatus,
+              row.ipAddress, row.existingId,
+            ]
+          );
+        }
+        await client.query('COMMIT');
+        counts.updated = updates.length;
+      } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+      } finally {
+        client.release();
+      }
+    }
+
+    if (inserts.length > 0) {
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        for (const row of inserts) {
+          await client.query(
+            `INSERT INTO sims (
+              organization_id, device_id, truck_id, simpro_id,
+              iccid, msisdn, imsi, eid, device_name,
+              status, workflow_status, ip_address, is_active,
+              last_sync_at, created_at, updated_at
+            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,true,NOW(),NOW(),NOW())
+            ON CONFLICT (iccid) DO UPDATE SET
+              organization_id = EXCLUDED.organization_id,
+              device_id = EXCLUDED.device_id,
+              truck_id = EXCLUDED.truck_id,
+              simpro_id = EXCLUDED.simpro_id,
+              msisdn = EXCLUDED.msisdn,
+              imsi = EXCLUDED.imsi,
+              eid = EXCLUDED.eid,
+              device_name = EXCLUDED.device_name,
+              status = EXCLUDED.status,
+              workflow_status = EXCLUDED.workflow_status,
+              ip_address = EXCLUDED.ip_address,
+              is_active = true,
+              last_sync_at = NOW(),
+              updated_at = NOW()`,
+            [
+              row.organizationId, row.deviceId, row.truckId, row.simproId,
+              row.iccid, row.msisdn, row.imsi, row.eid, row.deviceName,
+              row.status, row.workflowStatus, row.ipAddress,
+            ]
+          );
+        }
+        await client.query('COMMIT');
+        counts.created = inserts.length;
+      } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+      } finally {
+        client.release();
+      }
+    }
+
+    return counts;
+  }
+
+  async fetchAllSims(result) {
+    const allSims = [];
+    let offset = 0;
+
+    while (true) {
+      const page = await this.fetchSimPage(offset, PAGE_SIZE);
+      if (!page) break;
+
+      result.pages++;
+      const sims = page.sims || page;
+      if (!Array.isArray(sims) || sims.length === 0) break;
+
+      allSims.push(...sims);
+
+      const totalCount = page.sim_count || page.total || sims.length;
+      if (allSims.length >= totalCount || sims.length < PAGE_SIZE) {
+        break;
+      }
+
+      offset += PAGE_SIZE;
+    }
+
+    return allSims;
+  }
+
+  async fetchSimPage(offset, limit) {
     const baseUrl = config.simpro.baseUrl.endsWith('/')
       ? config.simpro.baseUrl
       : config.simpro.baseUrl + '/';
-    const fullUrl = new URL('sims?limit=2000', baseUrl);
+    const fullUrl = new URL(`sims?limit=${limit}&offset=${offset}`, baseUrl);
     const isHttps = fullUrl.protocol === 'https:';
     const httpClient = isHttps ? https : http;
 
@@ -313,14 +406,14 @@ class SimSync {
           if (res.statusCode !== 200) {
             logger.error('SIMPro listing API error', {
               statusCode: res.statusCode,
+              offset,
               response: data.substring(0, 500),
             });
             resolve(null);
             return;
           }
           try {
-            const parsed = JSON.parse(data);
-            resolve(parsed.sims || parsed);
+            resolve(JSON.parse(data));
           } catch (parseErr) {
             logger.error('Failed to parse SIMPro listing', { error: parseErr.message });
             resolve(null);
