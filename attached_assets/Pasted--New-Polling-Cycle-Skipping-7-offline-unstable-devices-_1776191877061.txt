@@ -1,0 +1,21 @@
+=== New Polling Cycle ===
+Skipping 7 offline/unstable devices:
+                  [no_power]  DCL-Carter                               (0 disconnects) (retry in 1h)
+                  [no_power]  DCL-Epler                                (0 disconnects) (retry in 2h)
+                  [no_power]  DCL-NHRA-Tech-Trailer                    (0 disconnects) (retry in 2h)
+                  [no_power]  DCL-Moeck-Shop                           (0 disconnects) (retry in 2h)
+                  [no_power]  DCL-Moeck                                (0 disconnects) (retry in 2h)
+                  [no_power]  DCL-Radian-1                             (0 disconnects) (retry in 3h)
+                  [no_power]  DCL-Radian-2                             (0 disconnects) (retry in 2h)
+2026-04-14 18:35:30.153 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 27.23  v2=  0.0466  today= 1116m  month= 19836m  since=2025-12-29 23:38:54
+2026-04-14 18:35:30.159 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.66  v2=  0.0383  today= 1116m  month= 19836m  since=2025-12-29 23:38:19
+2026-04-14 18:35:32.167 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.65  v2=  0.0395  today= 1116m  month= 19836m  since=2025-12-29 23:22:12
+2026-04-14 18:35:32.174 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.86  v2=  0.0381  today= 1116m  month= 19681m  since=2026-01-09 21:34:37
+2026-04-14 18:35:34.184 INFO  DCL-KTR (KTR-01)                         driving  v1= 25.64  v2= 13.3706  today=   33m  month=   174m  since=2026-04-14 18:34:43
+2026-04-14 18:35:34.190 INFO  DCL-Penske01 (LFG-001)                   parked   v1= 13.69  v2=  0.0496  today= 1116m  month=  7224m  since=2026-04-09 15:26:18
+2026-04-14 18:35:34.196 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 26.73  v2= 13.6724  today=    0m  month=     1m  since=2026-04-13 07:25:56
+2026-04-14 18:35:36.205 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 55.75  v2=  0.0397  today= 1116m  month= 19719m  since=2026-02-16 19:41:58
+2026-04-14 18:35:36.211 INFO  DCL-Kruse (WKR-01)                       parked   v1= 28.72  v2=  0.0365  today= 1116m  month= 19836m  since=2025-12-29 23:27:57
+2026-04-14 18:35:38.219 INFO  DCL-Brown (RBR-01)                       parked   v1= 26.50  v2= 12.7368  today=  224m  month=  4426m  since=2026-04-14 14:51:26
+2026-04-14 18:35:38.566 INFO  SIM locations updated  simsPolled=16  locationsUpdated=16  trucksUpdated=16  durationMs=674
+2026-04-14 18:35:40.228 INFO  DCL-Howard (MHR-01)                      parked   v1= 27.77  v2=  0.0448  today= 1116m  month= 19836m  since=2025-12-30 22:17:33
