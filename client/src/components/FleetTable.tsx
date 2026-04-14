@@ -77,9 +77,9 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
   return (
     <div className="flex gap-3 w-full mt-[0px] mb-[0px] pt-[2px] pb-[2px] min-w-[1100px]">
       {/* Section 1: Truck & Location */}
-      <div className="bg-white rounded-b-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[30] mt-[21px] shrink-0 min-w-[650px]">
+      <div className="bg-white rounded-b-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-x-clip flex-[30] mt-[21px] shrink-0 min-w-[650px]">
         <table className="w-full">
-          <thead>
+          <thead className="sticky top-0 z-20">
             <tr className="bg-[#303030] h-[41px]">
               <th className="py-3 text-left pl-[14px] pr-[14px] rounded-tl-lg" style={{ width: '12%' }}>
                 <button 
@@ -157,9 +157,9 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
         </table>
       </div>
       {/* Section 2: Chassis */}
-      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[3] min-w-[70px] shrink-0">
+      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-x-clip flex-[3] min-w-[70px] shrink-0">
         <table className="w-full">
-          <thead>
+          <thead className="sticky top-0 z-20">
             <tr className="h-[21px]">
               <th className="bg-[#FFD7C0] text-[10px] font-medium text-[#FA4B1E] uppercase tracking-[0.7px] text-center rounded-t-lg px-2">
                 Chassis
@@ -187,9 +187,9 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
         </table>
       </div>
       {/* Section 3: Sleeper */}
-      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-hidden flex-[18] min-w-[350px] shrink-0">
+      <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.09)] overflow-x-clip flex-[18] min-w-[350px] shrink-0">
         <table className="w-full">
-          <thead>
+          <thead className="sticky top-0 z-20">
             <tr className="h-[21px]">
               <th colSpan={5} className="bg-[#FFD7C0] text-[10px] font-medium text-[#FA4B1E] uppercase tracking-[0.7px] text-center rounded-t-lg">
                 Sleeper
