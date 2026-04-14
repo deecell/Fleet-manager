@@ -108,9 +108,24 @@ export class SimSyncService {
       const simProResponse = await this.client.getSims({ limit: 2000 });
       result.simsFound = simProResponse.sim_count;
 
+      if (simProResponse.sims.length > 0) {
+        const sample = simProResponse.sims[0];
+        console.log('[SIM Sync] Sample SIM from listing:', JSON.stringify({
+          id: sample.id,
+          iccid: sample.iccid,
+          msisdn: sample.msisdn,
+          custom_field1: sample.custom_field1,
+          custom_field2: sample.custom_field2,
+          status: sample.status,
+          all_keys: Object.keys(sample),
+        }));
+      }
+
       const allDevices = organizationId
         ? await db.select().from(powerMonDevices).where(eq(powerMonDevices.organizationId, organizationId))
         : await db.select().from(powerMonDevices);
+
+      console.log(`[SIM Sync] Loaded ${allDevices.length} devices across ${organizationId ? '1 org' : 'all orgs'}`);
 
       const devicesByName = new Map<string, typeof allDevices[0]>();
       for (const device of allDevices) {
@@ -119,17 +134,30 @@ export class SimSyncService {
         }
       }
 
+      console.log(`[SIM Sync] Device names to match: ${Array.from(devicesByName.keys()).join(', ')}`);
+
+      let detailFetchCount = 0;
+      let detailFetchErrors = 0;
+
       for (const simProSim of simProResponse.sims) {
         try {
           let deviceName = simProSim.custom_field1 || simProSim.custom_field2 || null;
 
-          if (!deviceName && this.client) {
+          if (!deviceName && this.client && detailFetchErrors < 3) {
             try {
-              await new Promise(resolve => setTimeout(resolve, 200));
+              detailFetchCount++;
+              await new Promise(resolve => setTimeout(resolve, 300));
               const details = await this.client.getSimDetails(simProSim.msisdn);
               deviceName = details.custom_field1 || details.custom_field2 || null;
               simProSim.ip_address = simProSim.ip_address || details.ip_address;
-            } catch {
+              if (detailFetchCount <= 3) {
+                console.log(`[SIM Sync] Detail for ${simProSim.msisdn}: custom_field1=${details.custom_field1}, custom_field2=${details.custom_field2}`);
+              }
+            } catch (detailErr) {
+              detailFetchErrors++;
+              if (detailFetchErrors <= 3) {
+                console.log(`[SIM Sync] Detail fetch failed for ${simProSim.msisdn}: ${detailErr instanceof Error ? detailErr.message : 'unknown'}`);
+              }
             }
           }
 
@@ -201,6 +229,8 @@ export class SimSyncService {
           );
         }
       }
+
+      console.log(`[SIM Sync] Complete: found=${result.simsFound} matched=${result.simsMatched} created=${result.simsCreated} updated=${result.simsUpdated} detailFetches=${detailFetchCount} detailErrors=${detailFetchErrors} errors=${result.errors.length}`);
 
       if (organizationId) {
         await this.updateSyncTimestamp(organizationId, 'sim');
