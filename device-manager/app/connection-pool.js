@@ -1157,15 +1157,19 @@ class ConnectionPool {
       const green = '\x1b[32m';
       const yellow = '\x1b[33m';
       const dim = '\x1b[2m';
+      const bold = '\x1b[1m';
       const rst = '\x1b[0m';
+      const ts = new Date().toISOString().slice(11, 19);
       
-      console.log(`${green}[no_power retry] ${devices.length} device(s) past 4h quarantine, attempting recovery:${rst}`);
+      console.log('');
+      console.log(`${dim}${ts}${rst} ${green}AUTO ${rst} ${bold}Retrying ${devices.length} no_power device(s) (quarantine expired after 4h):${rst}`);
       for (const d of devices) {
-        const name = (d.device_name || d.serial_number).padEnd(30);
+        const tag = '[retry]'.padEnd(12);
+        const name = (d.device_name || d.serial_number).padEnd(41);
         const hours = d.marked_unstable_at 
           ? ((Date.now() - new Date(d.marked_unstable_at).getTime()) / 3600000).toFixed(1)
           : '?';
-        console.log(`                  ${green}[retry]${rst}    ${dim}${name}${rst}  ${dim}(quarantined ${hours}h ago)${rst}`);
+        console.log(`                  ${green}${tag}${rst}${dim}${name}${rst}${dim}(${hours}h since quarantine)${rst}`);
       }
       
       let recovered = 0;
@@ -1192,11 +1196,13 @@ class ConnectionPool {
         this.cohorts.get(cohortId).add(device.device_id);
         
         const result = await conn.connect();
+        const rts = new Date().toISOString().slice(11, 19);
         
         if (result.success) {
           recovered++;
-          const name = (device.device_name || device.serial_number).padEnd(30);
-          console.log(`                  ${green}[recovered]${rst} ${name}  ${dim}connected in ${result.durationMs}ms${rst}`);
+          const tag = '[recovered]'.padEnd(12);
+          const name = (device.device_name || device.serial_number).padEnd(41);
+          console.log(`${dim}${rts}${rst} ${green}AUTO ${rst} ${green}${tag}${rst}${bold}${name}${rst}${dim}connected in ${result.durationMs}ms${rst}`);
           
           await db.resetDeviceStability(device.device_id);
         } else {
@@ -1205,8 +1211,9 @@ class ConnectionPool {
           
           await db.markDeviceUnstable(device.device_id, 'no_power');
           
-          const name = (device.device_name || device.serial_number).padEnd(30);
-          console.log(`                  ${yellow}[still off]${rst} ${name}  ${dim}will retry in 4h${rst}`);
+          const tag = '[still off]'.padEnd(12);
+          const name = (device.device_name || device.serial_number).padEnd(41);
+          console.log(`${dim}${rts}${rst} ${yellow}AUTO ${rst} ${yellow}${tag}${rst}${dim}${name}will retry in 4h${rst}`);
         }
         
         if (devices.indexOf(device) < devices.length - 1) {
@@ -1214,7 +1221,14 @@ class ConnectionPool {
         }
       }
       
-      console.log(`${green}[no_power retry] Complete: ${recovered}/${devices.length} recovered${rst}`);
+      const sts = new Date().toISOString().slice(11, 19);
+      const failed = devices.length - recovered;
+      const summary = recovered > 0 
+        ? `${green}${recovered} recovered${rst}` 
+        : `${yellow}0 recovered${rst}`;
+      const failedText = failed > 0 ? `, ${dim}${failed} still offline${rst}` : '';
+      console.log(`${dim}${sts}${rst} ${green}AUTO ${rst} ${bold}No-power retry complete:${rst} ${summary}${failedText}`);
+      console.log('');
       
       return { attempted: devices.length, recovered };
     } catch (err) {
