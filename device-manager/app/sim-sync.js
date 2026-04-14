@@ -31,6 +31,8 @@ const db = require('./database');
 const SYNC_INTERVAL_MS = 10 * 60 * 1000;
 const PAGE_SIZE = 500;
 const UPSERT_BATCH_SIZE = 100;
+const DETAIL_FETCH_DELAY_MS = 300;
+const MAX_DETAIL_ERRORS = 5;
 
 class SimSync {
   constructor() {
@@ -81,6 +83,7 @@ class SimSync {
       simsCreated: 0,
       simsUpdated: 0,
       simsSkipped: 0,
+      detailsFetched: 0,
       pages: 0,
       errors: [],
     };
@@ -157,11 +160,36 @@ class SimSync {
 
       const toCreate = [];
       const toUpdate = [];
+      let detailErrors = 0;
 
       for (const sim of allSims) {
         try {
-          const deviceName = sim.custom_field1 || sim.custom_field2 || null;
+          let deviceName = sim.custom_field1 || sim.custom_field2 || null;
           const existingSim = existingByIccid.get(sim.iccid);
+
+          if (!deviceName && existingSim && existingSim.device_name) {
+            deviceName = existingSim.device_name;
+          }
+
+          if (!deviceName && detailErrors < MAX_DETAIL_ERRORS) {
+            try {
+              await this.delay(DETAIL_FETCH_DELAY_MS);
+              const details = await this.fetchSimDetails(sim.msisdn);
+              if (details) {
+                deviceName = details.custom_field1 || details.custom_field2 || null;
+                sim.ip_address = sim.ip_address || details.ip_address || null;
+                result.detailsFetched++;
+              }
+            } catch (err) {
+              detailErrors++;
+              if (detailErrors <= 3) {
+                logger.warn('SIM detail fetch failed', { msisdn: sim.msisdn, error: err.message });
+              }
+              if (detailErrors >= MAX_DETAIL_ERRORS) {
+                logger.warn('Too many detail errors, stopping detail fetches this cycle');
+              }
+            }
+          }
 
           let matchedDevice = null;
           if (deviceName) {
@@ -258,6 +286,7 @@ class SimSync {
         simsCreated: result.simsCreated,
         simsUpdated: result.simsUpdated,
         simsSkipped: result.simsSkipped,
+        detailsFetched: result.detailsFetched,
         pages: result.pages,
         errorCount: result.errors.length,
         durationMs: duration,
@@ -415,6 +444,56 @@ class SimSync {
     });
   }
 
+  async fetchSimDetails(msisdn) {
+    const baseUrl = config.simpro.baseUrl.endsWith('/')
+      ? config.simpro.baseUrl
+      : config.simpro.baseUrl + '/';
+    const fullUrl = new URL(`sim/${msisdn}/details`, baseUrl);
+    const isHttps = fullUrl.protocol === 'https:';
+    const httpClient = isHttps ? https : http;
+
+    return new Promise((resolve, reject) => {
+      const options = {
+        hostname: fullUrl.hostname,
+        port: fullUrl.port || (isHttps ? 443 : 80),
+        path: fullUrl.pathname,
+        method: 'GET',
+        headers: {
+          'x-api-client': config.simpro.apiClient,
+          'x-api-key': config.simpro.apiKey,
+          'Accept': 'application/json',
+        },
+        timeout: 10000,
+      };
+
+      const req = httpClient.request(options, (res) => {
+        let data = '';
+        res.on('data', (chunk) => { data += chunk; });
+        res.on('end', () => {
+          if (res.statusCode !== 200) {
+            reject(new Error(`SIMPro API ${res.statusCode}: ${data.substring(0, 200)}`));
+            return;
+          }
+          try {
+            resolve(JSON.parse(data));
+          } catch (parseErr) {
+            reject(new Error(`Parse error: ${parseErr.message}`));
+          }
+        });
+      });
+
+      req.on('error', (err) => reject(err));
+      req.on('timeout', () => {
+        req.destroy();
+        reject(new Error('Request timeout'));
+      });
+      req.end();
+    });
+  }
+
+  delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
 }
 
 const simSync = new SimSync();
