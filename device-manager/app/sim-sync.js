@@ -31,8 +31,7 @@ const db = require('./database');
 const SYNC_INTERVAL_MS = 10 * 60 * 1000;
 const PAGE_SIZE = 500;
 const UPSERT_BATCH_SIZE = 100;
-const DETAIL_FETCH_DELAY_MS = 300;
-const MAX_DETAIL_ERRORS = 5;
+const DETAIL_BATCH_SIZE = 50;
 
 class SimSync {
   constructor() {
@@ -151,16 +150,71 @@ class SimSync {
         existingByIccid.set(row.iccid, row);
       }
 
+      const simsNeedingDetails = allSims.filter(sim => {
+        const hasCustomField = sim.custom_field1 || sim.custom_field2;
+        const existingSim = existingByIccid.get(sim.iccid);
+        const hasStoredName = existingSim && existingSim.device_name;
+        return !hasCustomField && !hasStoredName;
+      });
+
       logger.info('SIM sync context loaded', {
         simCount: allSims.length,
         deviceCount: devicesResult.rows.length,
         existingSimCount: existingSimsResult.rows.length,
         uniqueDeviceNames: devicesByName.size,
+        simsNeedingDetails: simsNeedingDetails.length,
       });
+
+      if (simsNeedingDetails.length > 0) {
+        const detailsByIccid = new Map();
+
+        for (let i = 0; i < simsNeedingDetails.length; i += DETAIL_BATCH_SIZE) {
+          const batch = simsNeedingDetails.slice(i, i + DETAIL_BATCH_SIZE);
+          const identifiers = batch.map(s => s.iccid).join(',');
+          try {
+            const details = await this.fetchSimDetailsBatch(identifiers);
+            if (Array.isArray(details)) {
+              for (const d of details) {
+                if (d.iccid) {
+                  detailsByIccid.set(d.iccid, d);
+                }
+              }
+              result.detailsFetched += details.length;
+              if (i === 0 && details.length > 0) {
+                const sample = details[0];
+                logger.info('SIM detail sample', {
+                  iccid: sample.iccid,
+                  custom_field1: sample.custom_field1 || null,
+                  custom_field2: sample.custom_field2 || null,
+                  keys: Object.keys(sample).join(','),
+                });
+              }
+            }
+          } catch (err) {
+            logger.warn('SIM details batch fetch failed', {
+              batchStart: i,
+              batchSize: batch.length,
+              error: err.message,
+            });
+          }
+        }
+
+        for (const sim of simsNeedingDetails) {
+          const detail = detailsByIccid.get(sim.iccid);
+          if (detail) {
+            sim.custom_field1 = detail.custom_field1 || null;
+            sim.custom_field2 = detail.custom_field2 || null;
+          }
+        }
+
+        logger.info('SIM details fetched', {
+          requested: simsNeedingDetails.length,
+          received: detailsByIccid.size,
+        });
+      }
 
       const toCreate = [];
       const toUpdate = [];
-      let detailErrors = 0;
 
       for (const sim of allSims) {
         try {
@@ -169,35 +223,6 @@ class SimSync {
 
           if (!deviceName && existingSim && existingSim.device_name) {
             deviceName = existingSim.device_name;
-          }
-
-          if (!deviceName && detailErrors < MAX_DETAIL_ERRORS) {
-            try {
-              await this.delay(DETAIL_FETCH_DELAY_MS);
-              const details = await this.fetchSimDetails(sim.id);
-              if (details) {
-                deviceName = details.custom_field1 || details.custom_field2 || null;
-                sim.ip_address = sim.ip_address || details.ip_address || null;
-                result.detailsFetched++;
-                if (result.detailsFetched <= 3) {
-                  logger.info('SIM detail fetched', {
-                    simproId: sim.id,
-                    iccid: sim.iccid,
-                    custom_field1: details.custom_field1 || null,
-                    custom_field2: details.custom_field2 || null,
-                    keys: Object.keys(details).join(','),
-                  });
-                }
-              }
-            } catch (err) {
-              detailErrors++;
-              if (detailErrors <= 3) {
-                logger.warn('SIM detail fetch failed', { simproId: sim.id, iccid: sim.iccid, error: err.message });
-              }
-              if (detailErrors >= MAX_DETAIL_ERRORS) {
-                logger.warn('Too many detail errors, stopping detail fetches this cycle');
-              }
-            }
           }
 
           let matchedDevice = null;
@@ -453,11 +478,11 @@ class SimSync {
     });
   }
 
-  async fetchSimDetails(simproId) {
+  async fetchSimDetailsBatch(identifiers) {
     const baseUrl = config.simpro.baseUrl.endsWith('/')
       ? config.simpro.baseUrl
       : config.simpro.baseUrl + '/';
-    const fullUrl = new URL(`sims/${simproId}`, baseUrl);
+    const fullUrl = new URL(`sims/details?identifiers=${encodeURIComponent(identifiers)}`, baseUrl);
     const isHttps = fullUrl.protocol === 'https:';
     const httpClient = isHttps ? https : http;
 
@@ -465,14 +490,14 @@ class SimSync {
       const options = {
         hostname: fullUrl.hostname,
         port: fullUrl.port || (isHttps ? 443 : 80),
-        path: fullUrl.pathname,
+        path: fullUrl.pathname + fullUrl.search,
         method: 'GET',
         headers: {
           'x-api-client': config.simpro.apiClient,
           'x-api-key': config.simpro.apiKey,
           'Accept': 'application/json',
         },
-        timeout: 10000,
+        timeout: 30000,
       };
 
       const req = httpClient.request(options, (res) => {
@@ -498,10 +523,6 @@ class SimSync {
       });
       req.end();
     });
-  }
-
-  delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
   }
 }
 
