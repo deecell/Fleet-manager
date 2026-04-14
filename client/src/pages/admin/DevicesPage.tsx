@@ -433,8 +433,8 @@ export default function DevicesPage() {
                 )}
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <Table>
+              <div>
+                <Table wrapperClassName="max-h-[calc(100vh-280px)]">
                   <TableHeader className="bg-[#303030] sticky top-0 z-20">
                     <TableRow className="hover:bg-[#303030] border-0">
                       <TableHead 
