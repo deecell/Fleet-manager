@@ -13,7 +13,7 @@
   - If device connects successfully → calls `resetDeviceStability()` to bring it back online
   - If device fails again → resets `marked_unstable_at` to restart the 30-minute quarantine timer
   - Compact colored log output with `AUTO` tag: `[retry]`/`[recovered]`/`[still off]` per device
-- **Startup: retries ALL no_power devices** — on process restart, every no_power device is retried regardless of quarantine time (fresh native library = safe to try all)
+- **Startup: retries expired no_power devices only** — on process restart, only no_power devices whose 30-minute quarantine has expired are retried. Devices that just crashed the process are NOT retried immediately (prevents restart loops)
 - **Added `getNoPowerDevicesReadyForRecovery()`** DB query in `database.js`
   - Selects `no_power` devices where `marked_unstable_at < NOW() - 30 minutes` and `is_active = true`
 - **Skipped device log updated**: Shows exact minutes remaining (`retry in 12m`) instead of hours

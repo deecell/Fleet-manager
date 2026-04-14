@@ -112,9 +112,10 @@ async function getActiveDevicesWithCredentials() {
     ORDER BY d.id
   `);
   
-  // On startup, retry ALL no_power devices regardless of quarantine time.
-  // Fresh process = clean native library state, safe to attempt all.
-  // If genuinely no-power, they'll be re-marked quickly by the circuit breaker.
+  // Retry no_power devices whose 30-minute quarantine has expired.
+  // NOT all no_power devices — a device that just crashed the process seconds ago
+  // must not be retried immediately or it creates a restart loop.
+  const NO_POWER_QUARANTINE_MINUTES = 30;
   const expiredResult = await query(`
     SELECT 
       d.id as device_id,
@@ -128,6 +129,7 @@ async function getActiveDevicesWithCredentials() {
       d.battery_voltage,
       d.number_of_batteries,
       d.battery_ah,
+      d.marked_unstable_at,
       c.applink_url,
       c.connection_key,
       c.access_key,
@@ -135,24 +137,27 @@ async function getActiveDevicesWithCredentials() {
       s.last_successful_poll_at,
       s.connection_status,
       s.backfill_status,
-      s.gap_start_at
+      s.gap_start_at,
+      EXTRACT(EPOCH FROM (NOW() - d.marked_unstable_at)) / 60 as minutes_quarantined
     FROM power_mon_devices d
     INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = true
     LEFT JOIN device_sync_status s ON s.device_id = d.id
     WHERE d.connection_status = 'no_power'
       AND d.marked_unstable_at IS NOT NULL
+      AND d.marked_unstable_at < NOW() - INTERVAL '1 minute' * $1
     ORDER BY d.id
-  `);
+  `, [NO_POWER_QUARANTINE_MINUTES]);
   
   if (expiredResult.rows.length > 0) {
     const green = '\x1b[32m';
     const dim = '\x1b[2m';
     const rst = '\x1b[0m';
-    console.log(`${green}Retrying all ${expiredResult.rows.length} no_power devices on startup:${rst}`);
+    console.log(`${green}Retrying ${expiredResult.rows.length} no_power devices on startup (quarantine expired after ${NO_POWER_QUARANTINE_MINUTES}m):${rst}`);
     for (const d of expiredResult.rows) {
       const tag = '[retry]'.padEnd(12);
       const name = (d.device_name || d.serial_number).padEnd(41);
-      console.log(`                  ${green}${tag}${rst}${dim}${name}${rst}`);
+      const mins = d.minutes_quarantined ? Math.round(d.minutes_quarantined) : '?';
+      console.log(`                  ${green}${tag}${rst}${dim}${name}${rst}${dim}(quarantined ${mins}m ago)${rst}`);
     }
     
     // Reset their status so they can be connected
@@ -169,7 +174,6 @@ async function getActiveDevicesWithCredentials() {
   }
   
   // Log any skipped unstable/offline/no_power devices for visibility
-  const NO_POWER_QUARANTINE_MINUTES = 30;
   const skippedResult = await query(`
     SELECT d.serial_number, d.device_name, d.connection_status, d.consecutive_disconnects,
       d.marked_unstable_at,
