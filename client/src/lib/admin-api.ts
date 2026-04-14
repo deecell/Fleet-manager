@@ -556,9 +556,12 @@ interface SimSyncResult {
 
 export function useSyncSims() {
   return useMutation({
-    mutationFn: (organizationId: number) =>
-      adminFetch<SimSyncResult>(`/api/v1/admin/organizations/${organizationId}/sims/sync`, {
-        method: "POST",
-      }),
+    mutationFn: (organizationId?: number) =>
+      adminFetch<SimSyncResult>(
+        organizationId
+          ? `/api/v1/admin/organizations/${organizationId}/sims/sync`
+          : `/api/v1/admin/sims/sync`,
+        { method: "POST" }
+      ),
   });
 }

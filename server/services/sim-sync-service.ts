@@ -90,7 +90,7 @@ export class SimSyncService {
   /**
    * Sync all SIMs from SIMPro and match to PowerMon devices
    */
-  async syncSims(organizationId: number): Promise<SimSyncResult> {
+  async syncSims(organizationId?: number): Promise<SimSyncResult> {
     const result: SimSyncResult = {
       simsFound: 0,
       simsMatched: 0,
@@ -105,18 +105,15 @@ export class SimSyncService {
     }
 
     try {
-      // Fetch all SIMs from SIMPro
       const simProResponse = await this.client.getSims({ limit: 2000 });
       result.simsFound = simProResponse.sim_count;
 
-      // Get all devices for this organization to match by name
-      const devices = await db
-        .select()
-        .from(powerMonDevices)
-        .where(eq(powerMonDevices.organizationId, organizationId));
+      const allDevices = organizationId
+        ? await db.select().from(powerMonDevices).where(eq(powerMonDevices.organizationId, organizationId))
+        : await db.select().from(powerMonDevices);
 
-      const devicesByName = new Map<string, typeof devices[0]>();
-      for (const device of devices) {
+      const devicesByName = new Map<string, typeof allDevices[0]>();
+      for (const device of allDevices) {
         if (device.deviceName) {
           devicesByName.set(device.deviceName.toLowerCase(), device);
         }
@@ -135,10 +132,10 @@ export class SimSyncService {
             } catch {
             }
           }
-          
+
           let matchedDevice = null;
           let matchedTruck = null;
-          
+
           if (deviceName) {
             matchedDevice = devicesByName.get(deviceName.toLowerCase());
             if (matchedDevice) {
@@ -162,8 +159,13 @@ export class SimSyncService {
             continue;
           }
 
+          const matchedOrgId = matchedDevice?.organizationId || existingSim?.organizationId;
+          if (!matchedOrgId) {
+            continue;
+          }
+
           const simData: InsertSim = {
-            organizationId,
+            organizationId: matchedOrgId,
             deviceId: matchedDevice?.id || null,
             truckId: matchedTruck?.id || null,
             simproId: simProSim.id,
@@ -200,8 +202,9 @@ export class SimSyncService {
         }
       }
 
-      // Update sync settings timestamp
-      await this.updateSyncTimestamp(organizationId, 'sim');
+      if (organizationId) {
+        await this.updateSyncTimestamp(organizationId, 'sim');
+      }
 
     } catch (error) {
       result.errors.push(

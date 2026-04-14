@@ -132,59 +132,38 @@ export default function DevicesPage() {
   };
 
   const handleSyncSims = async () => {
-    const orgs = orgsData?.organizations || [];
-    const orgsToSync = selectedOrgId 
-      ? orgs.filter(o => o.id === selectedOrgId) 
-      : orgs;
-    
-    if (orgsToSync.length === 0) {
-      toast({ title: "No organizations to sync", variant: "destructive" });
-      return;
-    }
+    try {
+      const result = await syncSims.mutateAsync(selectedOrgId || undefined);
+      const r = result.result;
 
-    let totalCreated = 0;
-    let totalUpdated = 0;
-    let totalFound = 0;
-    let allErrors: string[] = [];
-
-    for (const org of orgsToSync) {
-      try {
-        const result = await syncSims.mutateAsync(org.id);
-        if (result.result.errors.length > 0) {
-          allErrors = allErrors.concat(result.result.errors.map(e => `${org.name}: ${e}`));
-          if (result.result.errors.some(e => e.toLowerCase().includes("not configured"))) {
-            toast({
-              title: "SIMPro Not Configured",
-              description: "The SIMPRO_API_CLIENT and SIMPRO_API_KEY environment variables are not set on this server.",
-              variant: "destructive",
-            });
-            return;
-          }
-        }
-        totalFound += result.result.simsFound;
-        totalCreated += result.result.simsCreated;
-        totalUpdated += result.result.simsUpdated;
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : "Unknown error";
-        if (msg.includes("not configured") || msg.includes("503")) {
-          toast({
-            title: "SIMPro Not Configured",
-            description: "The SIMPRO_API_CLIENT and SIMPRO_API_KEY environment variables are not set on this server.",
-            variant: "destructive",
-          });
-          return;
-        }
-        allErrors.push(`${org.name}: ${msg}`);
+      if (r.errors.some(e => e.toLowerCase().includes("not configured"))) {
+        toast({
+          title: "SIMPro Not Configured",
+          description: "The SIMPRO_API_CLIENT and SIMPRO_API_KEY environment variables are not set on this server.",
+          variant: "destructive",
+        });
+        return;
       }
-    }
 
-    toast({
-      title: "SIM Sync Complete",
-      description: allErrors.length > 0
-        ? `Found ${totalFound} SIMs. Created ${totalCreated}, updated ${totalUpdated}. ${allErrors.length} error(s): ${allErrors.slice(0, 3).join("; ")}${allErrors.length > 3 ? "..." : ""}`
-        : `Found ${totalFound} SIMs. Created ${totalCreated}, updated ${totalUpdated}.`,
-      variant: allErrors.length > 0 ? "destructive" : "default",
-    });
+      toast({
+        title: "SIM Sync Complete",
+        description: r.errors.length > 0
+          ? `Found ${r.simsFound} SIMs. Matched ${r.simsMatched}. Created ${r.simsCreated}, updated ${r.simsUpdated}. ${r.errors.length} error(s): ${r.errors.slice(0, 3).join("; ")}${r.errors.length > 3 ? "..." : ""}`
+          : `Found ${r.simsFound} SIMs. Matched ${r.simsMatched}. Created ${r.simsCreated}, updated ${r.simsUpdated}.`,
+        variant: r.errors.length > 0 ? "destructive" : "default",
+      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      if (msg.includes("not configured") || msg.includes("503")) {
+        toast({
+          title: "SIMPro Not Configured",
+          description: "The SIMPRO_API_CLIENT and SIMPRO_API_KEY environment variables are not set on this server.",
+          variant: "destructive",
+        });
+        return;
+      }
+      toast({ title: "SIM Sync Failed", description: msg, variant: "destructive" });
+    }
   };
 
   const handleCreate = async () => {
