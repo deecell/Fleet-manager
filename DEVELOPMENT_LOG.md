@@ -15,7 +15,11 @@
   - Updated `terraform/ecs.tf`: Added SIMPro secrets to ECS task definition container secrets (conditional on `enable_simpro`)
   - Updated `terraform/iam.tf`: Added SIMPro secret ARNs (plus OpenAI, EIA, SendGrid) to ECS execution role's `secretsmanager:GetSecretValue` permissions
   - **Action required**: Run `terraform apply` from MacBook to deploy these IAM/ECS changes, then the next ECS deploy will pick them up
-- **Files changed**: `client/src/lib/admin-api.ts`, `client/src/pages/admin/DevicesPage.tsx`, `terraform/ecs.tf`, `terraform/iam.tf`
+- **Fixed SIM sync to only create matched SIMs**: Previously, syncing for one org would create SIM records for ALL 46 SIMs on the account. Now only SIMs that match a device in the selected org are created. Existing SIM records are still updated.
+- **Fixed "Body already read" bug**: SIMPro API client was consuming response body twice in error handler.
+- **Eliminated excessive API calls**: Removed per-SIM `getSimDetails` calls (was 276 calls). Now uses data from the single `getSims` listing call.
+- **Data cleanup needed**: 31 unmatched SIMs were created under GTO Fast Racing org (ID 9) and need to be removed.
+- **Files changed**: `client/src/lib/admin-api.ts`, `client/src/pages/admin/DevicesPage.tsx`, `server/services/simpro-client.ts`, `server/services/sim-sync-service.ts`, `terraform/ecs.tf`, `terraform/iam.tf`
 
 ---
 

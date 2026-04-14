@@ -148,6 +148,10 @@ export class SimSyncService {
             .from(sims)
             .where(eq(sims.iccid, simProSim.iccid));
 
+          if (!matchedDevice && !existingSim) {
+            continue;
+          }
+
           const simData: InsertSim = {
             organizationId,
             deviceId: matchedDevice?.id || null,
@@ -165,7 +169,6 @@ export class SimSyncService {
           };
 
           if (existingSim) {
-            // Update existing SIM
             await db
               .update(sims)
               .set({
@@ -176,7 +179,6 @@ export class SimSyncService {
               .where(eq(sims.id, existingSim.id));
             result.simsUpdated++;
           } else {
-            // Create new SIM
             await db.insert(sims).values(simData);
             result.simsCreated++;
           }
