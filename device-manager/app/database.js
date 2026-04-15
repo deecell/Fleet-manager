@@ -149,15 +149,17 @@ async function getActiveDevicesWithCredentials() {
   `, [NO_POWER_QUARANTINE_MINUTES]);
   
   if (expiredResult.rows.length > 0) {
-    const green = '\x1b[32m';
-    const dim = '\x1b[2m';
-    const rst = '\x1b[0m';
-    console.log(`${green}Retrying ${expiredResult.rows.length} no_power devices on startup (quarantine expired after ${NO_POWER_QUARANTINE_MINUTES}m):${rst}`);
-    for (const d of expiredResult.rows) {
-      const tag = '[retry]'.padEnd(12);
-      const name = (d.device_name || d.serial_number).padEnd(41);
-      const mins = d.minutes_quarantined ? Math.round(d.minutes_quarantined) : '?';
-      console.log(`                  ${green}${tag}${rst}${dim}${name}${rst}${dim}(quarantined ${mins}m ago)${rst}`);
+    if (!process.env.WORKER_COHORT_ID) {
+      const green = '\x1b[32m';
+      const dim = '\x1b[2m';
+      const rst = '\x1b[0m';
+      console.log(`${green}Retrying ${expiredResult.rows.length} no_power devices on startup (quarantine expired after ${NO_POWER_QUARANTINE_MINUTES}m):${rst}`);
+      for (const d of expiredResult.rows) {
+        const tag = '[retry]'.padEnd(12);
+        const name = (d.device_name || d.serial_number).padEnd(41);
+        const mins = d.minutes_quarantined ? Math.round(d.minutes_quarantined) : '?';
+        console.log(`                  ${green}${tag}${rst}${dim}${name}${rst}${dim}(quarantined ${mins}m ago)${rst}`);
+      }
     }
     
     // Reset their status so they can be connected
@@ -584,13 +586,6 @@ async function getUnstableDevicesReadyForRecovery(backoffMs = 300000) {
       )
     ORDER BY d.marked_unstable_at ASC NULLS FIRST
   `, [backoffMs]);
-  
-  if (result.rows.length > 0) {
-    logger.info('Found unstable devices ready for recovery', { 
-      count: result.rows.length,
-      devices: result.rows.map(d => d.device_name || d.serial_number)
-    });
-  }
   
   return result.rows;
 }

@@ -1,0 +1,368 @@
+2026-04-15 01:49:09.450 WARN  Poll failed  deviceId=20  serial=E18590457A387E04  cohort=2  code=8  failures=1
+2026-04-15 01:49:09.543 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 27.57  v2=  0.0462  today=  109m  month= 20269m  since=2025-12-29 23:38:54
+Skipping 6 offline/unstable devices:
+                  [no_power]  DCL-Carter                               (0 disconnects) (retry in 25m)
+                  [no_power]  DCL-Epler                                (0 disconnects) (retry in 18m)
+                  [unstable]  DCL-Kalitta-Hospitality                  (1 disconnects)
+                  [no_power]  DCL-NHRA-Tech-Trailer                    (0 disconnects) (retry on next check)
+                  [no_power]  DCL-Moeck                                (0 disconnects) (retry on next check)
+                  [no_power]  DCL-Radian-2                             (0 disconnects) (retry in 20m)
+Retrying 2 no_power devices on startup (quarantine expired after 30m):
+                  [retry]     DCL-Moeck                                (quarantined 30m ago)
+                  [retry]     DCL-NHRA-Tech-Trailer                    (quarantined 32m ago)
+Skipping 4 offline/unstable devices:
+                  [no_power]  DCL-Carter                               (0 disconnects) (retry in 25m)
+                  [no_power]  DCL-Epler                                (0 disconnects) (retry in 18m)
+                  [unstable]  DCL-Kalitta-Hospitality                  (1 disconnects)
+                  [no_power]  DCL-Radian-2                             (0 disconnects) (retry in 20m)
+2026-04-15 01:49:12.355 INFO  SIM locations updated  simsPolled=16  locationsUpdated=16  trucksUpdated=16  durationMs=714
+2026-04-15 01:49:12.836 INFO  Found newly activated device in cohort  serialNumber=A15102C4CCF4B6B2  deviceName=DCL-NHRA-Tech-Trailer  cohortId=3
+2026-04-15 01:49:12.842 INFO  Connecting to device  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3
+2026-04-15 01:49:12.854 INFO  Connected successfully  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3  durationMs=12
+2026-04-15 01:49:12.860 INFO  New device connected  serialNumber=A15102C4CCF4B6B2  deviceName=DCL-NHRA-Tech-Trailer  durationMs=12
+2026-04-15 01:49:12.861 INFO  Added 1 new device(s) to cohort 3
+2026-04-15 01:49:12.863 INFO  Found unstable devices ready for recovery  count=1  devices=DCL-Kalitta-Hospitality
+2026-04-15 01:49:12.881 INFO  Found unstable devices ready for recovery  count=1  devices=DCL-Kalitta-Hospitality
+2026-04-15 01:49:12.897 INFO  Found unstable devices ready for recovery  count=1  devices=DCL-Kalitta-Hospitality
+2026-04-15 01:49:12.906 INFO  Found newly activated device in cohort  serialNumber=A998463C2C69ABFD  deviceName=DCL-Moeck  cohortId=6
+2026-04-15 01:49:12.911 INFO  Connecting to device  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+2026-04-15 01:49:12.920 INFO  Found unstable devices ready for recovery  count=1  devices=DCL-Kalitta-Hospitality
+2026-04-15 01:49:12.926 INFO  Connected successfully  deviceId=3  serial=A998463C2C69ABFD  cohort=6  durationMs=15
+2026-04-15 01:49:12.935 INFO  New device connected  serialNumber=A998463C2C69ABFD  deviceName=DCL-Moeck  durationMs=15
+2026-04-15 01:49:12.936 INFO  Added 1 new device(s) to cohort 6
+2026-04-15 01:49:12.964 INFO  Found unstable devices ready for recovery  count=1  devices=DCL-Kalitta-Hospitality
+2026-04-15 01:49:12.969 INFO  Found unstable devices ready for recovery  count=1  devices=DCL-Kalitta-Hospitality
+2026-04-15 01:49:12.970 INFO  Found unstable devices ready for recovery  count=1  devices=DCL-Kalitta-Hospitality
+2026-04-15 01:49:12.979 INFO  Found unstable devices ready for recovery  count=1  devices=DCL-Kalitta-Hospitality
+2026-04-15 01:49:12.979 INFO  Attempting to recover unstable devices  count=1  devices=DCL-Kalitta-Hospitality
+2026-04-15 01:49:12.980 INFO  Connecting to device  deviceId=18  serial=4E0A83432AEE8967  cohort=5
+2026-04-15 01:49:12.985 INFO  Found unstable devices ready for recovery  count=1  devices=DCL-Kalitta-Hospitality
+2026-04-15 01:49:12.986 INFO  Found unstable devices ready for recovery  count=1  devices=DCL-Kalitta-Hospitality
+2026-04-15 01:49:12.989 INFO  Connected successfully  deviceId=18  serial=4E0A83432AEE8967  cohort=5  durationMs=9
+2026-04-15 01:49:12.995 INFO  Unstable device recovered successfully  deviceId=18  serial=4E0A83432AEE8967  durationMs=9
+2026-04-15 01:49:12.995 INFO  Unstable device recovery complete  attempted=1  recovered=1
+2026-04-15 01:49:13.308 INFO  Fetched device info from PowerMon  deviceId=18  serial=4E0A83432AEE8967  cohort=5  serialNumber=4E0A83432AEE8967  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Kalitta-Hospitality
+2026-04-15 01:49:13.311 INFO  Updated device info  deviceId=18  serialNumber=4E0A83432AEE8967  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Kalitta-Hospitality
+2026-04-15 01:49:14.001 INFO  Fetched device info from PowerMon  deviceId=3  serial=A998463C2C69ABFD  cohort=6  serialNumber=A998463C2C69ABFD  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Moeck
+2026-04-15 01:49:14.004 INFO  Updated device info  deviceId=3  serialNumber=A998463C2C69ABFD  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Moeck
+2026-04-15 01:49:15.422 INFO  DCL-Brown (RBR-01)                       parked   v1= 26.48  v2= 12.7442  today=  109m  month=  4377m  since=2026-04-14 22:53:40
+2026-04-15 01:49:15.429 INFO  DCL-Kruse (WKR-01)                       parked   v1= 27.92  v2=  0.0386  today=  109m  month= 20269m  since=2025-12-29 23:27:57
+2026-04-15 01:49:15.430 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.50  v2= 12.0432  today=  109m  month= 18578m  since=2026-03-15 23:59:48
+2026-04-15 01:49:15.437 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 53.11  v2=  0.0398  today=  109m  month= 20152m  since=2026-02-16 19:41:58
+2026-04-15 01:49:15.483 INFO  DCL-Howard (MHR-01)                      parked   v1= 27.76  v2=  0.0448  today=  109m  month= 20269m  since=2025-12-30 22:17:33
+2026-04-15 01:49:15.888 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.31  v2= 13.2459  today=   29m  month=   179m  since=2026-04-15 01:39:00
+2026-04-15 01:49:15.896 INFO  DCL-Penske01 (LFG-001)                   parked   v1= 12.81  v2=  0.0489  today=  109m  month=  7657m  since=2026-04-09 15:26:18
+2026-04-15 01:49:15.903 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 25.95  v2= 13.6734  today=    0m  month=     1m  since=2026-04-13 07:25:56
+2026-04-15 01:49:17.788 INFO  DCL-Radian-1 (M53)                       parked   v1= 13.27  v2=  0.0000  today=  109m  month= 17989m  since=2026-03-25 23:01:53
+2026-04-15 01:49:17.796 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.60  v2=  0.0382  today=  109m  month= 20269m  since=2025-12-29 23:22:12
+2026-04-15 01:49:17.803 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.77  v2=  0.0377  today=  109m  month= 20114m  since=2026-01-09 21:34:37
+2026-04-15 01:49:19.562 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 27.58  v2=  0.0473  today=  109m  month= 20269m  since=2025-12-29 23:38:54
+2026-04-15 01:49:19.570 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.61  v2=  0.0378  today=  109m  month= 20269m  since=2025-12-29 23:38:19
+2026-04-15 01:49:22.456 INFO  onDisconnect fired  deviceId=20  serial=E18590457A387E04  cohort=2  reason=2  connDurationMs=309627  hadSuccessfulPoll=true  wasConnected=true  consecutiveFailures=1  rapidDisconnects=0
+2026-04-15 01:49:22.456 INFO  Device disconnected (unexpected)  deviceId=20  serial=E18590457A387E04  cohort=2  reason=2  isRapidDisconnect=false
+2026-04-15 01:49:22.548 INFO  Scheduling reconnect  deviceId=20  serial=E18590457A387E04  cohort=2  attempt=1  delayMs=1000
+2026-04-15 01:49:23.547 INFO  Connecting to device  deviceId=20  serial=E18590457A387E04  cohort=2
+2026-04-15 01:49:23.556 INFO  Connected successfully  deviceId=20  serial=E18590457A387E04  cohort=2  durationMs=9
+2026-04-15 01:49:23.559 INFO  onDisconnect fired  deviceId=20  serial=E18590457A387E04  cohort=2  reason=2  connDurationMs=3  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=0
+2026-04-15 01:49:23.559 WARN  Rapid disconnect detected (error)  deviceId=20  serial=E18590457A387E04  cohort=2  reason=2  rapidDisconnects=1  connectionDurationMs=3
+2026-04-15 01:49:23.559 WARN  Weak signal detected - 1st instant disconnect, marking weak_signal  deviceId=20  serial=E18590457A387E04  cohort=2  connectionDurationMs=3  deviceName=DCL-Moeck-Shop
+2026-04-15 01:49:23.560 WARN  Marking device as weak_signal in database  deviceId=20
+2026-04-15 01:49:23.564 INFO  Device disconnected (unexpected)  deviceId=20  serial=E18590457A387E04  cohort=2  reason=2  isRapidDisconnect=true
+2026-04-15 01:49:23.638 INFO  Scheduling reconnect  deviceId=20  serial=E18590457A387E04  cohort=2  attempt=1  delayMs=1000
+2026-04-15 01:49:23.817 WARN  WEAK_SIGNAL DIAGNOSTIC  deviceId=20  deviceName=DCL-Moeck-Shop  truckId=2  routerReachable=true  gpsLastUpdate=Wed Apr 15 2026 01:49:12 GMT+0000 (Coordinated Universal Time)  gpsAgeMinutes=0  gpsLocation=Spokane County, WA
+2026-04-15 01:49:24.640 INFO  Connecting to device  deviceId=20  serial=E18590457A387E04  cohort=2
+2026-04-15 01:49:24.648 INFO  Connected successfully  deviceId=20  serial=E18590457A387E04  cohort=2  durationMs=8
+2026-04-15 01:49:24.651 INFO  onDisconnect fired  deviceId=20  serial=E18590457A387E04  cohort=2  reason=2  connDurationMs=3  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=1
+2026-04-15 01:49:24.651 WARN  Rapid disconnect detected (error)  deviceId=20  serial=E18590457A387E04  cohort=2  reason=2  rapidDisconnects=2  connectionDurationMs=3
+2026-04-15 01:49:24.651 ERROR Circuit breaker OPEN - 2 instant disconnects, device appears powered off  deviceId=20  serial=E18590457A387E04  cohort=2  rapidDisconnects=2  instantDisconnects=2  connectionDurationMs=3  backoffMinutes=5  resetAt=2026-04-15T01:54:24.651Z
+2026-04-15 01:49:24.652 WARN  Nulled native references for all pool devices  nulledCount=0  triggerDevice=20
+2026-04-15 01:49:24.652 ERROR NATIVE LIBRARY COMPROMISED - blocking all native calls, scheduling graceful restart  deviceId=20  deviceName=DCL-Moeck-Shop  status=no_power  restartInMs=3000
+2026-04-15 01:49:24.652 WARN  Marking device as no_power in database  deviceId=20
+2026-04-15 01:49:24.783 WARN  NO_POWER DIAGNOSTIC  deviceId=20  deviceName=DCL-Moeck-Shop  truckId=2  routerReachable=true  gpsLastUpdate=Wed Apr 15 2026 01:49:12 GMT+0000 (Coordinated Universal Time)  gpsAgeMinutes=0  gpsLocation=Spokane County, WA  verdict=ROUTER REACHABLE - likely connectivity issue, NOT power loss
+2026-04-15 01:49:25.452 INFO  DCL-Brown (RBR-01)                       parked   v1= 26.48  v2= 12.7440  today=  109m  month=  4377m  since=2026-04-14 22:53:40
+2026-04-15 01:49:25.457 INFO  DCL-Kruse (WKR-01)                       parked   v1= 27.92  v2=  0.0386  today=  109m  month= 20269m  since=2025-12-29 23:27:57
+2026-04-15 01:49:25.460 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.50  v2= 12.0385  today=  109m  month= 18578m  since=2026-03-15 23:59:48
+2026-04-15 01:49:25.465 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 53.11  v2=  0.0407  today=  109m  month= 20152m  since=2026-02-16 19:41:58
+2026-04-15 01:49:25.503 INFO  DCL-Howard (MHR-01)                      parked   v1= 27.76  v2=  0.0451  today=  109m  month= 20269m  since=2025-12-30 22:17:33
+2026-04-15 01:49:25.939 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.31  v2= 13.1940  today=   29m  month=   179m  since=2026-04-15 01:39:00
+2026-04-15 01:49:25.948 INFO  DCL-Penske01 (LFG-001)                   parked   v1= 12.81  v2=  0.0483  today=  109m  month=  7657m  since=2026-04-09 15:26:18
+2026-04-15 01:49:25.955 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 25.95  v2= 13.6723  today=    0m  month=     1m  since=2026-04-13 07:25:56
+2026-04-15 01:49:27.654 ERROR Exiting process for clean native library restart
+2026-04-15 01:49:27.659 ERROR Supervisor: Worker cohort 2 exited (code 1)  pid=3621151  cohortId=2
+2026-04-15 01:49:27.659 INFO  Supervisor: Respawning worker cohort 2 in 3000ms
+2026-04-15 01:49:27.847 INFO  DCL-Radian-1 (M53)                       parked   v1= 13.27  v2=  0.0000  today=  109m  month= 17989m  since=2026-03-25 23:01:53
+2026-04-15 01:49:27.856 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.77  v2=  0.0372  today=  109m  month= 20114m  since=2026-01-09 21:34:37
+2026-04-15 01:49:27.864 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.60  v2=  0.0383  today=  109m  month= 20269m  since=2025-12-29 23:22:12
+2026-04-15 01:49:29.588 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 27.58  v2=  0.0457  today=  109m  month= 20269m  since=2025-12-29 23:38:54
+2026-04-15 01:49:29.596 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.62  v2=  0.0376  today=  109m  month= 20269m  since=2025-12-29 23:38:19
+2026-04-15 01:49:30.665 INFO  Supervisor: Forked worker for cohort 2  pid=3621347
+2026-04-15 01:49:30.752 INFO  PowerMon addon loaded successfully
+2026-04-15 01:49:30.756 INFO  [worker:2] Starting  cohortId=2  totalCohorts=10
+2026-04-15 01:49:30.757 INFO  Database connection configured  host=deecell-fleet-production-postgres.cn4qsw8g8yyx.us-east-2.rds.amazonaws.com  database=deecell_fleet
+2026-04-15 01:49:30.757 INFO  Database pool initialized  poolSize=10
+2026-04-15 01:49:30.757 INFO  Initializing connection pool for cohort 2/10
+2026-04-15 01:49:30.850 INFO  Cohort 2: 1 devices (of 15 total)
+2026-04-15 01:49:30.853 INFO  Connection pool initialized for cohort 2  devices=1
+2026-04-15 01:49:30.854 INFO  Batch writer started  flushIntervalMs=2000  maxBatchSize=500
+2026-04-15 01:49:30.854 INFO  === STARTUP: Connecting to all devices ===  deviceCount=1  timestamp=2026-04-15T01:49:30.854Z
+2026-04-15 01:49:30.854 INFO  Connecting device 1/1  serialNumber=E18590457A387E04  deviceName=DCL-Moeck-Shop  cohort=2
+2026-04-15 01:49:30.855 INFO  Connecting to device  deviceId=20  serial=E18590457A387E04  cohort=2
+2026-04-15 01:49:30.865 INFO  Connected successfully  deviceId=20  serial=E18590457A387E04  cohort=2  durationMs=10
+2026-04-15 01:49:30.868 INFO  onDisconnect fired  deviceId=20  serial=E18590457A387E04  cohort=2  reason=2  connDurationMs=3  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=0
+2026-04-15 01:49:30.868 WARN  Rapid disconnect detected (error)  deviceId=20  serial=E18590457A387E04  cohort=2  reason=2  rapidDisconnects=1  connectionDurationMs=3
+2026-04-15 01:49:30.868 WARN  Weak signal detected - 1st instant disconnect, marking weak_signal  deviceId=20  serial=E18590457A387E04  cohort=2  connectionDurationMs=3  deviceName=DCL-Moeck-Shop
+2026-04-15 01:49:30.869 WARN  Marking device as weak_signal in database  deviceId=20
+2026-04-15 01:49:30.873 INFO  Device disconnected (unexpected)  deviceId=20  serial=E18590457A387E04  cohort=2  reason=2  isRapidDisconnect=true
+2026-04-15 01:49:30.880 INFO  Device 1/1 connected  serialNumber=E18590457A387E04  durationMs=10
+2026-04-15 01:49:30.880 INFO  === STARTUP COMPLETE: Connection Summary ===  success=1  failed=0  skipped=0  timedOut=0  totalDurationMs=26  averageDurationMs=10
+2026-04-15 01:49:30.880 INFO  Starting polling scheduler (worker mode)  intervalMs=10000
+2026-04-15 01:49:30.881 INFO  Backfill service started  gapThresholdMs=30000  maxConcurrent=5
+2026-04-15 01:49:30.881 INFO  [worker:2] Started successfully  cohortId=2  devices=1
+2026-04-15 01:49:30.881 INFO  Supervisor: Worker cohort 2 ready  pid=3621347  devices=1
+2026-04-15 01:49:30.909 INFO  Scheduling reconnect  deviceId=20  serial=E18590457A387E04  cohort=2  attempt=1  delayMs=1000
+2026-04-15 01:49:31.025 WARN  WEAK_SIGNAL DIAGNOSTIC  deviceId=20  deviceName=DCL-Moeck-Shop  truckId=2  routerReachable=true  gpsLastUpdate=Wed Apr 15 2026 01:49:12 GMT+0000 (Coordinated Universal Time)  gpsAgeMinutes=0  gpsLocation=Spokane County, WA
+2026-04-15 01:49:31.911 INFO  Connecting to device  deviceId=20  serial=E18590457A387E04  cohort=2
+2026-04-15 01:49:31.920 INFO  Connected successfully  deviceId=20  serial=E18590457A387E04  cohort=2  durationMs=9
+2026-04-15 01:49:31.923 INFO  onDisconnect fired  deviceId=20  serial=E18590457A387E04  cohort=2  reason=2  connDurationMs=3  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=1
+2026-04-15 01:49:31.923 WARN  Rapid disconnect detected (error)  deviceId=20  serial=E18590457A387E04  cohort=2  reason=2  rapidDisconnects=2  connectionDurationMs=3
+2026-04-15 01:49:31.923 ERROR Circuit breaker OPEN - 2 instant disconnects, device appears powered off  deviceId=20  serial=E18590457A387E04  cohort=2  rapidDisconnects=2  instantDisconnects=2  connectionDurationMs=3  backoffMinutes=5  resetAt=2026-04-15T01:54:31.923Z
+2026-04-15 01:49:31.923 WARN  Nulled native references for all pool devices  nulledCount=0  triggerDevice=20
+2026-04-15 01:49:31.924 ERROR NATIVE LIBRARY COMPROMISED - blocking all native calls, scheduling graceful restart  deviceId=20  deviceName=DCL-Moeck-Shop  status=no_power  restartInMs=3000
+2026-04-15 01:49:31.924 WARN  Marking device as no_power in database  deviceId=20
+2026-04-15 01:49:32.079 WARN  NO_POWER DIAGNOSTIC  deviceId=20  deviceName=DCL-Moeck-Shop  truckId=2  routerReachable=true  gpsLastUpdate=Wed Apr 15 2026 01:49:12 GMT+0000 (Coordinated Universal Time)  gpsAgeMinutes=0  gpsLocation=Spokane County, WA  verdict=ROUTER REACHABLE - likely connectivity issue, NOT power loss
+2026-04-15 01:49:34.925 ERROR Exiting process for clean native library restart
+2026-04-15 01:49:34.930 ERROR Supervisor: Worker cohort 2 exited (code 1)  pid=3621347  cohortId=2
+2026-04-15 01:49:34.930 INFO  Supervisor: Respawning worker cohort 2 in 6000ms
+2026-04-15 01:49:35.495 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 53.11  v2=  0.0400  today=  110m  month= 20153m  since=2026-02-16 19:41:58
+2026-04-15 01:49:35.499 INFO  DCL-Brown (RBR-01)                       parked   v1= 26.48  v2= 12.7427  today=  110m  month=  4378m  since=2026-04-14 22:53:40
+2026-04-15 01:49:35.502 INFO  DCL-Kruse (WKR-01)                       parked   v1= 27.92  v2=  0.0388  today=  110m  month= 20270m  since=2025-12-29 23:27:57
+2026-04-15 01:49:35.507 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.50  v2= 12.0433  today=  110m  month= 18579m  since=2026-03-15 23:59:48
+2026-04-15 01:49:35.524 INFO  DCL-Howard (MHR-01)                      parked   v1= 27.76  v2=  0.0452  today=  110m  month= 20270m  since=2025-12-30 22:17:33
+2026-04-15 01:49:35.975 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.31  v2= 13.1589  today=   29m  month=   179m  since=2026-04-15 01:39:00
+2026-04-15 01:49:35.981 INFO  DCL-Penske01 (LFG-001)                   parked   v1= 12.81  v2=  0.0478  today=  110m  month=  7658m  since=2026-04-09 15:26:18
+2026-04-15 01:49:35.987 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 25.96  v2= 13.6734  today=    0m  month=     1m  since=2026-04-13 07:25:56
+2026-04-15 01:49:37.889 INFO  DCL-Radian-1 (M53)                       parked   v1= 13.27  v2=  0.0000  today=  110m  month= 17990m  since=2026-03-25 23:01:53
+2026-04-15 01:49:37.896 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.60  v2=  0.0383  today=  110m  month= 20270m  since=2025-12-29 23:22:12
+2026-04-15 01:49:37.902 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.77  v2=  0.0380  today=  110m  month= 20115m  since=2026-01-09 21:34:37
+2026-04-15 01:49:39.616 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 27.57  v2=  0.0468  today=  110m  month= 20270m  since=2025-12-29 23:38:54
+2026-04-15 01:49:39.623 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.61  v2=  0.0378  today=  110m  month= 20270m  since=2025-12-29 23:38:19
+2026-04-15 01:49:40.935 INFO  Supervisor: Forked worker for cohort 2  pid=3621366
+2026-04-15 01:49:41.017 INFO  PowerMon addon loaded successfully
+2026-04-15 01:49:41.021 INFO  [worker:2] Starting  cohortId=2  totalCohorts=10
+2026-04-15 01:49:41.022 INFO  Database connection configured  host=deecell-fleet-production-postgres.cn4qsw8g8yyx.us-east-2.rds.amazonaws.com  database=deecell_fleet
+2026-04-15 01:49:41.022 INFO  Database pool initialized  poolSize=10
+2026-04-15 01:49:41.023 INFO  Initializing connection pool for cohort 2/10
+2026-04-15 01:49:41.130 INFO  Cohort 2: 1 devices (of 15 total)
+2026-04-15 01:49:41.136 INFO  Connection pool initialized for cohort 2  devices=1
+2026-04-15 01:49:41.137 INFO  Batch writer started  flushIntervalMs=2000  maxBatchSize=500
+2026-04-15 01:49:41.137 INFO  === STARTUP: Connecting to all devices ===  deviceCount=1  timestamp=2026-04-15T01:49:41.137Z
+2026-04-15 01:49:41.137 INFO  Connecting device 1/1  serialNumber=E18590457A387E04  deviceName=DCL-Moeck-Shop  cohort=2
+2026-04-15 01:49:41.138 INFO  Connecting to device  deviceId=20  serial=E18590457A387E04  cohort=2
+2026-04-15 01:49:41.147 INFO  Connected successfully  deviceId=20  serial=E18590457A387E04  cohort=2  durationMs=9
+2026-04-15 01:49:41.153 INFO  Device 1/1 connected  serialNumber=E18590457A387E04  durationMs=9
+2026-04-15 01:49:41.153 INFO  === STARTUP COMPLETE: Connection Summary ===  success=1  failed=0  skipped=0  timedOut=0  totalDurationMs=16  averageDurationMs=9
+2026-04-15 01:49:41.154 INFO  Starting polling scheduler (worker mode)  intervalMs=10000
+2026-04-15 01:49:41.154 INFO  Backfill service started  gapThresholdMs=30000  maxConcurrent=5
+2026-04-15 01:49:41.154 INFO  [worker:2] Started successfully  cohortId=2  devices=1
+2026-04-15 01:49:41.155 INFO  Supervisor: Worker cohort 2 ready  pid=3621366  devices=1
+2026-04-15 01:49:41.558 INFO  Fetched device info from PowerMon  deviceId=20  serial=E18590457A387E04  cohort=2  serialNumber=E18590457A387E04  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Moeck-Shop
+2026-04-15 01:49:41.591 INFO  Updated device info  deviceId=20  serialNumber=E18590457A387E04  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Moeck-Shop
+2026-04-15 01:49:45.537 INFO  DCL-Kruse (WKR-01)                       parked   v1= 27.92  v2=  0.0380  today=  110m  month= 20270m  since=2025-12-29 23:27:57
+2026-04-15 01:49:45.537 INFO  DCL-Brown (RBR-01)                       parked   v1= 26.48  v2= 12.7435  today=  110m  month=  4378m  since=2026-04-14 22:53:40
+2026-04-15 01:49:45.543 INFO  DCL-Howard (MHR-01)                      parked   v1= 27.76  v2=  0.0453  today=  110m  month= 20270m  since=2025-12-30 22:17:33
+2026-04-15 01:49:45.546 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 53.11  v2=  0.0403  today=  110m  month= 20153m  since=2026-02-16 19:41:58
+2026-04-15 01:49:46.002 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.31  v2= 13.1427  today=   29m  month=   179m  since=2026-04-15 01:39:00
+2026-04-15 01:49:46.010 INFO  DCL-Penske01 (LFG-001)                   parked   v1= 12.81  v2=  0.0479  today=  110m  month=  7658m  since=2026-04-09 15:26:18
+2026-04-15 01:49:47.554 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.50  v2= 12.0408  today=  110m  month= 18579m  since=2026-03-15 23:59:48
+2026-04-15 01:49:47.918 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.77  v2=  0.0373  today=  110m  month= 20115m  since=2026-01-09 21:34:37
+2026-04-15 01:49:47.926 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.60  v2=  0.0378  today=  110m  month= 20270m  since=2025-12-29 23:22:12
+2026-04-15 01:49:48.022 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 25.96  v2= 13.6724  today=    0m  month=     1m  since=2026-04-13 07:25:56
+2026-04-15 01:49:49.642 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 27.56  v2=  0.0457  today=  110m  month= 20270m  since=2025-12-29 23:38:54
+2026-04-15 01:49:49.649 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.62  v2=  0.0383  today=  110m  month= 20270m  since=2025-12-29 23:38:19
+2026-04-15 01:49:49.938 INFO  DCL-Radian-1 (M53)                       parked   v1= 13.27  v2=  0.0000  today=  110m  month= 17990m  since=2026-03-25 23:01:53
+2026-04-15 01:49:53.152 INFO  DCL-Moeck-Shop (GFR-70)                  parked   v1= 27.61  v2= 12.0484  today=  110m  month= 19029m  since=2026-03-15 23:58:13
+2026-04-15 01:49:55.564 INFO  DCL-Howard (MHR-01)                      parked   v1= 27.76  v2=  0.0447  today=  110m  month= 20270m  since=2025-12-30 22:17:33
+2026-04-15 01:49:55.566 INFO  DCL-Kruse (WKR-01)                       parked   v1= 27.92  v2=  0.0389  today=  110m  month= 20270m  since=2025-12-29 23:27:57
+2026-04-15 01:49:55.573 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 53.11  v2=  0.0407  today=  110m  month= 20153m  since=2026-02-16 19:41:58
+2026-04-15 01:49:57.574 INFO  DCL-Brown (RBR-01)                       parked   v1= 26.48  v2= 12.7430  today=  110m  month=  4378m  since=2026-04-14 22:53:40
+2026-04-15 01:49:57.582 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.50  v2= 12.0432  today=  110m  month= 18579m  since=2026-03-15 23:59:48
+2026-04-15 01:49:58.039 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.31  v2= 13.1294  today=   29m  month=   179m  since=2026-04-15 01:39:00
+2026-04-15 01:49:58.047 INFO  DCL-Penske01 (LFG-001)                   parked   v1= 12.81  v2=  0.0483  today=  110m  month=  7658m  since=2026-04-09 15:26:18
+2026-04-15 01:49:58.054 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 25.95  v2= 13.6764  today=    0m  month=     1m  since=2026-04-13 07:25:56
+2026-04-15 01:49:59.668 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.62  v2=  0.0381  today=  110m  month= 20270m  since=2025-12-29 23:38:19
+2026-04-15 01:49:59.960 INFO  DCL-Radian-1 (M53)                       parked   v1= 13.27  v2=  0.0000  today=  110m  month= 17990m  since=2026-03-25 23:01:53
+2026-04-15 01:49:59.968 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.77  v2=  0.0375  today=  110m  month= 20115m  since=2026-01-09 21:34:37
+2026-04-15 01:49:59.975 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.60  v2=  0.0387  today=  110m  month= 20270m  since=2025-12-29 23:22:12
+2026-04-15 01:50:01.684 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 27.55  v2=  0.0457  today=  110m  month= 20270m  since=2025-12-29 23:38:54
+2026-04-15 01:50:03.178 INFO  DCL-Moeck-Shop (GFR-70)                  parked   v1= 27.61  v2= 12.0463  today=  110m  month= 19029m  since=2026-03-15 23:58:13
+2026-04-15 01:50:05.584 INFO  DCL-Howard (MHR-01)                      parked   v1= 27.76  v2=  0.0445  today=  110m  month= 20270m  since=2025-12-30 22:17:33
+2026-04-15 01:50:05.591 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 53.11  v2=  0.0401  today=  110m  month= 20153m  since=2026-02-16 19:41:58
+2026-04-15 01:50:05.598 INFO  DCL-Kruse (WKR-01)                       parked   v1= 27.92  v2=  0.0392  today=  110m  month= 20270m  since=2025-12-29 23:27:57
+2026-04-15 01:50:07.598 INFO  DCL-Brown (RBR-01)                       parked   v1= 26.48  v2= 12.7426  today=  110m  month=  4378m  since=2026-04-14 22:53:40
+2026-04-15 01:50:07.605 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.50  v2= 12.0417  today=  110m  month= 18579m  since=2026-03-15 23:59:48
+2026-04-15 01:50:08.077 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.31  v2= 13.1203  today=   29m  month=   179m  since=2026-04-15 01:39:00
+2026-04-15 01:50:08.085 INFO  DCL-Penske01 (LFG-001)                   parked   v1= 12.81  v2=  0.0482  today=  110m  month=  7658m  since=2026-04-09 15:26:18
+2026-04-15 01:50:08.092 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 25.95  v2= 13.6734  today=    0m  month=     1m  since=2026-04-13 07:25:56
+2026-04-15 01:50:09.993 INFO  DCL-Radian-1 (M53)                       parked   v1= 13.27  v2=  0.0000  today=  110m  month= 17990m  since=2026-03-25 23:01:53
+2026-04-15 01:50:10.002 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.60  v2=  0.0385  today=  110m  month= 20270m  since=2025-12-29 23:22:12
+2026-04-15 01:50:10.009 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.77  v2=  0.0380  today=  110m  month= 20115m  since=2026-01-09 21:34:37
+2026-04-15 01:50:11.710 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.61  v2=  0.0377  today=  110m  month= 20270m  since=2025-12-29 23:38:19
+2026-04-15 01:50:11.718 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 27.56  v2=  0.0470  today=  110m  month= 20270m  since=2025-12-29 23:38:54
+Skipping 3 offline/unstable devices:
+                  [no_power]  DCL-Carter                               (0 disconnects) (retry in 24m)
+                  [no_power]  DCL-Epler                                (0 disconnects) (retry in 17m)
+                  [no_power]  DCL-Radian-2                             (0 disconnects) (retry in 19m)
+2026-04-15 01:50:12.051 INFO  InHand GPS locations updated  totalDevices=48  devicesWithLocation=12  simsMatched=8  trucksUpdated=8  unmatchedDevices=RF3022529634065(msisdn=null,iccid=8931086125129524336F); IR302_10(msisdn=883190603748135,iccid=89444611503508862610); IR302_13(msisdn=883190603748137,iccid=89444611503508862677); IR302_15(msisdn=883190603748136,iccid=89444611503508862651)  durationMs=384
+2026-04-15 01:50:12.391 INFO  SIM locations updated  simsPolled=16  locationsUpdated=16  trucksUpdated=16  durationMs=721
+2026-04-15 01:50:15.200 INFO  DCL-Moeck-Shop (GFR-70)                  parked   v1= 27.61  v2= 12.0431  today=  110m  month= 19029m  since=2026-03-15 23:58:13
+2026-04-15 01:50:15.607 INFO  DCL-Howard (MHR-01)                      parked   v1= 27.76  v2=  0.0456  today=  110m  month= 20270m  since=2025-12-30 22:17:33
+2026-04-15 01:50:15.616 INFO  DCL-Kruse (WKR-01)                       parked   v1= 27.91  v2=  0.0386  today=  110m  month= 20270m  since=2025-12-29 23:27:57
+2026-04-15 01:50:15.623 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 53.11  v2=  0.0407  today=  110m  month= 20153m  since=2026-02-16 19:41:58
+2026-04-15 01:50:17.621 INFO  DCL-Brown (RBR-01)                       parked   v1= 26.48  v2= 12.7431  today=  110m  month=  4378m  since=2026-04-14 22:53:40
+2026-04-15 01:50:17.629 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.50  v2= 12.0423  today=  110m  month= 18579m  since=2026-03-15 23:59:48
+2026-04-15 01:50:18.111 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.31  v2= 13.1154  today=   29m  month=   179m  since=2026-04-15 01:39:00
+2026-04-15 01:50:18.119 INFO  DCL-Penske01 (LFG-001)                   parked   v1= 12.81  v2=  0.0487  today=  110m  month=  7658m  since=2026-04-09 15:26:18
+2026-04-15 01:50:18.127 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 25.95  v2= 13.6735  today=    0m  month=     1m  since=2026-04-13 07:25:56
+2026-04-15 01:50:20.031 INFO  DCL-Radian-1 (M53)                       parked   v1= 13.27  v2=  0.0000  today=  110m  month= 17990m  since=2026-03-25 23:01:53
+2026-04-15 01:50:20.039 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.60  v2=  0.0387  today=  110m  month= 20270m  since=2025-12-29 23:22:12
+2026-04-15 01:50:20.046 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.77  v2=  0.0382  today=  110m  month= 20115m  since=2026-01-09 21:34:37
+2026-04-15 01:50:21.734 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 27.55  v2=  0.0464  today=  110m  month= 20270m  since=2025-12-29 23:38:54
+2026-04-15 01:50:21.742 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.61  v2=  0.0388  today=  110m  month= 20270m  since=2025-12-29 23:38:19
+2026-04-15 01:50:25.220 INFO  DCL-Moeck-Shop (GFR-70)                  parked   v1= 27.61  v2= 12.0482  today=  110m  month= 19029m  since=2026-03-15 23:58:13
+2026-04-15 01:50:25.625 INFO  DCL-Howard (MHR-01)                      parked   v1= 27.76  v2=  0.0449  today=  110m  month= 20270m  since=2025-12-30 22:17:33
+2026-04-15 01:50:25.641 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 53.11  v2=  0.0395  today=  110m  month= 20153m  since=2026-02-16 19:41:58
+2026-04-15 01:50:25.649 INFO  DCL-Kruse (WKR-01)                       parked   v1= 27.91  v2=  0.0387  today=  110m  month= 20270m  since=2025-12-29 23:27:57
+2026-04-15 01:50:27.648 INFO  DCL-Brown (RBR-01)                       parked   v1= 26.48  v2= 12.7438  today=  110m  month=  4378m  since=2026-04-14 22:53:40
+2026-04-15 01:50:27.655 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.50  v2= 12.0419  today=  110m  month= 18579m  since=2026-03-15 23:59:48
+2026-04-15 01:50:28.145 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.31  v2= 13.1148  today=   29m  month=   179m  since=2026-04-15 01:39:00
+2026-04-15 01:50:28.153 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 25.95  v2= 13.6733  today=    0m  month=     1m  since=2026-04-13 07:25:56
+2026-04-15 01:50:28.160 INFO  DCL-Penske01 (LFG-001)                   parked   v1= 12.81  v2=  0.0482  today=  110m  month=  7658m  since=2026-04-09 15:26:18
+2026-04-15 01:50:31.762 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 27.55  v2=  0.0460  today=  111m  month= 20271m  since=2025-12-29 23:38:54
+2026-04-15 01:50:31.770 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.61  v2=  0.0380  today=  111m  month= 20271m  since=2025-12-29 23:38:19
+2026-04-15 01:50:32.067 INFO  DCL-Radian-1 (M53)                       parked   v1= 13.27  v2=  0.0001  today=  111m  month= 17991m  since=2026-03-25 23:01:53
+2026-04-15 01:50:32.075 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.61  v2=  0.0382  today=  111m  month= 20271m  since=2025-12-29 23:22:12
+2026-04-15 01:50:32.082 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.77  v2=  0.0381  today=  111m  month= 20116m  since=2026-01-09 21:34:37
+2026-04-15 01:50:35.240 INFO  DCL-Moeck-Shop (GFR-70)                  parked   v1= 27.61  v2= 12.0465  today=  111m  month= 19030m  since=2026-03-15 23:58:13
+2026-04-15 01:50:35.642 INFO  DCL-Howard (MHR-01)                      parked   v1= 27.76  v2=  0.0444  today=  111m  month= 20271m  since=2025-12-30 22:17:33
+2026-04-15 01:50:37.670 INFO  DCL-Kruse (WKR-01)                       parked   v1= 27.91  v2=  0.0390  today=  111m  month= 20271m  since=2025-12-29 23:27:57
+2026-04-15 01:50:37.672 INFO  DCL-Brown (RBR-01)                       parked   v1= 26.48  v2= 12.7427  today=  111m  month=  4379m  since=2026-04-14 22:53:40
+2026-04-15 01:50:37.679 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 53.11  v2=  0.0407  today=  111m  month= 20154m  since=2026-02-16 19:41:58
+2026-04-15 01:50:37.680 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.50  v2= 12.0442  today=  111m  month= 18580m  since=2026-03-15 23:59:48
+2026-04-15 01:50:38.180 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.31  v2= 13.1070  today=   29m  month=   179m  since=2026-04-15 01:39:00
+2026-04-15 01:50:38.187 INFO  DCL-Penske01 (LFG-001)                   parked   v1= 12.81  v2=  0.0490  today=  111m  month=  7659m  since=2026-04-09 15:26:18
+2026-04-15 01:50:38.194 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 25.95  v2= 13.6724  today=    0m  month=     1m  since=2026-04-13 07:25:56
+2026-04-15 01:50:42.104 INFO  DCL-Radian-1 (M53)                       parked   v1= 13.27  v2=  0.0000  today=  111m  month= 17991m  since=2026-03-25 23:01:53
+2026-04-15 01:50:42.112 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.77  v2=  0.0373  today=  111m  month= 20116m  since=2026-01-09 21:34:37
+2026-04-15 01:50:42.120 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.61  v2=  0.0383  today=  111m  month= 20271m  since=2025-12-29 23:22:12
+2026-04-15 01:50:43.790 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 27.54  v2=  0.0462  today=  111m  month= 20271m  since=2025-12-29 23:38:54
+2026-04-15 01:50:43.797 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.62  v2=  0.0377  today=  111m  month= 20271m  since=2025-12-29 23:38:19
+2026-04-15 01:50:45.258 INFO  DCL-Moeck-Shop (GFR-70)                  parked   v1= 27.61  v2= 12.0479  today=  111m  month= 19030m  since=2026-03-15 23:58:13
+2026-04-15 01:50:45.659 INFO  DCL-Howard (MHR-01)                      parked   v1= 27.76  v2=  0.0445  today=  111m  month= 20271m  since=2025-12-30 22:17:33
+2026-04-15 01:50:47.695 INFO  DCL-Kruse (WKR-01)                       parked   v1= 27.91  v2=  0.0394  today=  111m  month= 20271m  since=2025-12-29 23:27:57
+2026-04-15 01:50:47.702 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 53.11  v2=  0.0403  today=  111m  month= 20154m  since=2026-02-16 19:41:58
+2026-04-15 01:50:49.699 INFO  DCL-Brown (RBR-01)                       parked   v1= 26.48  v2= 12.7447  today=  111m  month=  4379m  since=2026-04-14 22:53:40
+2026-04-15 01:50:49.707 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.50  v2= 12.0439  today=  111m  month= 18580m  since=2026-03-15 23:59:48
+2026-04-15 01:50:50.213 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.31  v2= 13.0923  today=   29m  month=   179m  since=2026-04-15 01:39:00
+2026-04-15 01:50:50.221 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 25.95  v2= 13.6743  today=    0m  month=     1m  since=2026-04-13 07:25:56
+2026-04-15 01:50:50.228 INFO  DCL-Penske01 (LFG-001)                   parked   v1= 12.81  v2=  0.0476  today=  111m  month=  7659m  since=2026-04-09 15:26:18
+2026-04-15 01:50:52.148 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.61  v2=  0.0385  today=  111m  month= 20271m  since=2025-12-29 23:22:12
+2026-04-15 01:50:52.155 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.77  v2=  0.0382  today=  111m  month= 20116m  since=2026-01-09 21:34:37
+2026-04-15 01:50:52.163 INFO  DCL-Radian-1 (M53)                       parked   v1= 13.27  v2=  0.0000  today=  111m  month= 17991m  since=2026-03-25 23:01:53
+2026-04-15 01:50:53.819 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 27.53  v2=  0.0472  today=  111m  month= 20271m  since=2025-12-29 23:38:54
+2026-04-15 01:50:53.827 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.62  v2=  0.0389  today=  111m  month= 20271m  since=2025-12-29 23:38:19
+2026-04-15 01:50:55.276 INFO  DCL-Moeck-Shop (GFR-70)                  parked   v1= 27.61  v2= 12.0456  today=  111m  month= 19030m  since=2026-03-15 23:58:13
+2026-04-15 01:50:55.677 INFO  DCL-Howard (MHR-01)                      parked   v1= 27.76  v2=  0.0447  today=  111m  month= 20271m  since=2025-12-30 22:17:33
+2026-04-15 01:50:57.722 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 53.11  v2=  0.0400  today=  111m  month= 20154m  since=2026-02-16 19:41:58
+2026-04-15 01:50:57.729 INFO  DCL-Kruse (WKR-01)                       parked   v1= 27.91  v2=  0.0382  today=  111m  month= 20271m  since=2025-12-29 23:27:57
+2026-04-15 01:50:59.724 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.50  v2= 12.0408  today=  111m  month= 18580m  since=2026-03-15 23:59:48
+2026-04-15 01:50:59.731 INFO  DCL-Brown (RBR-01)                       parked   v1= 26.48  v2= 12.7436  today=  111m  month=  4379m  since=2026-04-14 22:53:40
+2026-04-15 01:51:00.248 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.31  v2= 13.0832  today=   29m  month=   179m  since=2026-04-15 01:39:00
+2026-04-15 01:51:00.255 INFO  DCL-Penske01 (LFG-001)                   parked   v1= 12.81  v2=  0.0483  today=  111m  month=  7659m  since=2026-04-09 15:26:18
+2026-04-15 01:51:00.263 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 25.95  v2= 13.6752  today=    0m  month=     1m  since=2026-04-13 07:25:56
+2026-04-15 01:51:02.184 INFO  DCL-Radian-1 (M53)                       parked   v1= 13.27  v2=  0.0001  today=  111m  month= 17991m  since=2026-03-25 23:01:53
+2026-04-15 01:51:02.193 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.77  v2=  0.0377  today=  111m  month= 20116m  since=2026-01-09 21:34:37
+2026-04-15 01:51:02.209 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.61  v2=  0.0392  today=  111m  month= 20271m  since=2025-12-29 23:22:12
+2026-04-15 01:51:03.844 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 27.53  v2=  0.0462  today=  111m  month= 20271m  since=2025-12-29 23:38:54
+2026-04-15 01:51:03.852 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.62  v2=  0.0386  today=  111m  month= 20271m  since=2025-12-29 23:38:19
+2026-04-15 01:51:05.295 INFO  DCL-Moeck-Shop (GFR-70)                  parked   v1= 27.61  v2= 12.0475  today=  111m  month= 19030m  since=2026-03-15 23:58:13
+2026-04-15 01:51:05.694 INFO  DCL-Howard (MHR-01)                      parked   v1= 27.76  v2=  0.0450  today=  111m  month= 20271m  since=2025-12-30 22:17:33
+2026-04-15 01:51:07.745 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 53.11  v2=  0.0396  today=  111m  month= 20154m  since=2026-02-16 19:41:58
+2026-04-15 01:51:07.753 INFO  DCL-Kruse (WKR-01)                       parked   v1= 27.91  v2=  0.0384  today=  111m  month= 20271m  since=2025-12-29 23:27:57
+2026-04-15 01:51:09.747 INFO  DCL-Brown (RBR-01)                       parked   v1= 26.48  v2= 12.7428  today=  111m  month=  4379m  since=2026-04-14 22:53:40
+2026-04-15 01:51:09.755 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.50  v2= 12.0409  today=  111m  month= 18580m  since=2026-03-15 23:59:48
+2026-04-15 01:51:10.283 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.31  v2= 13.0780  today=   29m  month=   179m  since=2026-04-15 01:39:00
+2026-04-15 01:51:10.291 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 25.95  v2= 13.6736  today=    0m  month=     1m  since=2026-04-13 07:25:56
+2026-04-15 01:51:10.298 INFO  DCL-Penske01 (LFG-001)                   parked   v1= 12.81  v2=  0.0484  today=  111m  month=  7659m  since=2026-04-09 15:26:18
+Skipping 3 offline/unstable devices:
+                  [no_power]  DCL-Carter                               (0 disconnects) (retry in 23m)
+                  [no_power]  DCL-Epler                                (0 disconnects) (retry in 16m)
+                  [no_power]  DCL-Radian-2                             (0 disconnects) (retry in 18m)
+2026-04-15 01:51:12.233 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.77  v2=  0.0386  today=  111m  month= 20116m  since=2026-01-09 21:34:37
+2026-04-15 01:51:12.241 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.61  v2=  0.0387  today=  111m  month= 20271m  since=2025-12-29 23:22:12
+2026-04-15 01:51:12.248 INFO  DCL-Radian-1 (M53)                       parked   v1= 13.27  v2=  0.0000  today=  111m  month= 17991m  since=2026-03-25 23:01:53
+2026-04-15 01:51:12.390 INFO  SIM locations updated  simsPolled=16  locationsUpdated=16  trucksUpdated=16  durationMs=693
+2026-04-15 01:51:13.872 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 27.53  v2=  0.0462  today=  111m  month= 20271m  since=2025-12-29 23:38:54
+2026-04-15 01:51:13.880 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.62  v2=  0.0381  today=  111m  month= 20271m  since=2025-12-29 23:38:19
+2026-04-15 01:51:15.713 INFO  DCL-Howard (MHR-01)                      parked   v1= 27.76  v2=  0.0444  today=  111m  month= 20271m  since=2025-12-30 22:17:33
+2026-04-15 01:51:17.315 INFO  DCL-Moeck-Shop (GFR-70)                  parked   v1= 27.61  v2= 12.0497  today=  111m  month= 19030m  since=2026-03-15 23:58:13
+2026-04-15 01:51:17.771 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 53.11  v2=  0.0392  today=  111m  month= 20154m  since=2026-02-16 19:41:58
+2026-04-15 01:51:17.779 INFO  DCL-Kruse (WKR-01)                       parked   v1= 27.91  v2=  0.0382  today=  111m  month= 20271m  since=2025-12-29 23:27:57
+2026-04-15 01:51:19.774 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.50  v2= 12.0406  today=  111m  month= 18580m  since=2026-03-15 23:59:48
+2026-04-15 01:51:19.781 INFO  DCL-Brown (RBR-01)                       parked   v1= 26.48  v2= 12.7433  today=  111m  month=  4379m  since=2026-04-14 22:53:40
+2026-04-15 01:51:20.324 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.31  v2= 13.0697  today=   29m  month=   179m  since=2026-04-15 01:39:00
+2026-04-15 01:51:20.331 INFO  DCL-Penske01 (LFG-001)                   parked   v1= 12.81  v2=  0.0479  today=  111m  month=  7659m  since=2026-04-09 15:26:18
+2026-04-15 01:51:20.338 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 25.96  v2= 13.6739  today=    0m  month=     1m  since=2026-04-13 07:25:56
+2026-04-15 01:51:24.266 INFO  DCL-Radian-1 (M53)                       parked   v1= 13.27  v2=  0.0000  today=  111m  month= 17991m  since=2026-03-25 23:01:53
+2026-04-15 01:51:24.273 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.61  v2=  0.0390  today=  111m  month= 20271m  since=2025-12-29 23:22:12
+2026-04-15 01:51:24.281 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.77  v2=  0.0382  today=  111m  month= 20116m  since=2026-01-09 21:34:37
+2026-04-15 01:51:25.732 INFO  DCL-Howard (MHR-01)                      parked   v1= 27.76  v2=  0.0450  today=  111m  month= 20271m  since=2025-12-30 22:17:33
+2026-04-15 01:51:25.903 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 27.53  v2=  0.0456  today=  111m  month= 20271m  since=2025-12-29 23:38:54
+2026-04-15 01:51:25.910 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.61  v2=  0.0382  today=  111m  month= 20271m  since=2025-12-29 23:38:19
+2026-04-15 01:51:27.336 INFO  DCL-Moeck-Shop (GFR-70)                  parked   v1= 27.61  v2= 12.0500  today=  111m  month= 19030m  since=2026-03-15 23:58:13
+2026-04-15 01:51:27.797 INFO  DCL-Kruse (WKR-01)                       parked   v1= 27.91  v2=  0.0385  today=  111m  month= 20271m  since=2025-12-29 23:27:57
+2026-04-15 01:51:27.805 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 53.11  v2=  0.0395  today=  111m  month= 20154m  since=2026-02-16 19:41:58
+2026-04-15 01:51:29.800 INFO  DCL-Brown (RBR-01)                       parked   v1= 26.48  v2= 12.7421  today=  111m  month=  4379m  since=2026-04-14 22:53:40
+2026-04-15 01:51:29.808 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.50  v2= 12.0344  today=  111m  month= 18580m  since=2026-03-15 23:59:48
+2026-04-15 01:51:30.358 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.31  v2= 13.0655  today=   29m  month=   179m  since=2026-04-15 01:39:00
+2026-04-15 01:51:30.365 INFO  DCL-Penske01 (LFG-001)                   parked   v1= 12.81  v2=  0.0480  today=  112m  month=  7660m  since=2026-04-09 15:26:18
+2026-04-15 01:51:30.373 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 25.96  v2= 13.6734  today=    0m  month=     1m  since=2026-04-13 07:25:56
+2026-04-15 01:51:34.298 INFO  DCL-Radian-1 (M53)                       parked   v1= 13.27  v2=  0.0000  today=  112m  month= 17992m  since=2026-03-25 23:01:53
+2026-04-15 01:51:34.305 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.61  v2=  0.0381  today=  112m  month= 20272m  since=2025-12-29 23:22:12
+2026-04-15 01:51:34.312 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.77  v2=  0.0385  today=  112m  month= 20117m  since=2026-01-09 21:34:37
+2026-04-15 01:51:35.751 INFO  DCL-Howard (MHR-01)                      parked   v1= 27.76  v2=  0.0450  today=  112m  month= 20272m  since=2025-12-30 22:17:33
+2026-04-15 01:51:35.928 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 27.52  v2=  0.0464  today=  112m  month= 20272m  since=2025-12-29 23:38:54
+2026-04-15 01:51:35.935 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.61  v2=  0.0385  today=  112m  month= 20272m  since=2025-12-29 23:38:19
+2026-04-15 01:51:37.356 INFO  DCL-Moeck-Shop (GFR-70)                  parked   v1= 27.61  v2= 12.0493  today=  112m  month= 19031m  since=2026-03-15 23:58:13
+2026-04-15 01:51:37.826 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 53.11  v2=  0.0403  today=  112m  month= 20155m  since=2026-02-16 19:41:58
+2026-04-15 01:51:39.829 INFO  DCL-Brown (RBR-01)                       parked   v1= 26.48  v2= 12.7423  today=  112m  month=  4380m  since=2026-04-14 22:53:40
+2026-04-15 01:51:39.837 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.50  v2= 12.0411  today=  112m  month= 18581m  since=2026-03-15 23:59:48
+2026-04-15 01:51:41.841 INFO  DCL-Kruse (WKR-01)                       parked   v1= 27.91  v2=  0.0380  today=  112m  month= 20272m  since=2025-12-29 23:27:57
+2026-04-15 01:51:42.393 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.31  v2= 13.0632  today=   29m  month=   179m  since=2026-04-15 01:39:00
+2026-04-15 01:51:42.401 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 25.96  v2= 13.6725  today=    0m  month=     1m  since=2026-04-13 07:25:56
+2026-04-15 01:51:42.409 INFO  DCL-Penske01 (LFG-001)                   parked   v1= 12.81  v2=  0.0494  today=  112m  month=  7660m  since=2026-04-09 15:26:18
+2026-04-15 01:51:44.333 INFO  DCL-Radian-1 (M53)                       parked   v1= 13.27  v2=  0.0000  today=  112m  month= 17992m  since=2026-03-25 23:01:53
+2026-04-15 01:51:44.341 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.61  v2=  0.0382  today=  112m  month= 20272m  since=2025-12-29 23:22:12
+2026-04-15 01:51:44.348 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.77  v2=  0.0384  today=  112m  month= 20117m  since=2026-01-09 21:34:37
+2026-04-15 01:51:45.769 INFO  DCL-Howard (MHR-01)                      parked   v1= 27.76  v2=  0.0457  today=  112m  month= 20272m  since=2025-12-30 22:17:33
+2026-04-15 01:51:45.954 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.62  v2=  0.0381  today=  112m  month= 20272m  since=2025-12-29 23:38:19
+2026-04-15 01:51:47.374 INFO  DCL-Moeck-Shop (GFR-70)                  parked   v1= 27.61  v2= 12.0507  today=  112m  month= 19031m  since=2026-03-15 23:58:13
+2026-04-15 01:51:47.966 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 27.51  v2=  0.0456  today=  112m  month= 20272m  since=2025-12-29 23:38:54
+2026-04-15 01:51:49.855 INFO  DCL-Brown (RBR-01)                       parked   v1= 26.48  v2= 12.7422  today=  112m  month=  4380m  since=2026-04-14 22:53:40
+2026-04-15 01:51:51.857 INFO  DCL-Kruse (WKR-01)                       parked   v1= 27.91  v2=  0.0380  today=  112m  month= 20272m  since=2025-12-29 23:27:57
+2026-04-15 01:51:51.864 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 53.11  v2=  0.0402  today=  112m  month= 20155m  since=2026-02-16 19:41:58
+2026-04-15 01:51:51.870 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.50  v2= 12.0462  today=  112m  month= 18581m  since=2026-03-15 23:59:48
+2026-04-15 01:51:52.426 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.31  v2= 13.0615  today=   29m  month=   179m  since=2026-04-15 01:39:00
+2026-04-15 01:51:52.433 INFO  DCL-Penske01 (LFG-001)                   parked   v1= 12.81  v2=  0.0487  today=  112m  month=  7660m  since=2026-04-09 15:26:18
+2026-04-15 01:51:52.441 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 25.96  v2= 13.6754  today=    0m  month=     1m  since=2026-04-13 07:25:56
+2026-04-15 01:51:54.368 INFO  DCL-Radian-1 (M53)                       parked   v1= 13.27  v2=  0.0000  today=  112m  month= 17992m  since=2026-03-25 23:01:53
+2026-04-15 01:51:54.375 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.61  v2=  0.0382  today=  112m  month= 20272m  since=2025-12-29 23:22:12
+2026-04-15 01:51:54.383 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.77  v2=  0.0383  today=  112m  month= 20117m  since=2026-01-09 21:34:37
+2026-04-15 01:51:55.786 INFO  DCL-Howard (MHR-01)                      parked   v1= 27.76  v2=  0.0453  today=  112m  month= 20272m  since=2025-12-30 22:17:33
+2026-04-15 01:51:57.983 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 27.51  v2=  0.0454  today=  112m  month= 20272m  since=2025-12-29 23:38:54
+2026-04-15 01:51:57.991 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.61  v2=  0.0382  today=  112m  month= 20272m  since=2025-12-29 23:38:19
+2026-04-15 01:51:59.395 INFO  DCL-Moeck-Shop (GFR-70)                  parked   v1= 27.61  v2= 12.0485  today=  112m  month= 19031m  since=2026-03-15 23:58:13
+2026-04-15 01:52:01.895 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 53.11  v2=  0.0396  today=  112m  month= 20155m  since=2026-02-16 19:41:58
+2026-04-15 01:52:01.896 INFO  DCL-Brown (RBR-01)                       parked   v1= 26.48  v2= 12.7400  today=  112m  month=  4380m  since=2026-04-14 22:53:40
+2026-04-15 01:52:01.910 INFO  DCL-Kruse (WKR-01)                       parked   v1= 27.91  v2=  0.0384  today=  112m  month= 20272m  since=2025-12-29 23:27:57
+2026-04-15 01:52:01.910 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.50  v2= 12.0409  today=  112m  month= 18581m  since=2026-03-15 23:59:48
+2026-04-15 01:52:02.461 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.31  v2= 13.0518  today=   29m  month=   179m  since=2026-04-15 01:39:00
