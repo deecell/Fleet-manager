@@ -173,49 +173,49 @@ async function getActiveDevicesWithCredentials() {
     result.rows.push(...expiredResult.rows);
   }
   
-  // Log any skipped unstable/offline/no_power devices for visibility
-  const skippedResult = await query(`
-    SELECT d.serial_number, d.device_name, d.connection_status, d.consecutive_disconnects,
-      d.marked_unstable_at,
-      EXTRACT(EPOCH FROM (NOW() - d.marked_unstable_at)) / 60 as minutes_quarantined
-    FROM power_mon_devices d
-    INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = true
-    WHERE d.connection_status IN ('unstable', 'offline', 'no_power')
-  `);
-  if (skippedResult.rows.length > 0) {
-    const red = '\x1b[31m';
-    const dim = '\x1b[2m';
-    const rst = '\x1b[0m';
-    console.log(`Skipping ${skippedResult.rows.length} offline/unstable devices:`);
-    for (const d of skippedResult.rows) {
-      const status = `[${d.connection_status}]`.padEnd(12);
-      const name = (d.device_name || d.serial_number).padEnd(41);
-      let ttlInfo = '';
-      if (d.connection_status === 'no_power' && d.minutes_quarantined != null) {
-        const minutesRemaining = Math.max(0, Math.round(NO_POWER_QUARANTINE_MINUTES - d.minutes_quarantined));
-        ttlInfo = minutesRemaining > 0 
-          ? ` (retry in ${minutesRemaining}m)` 
-          : ' (retry on next check)';
+  if (!process.env.WORKER_COHORT_ID) {
+    const skippedResult = await query(`
+      SELECT d.serial_number, d.device_name, d.connection_status, d.consecutive_disconnects,
+        d.marked_unstable_at,
+        EXTRACT(EPOCH FROM (NOW() - d.marked_unstable_at)) / 60 as minutes_quarantined
+      FROM power_mon_devices d
+      INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = true
+      WHERE d.connection_status IN ('unstable', 'offline', 'no_power')
+    `);
+    if (skippedResult.rows.length > 0) {
+      const red = '\x1b[31m';
+      const dim = '\x1b[2m';
+      const rst = '\x1b[0m';
+      console.log(`Skipping ${skippedResult.rows.length} offline/unstable devices:`);
+      for (const d of skippedResult.rows) {
+        const status = `[${d.connection_status}]`.padEnd(12);
+        const name = (d.device_name || d.serial_number).padEnd(41);
+        let ttlInfo = '';
+        if (d.connection_status === 'no_power' && d.minutes_quarantined != null) {
+          const minutesRemaining = Math.max(0, Math.round(NO_POWER_QUARANTINE_MINUTES - d.minutes_quarantined));
+          ttlInfo = minutesRemaining > 0 
+            ? ` (retry in ${minutesRemaining}m)` 
+            : ' (retry on next check)';
+        }
+        console.log(`                  ${red}${status}${rst}${dim}${name}(${d.consecutive_disconnects} disconnects)${ttlInfo}${rst}`);
       }
-      console.log(`                  ${red}${status}${rst}${dim}${name}(${d.consecutive_disconnects} disconnects)${ttlInfo}${rst}`);
     }
-  }
-  
-  // Log devices skipped due to monitoring disabled
-  const disabledResult = await query(`
-    SELECT d.serial_number, d.device_name
-    FROM power_mon_devices d
-    INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = false
-  `);
-  if (disabledResult.rows.length > 0) {
-    const yellow = '\x1b[33m';
-    const dim = '\x1b[2m';
-    const reset = '\x1b[0m';
-    console.log(`Skipping ${disabledResult.rows.length} devices with monitoring disabled:`);
-    for (const d of disabledResult.rows) {
-      const tag = `[inactive]`.padEnd(12);
-      const name = (d.device_name || d.serial_number).padEnd(30);
-      console.log(`                  ${yellow}${tag}${reset}${dim}${name}${reset}`);
+    
+    const disabledResult = await query(`
+      SELECT d.serial_number, d.device_name
+      FROM power_mon_devices d
+      INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = false
+    `);
+    if (disabledResult.rows.length > 0) {
+      const yellow = '\x1b[33m';
+      const dim = '\x1b[2m';
+      const reset = '\x1b[0m';
+      console.log(`Skipping ${disabledResult.rows.length} devices with monitoring disabled:`);
+      for (const d of disabledResult.rows) {
+        const tag = `[inactive]`.padEnd(12);
+        const name = (d.device_name || d.serial_number).padEnd(30);
+        console.log(`                  ${yellow}${tag}${reset}${dim}${name}${reset}`);
+      }
     }
   }
   
