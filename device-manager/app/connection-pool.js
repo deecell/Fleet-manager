@@ -52,6 +52,9 @@ if (process.env.SIMULATION_MODE === 'true' || process.env.SIMULATION_MODE === '1
 // since the native C++ library's global state is corrupted and any call can SIGABRT.
 let nativeLibraryShutdown = false;
 
+// Module-level pool reference for circuit breaker to null out ALL native device refs
+let poolInstance = null;
+
 // Circuit breaker configuration
 const RAPID_DISCONNECT_THRESHOLD_MS = 5000; // Disconnect within 5s of connect = rapid
 const MAX_RAPID_DISCONNECTS = 3; // After 3 rapid disconnects, mark as unstable/no_power
@@ -389,14 +392,35 @@ class DeviceConnection {
                 
                 this.rapidDisconnectDurations = [];
                 
-                // CRITICAL: Immediately null out native device reference to prevent
-                // any pending callbacks (getInfo, getMonitorData) from touching
-                // the native library in a corrupted state. This prevents the
-                // "terminate called without an active exception" C++ crash.
+                // CRITICAL: Immediately null out native device references for ALL
+                // devices in the pool, not just the one that triggered the circuit breaker.
+                // The native C++ library corruption is GLOBAL — any pending callback
+                // from any device can trigger SIGABRT. Nulling the device reference
+                // causes pending callbacks to find `this.device === null` and bail out
+                // before touching the corrupted native state.
                 this.device = null;
                 this.status = 'disconnected';
                 
-                // Clear any pending reconnect timer
+                if (poolInstance) {
+                  let nulledCount = 0;
+                  for (const conn of poolInstance.connections.values()) {
+                    if (conn.deviceId !== this.deviceId && conn.device) {
+                      conn.device = null;
+                      conn.status = 'disconnected';
+                      if (conn.reconnectTimer) {
+                        clearTimeout(conn.reconnectTimer);
+                        conn.reconnectTimer = null;
+                      }
+                      nulledCount++;
+                    }
+                  }
+                  logger.warn('Nulled native references for all pool devices', { 
+                    nulledCount, 
+                    triggerDevice: this.deviceId 
+                  });
+                }
+                
+                // Clear any pending reconnect timer for the trigger device
                 if (this.reconnectTimer) {
                   clearTimeout(this.reconnectTimer);
                   this.reconnectTimer = null;
@@ -586,7 +610,13 @@ class DeviceConnection {
     return new Promise((resolve) => {
       try {
         // Get monitor data from device using callback API
-        this.device.getMonitorData((result) => {
+        const device = this.device;
+        device.getMonitorData((result) => {
+          // Bail immediately if native library was compromised while callback was in-flight
+          if (nativeLibraryShutdown || !this.device) {
+            resolve(null);
+            return;
+          }
           if (!result.success) {
             this.consecutiveFailures++;
             this.log.warn('Poll failed', { 
@@ -733,6 +763,7 @@ class ConnectionPool {
     this.connections = new Map(); // deviceId -> DeviceConnection
     this.cohorts = new Map(); // cohortId -> Set of deviceIds
     this.isRunning = false;
+    poolInstance = this;
   }
 
   /**

@@ -1,0 +1,24 @@
+2026-04-15 00:45:26.825 INFO  Found newly activated device  serialNumber=A15102C4CCF4B6B2  deviceName=DCL-NHRA-Tech-Trailer
+2026-04-15 00:45:26.827 INFO  Connecting to device  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3
+2026-04-15 00:45:26.836 INFO  Connected successfully  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3  durationMs=9
+2026-04-15 00:45:26.840 INFO  onDisconnect fired  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3  reason=2  connDurationMs=4  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=0
+2026-04-15 00:45:26.840 WARN  Rapid disconnect detected (error)  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3  reason=2  rapidDisconnects=1  connectionDurationMs=4
+2026-04-15 00:45:26.840 WARN  Weak signal detected - 1st instant disconnect, marking weak_signal  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3  connectionDurationMs=4  deviceName=DCL-NHRA-Tech-Trailer
+2026-04-15 00:45:26.840 WARN  Marking device as weak_signal in database  deviceId=19
+2026-04-15 00:45:26.842 INFO  Device disconnected (unexpected)  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3  reason=2  isRapidDisconnect=true
+2026-04-15 00:45:26.843 INFO  New device connection result  serialNumber=A15102C4CCF4B6B2  deviceName=DCL-NHRA-Tech-Trailer  success=true  durationMs=16  cohort=3
+2026-04-15 00:45:26.876 INFO  Scheduling reconnect  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3  attempt=1  delayMs=1000
+2026-04-15 00:45:27.041 WARN  WEAK_SIGNAL DIAGNOSTIC  deviceId=19  deviceName=DCL-NHRA-Tech-Trailer  truckId=13  routerReachable=true  gpsLastUpdate=Tue Apr 14 2026 14:55:16 GMT+0000 (Coordinated Universal Time)  gpsAgeMinutes=590  gpsLocation=null
+2026-04-15 00:45:27.877 INFO  Connecting to device  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3
+2026-04-15 00:45:27.886 INFO  Connected successfully  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3  durationMs=9
+2026-04-15 00:45:27.888 INFO  onDisconnect fired  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3  reason=2  connDurationMs=2  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=1
+2026-04-15 00:45:27.889 WARN  Rapid disconnect detected (error)  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3  reason=2  rapidDisconnects=2  connectionDurationMs=2
+2026-04-15 00:45:27.889 ERROR Circuit breaker OPEN - 2 instant disconnects, device appears powered off  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3  rapidDisconnects=2  instantDisconnects=2  connectionDurationMs=2  backoffMinutes=5  resetAt=2026-04-15T00:50:27.889Z
+2026-04-15 00:45:27.889 ERROR NATIVE LIBRARY COMPROMISED - blocking all native calls, scheduling graceful restart  deviceId=19  deviceName=DCL-NHRA-Tech-Trailer  status=no_power  restartInMs=3000
+2026-04-15 00:45:27.889 WARN  Marking device as no_power in database  deviceId=19
+2026-04-15 00:45:28.033 WARN  NO_POWER DIAGNOSTIC  deviceId=19  deviceName=DCL-NHRA-Tech-Trailer  truckId=13  routerReachable=true  gpsLastUpdate=Tue Apr 14 2026 14:55:16 GMT+0000 (Coordinated Universal Time)  gpsAgeMinutes=590  gpsLocation=null  verdict=ROUTER REACHABLE - likely connectivity issue, NOT power loss
+2026-04-15 00:45:28.548 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.74  v2=  0.0370  today=   45m  month= 20205m  since=2025-12-29 23:38:19
+terminate called without an active exception
+device-manager.service: Main process exited, code=dumped, status=6/ABRT
+device-manager.service: Failed with result 'core-dump'.
+device-manager.service: Consumed 8.738s CPU time.

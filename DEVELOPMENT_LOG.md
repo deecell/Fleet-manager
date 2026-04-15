@@ -6,6 +6,13 @@
 
 ## Latest Updates (April 15, 2026)
 
+### Fix: Null ALL Native Device References on Circuit Breaker (April 15, 2026)
+- **Problem**: Despite `nativeLibraryShutdown` flag, DCL-Curtis-1 had an in-flight poll callback when NHRA triggered the circuit breaker. The callback completed, then the post-poll `disconnect()` call hit the corrupted native library → `terminate called without an active exception` → core dump (SIGABRT).
+- **Root cause**: Only the triggering device's native reference was nulled. Other devices' native refs were still live, and their in-flight callbacks could trigger further native calls (disconnect, reconnect) during the 3-second exit window.
+- **Fix**: When circuit breaker fires, null out `device` reference and clear reconnect timers for **ALL** devices in the pool via `poolInstance.connections`. Added `poolInstance` module-level reference set in `ConnectionPool` constructor.
+- **Additional guard**: `getMonitorData` callback now checks `nativeLibraryShutdown || !this.device` at entry, bailing immediately if the library was compromised while the callback was in-flight.
+- **Files changed**: `device-manager/app/connection-pool.js`
+
 ### Weak Signal State — Early Warning Before No Power (April 15, 2026)
 - **Problem**: Devices go straight from "online" to "no_power" with a 30-minute quarantine. No early warning for connectivity issues.
 - **Solution**: Added intermediate `weak_signal` state (yellow) between healthy and `no_power`:
