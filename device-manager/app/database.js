@@ -1052,6 +1052,15 @@ async function markCrashCulprit(deviceId) {
 /**
  * Gracefully close the database pool
  */
+async function getTruckLastGpsUpdate(truckId) {
+  if (!truckId) return null;
+  const result = await query(
+    'SELECT latitude, longitude, last_location_update, location_description FROM trucks WHERE id = $1',
+    [truckId]
+  );
+  return result.rows[0] || null;
+}
+
 async function closeDatabase() {
   if (pool) {
     await pool.end();
@@ -1088,4 +1097,5 @@ module.exports = {
   recordActiveDevice,
   readCrashAttribution,
   markCrashCulprit,
+  getTruckLastGpsUpdate,
 };

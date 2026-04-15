@@ -392,6 +392,34 @@ class DeviceConnection {
                 db.markDeviceUnstable(this.deviceId, status)
                   .catch(err => this.log.error('Failed to mark device status in database', { error: err.message }));
                 
+                // Diagnostic: check if router is reachable and if GPS is still reporting
+                // This helps determine if no_power is truly a power issue or a connectivity issue
+                (async () => {
+                  try {
+                    const routerReachable = this.applinkUrl ? await pingApplinkUrl(this.applinkUrl, 3000) : null;
+                    const gpsData = await db.getTruckLastGpsUpdate(this.truckId);
+                    const gpsAge = gpsData?.last_location_update 
+                      ? Math.round((Date.now() - new Date(gpsData.last_location_update).getTime()) / 60000)
+                      : null;
+                    logger.warn('NO_POWER DIAGNOSTIC', {
+                      deviceId: this.deviceId,
+                      deviceName: this.deviceName,
+                      truckId: this.truckId,
+                      routerReachable,
+                      gpsLastUpdate: gpsData?.last_location_update || null,
+                      gpsAgeMinutes: gpsAge,
+                      gpsLocation: gpsData?.location_description || null,
+                      verdict: routerReachable 
+                        ? 'ROUTER REACHABLE - likely connectivity issue, NOT power loss'
+                        : gpsAge != null && gpsAge < 5
+                          ? 'GPS recent (<5m) but router unreachable - likely transient network issue'
+                          : 'Router unreachable, no recent GPS - could be actual power loss'
+                    });
+                  } catch (err) {
+                    logger.warn('NO_POWER DIAGNOSTIC failed', { error: err.message });
+                  }
+                })();
+                
                 // Exit regardless of DB write success — corrupted native state MUST be discarded
                 setTimeout(() => {
                   logger.error('Exiting process for clean native library restart');
@@ -1214,25 +1242,47 @@ class ConnectionPool {
         }
         this.cohorts.get(cohortId).add(device.device_id);
         
-        const result = await conn.connect();
-        const rts = new Date().toISOString().slice(11, 19);
-        
-        if (result.success) {
-          recovered++;
-          const tag = '[recovered]'.padEnd(12);
-          const name = (device.device_name || device.serial_number).padEnd(41);
-          console.log(`${dim}${rts}${rst} ${green}AUTO ${rst} ${green}${tag}${rst}${bold}${name}${rst}${dim}connected in ${result.durationMs}ms${rst}`);
+        try {
+          // Pre-retry diagnostic: check router reachability and GPS status
+          const [pingResult, gpsResult] = await Promise.allSettled([
+            device.applink_url ? pingApplinkUrl(device.applink_url, 3000) : Promise.resolve(null),
+            db.getTruckLastGpsUpdate(device.truck_id)
+          ]);
+          const routerReachable = pingResult.status === 'fulfilled' ? pingResult.value : null;
+          const gpsData = gpsResult.status === 'fulfilled' ? gpsResult.value : null;
+          const gpsAge = gpsData?.last_location_update 
+            ? Math.round((Date.now() - new Date(gpsData.last_location_update).getTime()) / 60000)
+            : null;
           
-          await db.resetDeviceStability(device.device_id);
-        } else {
+          const result = await conn.connect();
+          const rts = new Date().toISOString().slice(11, 19);
+          
+          if (result.success) {
+            recovered++;
+            const tag = '[recovered]'.padEnd(12);
+            const name = (device.device_name || device.serial_number).padEnd(41);
+            console.log(`${dim}${rts}${rst} ${green}AUTO ${rst} ${green}${tag}${rst}${bold}${name}${rst}${dim}connected in ${result.durationMs}ms${rst}`);
+            
+            await db.resetDeviceStability(device.device_id);
+          } else {
+            this.connections.delete(device.device_id);
+            this.cohorts.get(cohortId)?.delete(device.device_id);
+            
+            await db.markDeviceUnstable(device.device_id, 'no_power');
+            
+            const tag = '[still off]'.padEnd(12);
+            const name = (device.device_name || device.serial_number).padEnd(41);
+            const diag = routerReachable 
+              ? `${yellow}router UP${rst}${dim} (connectivity issue)${rst}` 
+              : gpsAge != null && gpsAge < 5 
+                ? `${dim}router down, GPS ${gpsAge}m ago (transient?)${rst}` 
+                : `${dim}router down, no recent GPS${rst}`;
+            console.log(`${dim}${rts}${rst} ${yellow}AUTO ${rst} ${yellow}${tag}${rst}${dim}${name}will retry in 30m | ${rst}${diag}`);
+          }
+        } catch (err) {
           this.connections.delete(device.device_id);
           this.cohorts.get(cohortId)?.delete(device.device_id);
-          
-          await db.markDeviceUnstable(device.device_id, 'no_power');
-          
-          const tag = '[still off]'.padEnd(12);
-          const name = (device.device_name || device.serial_number).padEnd(41);
-          console.log(`${dim}${rts}${rst} ${yellow}AUTO ${rst} ${yellow}${tag}${rst}${dim}${name}will retry in 30m${rst}`);
+          logger.error('no_power recovery failed for device', { deviceId: device.device_id, error: err.message });
         }
         
         if (devices.indexOf(device) < devices.length - 1) {

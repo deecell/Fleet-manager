@@ -4,7 +4,25 @@
 
 ---
 
-## Latest Updates (April 14, 2026)
+## Latest Updates (April 15, 2026)
+
+### No-Power Diagnostic: Router Ping + GPS Cross-Reference (April 15, 2026)
+- **Problem**: 8 devices showing `no_power` simultaneously — suspected Wireless Logic / InHand router connectivity issue rather than actual power loss
+- **Solution**: Added diagnostic logging at two critical points:
+  1. **Circuit breaker fire** (`connection-pool.js`): When a device triggers `no_power`, immediately pings the applink URL (router) and queries the truck's last GPS update from InHand
+  2. **Periodic recovery retry** (`recoverNoPowerDevices`): Before each retry attempt, checks router reachability and GPS age
+- **Diagnostic verdict logic**:
+  - Router reachable → "likely connectivity issue, NOT power loss"
+  - Router unreachable but GPS < 5 minutes old → "transient network issue"
+  - Router unreachable + no recent GPS → "could be actual power loss"
+- **Files changed**: `device-manager/app/connection-pool.js`, `device-manager/app/database.js`
+- **New DB function**: `getTruckLastGpsUpdate(truckId)` — returns lat, long, last_location_update, location_description
+- **No behavior changes** — purely diagnostic logging, no changes to circuit breaker logic
+- **Deploy**: Push to GitHub, device manager will pick up changes on next deploy/restart
+
+---
+
+## Previous Updates (April 14, 2026)
 
 ### Global Native Library Shutdown Flag (April 14, 2026)
 - **Problem**: When a device (e.g., DCL-Thibert) triggers the circuit breaker, the process schedules a graceful exit in 3 seconds. During that window, other devices continue polling via the native C++ library, which is now corrupted. This causes `terminate called without an active exception` → core dump (SIGABRT)
