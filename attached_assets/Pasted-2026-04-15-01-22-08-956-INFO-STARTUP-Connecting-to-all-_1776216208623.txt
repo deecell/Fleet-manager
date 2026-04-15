@@ -1,0 +1,104 @@
+2026-04-15 01:22:08.956 INFO  === STARTUP: Connecting to all devices ===  deviceCount=1  timestamp=2026-04-15T01:22:08.956Z
+2026-04-15 01:22:08.956 INFO  Connecting device 1/1  serialNumber=E6D8F89877415815  deviceName=DCL-Brown  cohort=6
+2026-04-15 01:22:08.957 INFO  Connected successfully  deviceId=8  serial=E844BD0A2017EB7A  cohort=5  durationMs=15
+2026-04-15 01:22:08.957 INFO  Connecting to device  deviceId=9  serial=E6D8F89877415815  cohort=6
+2026-04-15 01:22:08.963 INFO  Device 1/2 connected  serialNumber=E844BD0A2017EB7A  durationMs=15
+2026-04-15 01:22:08.964 INFO  Connecting device 2/2  serialNumber=4E0A83432AEE8967  deviceName=DCL-Kalitta-Hospitality  cohort=5
+2026-04-15 01:22:08.964 INFO  Connecting to device  deviceId=18  serial=4E0A83432AEE8967  cohort=5
+2026-04-15 01:22:08.969 INFO  Connected successfully  deviceId=9  serial=E6D8F89877415815  cohort=6  durationMs=12
+2026-04-15 01:22:08.970 INFO  Fetched device info from PowerMon  deviceId=6  serial=E747AAFD3EEB003C  cohort=4  serialNumber=E747AAFD3EEB003C  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-KTR
+2026-04-15 01:22:08.973 INFO  Connected successfully  deviceId=18  serial=4E0A83432AEE8967  cohort=5  durationMs=9
+2026-04-15 01:22:08.974 INFO  Updated device info  deviceId=6  serialNumber=E747AAFD3EEB003C  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-KTR
+2026-04-15 01:22:08.976 INFO  Device 1/1 connected  serialNumber=E6D8F89877415815  durationMs=12
+2026-04-15 01:22:08.976 INFO  === STARTUP COMPLETE: Connection Summary ===  success=1  failed=0  skipped=0  timedOut=0  totalDurationMs=20  averageDurationMs=12
+2026-04-15 01:22:08.976 INFO  Starting polling scheduler (worker mode)  intervalMs=10000
+2026-04-15 01:22:08.977 INFO  Backfill service started  gapThresholdMs=30000  maxConcurrent=5
+2026-04-15 01:22:08.977 INFO  [worker:6] Started successfully  cohortId=6  devices=1
+2026-04-15 01:22:08.978 INFO  Supervisor: Worker cohort 6 ready  pid=3619749  devices=1
+2026-04-15 01:22:08.979 INFO  Device 2/2 connected  serialNumber=4E0A83432AEE8967  durationMs=9
+2026-04-15 01:22:08.979 INFO  === STARTUP COMPLETE: Connection Summary ===  success=2  failed=0  skipped=0  timedOut=0  totalDurationMs=42  averageDurationMs=12
+2026-04-15 01:22:08.979 INFO  Starting polling scheduler (worker mode)  intervalMs=10000
+2026-04-15 01:22:08.980 INFO  Backfill service started  gapThresholdMs=30000  maxConcurrent=5
+2026-04-15 01:22:08.980 INFO  [worker:5] Started successfully  cohortId=5  devices=2
+2026-04-15 01:22:08.980 INFO  Supervisor: Worker cohort 5 ready  pid=3619738  devices=2
+2026-04-15 01:22:09.233 INFO  Fetched device info from PowerMon  deviceId=11  serial=1A81067CFA117B5B  cohort=0  serialNumber=1A81067CFA117B5B  firmwareVersion=1.18  hardwareRevision=PowerMon-W  deviceName=DCL-Curtis-2
+2026-04-15 01:22:09.236 INFO  Updated device info  deviceId=11  serialNumber=1A81067CFA117B5B  firmwareVersion=1.18  hardwareRevision=PowerMon-W  deviceName=DCL-Curtis-2
+2026-04-15 01:22:09.301 INFO  Fetched device info from PowerMon  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  serialNumber=A8839FDD47E0D9B9  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Radian-1
+2026-04-15 01:22:09.304 INFO  Updated device info  deviceId=21  serialNumber=A8839FDD47E0D9B9  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Radian-1
+2026-04-15 01:22:09.315 INFO  Fetched device info from PowerMon  deviceId=10  serial=1B1034C2B3399A18  cohort=0  serialNumber=1B1034C2B3399A18  firmwareVersion=1.33  hardwareRevision=PowerMon-W  deviceName=DCL-Curtis-1
+2026-04-15 01:22:09.318 INFO  Fetched device info from PowerMon  deviceId=26  serial=FE0B7F3AFF982430  cohort=4  serialNumber=FE0B7F3AFF982430  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Penske01
+2026-04-15 01:22:09.318 INFO  Updated device info  deviceId=10  serialNumber=1B1034C2B3399A18  firmwareVersion=1.33  hardwareRevision=PowerMon-W  deviceName=DCL-Curtis-1
+2026-04-15 01:22:09.320 INFO  Updated device info  deviceId=26  serialNumber=FE0B7F3AFF982430  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Penske01
+2026-04-15 01:22:09.501 INFO  Fetched device info from PowerMon  deviceId=9  serial=E6D8F89877415815  cohort=6  serialNumber=E6D8F89877415815  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Brown
+2026-04-15 01:22:09.505 INFO  Updated device info  deviceId=9  serialNumber=E6D8F89877415815  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Brown
+2026-04-15 01:22:09.625 INFO  Fetched device info from PowerMon  deviceId=18  serial=4E0A83432AEE8967  cohort=5  serialNumber=4E0A83432AEE8967  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Kalitta-Hospitality
+2026-04-15 01:22:09.628 INFO  Updated device info  deviceId=18  serialNumber=4E0A83432AEE8967  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Kalitta-Hospitality
+2026-04-15 01:22:09.629 INFO  Fetched device info from PowerMon  deviceId=13  serial=292240386041C12B  cohort=1  serialNumber=292240386041C12B  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Thibert
+2026-04-15 01:22:09.632 INFO  Updated device info  deviceId=13  serialNumber=292240386041C12B  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Thibert
+2026-04-15 01:22:09.700 INFO  Fetched device info from PowerMon  deviceId=15  serial=623DECC4E318D957  cohort=4  serialNumber=623DECC4E318D957  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Elite-Hospitality
+2026-04-15 01:22:09.703 INFO  Updated device info  deviceId=15  serialNumber=623DECC4E318D957  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Elite-Hospitality
+2026-04-15 01:22:09.749 INFO  Fetched device info from PowerMon  deviceId=8  serial=E844BD0A2017EB7A  cohort=5  serialNumber=E844BD0A2017EB7A  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Kruse
+2026-04-15 01:22:09.752 INFO  Updated device info  deviceId=8  serialNumber=E844BD0A2017EB7A  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Kruse
+2026-04-15 01:22:12.336 INFO  Fetched device info from PowerMon  deviceId=7  serial=96FE5E88572C1995  cohort=1  serialNumber=96FE5E88572C1995  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Haynes
+2026-04-15 01:22:12.340 INFO  Updated device info  deviceId=7  serialNumber=96FE5E88572C1995  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Haynes
+SIM  Sync started  sims=46  devices=18  existing=16  needDetails=30
+SIM  Fetched details: 30/30
+SIM  Sync complete  found=46  matched=16  created=0  updated=16  skipped=30  errors=0  1132ms
+2026-04-15 01:22:18.764 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.28  v2= 13.0380  today=   30m  month=   180m  since=2026-04-15 01:08:54
+2026-04-15 01:22:20.730 INFO  DCL-Radian-1 (M53)                       parked   v1= 13.27  v2=  0.0000  today=   82m  month= 17962m  since=2026-03-25 23:01:53
+2026-04-15 01:22:20.738 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.77  v2=  0.0391  today=   82m  month= 20087m  since=2026-01-09 21:34:37
+2026-04-15 01:22:20.746 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.54  v2=  0.0388  today=   82m  month= 20242m  since=2025-12-29 23:22:12
+2026-04-15 01:22:20.776 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 26.09  v2= 13.6722  today=    0m  month=     1m  since=2026-04-13 07:25:56
+2026-04-15 01:22:20.786 INFO  DCL-Penske01 (LFG-001)                   parked   v1= 12.84  v2=  0.0486  today=   82m  month=  7630m  since=2026-04-09 15:26:18
+2026-04-15 01:22:20.787 INFO  DCL-Howard (MHR-01)                      parked   v1= 27.67  v2=  0.0443  today=   82m  month= 20242m  since=2025-12-30 22:17:33
+2026-04-15 01:22:20.859 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 28.23  v2=  0.0453  today=   82m  month= 20242m  since=2025-12-29 23:38:54
+2026-04-15 01:22:20.867 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.68  v2=  0.0383  today=   82m  month= 20242m  since=2025-12-29 23:38:19
+2026-04-15 01:22:20.952 INFO  DCL-Kruse (WKR-01)                       parked   v1= 28.07  v2=  0.0386  today=   82m  month= 20242m  since=2025-12-29 23:27:57
+2026-04-15 01:22:20.960 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 53.11  v2=  0.0411  today=   82m  month= 20125m  since=2026-02-16 19:41:58
+2026-04-15 01:22:20.972 INFO  DCL-Brown (RBR-01)                       parked   v1= 26.48  v2= 12.7685  today=   82m  month=  4350m  since=2026-04-14 22:53:40
+2026-04-15 01:22:30.767 INFO  DCL-Radian-1 (M53)                       parked   v1= 13.27  v2=  0.0000  today=   83m  month= 17963m  since=2026-03-25 23:01:53
+2026-04-15 01:22:30.775 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.77  v2=  0.0390  today=   83m  month= 20088m  since=2026-01-09 21:34:37
+2026-04-15 01:22:30.783 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.54  v2=  0.0392  today=   83m  month= 20243m  since=2025-12-29 23:22:12
+2026-04-15 01:22:30.805 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.28  v2= 13.0300  today=   30m  month=   180m  since=2026-04-15 01:08:54
+2026-04-15 01:22:30.810 INFO  DCL-Howard (MHR-01)                      parked   v1= 27.67  v2=  0.0437  today=   83m  month= 20243m  since=2025-12-30 22:17:33
+2026-04-15 01:22:30.813 INFO  DCL-Penske01 (LFG-001)                   parked   v1= 12.84  v2=  0.0487  today=   83m  month=  7631m  since=2026-04-09 15:26:18
+2026-04-15 01:22:30.822 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 26.10  v2= 13.6718  today=    0m  month=     1m  since=2026-04-13 07:25:56
+2026-04-15 01:22:30.888 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 28.22  v2=  0.0451  today=   83m  month= 20243m  since=2025-12-29 23:38:54
+2026-04-15 01:22:30.896 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.68  v2=  0.0374  today=   83m  month= 20243m  since=2025-12-29 23:38:19
+2026-04-15 01:22:30.981 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 53.11  v2=  0.0404  today=   83m  month= 20126m  since=2026-02-16 19:41:58
+2026-04-15 01:22:30.989 INFO  DCL-Kruse (WKR-01)                       parked   v1= 28.07  v2=  0.0393  today=   83m  month= 20243m  since=2025-12-29 23:27:57
+2026-04-15 01:22:30.990 INFO  DCL-Brown (RBR-01)                       parked   v1= 26.48  v2= 12.7670  today=   83m  month=  4351m  since=2026-04-14 22:53:40
+2026-04-15 01:22:40.810 INFO  DCL-Radian-1 (M53)                       parked   v1= 13.27  v2=  0.0000  today=   83m  month= 17963m  since=2026-03-25 23:01:53
+2026-04-15 01:22:40.818 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.77  v2=  0.0390  today=   83m  month= 20088m  since=2026-01-09 21:34:37
+2026-04-15 01:22:40.826 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.54  v2=  0.0398  today=   83m  month= 20243m  since=2025-12-29 23:22:12
+2026-04-15 01:22:40.828 INFO  DCL-Howard (MHR-01)                      parked   v1= 27.67  v2=  0.0442  today=   83m  month= 20243m  since=2025-12-30 22:17:33
+2026-04-15 01:22:40.841 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.28  v2= 13.0256  today=   30m  month=   180m  since=2026-04-15 01:08:54
+2026-04-15 01:22:40.849 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 26.10  v2= 13.6732  today=    0m  month=     1m  since=2026-04-13 07:25:56
+2026-04-15 01:22:40.856 INFO  DCL-Penske01 (LFG-001)                   parked   v1= 12.84  v2=  0.0481  today=   83m  month=  7631m  since=2026-04-09 15:26:18
+2026-04-15 01:22:40.913 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.68  v2=  0.0374  today=   83m  month= 20243m  since=2025-12-29 23:38:19
+2026-04-15 01:22:40.921 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 28.20  v2=  0.0455  today=   83m  month= 20243m  since=2025-12-29 23:38:54
+2026-04-15 01:22:41.006 INFO  DCL-Kruse (WKR-01)                       parked   v1= 28.07  v2=  0.0386  today=   83m  month= 20243m  since=2025-12-29 23:27:57
+2026-04-15 01:22:41.010 INFO  DCL-Brown (RBR-01)                       parked   v1= 26.48  v2= 12.7668  today=   83m  month=  4351m  since=2026-04-14 22:53:40
+2026-04-15 01:22:41.015 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 53.11  v2=  0.0397  today=   83m  month= 20126m  since=2026-02-16 19:41:58
+2026-04-15 01:22:50.849 INFO  DCL-Radian-1 (M53)                       parked   v1= 13.27  v2=  0.0000  today=   83m  month= 17963m  since=2026-03-25 23:01:53
+2026-04-15 01:22:50.850 INFO  DCL-Howard (MHR-01)                      parked   v1= 27.67  v2=  0.0450  today=   83m  month= 20243m  since=2025-12-30 22:17:33
+2026-04-15 01:22:50.856 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.77  v2=  0.0391  today=   83m  month= 20088m  since=2026-01-09 21:34:37
+2026-04-15 01:22:50.875 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.28  v2= 13.0188  today=   30m  month=   180m  since=2026-04-15 01:08:54
+2026-04-15 01:22:50.883 INFO  DCL-Penske01 (LFG-001)                   parked   v1= 12.84  v2=  0.0481  today=   83m  month=  7631m  since=2026-04-09 15:26:18
+2026-04-15 01:22:50.891 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 26.10  v2= 13.6729  today=    0m  month=     1m  since=2026-04-13 07:25:56
+2026-04-15 01:22:50.941 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 28.19  v2=  0.0454  today=   83m  month= 20243m  since=2025-12-29 23:38:54
+2026-04-15 01:22:50.948 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.68  v2=  0.0381  today=   83m  month= 20243m  since=2025-12-29 23:38:19
+2026-04-15 01:22:51.029 INFO  DCL-Brown (RBR-01)                       parked   v1= 26.48  v2= 12.7679  today=   83m  month=  4351m  since=2026-04-14 22:53:40
+2026-04-15 01:22:51.032 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 53.11  v2=  0.0390  today=   83m  month= 20126m  since=2026-02-16 19:41:58
+2026-04-15 01:22:51.040 INFO  DCL-Kruse (WKR-01)                       parked   v1= 28.07  v2=  0.0389  today=   83m  month= 20243m  since=2025-12-29 23:27:57
+2026-04-15 01:22:52.869 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.54  v2=  0.0388  today=   83m  month= 20243m  since=2025-12-29 23:22:12
+2026-04-15 01:23:00.868 INFO  DCL-Howard (MHR-01)                      parked   v1= 27.67  v2=  0.0439  today=   83m  month= 20243m  since=2025-12-30 22:17:33
+2026-04-15 01:23:00.910 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.28  v2= 13.0149  today=   30m  month=   180m  since=2026-04-15 01:08:54
+2026-04-15 01:23:00.918 INFO  DCL-Penske01 (LFG-001)                   parked   v1= 12.84  v2=  0.0493  today=   83m  month=  7631m  since=2026-04-09 15:26:18
+2026-04-15 01:23:00.925 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 26.10  v2= 13.6739  today=    0m  month=     1m  since=2026-04-13 07:25:56
+2026-04-15 01:23:00.966 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 28.17  v2=  0.0449  today=   83m  month= 20243m  since=2025-12-29 23:38:54
+2026-04-15 01:23:00.974 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.68  v2=  0.0382  today=   83m  month= 20243m  since=2025-12-29 23:38:19
+2026-04-15 01:23:01.049 INFO  DCL-Brown (RBR-01)                       parked   v1= 26.48  v2= 12.7666  today=   83m  month=  4351m  since=2026-04-14 22:53:40
+2026-04-15 01:23:02.890 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.77  v2=  0.0380  today=   83m  month= 20088m  since=2026-01-09 21:34:37
+2026-04-15 01:23:02.898 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.54  v2=  0.0387  today=   83m  month= 20243m  since=2025-12-29 23:22:12
+2026-04-15 01:23:02.905 INFO  DCL-Radian-1 (M53)                       parked   v1= 13.27  v2=  0.0000  today=   83m  month= 17963m  since=2026-03-25 23:01:53
