@@ -6,6 +6,21 @@
 
 ## Latest Updates (April 15, 2026)
 
+### Architecture: Supervisor/Worker Process Isolation (April 15, 2026)
+- **Problem**: When the circuit breaker fires (e.g., a device corrupts the native C++ library), the entire device manager process exits. ALL devices go offline until systemd restarts the process. This is a 100% blast radius for a single bad device.
+- **Solution**: Refactored to a supervisor/worker architecture. The supervisor forks one worker process per cohort. Each worker loads its own copy of the native library and manages only its cohort's devices. If a device corrupts the library, only that worker crashes (~10% blast radius). The supervisor detects the exit and respawns the worker with exponential backoff.
+- **Architecture**:
+  - **Supervisor** (`supervisor.js`): Forks N workers (one per cohort), monitors them, respawns on crash with exponential backoff (3s → 6s → 12s → ... → 60s max, resets after 10 min stable). Runs shared services: SIM poller, InHand GPS poller, SIM sync, metrics server. Periodically checks for new cohorts (new devices added).
+  - **Worker** (`worker.js`): Receives `WORKER_COHORT_ID` env var. Initializes its own DB pool, connection pool (filtered to cohort via `initializeForCohort`), batch writer, polling scheduler, backfill service. Handles its own crash attribution file (`/tmp/device-manager-worker-{cohortId}.json`). Circuit breaker `process.exit(1)` only kills this worker.
+  - **Entry point** (`index.js`): Default mode is supervisor. Set `DEVICE_MANAGER_MODE=single` for legacy single-process mode (backward compatible).
+- **Key changes**:
+  - `connection-pool.js`: Added `initializeForCohort(cohortId, totalCohorts)` and `checkForNewDevicesInCohort()` methods. Added `getAllConnections()` for worker-mode polling. `hashToCohort()` now accepts optional `totalCohorts` parameter.
+  - `polling-scheduler.js`: Added `startForWorker()` method — single-cohort mode polls all connections on a simple interval (no timing wheel). `processTick()` uses `getAllConnections()` in worker mode.
+  - `database.js`: `recordActiveDevice()` and `readCrashAttribution()` now use cohort-specific crash files in worker mode.
+  - `index.js`: Routes to supervisor (default) or single-process mode based on `DEVICE_MANAGER_MODE` env var.
+- **Deployment**: No changes needed to systemd service or EC2 config. Same entry point (`node device-manager/app/index.js`) starts supervisor by default. To rollback to single-process: `DEVICE_MANAGER_MODE=single`.
+- **Files changed**: `device-manager/app/supervisor.js` (new), `device-manager/app/worker.js` (new), `device-manager/app/index.js`, `device-manager/app/connection-pool.js`, `device-manager/app/polling-scheduler.js`, `device-manager/app/database.js`
+
 ### Fix: Null ALL Native Device References on Circuit Breaker (April 15, 2026)
 - **Problem**: Despite `nativeLibraryShutdown` flag, DCL-Curtis-1 had an in-flight poll callback when NHRA triggered the circuit breaker. The callback completed, then the post-poll `disconnect()` call hit the corrupted native library → `terminate called without an active exception` → core dump (SIGABRT).
 - **Root cause**: Only the triggering device's native reference was nulled. Other devices' native refs were still live, and their in-flight callbacks could trigger further native calls (disconnect, reconnect) during the 3-second exit window.

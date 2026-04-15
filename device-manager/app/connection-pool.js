@@ -807,15 +807,115 @@ class ConnectionPool {
   }
 
   /**
+   * Initialize the connection pool for a specific cohort only (worker mode).
+   * Queries all active devices, filters to devices that hash to this cohort.
+   */
+  async initializeForCohort(cohortId, totalCohorts) {
+    logger.info(`Initializing connection pool for cohort ${cohortId}/${totalCohorts}`);
+
+    const allDevices = await db.getActiveDevicesWithCredentials();
+    const myDevices = allDevices.filter(d => this.hashToCohort(d.serial_number, totalCohorts) === cohortId);
+
+    logger.info(`Cohort ${cohortId}: ${myDevices.length} devices (of ${allDevices.length} total)`);
+
+    for (const device of myDevices) {
+      const conn = new DeviceConnection({
+        ...device,
+        cohort_id: cohortId,
+      });
+
+      this.connections.set(device.device_id, conn);
+
+      if (!this.cohorts.has(cohortId)) {
+        this.cohorts.set(cohortId, new Set());
+      }
+      this.cohorts.get(cohortId).add(device.device_id);
+
+      await db.upsertDeviceSyncStatus(device.device_id, device.organization_id, cohortId);
+    }
+
+    logger.info(`Connection pool initialized for cohort ${cohortId}`, {
+      devices: this.connections.size,
+    });
+
+    return this.connections.size;
+  }
+
+  /**
+   * Check for new devices that belong to this worker's cohort
+   */
+  async checkForNewDevicesInCohort(cohortId, totalCohorts) {
+    const allDevices = await db.getActiveDevicesWithCredentials();
+    const myDevices = allDevices.filter(d => this.hashToCohort(d.serial_number, totalCohorts) === cohortId);
+
+    let added = 0;
+    for (const device of myDevices) {
+      if (this.connections.has(device.device_id)) continue;
+
+      logger.info('Found newly activated device in cohort', {
+        serialNumber: device.serial_number,
+        deviceName: device.device_name,
+        cohortId,
+      });
+
+      const conn = new DeviceConnection({
+        ...device,
+        cohort_id: cohortId,
+        consecutive_disconnects: 0,
+      });
+
+      this.connections.set(device.device_id, conn);
+      if (!this.cohorts.has(cohortId)) {
+        this.cohorts.set(cohortId, new Set());
+      }
+      this.cohorts.get(cohortId).add(device.device_id);
+
+      await db.upsertDeviceSyncStatus(device.device_id, device.organization_id, cohortId);
+
+      const result = await conn.connect();
+      if (result.success) {
+        logger.info('New device connected', {
+          serialNumber: device.serial_number,
+          deviceName: device.device_name,
+          durationMs: result.durationMs,
+        });
+      }
+      added++;
+    }
+
+    const currentIds = new Set(this.connections.keys());
+    const activeIds = new Set(myDevices.map(d => d.device_id));
+    for (const id of currentIds) {
+      if (!activeIds.has(id)) {
+        const conn = this.connections.get(id);
+        if (conn) {
+          logger.info('Device removed from cohort, disconnecting', {
+            deviceId: id,
+            deviceName: conn.deviceName,
+          });
+          conn.disconnect(true);
+          this.connections.delete(id);
+          this.cohorts.get(cohortId)?.delete(id);
+        }
+      }
+    }
+
+    if (added > 0) {
+      logger.info(`Added ${added} new device(s) to cohort ${cohortId}`);
+    }
+  }
+
+  /**
    * Hash a serial number to a cohort ID
    */
-  hashToCohort(serialNumber) {
+  hashToCohort(serialNumber, totalCohorts) {
+    totalCohorts = totalCohorts || config.polling.cohortCount;
     let hash = 0;
     for (let i = 0; i < serialNumber.length; i++) {
       hash = ((hash << 5) - hash) + serialNumber.charCodeAt(i);
       hash = hash & hash; // Convert to 32-bit integer
     }
-    return Math.abs(hash) % config.polling.cohortCount;
+    return Math.abs(hash) % totalCohorts;
   }
 
   /**
@@ -928,6 +1028,10 @@ class ConnectionPool {
   getCohortDevices(cohortId) {
     const deviceIds = this.cohorts.get(cohortId) || new Set();
     return Array.from(deviceIds).map(id => this.connections.get(id)).filter(Boolean);
+  }
+
+  getAllConnections() {
+    return Array.from(this.connections.values());
   }
 
   /**
@@ -1173,8 +1277,13 @@ class ConnectionPool {
     logger.debug('Checking for unstable devices ready for recovery');
     
     try {
-      // Get devices that have been unstable for longer than the backoff period
-      const unstableDevices = await db.getUnstableDevicesReadyForRecovery(UNSTABLE_BACKOFF_MS);
+      const allUnstable = await db.getUnstableDevicesReadyForRecovery(UNSTABLE_BACKOFF_MS);
+
+      const workerCohort = process.env.WORKER_COHORT_ID != null ? parseInt(process.env.WORKER_COHORT_ID, 10) : null;
+      const totalCohorts = config.polling.cohortCount;
+      const unstableDevices = workerCohort != null
+        ? allUnstable.filter(d => this.hashToCohort(d.serial_number, totalCohorts) === workerCohort)
+        : allUnstable;
       
       if (unstableDevices.length === 0) {
         return { attempted: 0, recovered: 0 };
@@ -1257,7 +1366,13 @@ class ConnectionPool {
    */
   async recoverNoPowerDevices() {
     try {
-      const devices = await db.getNoPowerDevicesReadyForRecovery(NO_POWER_QUARANTINE_MS);
+      const allNoPower = await db.getNoPowerDevicesReadyForRecovery(NO_POWER_QUARANTINE_MS);
+
+      const workerCohort = process.env.WORKER_COHORT_ID != null ? parseInt(process.env.WORKER_COHORT_ID, 10) : null;
+      const totalCohorts = config.polling.cohortCount;
+      const devices = workerCohort != null
+        ? allNoPower.filter(d => this.hashToCohort(d.serial_number, totalCohorts) === workerCohort)
+        : allNoPower;
       
       if (devices.length === 0) {
         return { attempted: 0, recovered: 0 };

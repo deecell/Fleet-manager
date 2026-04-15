@@ -1011,7 +1011,10 @@ async function startupRecoverySweep() {
  */
 function recordActiveDevice(deviceId, deviceName) {
   const fs = require('fs');
-  const crashAttributionFile = '/tmp/device-manager-active-device.json';
+  const cohortId = process.env.WORKER_COHORT_ID;
+  const crashAttributionFile = cohortId != null
+    ? `/tmp/device-manager-worker-${cohortId}.json`
+    : '/tmp/device-manager-active-device.json';
   
   try {
     if (deviceId === null) {
@@ -1022,6 +1025,7 @@ function recordActiveDevice(deviceId, deviceName) {
       fs.writeFileSync(crashAttributionFile, JSON.stringify({
         deviceId,
         deviceName,
+        cohortId: cohortId != null ? parseInt(cohortId, 10) : undefined,
         timestamp: new Date().toISOString()
       }));
     }
@@ -1031,12 +1035,17 @@ function recordActiveDevice(deviceId, deviceName) {
 }
 
 /**
- * Read crash attribution file to find which device caused a crash
+ * Read crash attribution file to find which device caused a crash.
+ * In worker mode, reads the cohort-specific file.
+ * In single-process mode (no cohortId), reads the legacy file.
+ * @param {number} [cohortId] - Cohort ID for worker mode
  * @returns {Object|null} Device info or null if no crash attribution data
  */
-function readCrashAttribution() {
+function readCrashAttribution(cohortId) {
   const fs = require('fs');
-  const crashAttributionFile = '/tmp/device-manager-active-device.json';
+  const crashAttributionFile = cohortId != null
+    ? `/tmp/device-manager-worker-${cohortId}.json`
+    : '/tmp/device-manager-active-device.json';
   
   try {
     if (fs.existsSync(crashAttributionFile)) {

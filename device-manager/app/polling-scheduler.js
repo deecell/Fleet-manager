@@ -35,7 +35,7 @@ class PollingScheduler {
   }
 
   /**
-   * Start the polling scheduler
+   * Start the polling scheduler (multi-cohort mode for single-process)
    */
   start() {
     if (this.isRunning) {
@@ -51,6 +51,29 @@ class PollingScheduler {
     });
 
     // Start the tick loop
+    this.scheduleTick();
+  }
+
+  /**
+   * Start the polling scheduler in worker mode (single cohort).
+   * In worker mode, all devices belong to one cohort, so we poll all of them
+   * on a simple interval without the cohort timing wheel.
+   */
+  startForWorker() {
+    if (this.isRunning) {
+      logger.warn('Polling scheduler already running');
+      return;
+    }
+
+    this.isRunning = true;
+    this.workerMode = true;
+    this.ticksPerInterval = 1;
+    this.tickDurationMs = config.polling.intervalMs;
+
+    logger.info('Starting polling scheduler (worker mode)', {
+      intervalMs: config.polling.intervalMs,
+    });
+
     this.scheduleTick();
   }
 
@@ -90,34 +113,38 @@ class PollingScheduler {
   async processTick() {
     if (!this.isRunning) return;
 
+    try {
+
     const tickStart = Date.now();
     this.stats.lastTickTime = new Date();
     this.stats.ticksProcessed++;
 
-    // At the start of each polling cycle, log a visible banner and check for newly activated devices
-    if (this.currentTick === 0) {
+    const tickCohort = this.currentTick;
+
+    if (tickCohort === 0) {
       logger.banner('=== New Polling Cycle ===');
 
-      try {
-        await connectionPool.checkForNewDevices();
-      } catch (err) {
-        logger.warn('Failed to check for new devices', { error: err.message });
+      if (!this.workerMode) {
+        try {
+          await connectionPool.checkForNewDevices();
+        } catch (err) {
+          logger.warn('Failed to check for new devices', { error: err.message });
+        }
       }
     }
 
-    // Get the cohort for this tick
-    const cohortId = this.currentTick;
-    const devices = connectionPool.getCohortDevices(cohortId);
+    const devices = this.workerMode
+      ? connectionPool.getAllConnections()
+      : connectionPool.getCohortDevices(tickCohort);
     const readyDevices = devices.filter(conn => conn.isReady());
     
-    // Calculate how many polls we can start (respect concurrency limit)
     const availableSlots = Math.max(0, this.maxConcurrentPolls - this.activePolls);
     const devicesToPoll = readyDevices.slice(0, availableSlots);
     const skippedCount = readyDevices.length - devicesToPoll.length;
     
     if (skippedCount > 0) {
       logger.warn('Concurrency limit reached, skipping devices', { 
-        cohort: cohortId,
+        cohort: tickCohort,
         skipped: skippedCount,
         activePolls: this.activePolls,
         limit: this.maxConcurrentPolls 
@@ -126,8 +153,7 @@ class PollingScheduler {
     }
 
     logger.debug('Processing tick', { 
-      tick: this.currentTick, 
-      cohort: cohortId, 
+      tick: tickCohort, 
       total: devices.length,
       ready: readyDevices.length,
       polling: devicesToPoll.length,
@@ -163,8 +189,11 @@ class PollingScheduler {
     // Move to next tick
     this.currentTick = (this.currentTick + 1) % this.ticksPerInterval;
 
-    // Schedule next tick
-    this.scheduleTick();
+    } catch (err) {
+      logger.error('Error in processTick', { error: err.message, stack: err.stack });
+    } finally {
+      this.scheduleTick();
+    }
   }
 
   /**

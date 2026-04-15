@@ -5,206 +5,175 @@
  * polling, and data collection. Runs on a separate EC2 instance
  * from the web application.
  * 
+ * Architecture modes:
+ *   - supervisor (default): Forks one worker per cohort for fault isolation.
+ *     A crash in one worker only affects that cohort's devices (~10% blast radius).
+ *   - single: Legacy single-process mode. Set DEVICE_MANAGER_MODE=single to use.
+ * 
  * Usage:
  *   DATABASE_URL=postgres://... node device-manager/app/index.js
+ *   DATABASE_URL=postgres://... DEVICE_MANAGER_MODE=single node device-manager/app/index.js
  */
 
-const { config, validateConfig } = require('./config');
-const logger = require('./logger');
-const db = require('./database');
-const { connectionPool } = require('./connection-pool');
-const { pollingScheduler } = require('./polling-scheduler');
-const batchWriter = require('./batch-writer');
-const { backfillService } = require('./backfill-service');
-const { startMetricsServer, stopMetricsServer } = require('./metrics');
-const { simPoller } = require('./sim-poller');
-const { inhandPoller } = require('./inhand-poller');
-const { simSync } = require('./sim-sync');
+const mode = process.env.DEVICE_MANAGER_MODE || 'supervisor';
 
-let isShuttingDown = false;
+if (mode === 'single') {
+  startSingleProcess();
+} else {
+  startSupervisor();
+}
 
-/**
- * Main startup function
- */
-async function main() {
-  logger.info('Device Manager starting', {
-    pollInterval: config.polling.intervalMs,
-    cohorts: config.polling.cohortCount,
-    batchFlushInterval: config.batchWriter.flushIntervalMs,
-  });
+function startSupervisor() {
+  require('./supervisor');
+}
 
-  try {
-    // Validate configuration
-    validateConfig();
-    logger.info('Configuration validated');
+function startSingleProcess() {
+  const { config, validateConfig } = require('./config');
+  const logger = require('./logger');
+  const db = require('./database');
+  const { connectionPool } = require('./connection-pool');
+  const { pollingScheduler } = require('./polling-scheduler');
+  const batchWriter = require('./batch-writer');
+  const { backfillService } = require('./backfill-service');
+  const { startMetricsServer, stopMetricsServer } = require('./metrics');
+  const { simPoller } = require('./sim-poller');
+  const { inhandPoller } = require('./inhand-poller');
+  const { simSync } = require('./sim-sync');
 
-    // Initialize database
-    db.initDatabase();
-    logger.info('Database initialized');
+  let isShuttingDown = false;
 
-    // Check for crash attribution from previous run
-    // If the process crashed while polling a specific device, only that device
-    // gets marked as unstable (not all devices)
-    const crashData = db.readCrashAttribution();
-    if (crashData) {
-      logger.warn('=== CRASH ATTRIBUTION: Previous crash detected ===', {
-        deviceId: crashData.deviceId,
-        deviceName: crashData.deviceName,
-        crashTime: crashData.timestamp
-      });
-      await db.markCrashCulprit(crashData.deviceId);
-    }
-
-    // Startup recovery sweep: reset devices stuck in offline/unstable state
-    // This handles the case where a previous crash left multiple devices
-    // incorrectly marked as offline (except the actual crash culprit above)
-    await db.startupRecoverySweep();
-
-    // Initialize connection pool with devices from database
-    const deviceCount = await connectionPool.initialize();
-    
-    if (deviceCount === 0) {
-      logger.warn('No active devices found. Waiting for devices to be added...');
-    }
-
-    // Start metrics server
-    startMetricsServer();
-
-    // Start batch writer
-    batchWriter.start();
-
-    // Connect to all devices
-    if (deviceCount > 0) {
-      await connectionPool.connectAll();
-    }
-
-    // Start polling scheduler
-    pollingScheduler.start();
-
-    // Start backfill service
-    backfillService.start();
-
-    // Start SIM location poller (polls every 60 seconds)
-    simPoller.start();
-
-    // Start InHand Networks GPS location poller (polls every 2 minutes)
-    inhandPoller.start();
-
-    // Start SIM sync service (syncs SIMs from SIMPro every 10 minutes)
-    simSync.start();
-
-    logger.info('Device Manager started successfully', {
-      devices: deviceCount,
-      status: 'running',
+  async function main() {
+    logger.info('Device Manager starting (single-process mode)', {
+      pollInterval: config.polling.intervalMs,
+      cohorts: config.polling.cohortCount,
+      batchFlushInterval: config.batchWriter.flushIntervalMs,
     });
 
-    // Set up periodic device list refresh (every 5 minutes)
-    setInterval(async () => {
-      try {
-        await connectionPool.refresh();
-      } catch (err) {
-        logger.error('Failed to refresh device list', { error: err.message });
+    try {
+      validateConfig();
+      logger.info('Configuration validated');
+
+      db.initDatabase();
+      logger.info('Database initialized');
+
+      const crashData = db.readCrashAttribution();
+      if (crashData) {
+        logger.warn('=== CRASH ATTRIBUTION: Previous crash detected ===', {
+          deviceId: crashData.deviceId,
+          deviceName: crashData.deviceName,
+          crashTime: crashData.timestamp
+        });
+        await db.markCrashCulprit(crashData.deviceId);
       }
-    }, 5 * 60 * 1000);
 
-    // Set up periodic unstable device recovery (every 5 minutes)
-    // This attempts to reconnect devices that were marked unstable but have been
-    // waiting long enough for the circuit breaker backoff to expire
-    setInterval(async () => {
-      try {
-        await connectionPool.recoverUnstableDevices();
-      } catch (err) {
-        logger.error('Failed to recover unstable devices', { error: err.message });
+      await db.startupRecoverySweep();
+
+      const deviceCount = await connectionPool.initialize();
+      
+      if (deviceCount === 0) {
+        logger.warn('No active devices found. Waiting for devices to be added...');
       }
-    }, 5 * 60 * 1000);
 
-    // Set up periodic no_power device recovery (every 30 minutes)
-    // Retries devices whose 4-hour quarantine has expired, one at a time
-    setInterval(async () => {
-      try {
-        await connectionPool.recoverNoPowerDevices();
-      } catch (err) {
-        logger.error('Failed to recover no_power devices', { error: err.message });
+      startMetricsServer();
+      batchWriter.start();
+
+      if (deviceCount > 0) {
+        await connectionPool.connectAll();
       }
-    }, 30 * 60 * 1000);
 
-    // Offline devices stay offline until an admin manually resets them
-    // via the admin dashboard "Set Online" button. No automatic recovery.
+      pollingScheduler.start();
+      backfillService.start();
+      simPoller.start();
+      inhandPoller.start();
+      simSync.start();
 
-  } catch (err) {
-    logger.error('Failed to start Device Manager', { error: err.message });
-    process.exit(1);
+      logger.info('Device Manager started successfully (single-process)', {
+        devices: deviceCount,
+        status: 'running',
+      });
+
+      setInterval(async () => {
+        try {
+          await connectionPool.refresh();
+        } catch (err) {
+          logger.error('Failed to refresh device list', { error: err.message });
+        }
+      }, 5 * 60 * 1000);
+
+      setInterval(async () => {
+        try {
+          await connectionPool.recoverUnstableDevices();
+        } catch (err) {
+          logger.error('Failed to recover unstable devices', { error: err.message });
+        }
+      }, 5 * 60 * 1000);
+
+      setInterval(async () => {
+        try {
+          await connectionPool.recoverNoPowerDevices();
+        } catch (err) {
+          logger.error('Failed to recover no_power devices', { error: err.message });
+        }
+      }, 30 * 60 * 1000);
+
+    } catch (err) {
+      logger.error('Failed to start Device Manager', { error: err.message });
+      process.exit(1);
+    }
   }
-}
 
-/**
- * Graceful shutdown
- * 
- * Order matters: Stop polling first, then wait for backfills,
- * then flush data, then close connections and database.
- */
-async function shutdown(signal) {
-  if (isShuttingDown) return;
-  isShuttingDown = true;
+  async function shutdown(signal) {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
 
-  logger.info('Shutting down Device Manager', { signal });
+    logger.info('Shutting down Device Manager', { signal });
 
-  try {
-    // 1. Stop polling scheduler (no new polls)
-    pollingScheduler.stop();
-    logger.info('Polling scheduler stopped');
+    try {
+      pollingScheduler.stop();
+      logger.info('Polling scheduler stopped');
 
-    // 1b. Stop SIM location poller
-    simPoller.stop();
-    logger.info('SIM poller stopped');
+      simPoller.stop();
+      logger.info('SIM poller stopped');
 
-    // 1c. Stop InHand GPS location poller
-    inhandPoller.stop();
-    logger.info('InHand poller stopped');
+      inhandPoller.stop();
+      logger.info('InHand poller stopped');
 
-    // 1d. Stop SIM sync service
-    simSync.stop();
-    logger.info('SIM sync stopped');
+      simSync.stop();
+      logger.info('SIM sync stopped');
 
-    // 2. Wait for active backfill operations to complete
-    await backfillService.stop();
-    logger.info('Backfill service stopped');
+      await backfillService.stop();
+      logger.info('Backfill service stopped');
 
-    // 3. Flush remaining measurements to database
-    await batchWriter.stop();
-    logger.info('Batch writer stopped');
+      await batchWriter.stop();
+      logger.info('Batch writer stopped');
 
-    // 4. Disconnect all device connections
-    connectionPool.disconnectAll();
-    logger.info('Device connections closed');
+      connectionPool.disconnectAll();
+      logger.info('Device connections closed');
 
-    // 5. Stop metrics server
-    await stopMetricsServer();
-    logger.info('Metrics server stopped');
+      await stopMetricsServer();
+      logger.info('Metrics server stopped');
 
-    // 6. Close database pool (last, after all writes complete)
-    await db.closeDatabase();
-    logger.info('Database closed');
+      await db.closeDatabase();
+      logger.info('Database closed');
 
-    logger.info('Device Manager shutdown complete');
-    process.exit(0);
+      logger.info('Device Manager shutdown complete');
+      process.exit(0);
 
-  } catch (err) {
-    logger.error('Error during shutdown', { error: err.message });
-    process.exit(1);
+    } catch (err) {
+      logger.error('Error during shutdown', { error: err.message });
+      process.exit(1);
+    }
   }
+
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
+  process.on('uncaughtException', (err) => {
+    logger.error('Uncaught exception', { error: err.message, stack: err.stack });
+    shutdown('uncaughtException');
+  });
+  process.on('unhandledRejection', (reason, promise) => {
+    logger.error('Unhandled rejection', { reason: String(reason) });
+  });
+
+  main();
 }
-
-// Handle shutdown signals
-process.on('SIGTERM', () => shutdown('SIGTERM'));
-process.on('SIGINT', () => shutdown('SIGINT'));
-process.on('uncaughtException', (err) => {
-  logger.error('Uncaught exception', { error: err.message, stack: err.stack });
-  shutdown('uncaughtException');
-});
-process.on('unhandledRejection', (reason, promise) => {
-  logger.error('Unhandled rejection', { reason: String(reason) });
-});
-
-// Start the application
-main();
