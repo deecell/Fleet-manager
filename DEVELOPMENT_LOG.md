@@ -6,6 +6,20 @@
 
 ## Latest Updates (April 15, 2026)
 
+### Weak Signal State — Early Warning Before No Power (April 15, 2026)
+- **Problem**: Devices go straight from "online" to "no_power" with a 30-minute quarantine. No early warning for connectivity issues.
+- **Solution**: Added intermediate `weak_signal` state (yellow) between healthy and `no_power`:
+  - **1st instant disconnect** (< 200ms) → `weak_signal` — device stays in pool, continues reconnecting normally. Yellow badge shown in both admin and fleet dashboards.
+  - **2nd instant disconnect** → `no_power` — circuit breaker opens, process restarts (same as before).
+  - **Auto-clears**: When device successfully polls, `markDeviceReporting()` sets `connection_status = 'online'` which clears `weak_signal`.
+- **Diagnostic logging**: `WEAK_SIGNAL DIAGNOSTIC` logged with router ping + GPS cross-reference on 1st instant disconnect.
+- **UI changes**:
+  - **Admin DevicesPage**: Yellow "Weak Signal" badge between "No Power" (red) and "Unstable" (orange).
+  - **Fleet Table**: Yellow wifi-off icon with tooltip next to truck name when device has weak signal. Red wifi-off icon for no_power.
+  - **Both admin and fleet managers** can see the weak signal state.
+- **DB changes**: New `markDeviceWeakSignal()` function; `markDeviceDisconnected()` preserves `weak_signal` status.
+- **Files changed**: `device-manager/app/connection-pool.js`, `device-manager/app/database.js`, `client/src/lib/api.ts`, `client/src/components/FleetTable.tsx`, `client/src/pages/admin/DevicesPage.tsx`
+
 ### No-Power Diagnostic: Router Ping + GPS Cross-Reference (April 15, 2026)
 - **Problem**: 8 devices showing `no_power` simultaneously — suspected Wireless Logic / InHand router connectivity issue rather than actual power loss
 - **Solution**: Added diagnostic logging at two critical points:

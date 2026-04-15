@@ -573,6 +573,14 @@ export default function DevicesPage() {
                                 );
                               }
                               
+                              if (device.connectionStatus === "weak_signal") {
+                                return (
+                                  <div className="inline-flex items-center justify-center px-3 py-1.5 rounded-md border text-xs font-normal bg-[rgba(255,200,0,0.14)] border-[#e6b800] text-[#b38f00]">
+                                    Weak Signal
+                                  </div>
+                                );
+                              }
+                              
                               if (device.connectionStatus === "unstable") {
                                 return (
                                   <div className="inline-flex items-center justify-center px-3 py-1.5 rounded-md border text-xs font-normal bg-[rgba(255,165,0,0.14)] border-[#ffa500] text-[#cc8400]">

@@ -158,6 +158,7 @@ export interface LegacyTruckWithDevice extends LegacyTruckWithHistory {
   monthParkedMinutes?: number;
   fuelSavings?: number;
   mtdFuelSavings?: number;
+  deviceConnectionStatus?: string;
 }
 
 // Fuel savings and parked status constants imported from @shared/truck-status
@@ -279,6 +280,7 @@ export function useLegacyTrucks() {
       longitude: truck.longitude ?? 0,
       history: [],
       deviceId: device?.id,
+      deviceConnectionStatus: device?.connectionStatus ?? undefined,
       lastUpdated: snapshot?.updatedAt ? String(snapshot.updatedAt) : snapshot?.recordedAt ? String(snapshot.recordedAt) : undefined,
       isParked,
       isIdling,

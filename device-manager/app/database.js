@@ -374,6 +374,7 @@ async function markDeviceDisconnected(deviceId, lastSuccessfulPoll, disconnectRe
         WHEN connection_status = 'unstable' THEN 'unstable'
         WHEN connection_status = 'offline' THEN 'offline'
         WHEN connection_status = 'no_power' THEN 'no_power'
+        WHEN connection_status = 'weak_signal' THEN 'weak_signal'
         ELSE 'disconnected' 
       END,
       data_status = CASE 
@@ -416,6 +417,24 @@ async function markDeviceStale(deviceId) {
       data_status = 'stale',
       updated_at = NOW()
     WHERE id = $1 AND connection_status = 'online'
+  `, [deviceId]);
+}
+
+/**
+ * Mark device as weak_signal (1st instant disconnect detected)
+ * This is an early warning state — device stays in pool, keeps retrying.
+ * Auto-clears back to 'online' on next successful poll (via markDeviceReporting).
+ * @param {number} deviceId
+ */
+async function markDeviceWeakSignal(deviceId) {
+  logger.warn('Marking device as weak_signal in database', { deviceId });
+  await query(`
+    UPDATE power_mon_devices 
+    SET 
+      connection_status = 'weak_signal',
+      updated_at = NOW()
+    WHERE id = $1
+      AND connection_status NOT IN ('unstable', 'no_power', 'offline')
   `, [deviceId]);
 }
 
@@ -1080,6 +1099,7 @@ module.exports = {
   markDeviceDisconnected,
   markDeviceReporting,
   markDeviceStale,
+  markDeviceWeakSignal,
   markDeviceUnstable,
   getUnstableDevicesReadyForRecovery,
   getNoPowerDevicesReadyForRecovery,

@@ -324,14 +324,44 @@ class DeviceConnection {
                 connectionDurationMs: connDurationMs
               });
               
-              // Instant disconnect (< 200ms) = likely no-power.
-              // Open circuit breaker after 2 instant disconnects to prevent
-              // native library corruption (crashes at 3+ cycles).
-              // Using 2 instead of 1: a single transient network hiccup can
-              // produce a fast disconnect, but two consecutive instant
-              // disconnects is almost certainly a no-power device.
+              // Instant disconnect (< 200ms) = likely connectivity/power issue.
+              // 1st instant disconnect → weak_signal (yellow warning, device stays in pool)
+              // 2nd instant disconnect → no_power (circuit breaker, process restart)
               const isInstantDisconnect = connDurationMs < NO_POWER_INSTANT_THRESHOLD_MS;
               const instantDisconnectCount = (this.rapidDisconnectDurations || []).filter(d => d < NO_POWER_INSTANT_THRESHOLD_MS).length;
+              
+              // Mark as weak_signal on first instant disconnect (early warning)
+              if (isInstantDisconnect && instantDisconnectCount === 1) {
+                this.log.warn('Weak signal detected - 1st instant disconnect, marking weak_signal', {
+                  connectionDurationMs: connDurationMs,
+                  deviceName: this.deviceName,
+                });
+                db.markDeviceWeakSignal(this.deviceId)
+                  .catch(err => this.log.error('Failed to mark device weak_signal', { error: err.message }));
+                
+                // Run diagnostic but don't open circuit breaker — device stays in pool
+                (async () => {
+                  try {
+                    const routerReachable = this.applinkUrl ? await pingApplinkUrl(this.applinkUrl, 3000) : null;
+                    const gpsData = await db.getTruckLastGpsUpdate(this.truckId);
+                    const gpsAge = gpsData?.last_location_update 
+                      ? Math.round((Date.now() - new Date(gpsData.last_location_update).getTime()) / 60000)
+                      : null;
+                    logger.warn('WEAK_SIGNAL DIAGNOSTIC', {
+                      deviceId: this.deviceId,
+                      deviceName: this.deviceName,
+                      truckId: this.truckId,
+                      routerReachable,
+                      gpsLastUpdate: gpsData?.last_location_update || null,
+                      gpsAgeMinutes: gpsAge,
+                      gpsLocation: gpsData?.location_description || null,
+                    });
+                  } catch (err) {
+                    logger.warn('WEAK_SIGNAL DIAGNOSTIC failed', { error: err.message });
+                  }
+                })();
+              }
+              
               const shouldOpenCircuit = (isInstantDisconnect && instantDisconnectCount >= 2) || 
                 this.rapidDisconnectCount >= MAX_RAPID_DISCONNECTS;
               
@@ -339,8 +369,7 @@ class DeviceConnection {
                 this.isCircuitOpen = true;
                 this.circuitResetAt = Date.now() + UNSTABLE_BACKOFF_MS;
                 
-                const allInstant = this.rapidDisconnectDurations.every(d => d < NO_POWER_INSTANT_THRESHOLD_MS);
-                const status = allInstant ? 'no_power' : 'unstable';
+                const status = (isInstantDisconnect && instantDisconnectCount >= 2) ? 'no_power' : 'unstable';
                 
                 if (isInstantDisconnect && instantDisconnectCount >= 2) {
                   this.log.error('Circuit breaker OPEN - 2 instant disconnects, device appears powered off', {
@@ -592,14 +621,16 @@ class DeviceConnection {
           this.hadRecentPollFailure = false;
           this.graceReconnectsRemaining = 0;
           
-          // Reset rapid disconnect counter on successful poll
+          // Reset rapid disconnect counter and durations on successful poll
           // This gives the device a clean slate after stable operation
           // Always persist to DB to ensure memory/DB parity across restarts
           if (this.rapidDisconnectCount > 0) {
             this.log.debug('Resetting rapid disconnect count after successful poll', {
-              previousCount: this.rapidDisconnectCount
+              previousCount: this.rapidDisconnectCount,
+              previousDurations: this.rapidDisconnectDurations
             });
             this.rapidDisconnectCount = 0;
+            this.rapidDisconnectDurations = [];
           }
           // Always sync to DB to handle cases where process restarts with stale data
           db.resetDeviceDisconnects(this.deviceId)
