@@ -93,7 +93,7 @@ async function main() {
       } catch (err) {
         logger.error(`${workerPrefix} Failed to recover no_power devices`, { error: err.message });
       }
-    }, 30 * 60 * 1000);
+    }, 5 * 60 * 1000);
 
   } catch (err) {
     logger.error(`${workerPrefix} Failed to start`, { error: err.message, stack: err.stack });

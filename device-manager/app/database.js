@@ -112,10 +112,10 @@ async function getActiveDevicesWithCredentials() {
     ORDER BY d.id
   `);
   
-  // Retry no_power devices whose 30-minute quarantine has expired.
+  // Retry no_power devices whose 5-minute quarantine has expired.
   // NOT all no_power devices — a device that just crashed the process seconds ago
   // must not be retried immediately or it creates a restart loop.
-  const NO_POWER_QUARANTINE_MINUTES = 30;
+  const NO_POWER_QUARANTINE_MINUTES = 5;
   const expiredResult = await query(`
     SELECT 
       d.id as device_id,
@@ -522,7 +522,7 @@ async function updateMarkedOfflineAt(deviceId) {
  * Get no_power devices whose quarantine TTL has expired
  * Returns devices marked no_power for longer than the quarantine period
  */
-async function getNoPowerDevicesReadyForRecovery(quarantineMs = 30 * 60 * 1000) {
+async function getNoPowerDevicesReadyForRecovery(quarantineMs = 5 * 60 * 1000) {
   const result = await query(`
     SELECT 
       d.id as device_id,

@@ -59,8 +59,8 @@ let poolInstance = null;
 const RAPID_DISCONNECT_THRESHOLD_MS = 5000; // Disconnect within 5s of connect = rapid
 const MAX_RAPID_DISCONNECTS = 3; // After 3 rapid disconnects, mark as unstable/no_power
 const UNSTABLE_BACKOFF_MS = 300000; // 5 minutes backoff for unstable devices
-const NO_POWER_QUARANTINE_MS = 30 * 60 * 1000; // 30 minutes quarantine for no_power devices
-const NO_POWER_RETRY_INTERVAL_MS = 30 * 60 * 1000; // Check every 30 minutes
+const NO_POWER_QUARANTINE_MS = 5 * 60 * 1000; // 5 minutes quarantine for no_power devices
+const NO_POWER_RETRY_INTERVAL_MS = 5 * 60 * 1000; // Check every 5 minutes
 const OFFLINE_BACKOFF_MS = 600000; // 10 minutes backoff for offline devices
 const NO_POWER_INSTANT_THRESHOLD_MS = 200; // Connection shorter than this = "instant" (was 100ms)
 const POST_ERROR_RECONNECT_DELAY_MS = 5000; // Longer delay after a poll failure before reconnecting
@@ -1386,7 +1386,7 @@ class ConnectionPool {
       const ts = new Date().toISOString().slice(11, 19);
       
       console.log('');
-      console.log(`${dim}${ts}${rst} ${green}AUTO ${rst} ${bold}Retrying ${devices.length} no_power device(s) (quarantine expired after 30m):${rst}`);
+      console.log(`${dim}${ts}${rst} ${green}AUTO ${rst} ${bold}Retrying ${devices.length} no_power device(s) (quarantine expired after 5m):${rst}`);
       for (const d of devices) {
         const tag = '[retry]'.padEnd(12);
         const name = (d.device_name || d.serial_number).padEnd(41);
@@ -1454,7 +1454,7 @@ class ConnectionPool {
               : gpsAge != null && gpsAge < 5 
                 ? `${dim}router down, GPS ${gpsAge}m ago (transient?)${rst}` 
                 : `${dim}router down, no recent GPS${rst}`;
-            console.log(`${dim}${rts}${rst} ${yellow}AUTO ${rst} ${yellow}${tag}${rst}${dim}${name}will retry in 30m | ${rst}${diag}`);
+            console.log(`${dim}${rts}${rst} ${yellow}AUTO ${rst} ${yellow}${tag}${rst}${dim}${name}will retry in 5m | ${rst}${diag}`);
           }
         } catch (err) {
           this.connections.delete(device.device_id);

@@ -114,7 +114,7 @@ function startSingleProcess() {
         } catch (err) {
           logger.error('Failed to recover no_power devices', { error: err.message });
         }
-      }, 30 * 60 * 1000);
+      }, 5 * 60 * 1000);
 
     } catch (err) {
       logger.error('Failed to start Device Manager', { error: err.message });

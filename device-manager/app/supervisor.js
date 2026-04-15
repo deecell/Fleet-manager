@@ -165,7 +165,7 @@ class Supervisor {
   }
 
   async _logSkippedDevices() {
-    const NO_POWER_QUARANTINE_MINUTES = 30;
+    const NO_POWER_QUARANTINE_MINUTES = 5;
     try {
       const result = await db.query(`
         SELECT d.serial_number, d.device_name, d.connection_status, d.consecutive_disconnects,
