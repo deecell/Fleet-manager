@@ -62,6 +62,7 @@ class Supervisor {
     simSync.start();
 
     setInterval(() => this._checkForNewCohorts(), 5 * 60 * 1000);
+    setInterval(() => this._logSkippedDevices(), 60 * 1000);
 
     logger.info('Supervisor: All services started', {
       workers: this.workers.size,
@@ -161,6 +162,41 @@ class Supervisor {
       hash = hash & hash;
     }
     return Math.abs(hash) % totalCohorts;
+  }
+
+  async _logSkippedDevices() {
+    const NO_POWER_QUARANTINE_MINUTES = 30;
+    try {
+      const result = await db.query(`
+        SELECT d.serial_number, d.device_name, d.connection_status, d.consecutive_disconnects,
+          d.marked_unstable_at,
+          EXTRACT(EPOCH FROM (NOW() - d.marked_unstable_at)) / 60 as minutes_quarantined
+        FROM power_mon_devices d
+        INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = true
+        WHERE d.connection_status IN ('unstable', 'offline', 'no_power')
+      `);
+
+      if (result.rows.length === 0) return;
+
+      const red = '\x1b[31m';
+      const dim = '\x1b[2m';
+      const rst = '\x1b[0m';
+      console.log(`Skipping ${result.rows.length} offline/unstable devices:`);
+      for (const d of result.rows) {
+        const status = `[${d.connection_status}]`.padEnd(12);
+        const name = (d.device_name || d.serial_number).padEnd(41);
+        let ttlInfo = '';
+        if (d.connection_status === 'no_power' && d.minutes_quarantined != null) {
+          const minutesRemaining = Math.max(0, Math.round(NO_POWER_QUARANTINE_MINUTES - d.minutes_quarantined));
+          ttlInfo = minutesRemaining > 0
+            ? ` (retry in ${minutesRemaining}m)`
+            : ' (retry on next check)';
+        }
+        console.log(`                  ${red}${status}${rst}${dim}${name}(${d.consecutive_disconnects} disconnects)${ttlInfo}${rst}`);
+      }
+    } catch (err) {
+      logger.error('Supervisor: Failed to log skipped devices', { error: err.message });
+    }
   }
 
   async _checkForNewCohorts() {
