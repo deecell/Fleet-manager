@@ -122,9 +122,8 @@ class PollingScheduler {
     const tickCohort = this.currentTick;
 
     if (tickCohort === 0) {
-      logger.banner('=== New Polling Cycle ===');
-
       if (!this.workerMode) {
+        logger.banner('=== New Polling Cycle ===');
         try {
           await connectionPool.checkForNewDevices();
         } catch (err) {
