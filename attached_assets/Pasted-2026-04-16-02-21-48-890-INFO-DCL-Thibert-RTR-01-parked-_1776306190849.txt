@@ -1,0 +1,184 @@
+2026-04-16 02:21:48.890 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.77  v2=  0.0382  today=  142m  month= 21587m  since=2026-01-09 21:34:37
+2026-04-16 02:21:49.001 INFO  DCL-KTR (KTR-01)                         parked   v1= 26.13  v2= 12.7217  today=    4m  month=   169m  since=2026-04-16 02:17:31
+2026-04-16 02:21:49.008 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 27.24  v2= 13.6691  today=    0m  month=     1m  since=2026-04-13 07:25:56
+2026-04-16 02:21:51.022 INFO  DCL-Penske01 (LFG-001)                   parked   v1= 13.06  v2=  0.0484  today=  142m  month=  9130m  since=2026-04-09 15:26:18
+2026-04-16 02:21:51.029 INFO  DCL-Carter (CTR-69)                      parked   v1= 26.54  v2=  0.0476  today=  142m  month= 20490m  since=2025-12-03 17:15:48
+2026-04-16 02:21:57.728 INFO  DCL-Howard (MHR-01)                      parked   v1= 27.67  v2=  0.0458  today=  142m  month= 21742m  since=2025-12-30 22:17:33
+2026-04-16 02:21:58.017 INFO  DCL-Brown (RBR-01)                       parked   v1= 26.20  v2= 12.6591  today=  142m  month=  4580m  since=2026-04-15 21:10:15
+2026-04-16 02:21:58.066 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.86  v2=  0.0379  today=  142m  month= 21742m  since=2025-12-29 23:38:19
+2026-04-16 02:21:58.074 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 27.30  v2=  0.0453  today=  142m  month= 21742m  since=2025-12-29 23:38:54
+2026-04-16 02:21:58.908 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.77  v2=  0.0384  today=  142m  month= 21587m  since=2026-01-09 21:34:37
+2026-04-16 02:21:58.916 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.62  v2=  0.0391  today=  142m  month= 21742m  since=2025-12-29 23:22:12
+2026-04-16 02:22:01.049 INFO  DCL-KTR (KTR-01)                         parked   v1= 26.13  v2= 12.8100  today=    4m  month=   169m  since=2026-04-16 02:17:31
+2026-04-16 02:22:01.057 INFO  DCL-Penske01 (LFG-001)                   parked   v1= 13.06  v2=  0.0490  today=  142m  month=  9130m  since=2026-04-09 15:26:18
+2026-04-16 02:22:01.064 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 27.24  v2= 13.6703  today=    0m  month=     1m  since=2026-04-13 07:25:56
+2026-04-16 02:22:01.072 INFO  DCL-Carter (CTR-69)                      parked   v1= 26.54  v2=  0.0476  today=  142m  month= 20490m  since=2025-12-03 17:15:48
+2026-04-16 02:22:03.354 WARN  Poll failed  deviceId=20  serial=E18590457A387E04  cohort=2  code=8  failures=2
+2026-04-16 02:22:03.991 WARN  Poll failed  deviceId=3  serial=A998463C2C69ABFD  cohort=6  code=8  failures=2
+2026-04-16 02:22:04.092 INFO  onDisconnect fired  deviceId=3  serial=A998463C2C69ABFD  cohort=6  reason=2  connDurationMs=441292  hadSuccessfulPoll=true  wasConnected=true  consecutiveFailures=2  rapidDisconnects=0
+2026-04-16 02:22:04.092 INFO  Device disconnected (unexpected)  deviceId=3  serial=A998463C2C69ABFD  cohort=6  reason=2  isRapidDisconnect=false
+2026-04-16 02:22:04.099 INFO  Scheduling reconnect  deviceId=3  serial=A998463C2C69ABFD  cohort=6  attempt=1  delayMs=1000
+2026-04-16 02:22:04.107 INFO  onDisconnect fired  deviceId=20  serial=E18590457A387E04  cohort=2  reason=2  connDurationMs=140972  hadSuccessfulPoll=true  wasConnected=true  consecutiveFailures=2  rapidDisconnects=0
+2026-04-16 02:22:04.107 INFO  Device disconnected (unexpected)  deviceId=20  serial=E18590457A387E04  cohort=2  reason=2  isRapidDisconnect=false
+2026-04-16 02:22:04.119 INFO  Scheduling reconnect  deviceId=20  serial=E18590457A387E04  cohort=2  attempt=1  delayMs=1000
+2026-04-16 02:22:04.487 INFO  Supervisor: Forked worker for cohort 5  pid=3643427
+2026-04-16 02:22:04.570 INFO  PowerMon addon loaded successfully
+2026-04-16 02:22:04.574 INFO  [worker:5] Starting  cohortId=5  totalCohorts=10
+2026-04-16 02:22:04.575 INFO  Database connection configured  host=deecell-fleet-production-postgres.cn4qsw8g8yyx.us-east-2.rds.amazonaws.com  database=deecell_fleet
+2026-04-16 02:22:04.575 INFO  Database pool initialized  poolSize=10
+2026-04-16 02:22:04.576 INFO  Initializing connection pool for cohort 5/10
+2026-04-16 02:22:04.657 INFO  Cohort 5: 3 devices (of 17 total)
+2026-04-16 02:22:04.666 INFO  Connection pool initialized for cohort 5  devices=3
+2026-04-16 02:22:04.666 INFO  Batch writer started  flushIntervalMs=2000  maxBatchSize=500
+2026-04-16 02:22:04.667 INFO  === STARTUP: Connecting to all devices ===  deviceCount=3  timestamp=2026-04-16T02:22:04.667Z
+2026-04-16 02:22:04.667 INFO  Connecting device 1/3  serialNumber=E844BD0A2017EB7A  deviceName=DCL-Kruse  cohort=5
+2026-04-16 02:22:04.667 INFO  Connecting to device  deviceId=8  serial=E844BD0A2017EB7A  cohort=5
+2026-04-16 02:22:04.677 INFO  Connected successfully  deviceId=8  serial=E844BD0A2017EB7A  cohort=5  durationMs=10
+2026-04-16 02:22:04.684 INFO  Device 1/3 connected  serialNumber=E844BD0A2017EB7A  durationMs=10
+2026-04-16 02:22:04.684 INFO  Connecting device 2/3  serialNumber=2622A846A1BD5441  deviceName=DCL-Epler  cohort=5
+2026-04-16 02:22:04.684 INFO  Connecting to device  deviceId=17  serial=2622A846A1BD5441  cohort=5
+2026-04-16 02:22:04.693 INFO  Connected successfully  deviceId=17  serial=2622A846A1BD5441  cohort=5  durationMs=9
+2026-04-16 02:22:04.696 INFO  onDisconnect fired  deviceId=17  serial=2622A846A1BD5441  cohort=5  reason=2  connDurationMs=3  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=0
+2026-04-16 02:22:04.697 WARN  Rapid disconnect detected (error)  deviceId=17  serial=2622A846A1BD5441  cohort=5  reason=2  rapidDisconnects=1  connectionDurationMs=3
+2026-04-16 02:22:04.697 WARN  Weak signal detected - 1st instant disconnect, marking weak_signal  deviceId=17  serial=2622A846A1BD5441  cohort=5  connectionDurationMs=3  deviceName=DCL-Epler
+2026-04-16 02:22:04.697 WARN  Marking device as weak_signal in database  deviceId=17
+2026-04-16 02:22:04.702 INFO  Device disconnected (unexpected)  deviceId=17  serial=2622A846A1BD5441  cohort=5  reason=2  isRapidDisconnect=true
+2026-04-16 02:22:04.707 INFO  Device 2/3 connected  serialNumber=2622A846A1BD5441  durationMs=9
+2026-04-16 02:22:04.707 INFO  Connecting device 3/3  serialNumber=4E0A83432AEE8967  deviceName=DCL-Kalitta-Hospitality  cohort=5
+2026-04-16 02:22:04.707 INFO  Connecting to device  deviceId=18  serial=4E0A83432AEE8967  cohort=5
+2026-04-16 02:22:04.720 INFO  Connected successfully  deviceId=18  serial=4E0A83432AEE8967  cohort=5  durationMs=13
+2026-04-16 02:22:04.727 INFO  Device 3/3 connected  serialNumber=4E0A83432AEE8967  durationMs=13
+2026-04-16 02:22:04.727 INFO  === STARTUP COMPLETE: Connection Summary ===  success=3  failed=0  skipped=0  timedOut=0  totalDurationMs=60  averageDurationMs=11
+2026-04-16 02:22:04.728 INFO  Starting polling scheduler (worker mode)  intervalMs=10000
+2026-04-16 02:22:04.728 INFO  Backfill service started  gapThresholdMs=30000  maxConcurrent=5
+2026-04-16 02:22:04.729 INFO  [worker:5] Started successfully  cohortId=5  devices=3
+2026-04-16 02:22:04.730 INFO  Supervisor: Worker cohort 5 ready  pid=3643427  devices=3
+2026-04-16 02:22:04.745 INFO  Scheduling reconnect  deviceId=17  serial=2622A846A1BD5441  cohort=5  attempt=1  delayMs=1000
+2026-04-16 02:22:04.860 WARN  WEAK_SIGNAL DIAGNOSTIC  deviceId=17  deviceName=DCL-Epler  truckId=14  routerReachable=true  gpsLastUpdate=Thu Apr 16 2026 02:21:42 GMT+0000 (Coordinated Universal Time)  gpsAgeMinutes=0  gpsLocation=Riverside County, CA
+2026-04-16 02:22:05.100 INFO  Connecting to device  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+2026-04-16 02:22:05.109 INFO  Connected successfully  deviceId=3  serial=A998463C2C69ABFD  cohort=6  durationMs=9
+2026-04-16 02:22:05.112 INFO  onDisconnect fired  deviceId=3  serial=A998463C2C69ABFD  cohort=6  reason=2  connDurationMs=3  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=0
+2026-04-16 02:22:05.112 WARN  Rapid disconnect detected (error)  deviceId=3  serial=A998463C2C69ABFD  cohort=6  reason=2  rapidDisconnects=1  connectionDurationMs=3
+2026-04-16 02:22:05.112 WARN  Weak signal detected - 1st instant disconnect, marking weak_signal  deviceId=3  serial=A998463C2C69ABFD  cohort=6  connectionDurationMs=3  deviceName=DCL-Moeck
+2026-04-16 02:22:05.113 WARN  Marking device as weak_signal in database  deviceId=3
+2026-04-16 02:22:05.117 INFO  Device disconnected (unexpected)  deviceId=3  serial=A998463C2C69ABFD  cohort=6  reason=2  isRapidDisconnect=true
+2026-04-16 02:22:05.119 INFO  Connecting to device  deviceId=20  serial=E18590457A387E04  cohort=2
+2026-04-16 02:22:05.129 INFO  Connected successfully  deviceId=20  serial=E18590457A387E04  cohort=2  durationMs=10
+2026-04-16 02:22:05.131 INFO  onDisconnect fired  deviceId=20  serial=E18590457A387E04  cohort=2  reason=2  connDurationMs=2  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=0
+2026-04-16 02:22:05.132 WARN  Rapid disconnect detected (error)  deviceId=20  serial=E18590457A387E04  cohort=2  reason=2  rapidDisconnects=1  connectionDurationMs=2
+2026-04-16 02:22:05.132 WARN  Weak signal detected - 1st instant disconnect, marking weak_signal  deviceId=20  serial=E18590457A387E04  cohort=2  connectionDurationMs=2  deviceName=DCL-Moeck-Shop
+2026-04-16 02:22:05.132 WARN  Marking device as weak_signal in database  deviceId=20
+2026-04-16 02:22:05.139 INFO  Device disconnected (unexpected)  deviceId=20  serial=E18590457A387E04  cohort=2  reason=2  isRapidDisconnect=true
+2026-04-16 02:22:05.177 INFO  Fetched device info from PowerMon  deviceId=8  serial=E844BD0A2017EB7A  cohort=5  serialNumber=E844BD0A2017EB7A  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Kruse
+2026-04-16 02:22:05.183 INFO  Updated device info  deviceId=8  serialNumber=E844BD0A2017EB7A  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Kruse
+2026-04-16 02:22:05.185 INFO  Scheduling reconnect  deviceId=3  serial=A998463C2C69ABFD  cohort=6  attempt=1  delayMs=1000
+2026-04-16 02:22:05.189 INFO  Scheduling reconnect  deviceId=20  serial=E18590457A387E04  cohort=2  attempt=1  delayMs=1000
+2026-04-16 02:22:05.254 WARN  WEAK_SIGNAL DIAGNOSTIC  deviceId=3  deviceName=DCL-Moeck  truckId=1  routerReachable=true  gpsLastUpdate=Thu Apr 16 2026 02:21:42 GMT+0000 (Coordinated Universal Time)  gpsAgeMinutes=0  gpsLocation=Spokane County, WA
+2026-04-16 02:22:05.303 WARN  WEAK_SIGNAL DIAGNOSTIC  deviceId=20  deviceName=DCL-Moeck-Shop  truckId=2  routerReachable=true  gpsLastUpdate=Thu Apr 16 2026 02:21:42 GMT+0000 (Coordinated Universal Time)  gpsAgeMinutes=0  gpsLocation=Spokane County, WA
+2026-04-16 02:22:05.412 INFO  Fetched device info from PowerMon  deviceId=18  serial=4E0A83432AEE8967  cohort=5  serialNumber=4E0A83432AEE8967  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Kalitta-Hospitality
+2026-04-16 02:22:05.415 INFO  Updated device info  deviceId=18  serialNumber=4E0A83432AEE8967  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Kalitta-Hospitality
+2026-04-16 02:22:05.747 INFO  Connecting to device  deviceId=17  serial=2622A846A1BD5441  cohort=5
+2026-04-16 02:22:05.756 INFO  Connected successfully  deviceId=17  serial=2622A846A1BD5441  cohort=5  durationMs=9
+2026-04-16 02:22:05.760 INFO  onDisconnect fired  deviceId=17  serial=2622A846A1BD5441  cohort=5  reason=2  connDurationMs=4  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=1
+2026-04-16 02:22:05.760 WARN  Rapid disconnect detected (error)  deviceId=17  serial=2622A846A1BD5441  cohort=5  reason=2  rapidDisconnects=2  connectionDurationMs=4
+2026-04-16 02:22:05.760 ERROR Circuit breaker OPEN - 2 instant disconnects, device appears powered off  deviceId=17  serial=2622A846A1BD5441  cohort=5  rapidDisconnects=2  instantDisconnects=2  connectionDurationMs=4  backoffMinutes=5  resetAt=2026-04-16T02:27:05.760Z
+2026-04-16 02:22:05.760 WARN  Nulled native references for all pool devices  nulledCount=2  triggerDevice=17
+2026-04-16 02:22:05.760 ERROR NATIVE LIBRARY COMPROMISED - blocking all native calls, scheduling graceful restart  deviceId=17  deviceName=DCL-Epler  status=no_power  restartInMs=3000
+2026-04-16 02:22:05.760 WARN  Marking device as no_power in database  deviceId=17
+2026-04-16 02:22:05.900 WARN  NO_POWER DIAGNOSTIC  deviceId=17  deviceName=DCL-Epler  truckId=14  routerReachable=true  gpsLastUpdate=Thu Apr 16 2026 02:21:42 GMT+0000 (Coordinated Universal Time)  gpsAgeMinutes=0  gpsLocation=Riverside County, CA  verdict=ROUTER REACHABLE - likely connectivity issue, NOT power loss
+2026-04-16 02:22:06.185 INFO  Connecting to device  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+2026-04-16 02:22:06.190 INFO  Connecting to device  deviceId=20  serial=E18590457A387E04  cohort=2
+2026-04-16 02:22:06.194 INFO  Connected successfully  deviceId=3  serial=A998463C2C69ABFD  cohort=6  durationMs=9
+2026-04-16 02:22:06.199 INFO  Connected successfully  deviceId=20  serial=E18590457A387E04  cohort=2  durationMs=9
+2026-04-16 02:22:06.200 INFO  onDisconnect fired  deviceId=3  serial=A998463C2C69ABFD  cohort=6  reason=2  connDurationMs=6  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=1
+2026-04-16 02:22:06.200 WARN  Rapid disconnect detected (error)  deviceId=3  serial=A998463C2C69ABFD  cohort=6  reason=2  rapidDisconnects=2  connectionDurationMs=6
+2026-04-16 02:22:06.201 ERROR Circuit breaker OPEN - 2 instant disconnects, device appears powered off  deviceId=3  serial=A998463C2C69ABFD  cohort=6  rapidDisconnects=2  instantDisconnects=2  connectionDurationMs=6  backoffMinutes=5  resetAt=2026-04-16T02:27:06.201Z
+2026-04-16 02:22:06.201 WARN  Nulled native references for all pool devices  nulledCount=1  triggerDevice=3
+2026-04-16 02:22:06.201 ERROR NATIVE LIBRARY COMPROMISED - blocking all native calls, scheduling graceful restart  deviceId=3  deviceName=DCL-Moeck  status=no_power  restartInMs=3000
+2026-04-16 02:22:06.201 WARN  Marking device as no_power in database  deviceId=3
+2026-04-16 02:22:06.203 INFO  onDisconnect fired  deviceId=20  serial=E18590457A387E04  cohort=2  reason=2  connDurationMs=4  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=1
+2026-04-16 02:22:06.203 WARN  Rapid disconnect detected (error)  deviceId=20  serial=E18590457A387E04  cohort=2  reason=2  rapidDisconnects=2  connectionDurationMs=4
+2026-04-16 02:22:06.203 ERROR Circuit breaker OPEN - 2 instant disconnects, device appears powered off  deviceId=20  serial=E18590457A387E04  cohort=2  rapidDisconnects=2  instantDisconnects=2  connectionDurationMs=4  backoffMinutes=5  resetAt=2026-04-16T02:27:06.203Z
+2026-04-16 02:22:06.203 WARN  Nulled native references for all pool devices  nulledCount=0  triggerDevice=20
+2026-04-16 02:22:06.204 ERROR NATIVE LIBRARY COMPROMISED - blocking all native calls, scheduling graceful restart  deviceId=20  deviceName=DCL-Moeck-Shop  status=no_power  restartInMs=3000
+2026-04-16 02:22:06.204 WARN  Marking device as no_power in database  deviceId=20
+2026-04-16 02:22:06.275 WARN  Poll failed  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  code=8  failures=2
+2026-04-16 02:22:06.348 WARN  NO_POWER DIAGNOSTIC  deviceId=3  deviceName=DCL-Moeck  truckId=1  routerReachable=true  gpsLastUpdate=Thu Apr 16 2026 02:21:42 GMT+0000 (Coordinated Universal Time)  gpsAgeMinutes=0  gpsLocation=Spokane County, WA  verdict=ROUTER REACHABLE - likely connectivity issue, NOT power loss
+2026-04-16 02:22:06.349 WARN  NO_POWER DIAGNOSTIC  deviceId=20  deviceName=DCL-Moeck-Shop  truckId=2  routerReachable=true  gpsLastUpdate=Thu Apr 16 2026 02:21:42 GMT+0000 (Coordinated Universal Time)  gpsAgeMinutes=0  gpsLocation=Spokane County, WA  verdict=ROUTER REACHABLE - likely connectivity issue, NOT power loss
+2026-04-16 02:22:07.751 INFO  DCL-Howard (MHR-01)                      parked   v1= 27.67  v2=  0.0451  today=  142m  month= 21742m  since=2025-12-30 22:17:33
+2026-04-16 02:22:08.091 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 27.29  v2=  0.0455  today=  142m  month= 21742m  since=2025-12-29 23:38:54
+2026-04-16 02:22:08.099 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.85  v2=  0.0382  today=  142m  month= 21742m  since=2025-12-29 23:38:19
+2026-04-16 02:22:08.762 ERROR Exiting process for clean native library restart
+2026-04-16 02:22:08.767 ERROR Supervisor: Worker cohort 5 exited (code 1)  pid=3643427  cohortId=5
+2026-04-16 02:22:08.767 INFO  Supervisor: Respawning worker cohort 5 in 48000ms
+2026-04-16 02:22:09.206 ERROR Exiting process for clean native library restart
+2026-04-16 02:22:09.207 ERROR Exiting process for clean native library restart
+2026-04-16 02:22:09.214 ERROR Supervisor: Worker cohort 2 exited (code 1)  pid=3642957  cohortId=2
+2026-04-16 02:22:09.214 INFO  Supervisor: Respawning worker cohort 2 in 3000ms
+2026-04-16 02:22:09.214 ERROR Supervisor: Worker cohort 6 exited (code 1)  pid=3642972  cohortId=6
+2026-04-16 02:22:09.214 INFO  Supervisor: Respawning worker cohort 6 in 3000ms
+2026-04-16 02:22:11.092 INFO  DCL-KTR (KTR-01)                         parked   v1= 26.13  v2= 12.8121  today=    5m  month=   170m  since=2026-04-16 02:17:31
+2026-04-16 02:22:11.100 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 27.24  v2= 13.6706  today=    0m  month=     1m  since=2026-04-13 07:25:56
+2026-04-16 02:22:11.108 INFO  DCL-Penske01 (LFG-001)                   parked   v1= 13.06  v2=  0.0486  today=  142m  month=  9130m  since=2026-04-09 15:26:18
+2026-04-16 02:22:11.116 INFO  DCL-Carter (CTR-69)                      parked   v1= 26.53  v2=  0.0471  today=  142m  month= 20490m  since=2025-12-03 17:15:48
+2026-04-16 02:22:12.216 INFO  Supervisor: Forked worker for cohort 2  pid=3643471
+2026-04-16 02:22:12.220 INFO  Supervisor: Forked worker for cohort 6  pid=3643472
+2026-04-16 02:22:12.342 INFO  PowerMon addon loaded successfully
+2026-04-16 02:22:12.348 INFO  [worker:2] Starting  cohortId=2  totalCohorts=10
+2026-04-16 02:22:12.349 INFO  Database connection configured  host=deecell-fleet-production-postgres.cn4qsw8g8yyx.us-east-2.rds.amazonaws.com  database=deecell_fleet
+2026-04-16 02:22:12.349 INFO  Database pool initialized  poolSize=10
+2026-04-16 02:22:12.349 INFO  Initializing connection pool for cohort 2/10
+2026-04-16 02:22:12.348 INFO  PowerMon addon loaded successfully
+2026-04-16 02:22:12.354 INFO  [worker:6] Starting  cohortId=6  totalCohorts=10
+2026-04-16 02:22:12.356 INFO  Database connection configured  host=deecell-fleet-production-postgres.cn4qsw8g8yyx.us-east-2.rds.amazonaws.com  database=deecell_fleet
+2026-04-16 02:22:12.356 INFO  Database pool initialized  poolSize=10
+2026-04-16 02:22:12.357 INFO  Initializing connection pool for cohort 6/10
+2026-04-16 02:22:12.469 INFO  Cohort 2: 0 devices (of 14 total)
+2026-04-16 02:22:12.470 INFO  Connection pool initialized for cohort 2  devices=0
+2026-04-16 02:22:12.470 INFO  [worker:2] No devices in cohort 2
+2026-04-16 02:22:12.470 INFO  Batch writer started  flushIntervalMs=2000  maxBatchSize=500
+2026-04-16 02:22:12.470 INFO  Starting polling scheduler (worker mode)  intervalMs=10000
+2026-04-16 02:22:12.471 INFO  Backfill service started  gapThresholdMs=30000  maxConcurrent=5
+2026-04-16 02:22:12.471 INFO  [worker:2] Started successfully  cohortId=2  devices=0
+2026-04-16 02:22:12.473 INFO  Supervisor: Worker cohort 2 ready  pid=3643471  devices=0
+2026-04-16 02:22:12.475 INFO  Cohort 6: 1 devices (of 14 total)
+2026-04-16 02:22:12.478 INFO  Connection pool initialized for cohort 6  devices=1
+2026-04-16 02:22:12.479 INFO  Batch writer started  flushIntervalMs=2000  maxBatchSize=500
+2026-04-16 02:22:12.480 INFO  === STARTUP: Connecting to all devices ===  deviceCount=1  timestamp=2026-04-16T02:22:12.480Z
+2026-04-16 02:22:12.480 INFO  Connecting device 1/1  serialNumber=E6D8F89877415815  deviceName=DCL-Brown  cohort=6
+2026-04-16 02:22:12.481 INFO  Connecting to device  deviceId=9  serial=E6D8F89877415815  cohort=6
+2026-04-16 02:22:12.492 INFO  Connected successfully  deviceId=9  serial=E6D8F89877415815  cohort=6  durationMs=11
+2026-04-16 02:22:12.499 INFO  Device 1/1 connected  serialNumber=E6D8F89877415815  durationMs=11
+2026-04-16 02:22:12.499 INFO  === STARTUP COMPLETE: Connection Summary ===  success=1  failed=0  skipped=0  timedOut=0  totalDurationMs=19  averageDurationMs=11
+2026-04-16 02:22:12.499 INFO  Starting polling scheduler (worker mode)  intervalMs=10000
+2026-04-16 02:22:12.500 INFO  Backfill service started  gapThresholdMs=30000  maxConcurrent=5
+2026-04-16 02:22:12.500 INFO  [worker:6] Started successfully  cohortId=6  devices=1
+2026-04-16 02:22:12.500 INFO  Supervisor: Worker cohort 6 ready  pid=3643472  devices=1
+2026-04-16 02:22:14.102 INFO  Fetched device info from PowerMon  deviceId=9  serial=E6D8F89877415815  cohort=6  serialNumber=E6D8F89877415815  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Brown
+2026-04-16 02:22:14.105 INFO  Updated device info  deviceId=9  serialNumber=E6D8F89877415815  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Brown
+2026-04-16 02:22:16.939 INFO  DCL-Radian-1 (M53)                       parked   v1= 13.27  v2=  0.0217  today=  142m  month= 19462m  since=2026-03-25 23:01:53
+2026-04-16 02:22:16.946 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.77  v2=  0.0388  today=  142m  month= 21587m  since=2026-01-09 21:34:37
+2026-04-16 02:22:16.953 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.62  v2=  0.0385  today=  142m  month= 21742m  since=2025-12-29 23:22:12
+2026-04-16 02:22:17.769 INFO  DCL-Howard (MHR-01)                      parked   v1= 27.67  v2=  0.0452  today=  142m  month= 21742m  since=2025-12-30 22:17:33
+2026-04-16 02:22:20.124 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 27.29  v2=  0.0448  today=  142m  month= 21742m  since=2025-12-29 23:38:54
+2026-04-16 02:22:20.131 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.85  v2=  0.0378  today=  142m  month= 21742m  since=2025-12-29 23:38:19
+2026-04-16 02:22:21.136 INFO  DCL-KTR (KTR-01)                         parked   v1= 26.13  v2= 12.8028  today=    5m  month=   170m  since=2026-04-16 02:17:31
+2026-04-16 02:22:21.143 INFO  DCL-Penske01 (LFG-001)                   parked   v1= 13.06  v2=  0.0482  today=  142m  month=  9130m  since=2026-04-09 15:26:18
+2026-04-16 02:22:21.150 INFO  DCL-Carter (CTR-69)                      parked   v1= 26.54  v2=  0.0474  today=  142m  month= 20490m  since=2025-12-03 17:15:48
+2026-04-16 02:22:21.157 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 27.24  v2= 13.6779  today=    0m  month=     1m  since=2026-04-13 07:25:56
+2026-04-16 02:22:24.495 INFO  DCL-Brown (RBR-01)                       parked   v1= 26.20  v2= 12.6585  today=  142m  month=  4580m  since=2026-04-15 21:10:15
+2026-04-16 02:22:26.972 INFO  DCL-Radian-1 (M53)                       parked   v1= 13.27  v2=  0.0215  today=  142m  month= 19462m  since=2026-03-25 23:01:53
+2026-04-16 02:22:27.788 INFO  DCL-Howard (MHR-01)                      parked   v1= 27.67  v2=  0.0454  today=  142m  month= 21742m  since=2025-12-30 22:17:33
+2026-04-16 02:22:28.983 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.61  v2=  0.0396  today=  142m  month= 21742m  since=2025-12-29 23:22:12
+2026-04-16 02:22:28.990 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.77  v2=  0.0387  today=  142m  month= 21587m  since=2026-01-09 21:34:37
+2026-04-16 02:22:30.152 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.84  v2=  0.0372  today=  143m  month= 21743m  since=2025-12-29 23:38:19
+2026-04-16 02:22:30.160 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 27.29  v2=  0.0454  today=  143m  month= 21743m  since=2025-12-29 23:38:54
+2026-04-16 02:22:31.176 INFO  DCL-KTR (KTR-01)                         parked   v1= 26.13  v2= 12.7941  today=    5m  month=   170m  since=2026-04-16 02:17:31
+2026-04-16 02:22:31.183 INFO  DCL-Penske01 (LFG-001)                   parked   v1= 13.06  v2=  0.0480  today=  143m  month=  9131m  since=2026-04-09 15:26:18
+2026-04-16 02:22:31.190 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 27.24  v2= 13.6761  today=    0m  month=     1m  since=2026-04-13 07:25:56
+2026-04-16 02:22:31.197 INFO  DCL-Carter (CTR-69)                      parked   v1= 26.54  v2=  0.0475  today=  143m  month= 20491m  since=2025-12-03 17:15:48
+2026-04-16 02:22:34.519 INFO  DCL-Brown (RBR-01)                       parked   v1= 26.20  v2= 12.6587  today=  143m  month=  4581m  since=2026-04-15 21:10:15
+2026-04-16 02:22:37.807 INFO  DCL-Howard (MHR-01)                      parked   v1= 27.67  v2=  0.0451  today=  143m  month= 21743m  since=2025-12-30 22:17:33
+2026-04-16 02:22:39.011 INFO  DCL-Radian-1 (M53)                       parked   v1= 13.27  v2=  0.0193  today=  143m  month= 19463m  since=2026-03-25 23:01:53
+2026-04-16 02:22:39.020 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.62  v2=  0.0393  today=  143m  month= 21743m  since=2025-12-29 23:22:12
+2026-04-16 02:22:39.027 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.77  v2=  0.0390  today=  143m  month= 21588m  since=2026-01-09 21:34:37
