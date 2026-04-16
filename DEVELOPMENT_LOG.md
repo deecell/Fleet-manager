@@ -4,7 +4,21 @@
 
 ---
 
-## Latest Updates (April 15, 2026)
+## Latest Updates (April 16, 2026)
+
+### Fix: Solo Probe Worker Isolation Hardening (April 16, 2026)
+- **Problem**: Code review identified three critical issues with the solo probe worker implementation:
+  1. **Race condition**: `initializeForSoloDevice()` reset device status to `NULL` before the probe proved health, making the device immediately eligible for shared cohort workers via `checkForNewDevicesInCohort`.
+  2. **False success**: `runProbe()` exited 0 after 30 seconds unconditionally — regardless of whether a successful poll actually occurred. This cleared backoff even for unhealthy devices.
+  3. **Startup bypass**: `getActiveDevicesWithCredentials()` auto-reset expired no_power devices and added them to the active set, bypassing solo probe isolation entirely.
+- **Fixes**:
+  - **New `probing` status**: Probe sets device to `connection_status='probing'` during the probe window. Shared workers exclude `probing` from their active device queries, preventing race conditions. On success (exit 0), supervisor clears to `NULL`; on failure, supervisor resets to `no_power` for backoff.
+  - **Verified probe success**: Replaced unconditional 30s timeout with a 5-second interval checker (up to 6 checks = 30s). Probe only exits 0 if `hasAnySuccessfulPoll()` returns true (device connected AND completed at least one poll). If no poll succeeds, probe re-marks device as `no_power` and exits 1.
+  - **Removed startup auto-reset**: Deleted the no_power quarantine auto-reset block from `getActiveDevicesWithCredentials()`. All no_power recovery now flows exclusively through the supervisor's `_probeNoPowerDevices()` → solo probe worker path.
+  - **Guard in `initializeForSoloDevice`**: Added check that device must be in `no_power` status before starting probe. Prevents probing devices whose status changed (e.g., admin set offline) between selection and spawn.
+  - **Cleanup robustness**: Wrapped probe cleanup (pollingScheduler, batchWriter, connectionPool, db) in try/catch to prevent stuck processes.
+  - **Admin UI**: Added "Probing" status badge (blue) to the Devices page, and added `probing` to the "Set Online" button visibility.
+- **Files changed**: `device-manager/app/supervisor.js`, `device-manager/app/worker.js`, `device-manager/app/connection-pool.js`, `device-manager/app/database.js`, `client/src/pages/admin/DevicesPage.tsx`
 
 ### Architecture: Supervisor/Worker Process Isolation (April 15, 2026)
 - **Problem**: When the circuit breaker fires (e.g., a device corrupts the native C++ library), the entire device manager process exits. ALL devices go offline until systemd restarts the process. This is a 100% blast radius for a single bad device.

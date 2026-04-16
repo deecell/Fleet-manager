@@ -841,6 +841,48 @@ class ConnectionPool {
     return this.connections.size;
   }
 
+  async initializeForSoloDevice(serial) {
+    logger.info(`Initializing connection pool for solo device`, { serial });
+
+    const device = await db.getDeviceForRecovery(serial);
+    if (!device) {
+      logger.error(`Solo device not found in database`, { serial });
+      return 0;
+    }
+
+    if (device.device_connection_status !== 'no_power') {
+      logger.warn(`Solo device status is ${device.device_connection_status}, not no_power — aborting probe`, { serial });
+      return 0;
+    }
+
+    await db.query(
+      `UPDATE power_mon_devices SET connection_status = 'probing', consecutive_disconnects = 0, updated_at = NOW() WHERE id = $1`,
+      [device.device_id]
+    );
+
+    const cohortId = this.hashToCohort(device.serial_number);
+    const conn = new DeviceConnection({
+      ...device,
+      cohort_id: cohortId,
+      consecutive_disconnects: 0,
+    });
+
+    this.connections.set(device.device_id, conn);
+    if (!this.cohorts.has(cohortId)) {
+      this.cohorts.set(cohortId, new Set());
+    }
+    this.cohorts.get(cohortId).add(device.device_id);
+
+    await db.upsertDeviceSyncStatus(device.device_id, device.organization_id, cohortId);
+
+    logger.info(`Solo device initialized`, {
+      serial,
+      deviceId: device.device_id,
+      deviceName: device.device_name,
+    });
+    return 1;
+  }
+
   /**
    * Check for new devices that belong to this worker's cohort
    */
@@ -1494,6 +1536,16 @@ class ConnectionPool {
     // Offline status is admin-set only — do not auto-recover
     // Admin must use "Set Online" button from the dashboard
     return { attempted: 0, recovered: 0, unreachable: 0 };
+  }
+
+  hasAnySuccessfulPoll() {
+    for (const conn of this.connections.values()) {
+      if (conn.lastSuccessfulPollAt && conn.lastConnectedAt &&
+          conn.lastSuccessfulPollAt.getTime() >= conn.lastConnectedAt.getTime()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

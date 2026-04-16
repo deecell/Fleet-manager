@@ -5,8 +5,13 @@
  * If one device corrupts the native library, only this worker crashes — the supervisor
  * respawns it while other workers keep running.
  * 
+ * Modes:
+ *   Cohort mode (WORKER_COHORT_ID): Manages all devices in a hash-based cohort.
+ *   Solo probe mode (WORKER_SOLO_SERIAL): Tests one no_power device in isolation.
+ *     Connects, polls for 30 seconds, exits 0 on success. If circuit breaker fires,
+ *     only this process dies — no other devices affected.
+ * 
  * Started by supervisor.js via child_process.fork().
- * Receives cohort ID via WORKER_COHORT_ID environment variable.
  */
 
 const { config, validateConfig } = require('./config');
@@ -17,19 +22,88 @@ const { pollingScheduler } = require('./polling-scheduler');
 const batchWriter = require('./batch-writer');
 const { backfillService } = require('./backfill-service');
 
-const cohortId = parseInt(process.env.WORKER_COHORT_ID, 10);
+const soloSerial = process.env.WORKER_SOLO_SERIAL;
+const cohortId = soloSerial ? null : parseInt(process.env.WORKER_COHORT_ID, 10);
 const totalCohorts = config.polling.cohortCount;
 
-if (isNaN(cohortId)) {
-  console.error('WORKER_COHORT_ID environment variable is required');
+if (!soloSerial && isNaN(cohortId)) {
+  console.error('WORKER_COHORT_ID or WORKER_SOLO_SERIAL environment variable is required');
   process.exit(1);
 }
 
-const workerPrefix = `[worker:${cohortId}]`;
-
 let isShuttingDown = false;
 
+async function runProbe() {
+  const probePrefix = `[probe:${soloSerial}]`;
+  logger.info(`${probePrefix} Starting solo probe`);
+
+  try {
+    validateConfig();
+    db.initDatabase();
+
+    const deviceCount = await connectionPool.initializeForSoloDevice(soloSerial);
+    if (deviceCount === 0) {
+      logger.error(`${probePrefix} Device not found or not in no_power state`);
+      process.exit(1);
+    }
+
+    batchWriter.start();
+    await connectionPool.connectAll();
+    pollingScheduler.startForWorker();
+
+    logger.info(`${probePrefix} Connected, monitoring for 30 seconds`);
+
+    if (process.send) {
+      process.send({ type: 'ready', serial: soloSerial, devices: 1 });
+    }
+
+    let checkCount = 0;
+    const probeCheck = setInterval(async () => {
+      checkCount++;
+      if (connectionPool.hasAnySuccessfulPoll()) {
+        clearInterval(probeCheck);
+        logger.info(`${probePrefix} Probe successful - device polled successfully`);
+        if (process.send) {
+          process.send({ type: 'probe-success', serial: soloSerial });
+        }
+        try {
+          pollingScheduler.stop();
+          await batchWriter.stop();
+          connectionPool.disconnectAll();
+          await db.closeDatabase();
+        } catch (e) {
+          logger.warn(`${probePrefix} Cleanup error`, { error: e.message });
+        }
+        process.exit(0);
+      }
+
+      if (checkCount >= 6) {
+        clearInterval(probeCheck);
+        logger.warn(`${probePrefix} Probe timed out - no successful poll in 30s`);
+        try {
+          await db.markDeviceUnstable(
+            Array.from(connectionPool.connections.keys())[0],
+            'no_power'
+          );
+          pollingScheduler.stop();
+          await batchWriter.stop();
+          connectionPool.disconnectAll();
+          await db.closeDatabase();
+        } catch (e) {
+          logger.warn(`${probePrefix} Cleanup error`, { error: e.message });
+        }
+        process.exit(1);
+      }
+    }, 5000);
+
+  } catch (err) {
+    logger.error(`${probePrefix} Probe failed`, { error: err.message, stack: err.stack });
+    process.exit(1);
+  }
+}
+
 async function main() {
+  const workerPrefix = `[worker:${cohortId}]`;
   logger.info(`${workerPrefix} Starting`, { cohortId, totalCohorts });
 
   try {
@@ -87,14 +161,6 @@ async function main() {
       }
     }, 5 * 60 * 1000);
 
-    setInterval(async () => {
-      try {
-        await connectionPool.recoverNoPowerDevices();
-      } catch (err) {
-        logger.error(`${workerPrefix} Failed to recover no_power devices`, { error: err.message });
-      }
-    }, 5 * 60 * 1000);
-
   } catch (err) {
     logger.error(`${workerPrefix} Failed to start`, { error: err.message, stack: err.stack });
     process.exit(1);
@@ -105,7 +171,8 @@ async function shutdown(signal) {
   if (isShuttingDown) return;
   isShuttingDown = true;
 
-  logger.info(`${workerPrefix} Shutting down`, { signal, cohortId });
+  const prefix = soloSerial ? `[probe:${soloSerial}]` : `[worker:${cohortId}]`;
+  logger.info(`${prefix} Shutting down`, { signal });
 
   try {
     pollingScheduler.stop();
@@ -113,10 +180,10 @@ async function shutdown(signal) {
     await batchWriter.stop();
     connectionPool.disconnectAll();
     await db.closeDatabase();
-    logger.info(`${workerPrefix} Shutdown complete`);
+    logger.info(`${prefix} Shutdown complete`);
     process.exit(0);
   } catch (err) {
-    logger.error(`${workerPrefix} Error during shutdown`, { error: err.message });
+    logger.error(`${prefix} Error during shutdown`, { error: err.message });
     process.exit(1);
   }
 }
@@ -124,11 +191,13 @@ async function shutdown(signal) {
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));
 process.on('uncaughtException', (err) => {
-  logger.error(`${workerPrefix} Uncaught exception`, { error: err.message, stack: err.stack });
+  const prefix = soloSerial ? `[probe:${soloSerial}]` : `[worker:${cohortId}]`;
+  logger.error(`${prefix} Uncaught exception`, { error: err.message, stack: err.stack });
   shutdown('uncaughtException');
 });
 process.on('unhandledRejection', (reason) => {
-  logger.error(`${workerPrefix} Unhandled rejection`, { reason: String(reason) });
+  const prefix = soloSerial ? `[probe:${soloSerial}]` : `[worker:${cohortId}]`;
+  logger.error(`${prefix} Unhandled rejection`, { reason: String(reason) });
 });
 
 process.on('message', (msg) => {
@@ -137,4 +206,8 @@ process.on('message', (msg) => {
   }
 });
 
-main();
+if (soloSerial) {
+  runProbe();
+} else {
+  main();
+}

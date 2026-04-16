@@ -108,72 +108,9 @@ async function getActiveDevicesWithCredentials() {
     FROM power_mon_devices d
     INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = true
     LEFT JOIN device_sync_status s ON s.device_id = d.id
-    WHERE (d.connection_status IS NULL OR d.connection_status NOT IN ('unstable', 'offline', 'no_power'))
+    WHERE (d.connection_status IS NULL OR d.connection_status NOT IN ('unstable', 'offline', 'no_power', 'probing'))
     ORDER BY d.id
   `);
-  
-  // Retry no_power devices whose 5-minute quarantine has expired.
-  // NOT all no_power devices — a device that just crashed the process seconds ago
-  // must not be retried immediately or it creates a restart loop.
-  const NO_POWER_QUARANTINE_MINUTES = 5;
-  const expiredResult = await query(`
-    SELECT 
-      d.id as device_id,
-      d.organization_id,
-      d.serial_number,
-      d.device_name,
-      d.truck_id,
-      d.status,
-      d.connection_status as device_connection_status,
-      d.consecutive_disconnects,
-      d.battery_voltage,
-      d.number_of_batteries,
-      d.battery_ah,
-      d.marked_unstable_at,
-      c.applink_url,
-      c.connection_key,
-      c.access_key,
-      s.cohort_id,
-      s.last_successful_poll_at,
-      s.connection_status,
-      s.backfill_status,
-      s.gap_start_at,
-      EXTRACT(EPOCH FROM (NOW() - d.marked_unstable_at)) / 60 as minutes_quarantined
-    FROM power_mon_devices d
-    INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = true
-    LEFT JOIN device_sync_status s ON s.device_id = d.id
-    WHERE d.connection_status = 'no_power'
-      AND d.marked_unstable_at IS NOT NULL
-      AND d.marked_unstable_at < NOW() - INTERVAL '1 minute' * $1
-    ORDER BY d.id
-  `, [NO_POWER_QUARANTINE_MINUTES]);
-  
-  if (expiredResult.rows.length > 0) {
-    if (!process.env.WORKER_COHORT_ID) {
-      const green = '\x1b[32m';
-      const dim = '\x1b[2m';
-      const rst = '\x1b[0m';
-      console.log(`${green}Retrying ${expiredResult.rows.length} no_power devices on startup (quarantine expired after ${NO_POWER_QUARANTINE_MINUTES}m):${rst}`);
-      for (const d of expiredResult.rows) {
-        const tag = '[retry]'.padEnd(12);
-        const name = (d.device_name || d.serial_number).padEnd(41);
-        const mins = d.minutes_quarantined ? Math.round(d.minutes_quarantined) : '?';
-        console.log(`                  ${green}${tag}${rst}${dim}${name}${rst}${dim}(quarantined ${mins}m ago)${rst}`);
-      }
-    }
-    
-    // Reset their status so they can be connected
-    for (const d of expiredResult.rows) {
-      await query(`
-        UPDATE power_mon_devices
-        SET connection_status = NULL, consecutive_disconnects = 0, marked_unstable_at = NULL, updated_at = NOW()
-        WHERE id = $1
-      `, [d.device_id]);
-    }
-    
-    // Add expired devices to the active set
-    result.rows.push(...expiredResult.rows);
-  }
   
   if (!process.env.WORKER_COHORT_ID) {
     const skippedResult = await query(`
@@ -182,7 +119,7 @@ async function getActiveDevicesWithCredentials() {
         EXTRACT(EPOCH FROM (NOW() - d.marked_unstable_at)) / 60 as minutes_quarantined
       FROM power_mon_devices d
       INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = true
-      WHERE d.connection_status IN ('unstable', 'offline', 'no_power')
+      WHERE d.connection_status IN ('unstable', 'offline', 'no_power', 'probing')
     `);
     if (skippedResult.rows.length > 0) {
       const red = '\x1b[31m';
@@ -194,10 +131,9 @@ async function getActiveDevicesWithCredentials() {
         const name = (d.device_name || d.serial_number).padEnd(41);
         let ttlInfo = '';
         if (d.connection_status === 'no_power' && d.minutes_quarantined != null) {
-          const minutesRemaining = Math.max(0, Math.round(NO_POWER_QUARANTINE_MINUTES - d.minutes_quarantined));
-          ttlInfo = minutesRemaining > 0 
-            ? ` (retry in ${minutesRemaining}m)` 
-            : ' (retry on next check)';
+          ttlInfo = ' (supervisor will probe)';
+        } else if (d.connection_status === 'probing') {
+          ttlInfo = ' (probe in progress)';
         }
         console.log(`                  ${red}${status}${rst}${dim}${name}(${d.consecutive_disconnects} disconnects)${ttlInfo}${rst}`);
       }
@@ -1092,6 +1028,35 @@ async function closeDatabase() {
   }
 }
 
+async function getDeviceForRecovery(serial) {
+  const result = await query(`
+    SELECT 
+      d.id as device_id,
+      d.organization_id,
+      d.serial_number,
+      d.device_name,
+      d.truck_id,
+      d.status,
+      d.connection_status as device_connection_status,
+      d.consecutive_disconnects,
+      d.battery_voltage,
+      d.number_of_batteries,
+      d.battery_ah,
+      d.marked_unstable_at,
+      c.applink_url,
+      c.connection_key,
+      c.access_key,
+      s.cohort_id,
+      s.last_successful_poll_at,
+      s.connection_status
+    FROM power_mon_devices d
+    INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = true
+    LEFT JOIN device_sync_status s ON s.device_id = d.id
+    WHERE d.serial_number = $1
+  `, [serial]);
+  return result.rows[0] || null;
+}
+
 module.exports = {
   initDatabase,
   getPool,
@@ -1122,4 +1087,5 @@ module.exports = {
   readCrashAttribution,
   markCrashCulprit,
   getTruckLastGpsUpdate,
+  getDeviceForRecovery,
 };

@@ -5,6 +5,10 @@
  * native C++ library, so a crash in one worker only affects that cohort's devices.
  * The supervisor monitors workers and respawns them on crash.
  * 
+ * No_power recovery is handled by solo "probe" workers — one process per device.
+ * If the probe crashes, only that one device is affected. Healthy devices in
+ * shared cohort workers are never impacted by a bad device's recovery attempt.
+ * 
  * Shared services (SIM polling, InHand GPS, metrics) run in the supervisor process.
  */
 
@@ -18,6 +22,9 @@ const { simPoller } = require('./sim-poller');
 const { inhandPoller } = require('./inhand-poller');
 const { simSync } = require('./sim-sync');
 
+const NO_POWER_QUARANTINE_MS = 5 * 60 * 1000;
+const PROBE_BACKOFF_MINUTES = [5, 15, 60, 240];
+
 class Supervisor {
   constructor() {
     this.workers = new Map();
@@ -25,6 +32,9 @@ class Supervisor {
     this.isShuttingDown = false;
     this.restartCounts = new Map();
     this.restartTimestamps = new Map();
+
+    this.probeWorkers = new Map();
+    this.probeBackoff = new Map();
   }
 
   async start() {
@@ -63,6 +73,7 @@ class Supervisor {
 
     setInterval(() => this._checkForNewCohorts(), 5 * 60 * 1000);
     setInterval(() => this._logSkippedDevices(), 60 * 1000);
+    setInterval(() => this._probeNoPowerDevices(), 60 * 1000);
 
     logger.info('Supervisor: All services started', {
       workers: this.workers.size,
@@ -138,6 +149,103 @@ class Supervisor {
     });
   }
 
+  forkProbeWorker(serial, deviceName) {
+    if (this.isShuttingDown) return;
+    if (this.probeWorkers.has(serial)) return;
+
+    const workerPath = path.join(__dirname, 'worker.js');
+    const env = { ...process.env, WORKER_SOLO_SERIAL: serial };
+    const worker = fork(workerPath, [], { env, stdio: 'inherit' });
+
+    this.probeWorkers.set(serial, {
+      process: worker,
+      pid: worker.pid,
+      serial,
+      deviceName,
+      startedAt: new Date(),
+    });
+
+    const green = '\x1b[32m';
+    const dim = '\x1b[2m';
+    const rst = '\x1b[0m';
+    const ts = new Date().toISOString().slice(11, 19);
+    const backoff = this.probeBackoff.get(serial);
+    const attempt = backoff ? backoff.failures + 1 : 1;
+    console.log(`${dim}${ts}${rst} ${green}PROBE${rst} Spawned solo probe for ${deviceName || serial} (attempt #${attempt}, pid ${worker.pid})`);
+
+    worker.on('message', (msg) => {
+      if (msg.type === 'probe-success') {
+        const sts = new Date().toISOString().slice(11, 19);
+        console.log(`${dim}${sts}${rst} ${green}PROBE${rst} \x1b[1m${deviceName || serial} RECOVERED\x1b[0m — will rejoin shared worker on next check`);
+        this.probeBackoff.delete(serial);
+      }
+    });
+
+    worker.on('exit', async (code, signal) => {
+      this.probeWorkers.delete(serial);
+
+      if (this.isShuttingDown) return;
+
+      if (code === 0) {
+        logger.info(`Supervisor: Probe recovered ${deviceName || serial}`);
+        try {
+          await db.query(
+            `UPDATE power_mon_devices SET connection_status = NULL, marked_unstable_at = NULL, updated_at = NOW() WHERE serial_number = $1 AND connection_status = 'probing'`,
+            [serial]
+          );
+        } catch (e) {
+          logger.error(`Supervisor: Failed to clear probing status for ${serial}`, { error: e.message });
+        }
+      } else {
+        try {
+          await db.query(
+            `UPDATE power_mon_devices SET connection_status = 'no_power', updated_at = NOW() WHERE serial_number = $1 AND connection_status = 'probing'`,
+            [serial]
+          );
+        } catch (e) {
+          logger.error(`Supervisor: Failed to reset probing status for ${serial}`, { error: e.message });
+        }
+
+        const backoff = this.probeBackoff.get(serial) || { failures: 0 };
+        backoff.failures++;
+        const backoffIdx = Math.min(backoff.failures - 1, PROBE_BACKOFF_MINUTES.length - 1);
+        const nextRetryMinutes = PROBE_BACKOFF_MINUTES[backoffIdx];
+        backoff.nextProbeAfter = Date.now() + nextRetryMinutes * 60 * 1000;
+        this.probeBackoff.set(serial, backoff);
+
+        const yellow = '\x1b[33m';
+        const sts = new Date().toISOString().slice(11, 19);
+        console.log(`${dim}${sts}${rst} ${yellow}PROBE${rst} ${deviceName || serial} still offline (attempt #${backoff.failures}, next retry in ${nextRetryMinutes}m)`);
+      }
+    });
+
+    worker.on('error', (err) => {
+      logger.error(`Supervisor: Probe worker error for ${serial}`, { error: err.message });
+    });
+  }
+
+  async _probeNoPowerDevices() {
+    if (this.isShuttingDown) return;
+
+    try {
+      const devices = await db.getNoPowerDevicesReadyForRecovery(NO_POWER_QUARANTINE_MS);
+      if (devices.length === 0) return;
+
+      for (const device of devices) {
+        const serial = device.serial_number;
+
+        if (this.probeWorkers.has(serial)) continue;
+
+        const backoff = this.probeBackoff.get(serial);
+        if (backoff && Date.now() < backoff.nextProbeAfter) continue;
+
+        this.forkProbeWorker(serial, device.device_name);
+      }
+    } catch (err) {
+      logger.error('Supervisor: Failed to probe no_power devices', { error: err.message });
+    }
+  }
+
   _getRestartDelay(cohortId) {
     const now = Date.now();
     const count = this.restartCounts.get(cohortId) || 0;
@@ -187,10 +295,18 @@ class Supervisor {
         const name = (d.device_name || d.serial_number).padEnd(41);
         let ttlInfo = '';
         if (d.connection_status === 'no_power' && d.minutes_quarantined != null) {
-          const minutesRemaining = Math.max(0, Math.round(NO_POWER_QUARANTINE_MINUTES - d.minutes_quarantined));
-          ttlInfo = minutesRemaining > 0
-            ? ` (retry in ${minutesRemaining}m)`
-            : ' (retry on next check)';
+          const backoff = this.probeBackoff.get(d.serial_number);
+          if (backoff && Date.now() < backoff.nextProbeAfter) {
+            const minutesRemaining = Math.round((backoff.nextProbeAfter - Date.now()) / 60000);
+            ttlInfo = ` (probe #${backoff.failures} failed, retry in ${minutesRemaining}m)`;
+          } else {
+            const minutesRemaining = Math.max(0, Math.round(NO_POWER_QUARANTINE_MINUTES - d.minutes_quarantined));
+            ttlInfo = minutesRemaining > 0
+              ? ` (retry in ${minutesRemaining}m)`
+              : this.probeWorkers.has(d.serial_number)
+                ? ' (probe running)'
+                : ' (probe on next check)';
+          }
         }
         console.log(`                  ${red}${status}${rst}${dim}${name}(${d.consecutive_disconnects} disconnects)${ttlInfo}${rst}`);
       }
@@ -224,7 +340,7 @@ class Supervisor {
     if (this.isShuttingDown) return;
     this.isShuttingDown = true;
 
-    logger.info('Supervisor: Shutting down', { signal, workers: this.workers.size });
+    logger.info('Supervisor: Shutting down', { signal, workers: this.workers.size, probes: this.probeWorkers.size });
 
     for (const timer of this.pendingRestarts.values()) {
       clearTimeout(timer);
@@ -235,24 +351,29 @@ class Supervisor {
     inhandPoller.stop();
     simSync.stop();
 
+    const allWorkers = [
+      ...Array.from(this.workers.entries()).map(([id, info]) => ({ id: `cohort-${id}`, info })),
+      ...Array.from(this.probeWorkers.entries()).map(([serial, info]) => ({ id: `probe-${serial}`, info })),
+    ];
+
     const shutdownPromises = [];
-    for (const [cohortId, workerInfo] of this.workers) {
+    for (const { id, info } of allWorkers) {
       shutdownPromises.push(new Promise((resolve) => {
         const timeout = setTimeout(() => {
-          logger.warn(`Supervisor: Worker cohort ${cohortId} did not exit in time, killing`);
-          workerInfo.process.kill('SIGKILL');
+          logger.warn(`Supervisor: Worker ${id} did not exit in time, killing`);
+          info.process.kill('SIGKILL');
           resolve();
         }, 10000);
 
-        workerInfo.process.on('exit', () => {
+        info.process.on('exit', () => {
           clearTimeout(timeout);
           resolve();
         });
 
         try {
-          workerInfo.process.send({ type: 'shutdown' });
+          info.process.send({ type: 'shutdown' });
         } catch {
-          workerInfo.process.kill('SIGTERM');
+          info.process.kill('SIGTERM');
         }
       }));
     }
@@ -277,7 +398,16 @@ class Supervisor {
         uptime: Date.now() - info.startedAt.getTime(),
       });
     }
-    return { workers, isShuttingDown: this.isShuttingDown };
+    const probes = [];
+    for (const [serial, info] of this.probeWorkers) {
+      probes.push({
+        serial,
+        deviceName: info.deviceName,
+        pid: info.pid,
+        uptime: Date.now() - info.startedAt.getTime(),
+      });
+    }
+    return { workers, probes, isShuttingDown: this.isShuttingDown };
   }
 }
 
