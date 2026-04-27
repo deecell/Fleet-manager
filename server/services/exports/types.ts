@@ -33,6 +33,20 @@ export interface ExportFilters {
   searchQuery?: string;
 }
 
+/** Subset of IStorage that `generateExport` actually needs. */
+export interface ExportStorage {
+  getTrucksForExport(
+    organizationId: number,
+    options: {
+      fleetId?: number;
+      operationalStatus?: "in-service" | "not-in-service";
+      searchQuery?: string;
+      includeStatistics?: boolean;
+      includeSims?: boolean;
+    },
+  ): Promise<TruckExportRow[]>;
+}
+
 /** Inputs for the public `generateExport` entry point. */
 export interface GenerateExportInput {
   organizationId: number;
@@ -48,6 +62,13 @@ export interface GenerateExportInput {
    * savings itself via `SavingsCalculator`. Provided primarily for tests.
    */
   savingsByTruckId?: Map<number, { todaySavings: number; mtdSavings: number }>;
+  /**
+   * Storage implementation override. Defaults to the singleton `storage` from
+   * `server/storage`. Provided so tests (and the eventual async worker, if it
+   * wants its own connection pool) can swap in a different implementation
+   * without monkey-patching the module.
+   */
+  storage?: ExportStorage;
 }
 
 export interface GeneratedExport {

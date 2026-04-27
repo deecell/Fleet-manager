@@ -24,7 +24,7 @@ import {
   resolveColumns,
   type ColumnKey,
 } from "@shared/export-columns";
-import { storage } from "../../storage";
+import { storage as defaultStorage } from "../../storage";
 import { savingsCalculator } from "../savings-calculator";
 import { buildCsvBuffer } from "./csv-serializer";
 import { buildExcelBuffer } from "./excel-serializer";
@@ -114,6 +114,7 @@ export async function generateExport(
     includeColumns,
     excludeColumns,
   } = input;
+  const storage = input.storage ?? defaultStorage;
 
   const columnKeys: ColumnKey[] = resolveColumns(bundleKey, includeColumns, excludeColumns);
   if (columnKeys.length === 0) {
