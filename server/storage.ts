@@ -17,6 +17,7 @@ import {
   type ShellySnapshot, type InsertShellySnapshot,
   type ShellyReading, type InsertShellyReading,
 } from "@shared/schema";
+import type { TruckExportRow } from "./services/exports/types";
 
 export interface IStorage {
   // Organizations
@@ -193,6 +194,18 @@ export interface IStorage {
   // Shelly Readings (historical data for calibration)
   insertShellyReading(data: InsertShellyReading): Promise<ShellyReading>;
   listShellyReadings(shellyDeviceId: number, limit?: number): Promise<ShellyReading[]>;
+
+  // Exports — single batched query per export to avoid N+1.
+  getTrucksForExport(
+    organizationId: number,
+    options: {
+      fleetId?: number;
+      operationalStatus?: "in-service" | "not-in-service";
+      searchQuery?: string;
+      includeStatistics?: boolean;
+      includeSims?: boolean;
+    },
+  ): Promise<TruckExportRow[]>;
 }
 
 export { dbStorage as storage } from "./db-storage";

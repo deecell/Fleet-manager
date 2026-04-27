@@ -4,7 +4,22 @@
 
 ---
 
-## Latest Updates (April 16, 2026)
+## Latest Updates (April 27, 2026)
+
+### Feature: Fleet Export — Data Layer & Serializers (April 27, 2026)
+- **Context**: First of five tasks for the new Fleet Dashboard CSV/Excel export feature. This task builds the foundational pure layer; Tasks #2–#5 add async pipeline (S3 + email + banner), Export dialog, historical time-series mode, and the Admin Devices soft launch.
+- **What's new**:
+  - **Column registry** (`shared/export-columns.ts`): single source of truth for ~45 columns, each with `format`, `source`, `width`, and `group` metadata. Five named bundles (Default, Operations, Battery Health, Connectivity & SIM, Full Export). Helpers: `resolveColumns()`, `bundleNeedsStatistics()`, `bundleNeedsSims()`. Type guard `isColumnKey()` and `EXPORT_COLUMN_LIST` for iteration.
+  - **3-status split** (Operational / Connection / Activity) — Activity Status delegates to the existing `determineTruckStatus()` in `@shared/truck-status`, so the dashboard table and the export agree byte-for-byte.
+  - **Storage method** `getTrucksForExport(orgId, options)` (`server/db-storage.ts`): a single batched query joining `trucks → fleets / power_mon_devices / device_snapshots / shelly_snapshots` with an `alerts` subquery for active counts. SIMs and `device_statistics` are hydrated only when the resolved column set requires them. Org-scoped at every level.
+  - **Serializers** (`server/services/exports/`): `cell-builder.ts` extracts raw values per column from a `TruckExportRow`. `csv-serializer.ts` emits UTF-8 + BOM with a `# `-prefixed filter-summary preamble line, RFC 4180 escaping. `excel-serializer.ts` uses ExcelJS — frozen header at row 2, faint italic caption at row 1, per-format number/date formats (currency, kWh, V, °F, etc.), autosized columns capped at 48 chars based on header label + first 200 sampled rows.
+  - **Entry point** `generateExport({ organizationId, bundleKey, format, filters?, includeColumns?, excludeColumns? })` — what the async worker (Task #2) and any future direct route will call. Returns `{ buffer, filename, contentType, rowCount, columnKeys }`. Filenames follow `fleet_<bundle>[_<status>][_search-<text>]_<YYYY-MM-DD>.<ext>` with sanitized fragments. Savings are computed once per export via the existing `SavingsCalculator` (skipped if no savings columns are selected); failure falls back to zeros so the export is never blocked by a transient EIA hiccup.
+- **Files changed**: `shared/export-columns.ts` (new), `server/services/exports/{types,cell-builder,csv-serializer,excel-serializer,index}.ts` (new), `server/storage.ts` (added `getTrucksForExport` to `IStorage`), `server/db-storage.ts` (implementation + new `sims`/`deviceStatistics` imports + `or`/`ilike` operators), `package.json` (exceljs added).
+- **Out of scope** (covered by remaining tasks): async job model + S3 + SendGrid (Task #2), Export dialog & banner (Task #3), historical time-series mode (Task #4), Admin Devices soft launch (Task #5).
+
+---
+
+## Earlier Updates (April 16, 2026)
 
 ### Fix: Solo Probe Worker Isolation Hardening (April 16, 2026)
 - **Problem**: Code review identified three critical issues with the solo probe worker implementation:

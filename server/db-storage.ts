@@ -1,10 +1,12 @@
 import { db } from "./db";
-import { eq, and, desc, asc, gte, lte, sql, inArray } from "drizzle-orm";
+import { eq, and, desc, asc, gte, lte, sql, inArray, or, ilike } from "drizzle-orm";
 import {
   organizations, users, fleets, trucks, powerMonDevices,
   deviceCredentials, deviceSnapshots, deviceMeasurements,
   deviceSyncStatus, alerts, auditLogs, pollingSettings,
   passwordResetTokens, invitationTokens, shellyDevices, shellySnapshots, shellyReadings,
+  sims, deviceStatistics,
+  type Sim, type DeviceStatistics,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Fleet, type InsertFleet,
@@ -1123,6 +1125,197 @@ export class DbStorage {
       .where(eq(shellyReadings.shellyDeviceId, shellyDeviceId))
       .orderBy(desc(shellyReadings.recordedAt))
       .limit(limit);
+  }
+
+  // ===========================================================================
+  // EXPORTS
+  // ===========================================================================
+  //
+  // Single batched query that joins everything the export needs in one round
+  // trip, then optionally hydrates SIMs and lifetime statistics in two more
+  // bounded queries (only when the requested column set actually needs them).
+  //
+  // Always org-scoped — `organizationId` is the leading predicate on every
+  // table touched.
+
+  async getTrucksForExport(
+    organizationId: number,
+    options: {
+      fleetId?: number;
+      operationalStatus?: "in-service" | "not-in-service";
+      searchQuery?: string;
+      includeStatistics?: boolean;
+      includeSims?: boolean;
+    },
+  ): Promise<import("./services/exports/types").TruckExportRow[]> {
+    const conditions = [eq(trucks.organizationId, organizationId)];
+
+    if (options.fleetId !== undefined) {
+      conditions.push(eq(trucks.fleetId, options.fleetId));
+    }
+    if (options.operationalStatus) {
+      conditions.push(eq(trucks.status, options.operationalStatus));
+    }
+    if (options.searchQuery && options.searchQuery.trim().length > 0) {
+      const q = `%${options.searchQuery.trim()}%`;
+      const search = or(
+        ilike(trucks.truckNumber, q),
+        ilike(trucks.driverName, q),
+        ilike(powerMonDevices.serialNumber, q),
+      );
+      if (search) conditions.push(search);
+    }
+
+    // Subquery: latest PowerMon device per truck. The schema does not enforce
+    // 1:1 (a truck can have a history of devices across reassignments), so we
+    // pick the most recently created (`max(id)`) currently-assigned device.
+    // This keeps the result at exactly one row per truck and prevents an old
+    // device's snapshot from being paired with the truck.
+    const latestDeviceSub = db
+      .select({
+        truckId: powerMonDevices.truckId,
+        deviceId: sql<number>`max(${powerMonDevices.id})`.as("device_id"),
+      })
+      .from(powerMonDevices)
+      .where(
+        and(
+          eq(powerMonDevices.organizationId, organizationId),
+          sql`${powerMonDevices.truckId} is not null`,
+        ),
+      )
+      .groupBy(powerMonDevices.truckId)
+      .as("latest_device");
+
+    // Same defensive pattern for Shelly snapshots — schema's unique index is
+    // on `shellyDeviceId`, not on `truckId`, so multiple Shelly devices on one
+    // truck would otherwise duplicate the row.
+    const latestShellySub = db
+      .select({
+        truckId: shellySnapshots.truckId,
+        snapshotId: sql<number>`max(${shellySnapshots.id})`.as("shelly_snapshot_id"),
+      })
+      .from(shellySnapshots)
+      .where(
+        and(
+          eq(shellySnapshots.organizationId, organizationId),
+          sql`${shellySnapshots.truckId} is not null`,
+        ),
+      )
+      .groupBy(shellySnapshots.truckId)
+      .as("latest_shelly");
+
+    // Active alert counts, grouped by truckId — derived in a subquery so the
+    // main result remains 1 row per truck.
+    const alertCountsSub = db
+      .select({
+        truckId: alerts.truckId,
+        count: sql<number>`count(*)::int`.as("alert_count"),
+      })
+      .from(alerts)
+      .where(
+        and(
+          eq(alerts.organizationId, organizationId),
+          eq(alerts.status, "active"),
+        ),
+      )
+      .groupBy(alerts.truckId)
+      .as("alert_counts");
+
+    // Every join condition pins `organizationId` on the joined table so that a
+    // hypothetical orphaned cross-tenant row could never leak in via FK.
+    const baseRows = await db
+      .select({
+        truck: trucks,
+        fleetName: fleets.name,
+        device: powerMonDevices,
+        snapshot: deviceSnapshots,
+        shellySnapshot: shellySnapshots,
+        alertCount: alertCountsSub.count,
+      })
+      .from(trucks)
+      .leftJoin(fleets, and(
+        eq(fleets.id, trucks.fleetId),
+        eq(fleets.organizationId, organizationId),
+      ))
+      .leftJoin(latestDeviceSub, eq(latestDeviceSub.truckId, trucks.id))
+      .leftJoin(powerMonDevices, and(
+        eq(powerMonDevices.id, latestDeviceSub.deviceId),
+        eq(powerMonDevices.organizationId, organizationId),
+      ))
+      .leftJoin(deviceSnapshots, and(
+        eq(deviceSnapshots.deviceId, latestDeviceSub.deviceId),
+        eq(deviceSnapshots.organizationId, organizationId),
+      ))
+      .leftJoin(latestShellySub, eq(latestShellySub.truckId, trucks.id))
+      .leftJoin(shellySnapshots, and(
+        eq(shellySnapshots.id, latestShellySub.snapshotId),
+        eq(shellySnapshots.organizationId, organizationId),
+      ))
+      .leftJoin(alertCountsSub, eq(alertCountsSub.truckId, trucks.id))
+      .where(and(...conditions))
+      .orderBy(asc(trucks.truckNumber));
+
+    const truckIds = baseRows.map((r) => r.truck.id);
+
+    let simByTruckId = new Map<number, Sim>();
+    if (options.includeSims && truckIds.length > 0) {
+      const simRows = await db
+        .select()
+        .from(sims)
+        .where(
+          and(
+            eq(sims.organizationId, organizationId),
+            inArray(sims.truckId, truckIds),
+          ),
+        );
+      // If multiple SIMs exist for the same truck, prefer the most recently
+      // updated one — matches what the dashboard surfaces.
+      for (const sim of simRows) {
+        const existing = simByTruckId.get(sim.truckId!);
+        if (!existing) {
+          simByTruckId.set(sim.truckId!, sim);
+          continue;
+        }
+        const existingTs = existing.updatedAt?.getTime() ?? 0;
+        const newTs = sim.updatedAt?.getTime() ?? 0;
+        if (newTs >= existingTs) simByTruckId.set(sim.truckId!, sim);
+      }
+    }
+
+    let statsByDeviceId = new Map<number, DeviceStatistics>();
+    if (options.includeStatistics) {
+      const deviceIds = baseRows
+        .map((r) => r.device?.id)
+        .filter((id): id is number => typeof id === "number");
+      if (deviceIds.length > 0) {
+        const statRows = await db
+          .select()
+          .from(deviceStatistics)
+          .where(
+            and(
+              eq(deviceStatistics.organizationId, organizationId),
+              inArray(deviceStatistics.deviceId, deviceIds),
+            ),
+          );
+        for (const stat of statRows) statsByDeviceId.set(stat.deviceId, stat);
+      }
+    }
+
+    return baseRows.map((r) => ({
+      truck: r.truck,
+      fleetName: r.fleetName ?? "—",
+      device: r.device ?? undefined,
+      snapshot: r.snapshot ?? undefined,
+      shellySnapshot: r.shellySnapshot ?? undefined,
+      // SIMs are truck-scoped, not device-scoped: a truck may legitimately have
+      // a SIM record without a currently-assigned PowerMon device.
+      sim: simByTruckId.get(r.truck.id),
+      deviceStatistics:
+        r.device && options.includeStatistics
+          ? statsByDeviceId.get(r.device.id)
+          : undefined,
+      activeAlertCount: r.alertCount ?? 0,
+    }));
   }
 }
 
