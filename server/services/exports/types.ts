@@ -54,6 +54,8 @@ export interface GeneratedExport {
   buffer: Buffer;
   filename: string;
   contentType: string;
+  /** File extension without leading dot — `"csv"` or `"xlsx"`. */
+  mimeExtension: "csv" | "xlsx";
   rowCount: number;
   /** The actual ordered list of column keys used. */
   columnKeys: ColumnKey[];

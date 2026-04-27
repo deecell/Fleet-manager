@@ -142,6 +142,7 @@ export async function generateExport(
       buffer,
       filename: buildFilename(bundleKey, filters, "csv"),
       contentType: "text/csv; charset=utf-8",
+      mimeExtension: "csv",
       rowCount: rows.length,
       columnKeys,
     };
@@ -152,6 +153,7 @@ export async function generateExport(
     buffer,
     filename: buildFilename(bundleKey, filters, "xlsx"),
     contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    mimeExtension: "xlsx",
     rowCount: rows.length,
     columnKeys,
   };
