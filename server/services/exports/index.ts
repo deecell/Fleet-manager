@@ -35,10 +35,13 @@ import type {
   TruckExportRow,
 } from "./types";
 
-const FILENAME_SAFE = /[^a-z0-9-]+/gi;
+// Allow letters, digits, hyphens, AND underscores in fragments — the bundle
+// key fragment intentionally uses underscores (e.g. `battery_health`) per the
+// documented filename pattern `fleet_<bundleKey>...`.
+const FILENAME_SAFE = /[^a-z0-9_-]+/gi;
 
 function sanitizeFilenameFragment(text: string, maxLen = 24): string {
-  const cleaned = text.trim().toLowerCase().replace(FILENAME_SAFE, "-").replace(/^-+|-+$/g, "");
+  const cleaned = text.trim().toLowerCase().replace(FILENAME_SAFE, "-").replace(/^[-_]+|[-_]+$/g, "");
   return cleaned.slice(0, maxLen) || "all";
 }
 
@@ -47,7 +50,10 @@ function buildFilename(
   filters: ExportFilters | undefined,
   ext: "csv" | "xlsx",
 ): string {
-  const parts: string[] = ["fleet", sanitizeFilenameFragment(bundleKey)];
+  // Bundle keys are statically defined and already filename-safe; passing them
+  // through the sanitizer would still preserve underscores, but we use them as-
+  // is to be unambiguous about the intent.
+  const parts: string[] = ["fleet", bundleKey];
   if (filters?.operationalStatus) {
     parts.push(sanitizeFilenameFragment(filters.operationalStatus));
   }

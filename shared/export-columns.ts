@@ -176,7 +176,8 @@ const DEFAULT_KEYS: ColumnKey[] = [
 
 const OPERATIONS_KEYS: ColumnKey[] = [
   "truck_number", "fleet_name", "driver_name",
-  "operational_status", "activity_status",
+  // All three status columns appear together in any bundle that includes status.
+  "operational_status", "connection_status", "activity_status",
   "address", "latitude", "longitude",
   "today_idle_hours", "month_idle_hours", "today_savings", "month_savings",
   "active_alerts", "last_updated",
@@ -195,7 +196,9 @@ const BATTERY_HEALTH_KEYS: ColumnKey[] = [
 
 const CONNECTIVITY_KEYS: ColumnKey[] = [
   "truck_number", "powermon_serial", "powermon_device_name",
-  "connection_status", "signal_rssi",
+  // All three status columns appear together in any bundle that includes status.
+  "operational_status", "connection_status", "activity_status",
+  "signal_rssi",
   "sim_carrier", "sim_msisdn", "sim_data_used_mb", "sim_data_limit_mb",
   "hardware_revision", "firmware_version",
   "last_seen", "last_reported",

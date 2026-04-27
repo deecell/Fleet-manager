@@ -1158,9 +1158,14 @@ export class DbStorage {
     }
     if (options.searchQuery && options.searchQuery.trim().length > 0) {
       const q = `%${options.searchQuery.trim()}%`;
+      // Mirrors the dashboard's client-side search (Dashboard.tsx) so the
+      // export and the on-screen filter agree on what counts as a match:
+      // truck number, model, PowerMon serial, and location/address.
+      // The serial field is on the latest-device subquery, joined below.
       const search = or(
         ilike(trucks.truckNumber, q),
-        ilike(trucks.driverName, q),
+        ilike(trucks.model, q),
+        ilike(trucks.locationDescription, q),
         ilike(powerMonDevices.serialNumber, q),
       );
       if (search) conditions.push(search);
