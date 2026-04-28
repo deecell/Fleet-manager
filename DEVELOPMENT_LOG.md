@@ -30,6 +30,11 @@
   - `includeColumns` / `excludeColumns` now go through a `superRefine` that rejects any key not in the column registry (`isColumnKey`) with a 400 listing the offending names.
   - `GET /api/v1/exports?active=true` is now a first-class banner shortcut (pending + running + completed-not-dismissed + failed-not-dismissed). The original `?status` / `?includeDismissed` filtering is preserved when `active` is not set.
   - `PATCH /api/v1/exports/:id/dismiss` now returns 409 if the job is still pending or running — only completed/failed/expired rows can be dismissed.
+  - **IDOR fix on `GET /api/v1/exports/:id`**: the route now requires `job.userId === req.userId` (in addition to org scope). Same-org users can no longer fetch another user's signed download URL by guessing the integer job id.
+  - 429 messages on the create endpoint now return the spec's plain-English copy (`"You already have 3 exports in progress — wait for one to finish."` and the org equivalent) so the Task #3 dialog can surface them inline.
+  - Ready email now links back to `${APP_URL}/dashboard` so users can re-download an export from the app while the link is still valid.
+  - `serializeJob` is now strictly typed with an exported `SerializedExportJob` interface (was previously `any`) so the API contract is type-safe end to end.
+  - `POST /api/v1/exports` now nudges the worker (`exportJobWorker.nudge()` → `setImmediate(tick)`) so processing starts within milliseconds of enqueue instead of waiting up to a full 5s poll interval.
 
 ### Feature: Fleet Export — Data Layer & Serializers (April 27, 2026)
 - **Context**: First of five tasks for the new Fleet Dashboard CSV/Excel export feature. This task builds the foundational pure layer; Tasks #2–#5 add async pipeline (S3 + email + banner), Export dialog, historical time-series mode, and the Admin Devices soft launch.

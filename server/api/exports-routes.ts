@@ -25,6 +25,7 @@ import {
 } from "@shared/schema";
 import { storage } from "../storage";
 import { tenantMiddleware } from "../middleware/tenant";
+import { exportJobWorker } from "../services/exports/job-worker";
 
 const router = Router();
 
@@ -211,6 +212,11 @@ router.post("/", tenantMiddleware, async (req: Request, res: Response) => {
     });
   }
 
+  // Nudge the worker so processing starts within ms instead of waiting for
+  // the next 5s poll tick. Best-effort — the polling loop is the source of
+  // truth and will pick the job up regardless if the nudge fails.
+  exportJobWorker.nudge();
+
   return res.status(202).json({ job: serializeJob(result.job) });
 });
 
@@ -252,14 +258,17 @@ router.get("/", tenantMiddleware, async (req: Request, res: Response) => {
   return res.json({ jobs: jobs.map(serializeJob) });
 });
 
-// GET /api/v1/exports/:id — single-job poll
+// GET /api/v1/exports/:id — single-job poll.
+// Scoped to the requesting user as well as the org: export files contain
+// only the rows the requester chose, but the signed `downloadUrl` is private
+// to the requester and must not be leaked to other users in the same org.
 router.get("/:id", tenantMiddleware, async (req: Request, res: Response) => {
   const id = parseInt(req.params.id, 10);
   if (!Number.isFinite(id)) {
     return res.status(400).json({ error: "Invalid job id" });
   }
   const job = await storage.getExportJob(req.organizationId!, id);
-  if (!job) {
+  if (!job || job.userId !== req.userId) {
     return res.status(404).json({ error: "Export job not found" });
   }
   return res.json({ job: serializeJob(job) });

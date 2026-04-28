@@ -64,6 +64,18 @@ class ExportJobWorker {
     console.log("[exports/worker] stopped");
   }
 
+  /**
+   * Best-effort signal that a new pending job exists. Called by the POST
+   * handler so the worker starts on the new row within milliseconds instead
+   * of waiting up to a full poll interval. The polling loop remains the
+   * source of truth — if nudge() runs while the worker is mid-tick, the new
+   * row is picked up on the next iteration regardless.
+   */
+  nudge(): void {
+    if (!this.running || this.inFlight) return;
+    setImmediate(() => void this.tick());
+  }
+
   private async tick(): Promise<void> {
     if (!this.running || this.inFlight) return;
     this.inFlight = true;
