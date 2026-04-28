@@ -173,6 +173,17 @@ router.post("/", tenantMiddleware, async (req: Request, res: Response) => {
     if (!truck) {
       return res.status(404).json({ error: "Truck not found" });
     }
+
+    // Task #4 will land the historical generator. Until then, reject the
+    // request with a clear "not yet available" response so the dialog can
+    // disable the historical mode and so we never enqueue a job that would
+    // fail in the worker. The legacy synchronous endpoint
+    // (`GET /api/v1/export/trucks/:id`) was removed as part of this task,
+    // so single-truck history is temporarily unavailable until #4 ships.
+    return res.status(501).json({
+      error: "Historical exports are coming soon — only snapshot exports are available right now.",
+      featureFlag: "historicalExports",
+    });
   }
 
   const result = await storage.createExportJobWithLimits(
@@ -181,9 +192,9 @@ router.post("/", tenantMiddleware, async (req: Request, res: Response) => {
       userId: req.userId!,
       bundleKey: input.bundleKey,
       format: input.format,
-      filters: input.filters ? JSON.stringify(input.filters) : null,
-      includeColumns: input.includeColumns ? JSON.stringify(input.includeColumns) : null,
-      excludeColumns: input.excludeColumns ? JSON.stringify(input.excludeColumns) : null,
+      filters: input.filters ?? null,
+      includeColumns: input.includeColumns ?? null,
+      excludeColumns: input.excludeColumns ?? null,
       historicalMode: input.historicalMode ?? false,
       historicalTruckId: input.historicalTruckId ?? null,
       historicalStartTime: input.historicalStartTime ?? null,

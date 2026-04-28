@@ -36,7 +36,7 @@ import { generateExport } from "./index";
 import type { ExportFilters } from "./types";
 
 const POLL_INTERVAL_MS = 5_000;
-const SWEEP_INTERVAL_MS = 60_000;
+const SWEEP_INTERVAL_MS = 60 * 60 * 1000; // 1 hour — per spec
 
 class ExportJobWorker {
   private running = false;
@@ -116,15 +116,19 @@ class ExportJobWorker {
 
     try {
       if (job.historicalMode) {
-        // Task #4 will fill this in. For now, fail loudly so a partially-built
-        // historical job never completes with a snapshot file pretending to be
-        // historical data.
+        // Defense-in-depth: the POST endpoint already rejects historical
+        // requests with 501 until Task #4 lands the historical generator,
+        // so a job row with `historicalMode=true` should never reach this
+        // worker. If it somehow does (e.g. an old row that pre-dates the
+        // POST validation), fail loudly rather than silently produce a
+        // snapshot file pretending to be historical data.
         throw new Error("Historical export mode is not yet implemented");
       }
 
-      const filters = parseJson<ExportFilters>(job.filters) ?? undefined;
-      const includeColumns = parseJson<ColumnKey[]>(job.includeColumns) ?? undefined;
-      const excludeColumns = parseJson<ColumnKey[]>(job.excludeColumns) ?? undefined;
+      // jsonb columns deserialize natively — no JSON.parse needed.
+      const filters = (job.filters as ExportFilters | null) ?? undefined;
+      const includeColumns = (job.includeColumns as ColumnKey[] | null) ?? undefined;
+      const excludeColumns = (job.excludeColumns as ColumnKey[] | null) ?? undefined;
       const format = (job.format === "xlsx" ? "xlsx" : "csv") as "csv" | "xlsx";
 
       // bundleKey is validated against EXPORT_BUNDLES at /POST time, so the
@@ -207,15 +211,6 @@ class ExportJobWorker {
         console.error(`[exports/worker] failed to send failure email for job ${job.id}:`, emailErr);
       }
     }
-  }
-}
-
-function parseJson<T>(value: string | null | undefined): T | null {
-  if (!value) return null;
-  try {
-    return JSON.parse(value) as T;
-  } catch {
-    return null;
   }
 }
 

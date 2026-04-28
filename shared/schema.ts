@@ -1,4 +1,4 @@
-import { pgTable, serial, text, timestamp, integer, boolean, varchar, index, real, bigint, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, timestamp, integer, boolean, varchar, index, real, bigint, uniqueIndex, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -719,9 +719,16 @@ export const exportJobs = pgTable("export_jobs", {
   // What to export
   bundleKey: text("bundle_key").notNull(),
   format: text("format").notNull(), // 'csv' | 'xlsx'
-  filters: text("filters"), // JSON: { fleetId?, operationalStatus?, searchQuery? }
-  includeColumns: text("include_columns"), // JSON: ColumnKey[]
-  excludeColumns: text("exclude_columns"), // JSON: ColumnKey[]
+  // Stored as jsonb so future read paths can index/query inside the
+  // structures (e.g. "all jobs that filtered by fleetId=X") without
+  // shipping a migration.
+  filters: jsonb("filters").$type<{
+    fleetId?: number;
+    operationalStatus?: string;
+    searchQuery?: string;
+  }>(),
+  includeColumns: jsonb("include_columns").$type<string[]>(),
+  excludeColumns: jsonb("exclude_columns").$type<string[]>(),
 
   // Historical mode (Task #4 — single truck, ≤1 yr, ≤1 row/min)
   historicalMode: boolean("historical_mode").default(false),

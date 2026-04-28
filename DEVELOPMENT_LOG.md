@@ -35,6 +35,9 @@
   - Ready email now links back to `${APP_URL}/dashboard` so users can re-download an export from the app while the link is still valid.
   - `serializeJob` is now strictly typed with an exported `SerializedExportJob` interface (was previously `any`) so the API contract is type-safe end to end.
   - `POST /api/v1/exports` now nudges the worker (`exportJobWorker.nudge()` → `setImmediate(tick)`) so processing starts within milliseconds of enqueue instead of waiting up to a full 5s poll interval.
+  - `filters` / `include_columns` / `exclude_columns` are now stored as `jsonb` (was `text`) so future read paths can index/query inside the structures without another migration. The worker reads these natively (no `JSON.parse`).
+  - Sweeper cadence is now hourly (`60 * 60 * 1000`) rather than every minute, matching the spec.
+  - `POST /api/v1/exports` now rejects `historicalMode=true` with `501 { error: "Historical exports are coming soon — only snapshot exports are available right now.", featureFlag: "historicalExports" }`. The legacy `GET /api/v1/export/trucks/:id` endpoint was removed in this task; single-truck history will be re-enabled in Task #4 when the historical generator lands. The dialog in Task #3 should hide the "Historical" toggle until the feature flag flips.
 
 ### Feature: Fleet Export — Data Layer & Serializers (April 27, 2026)
 - **Context**: First of five tasks for the new Fleet Dashboard CSV/Excel export feature. This task builds the foundational pure layer; Tasks #2–#5 add async pipeline (S3 + email + banner), Export dialog, historical time-series mode, and the Admin Devices soft launch.
