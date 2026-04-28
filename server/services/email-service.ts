@@ -394,8 +394,12 @@ export async function sendExportReadyEmail(
         Download export
       </a>
     </p>
-    <p style="margin: 0; color: #71717a; font-size: 12px; text-align: center;">
+    <p style="margin: 0 0 16px 0; color: #71717a; font-size: 12px; text-align: center;">
       This download link is private to you and expires in 7 days.
+    </p>
+    <p style="margin: 0; color: #71717a; font-size: 12px; text-align: center;">
+      You can also re-download this export any time before it expires from
+      <a href="${APP_URL}/dashboard" style="color: #FA4B1E;">your fleet dashboard</a>.
     </p>
     <hr style="border: none; border-top: 1px solid #e4e4e7; margin: 24px 0;">
     <p style="margin: 0; color: #71717a; font-size: 12px;">

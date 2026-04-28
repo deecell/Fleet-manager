@@ -21,6 +21,7 @@ import {
   EXPORT_JOB_STATUS,
   EXPORT_USER_CONCURRENCY_LIMIT,
   EXPORT_ORG_CONCURRENCY_LIMIT,
+  type ExportJob,
 } from "@shared/schema";
 import { storage } from "../storage";
 import { tenantMiddleware } from "../middleware/tenant";
@@ -79,8 +80,37 @@ const HISTORICAL_MAX_DURATION_MS = 365 * 24 * 60 * 60 * 1000; // 1 year
 
 // Common shape returned to the client. Strips `s3Key` (internal), keeps
 // `downloadUrl` (which is a signed URL the client can hand straight to the
-// browser).
-function serializeJob(job: any) {
+// browser). Renames `s3Filename` → `filename` and adds the human bundle label.
+export interface SerializedExportJob {
+  id: number;
+  organizationId: number;
+  userId: number;
+  bundleKey: string;
+  bundleLabel: string;
+  format: string;
+  status: string;
+  errorMessage: string | null;
+  rowCount: number | null;
+  columnCount: number | null;
+  fileSizeBytes: number | null;
+  filename: string | null;
+  downloadUrl: string | null;
+  downloadUrlExpiresAt: Date | null;
+  historicalMode: boolean | null;
+  historicalTruckId: number | null;
+  historicalStartTime: Date | null;
+  historicalEndTime: Date | null;
+  historicalIntervalSeconds: number | null;
+  notifiedAt: Date | null;
+  dismissedAt: Date | null;
+  requestedAt: Date | null;
+  startedAt: Date | null;
+  completedAt: Date | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+}
+
+function serializeJob(job: ExportJob): SerializedExportJob {
   return {
     id: job.id,
     organizationId: job.organizationId,
@@ -166,8 +196,13 @@ router.post("/", tenantMiddleware, async (req: Request, res: Response) => {
   );
 
   if (!result.ok) {
+    // Plain-English copy that the Task #3 dialog will surface inline.
+    const message =
+      result.reason === "user_limit"
+        ? `You already have ${EXPORT_USER_CONCURRENCY_LIMIT} exports in progress — wait for one to finish.`
+        : `Your organization already has ${EXPORT_ORG_CONCURRENCY_LIMIT} exports in progress — wait for one to finish.`;
     return res.status(429).json({
-      error: result.reason === "user_limit" ? "Too many active exports for this user" : "Too many active exports for this organization",
+      error: message,
       reason: result.reason,
       activeUserCount: result.activeUserCount,
       activeOrgCount: result.activeOrgCount,
