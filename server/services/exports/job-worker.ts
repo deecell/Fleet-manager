@@ -185,8 +185,8 @@ class ExportJobWorker {
       console.log(
         `[exports/worker] completed job ${job.id} in ${Date.now() - startedAt}ms (${result.rowCount} rows, ${result.buffer.byteLength} bytes)`,
       );
-    } catch (err: any) {
-      const errorMessage = err?.message ? String(err.message).slice(0, 1000) : "Unknown error";
+    } catch (err: unknown) {
+      const errorMessage = errorToString(err).slice(0, 1000);
       console.error(`[exports/worker] job ${job.id} failed:`, err);
 
       await storage.updateExportJob(job.id, {
@@ -212,6 +212,16 @@ class ExportJobWorker {
       }
     }
   }
+}
+
+function errorToString(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === "string") return err;
+  if (err && typeof err === "object" && "message" in err) {
+    const message = (err as { message: unknown }).message;
+    if (typeof message === "string") return message;
+  }
+  return "Unknown error";
 }
 
 export const exportJobWorker = new ExportJobWorker();
