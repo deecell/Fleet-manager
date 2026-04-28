@@ -695,6 +695,74 @@ export const dataMigrations = pgTable("data_migrations", {
 }));
 
 // =============================================================================
+// EXPORT JOBS (async fleet export pipeline → S3 + signed URL + email)
+// =============================================================================
+// status: pending → running → completed (download available) | failed | expired
+//   • pending: enqueued, waiting for the worker
+//   • running: worker has claimed it
+//   • completed: file uploaded to S3, downloadUrl + expiresAt set
+//   • failed: errorMessage set
+//   • expired: signed URL TTL elapsed; downloadUrl is cleared
+//
+// Concurrency limits enforced at insert time:
+//   • per user:  3 active (pending+running)
+//   • per org:  10 active (pending+running)
+export const exportJobs = pgTable("export_jobs", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+
+  // What to export
+  bundleKey: text("bundle_key").notNull(),
+  format: text("format").notNull(), // 'csv' | 'xlsx'
+  filters: text("filters"), // JSON: { fleetId?, operationalStatus?, searchQuery? }
+  includeColumns: text("include_columns"), // JSON: ColumnKey[]
+  excludeColumns: text("exclude_columns"), // JSON: ColumnKey[]
+
+  // Historical mode (Task #4 — single truck, ≤1 yr, ≤1 row/min)
+  historicalMode: boolean("historical_mode").default(false),
+  historicalTruckId: integer("historical_truck_id")
+    .references(() => trucks.id, { onDelete: "set null" }),
+  historicalStartTime: timestamp("historical_start_time"),
+  historicalEndTime: timestamp("historical_end_time"),
+  historicalIntervalSeconds: integer("historical_interval_seconds").default(60),
+
+  // Status & lifecycle
+  status: text("status").notNull().default("pending"),
+  errorMessage: text("error_message"),
+  rowCount: integer("row_count"),
+  columnCount: integer("column_count"),
+  fileSizeBytes: bigint("file_size_bytes", { mode: "number" }),
+
+  // S3 + signed URL
+  s3Key: text("s3_key"),
+  s3Filename: text("s3_filename"),
+  downloadUrl: text("download_url"),
+  downloadUrlExpiresAt: timestamp("download_url_expires_at"),
+
+  // Banner / notification state
+  notifiedAt: timestamp("notified_at"),
+  dismissedAt: timestamp("dismissed_at"),
+
+  // Audit timestamps
+  requestedAt: timestamp("requested_at").defaultNow(),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  orgIdx: index("export_job_org_idx").on(table.organizationId),
+  orgStatusIdx: index("export_job_org_status_idx").on(table.organizationId, table.status),
+  userStatusIdx: index("export_job_user_status_idx").on(table.userId, table.status),
+  statusIdx: index("export_job_status_idx").on(table.status),
+  expiresIdx: index("export_job_expires_idx").on(table.downloadUrlExpiresAt),
+}));
+
+// =============================================================================
 // INSERT SCHEMAS (Zod validation for API inputs)
 // =============================================================================
 export const insertOrganizationSchema = createInsertSchema(organizations)
@@ -772,6 +840,27 @@ export const insertShellySnapshotSchema = createInsertSchema(shellySnapshots)
 export const insertShellyReadingSchema = createInsertSchema(shellyReadings)
   .omit({ id: true });
 
+export const insertExportJobSchema = createInsertSchema(exportJobs)
+  .omit({
+    id: true,
+    status: true,
+    errorMessage: true,
+    rowCount: true,
+    columnCount: true,
+    fileSizeBytes: true,
+    s3Key: true,
+    s3Filename: true,
+    downloadUrl: true,
+    downloadUrlExpiresAt: true,
+    notifiedAt: true,
+    dismissedAt: true,
+    requestedAt: true,
+    startedAt: true,
+    completedAt: true,
+    createdAt: true,
+    updatedAt: true,
+  });
+
 // =============================================================================
 // SELECT TYPES (for query results)
 // =============================================================================
@@ -800,6 +889,7 @@ export type InvitationToken = typeof invitationTokens.$inferSelect;
 export type ShellyDevice = typeof shellyDevices.$inferSelect;
 export type ShellySnapshot = typeof shellySnapshots.$inferSelect;
 export type ShellyReading = typeof shellyReadings.$inferSelect;
+export type ExportJob = typeof exportJobs.$inferSelect;
 
 // =============================================================================
 // INSERT TYPES (for creating new records)
@@ -828,6 +918,28 @@ export type InsertInvitationToken = z.infer<typeof insertInvitationTokenSchema>;
 export type InsertShellyDevice = z.infer<typeof insertShellyDeviceSchema>;
 export type InsertShellySnapshot = z.infer<typeof insertShellySnapshotSchema>;
 export type InsertShellyReading = z.infer<typeof insertShellyReadingSchema>;
+export type InsertExportJob = z.infer<typeof insertExportJobSchema>;
+
+// =============================================================================
+// EXPORT JOB CONSTANTS
+// =============================================================================
+export const EXPORT_JOB_STATUS = {
+  PENDING: "pending",
+  RUNNING: "running",
+  COMPLETED: "completed",
+  FAILED: "failed",
+  EXPIRED: "expired",
+} as const;
+export type ExportJobStatus = typeof EXPORT_JOB_STATUS[keyof typeof EXPORT_JOB_STATUS];
+
+export const EXPORT_JOB_ACTIVE_STATUSES: ExportJobStatus[] = [
+  EXPORT_JOB_STATUS.PENDING,
+  EXPORT_JOB_STATUS.RUNNING,
+];
+
+export const EXPORT_USER_CONCURRENCY_LIMIT = 3;
+export const EXPORT_ORG_CONCURRENCY_LIMIT = 10;
+export const EXPORT_DOWNLOAD_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days
 
 // =============================================================================
 // LEGACY SCHEMAS (for backward compatibility with existing dashboard)

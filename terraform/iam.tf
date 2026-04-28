@@ -398,3 +398,36 @@ resource "aws_s3_bucket_versioning" "assets" {
     status = "Enabled"
   }
 }
+
+# -----------------------------------------------------------------------------
+# Lifecycle: async fleet exports housekeeping
+# -----------------------------------------------------------------------------
+# The export worker uploads files at `exports/<orgId>/<jobId>/<filename>` and
+# hands the user a 7-day signed URL. We keep the object for 14 days as a buffer
+# (re-download / debugging), then S3 deletes it automatically. Versioned
+# (non-current) copies are also expired after 14 days so the bucket cannot
+# accumulate stale exports.
+resource "aws_s3_bucket_lifecycle_configuration" "assets" {
+  bucket = aws_s3_bucket.assets.id
+
+  rule {
+    id     = "exports-cleanup"
+    status = "Enabled"
+
+    filter {
+      prefix = "exports/"
+    }
+
+    expiration {
+      days = 14
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = 14
+    }
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 1
+    }
+  }
+}

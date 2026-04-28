@@ -5,7 +5,8 @@ import {
   deviceCredentials, deviceSnapshots, deviceMeasurements,
   deviceSyncStatus, alerts, auditLogs, pollingSettings,
   passwordResetTokens, invitationTokens, shellyDevices, shellySnapshots, shellyReadings,
-  sims, deviceStatistics,
+  sims, deviceStatistics, exportJobs,
+  EXPORT_JOB_STATUS, EXPORT_JOB_ACTIVE_STATUSES,
   type Sim, type DeviceStatistics,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
@@ -24,8 +25,10 @@ import {
   type ShellyDevice, type InsertShellyDevice,
   type ShellySnapshot, type InsertShellySnapshot,
   type ShellyReading, type InsertShellyReading,
+  type ExportJob, type InsertExportJob,
 } from "@shared/schema";
 import { sendAlertNotifications, shouldNotifyForAlert } from "./services/alert-notifications";
+import type { CreateExportJobResult } from "./storage";
 
 export class DbStorage {
   // ===========================================================================
@@ -1321,6 +1324,186 @@ export class DbStorage {
           : undefined,
       activeAlertCount: r.alertCount ?? 0,
     }));
+  }
+
+  // ===========================================================================
+  // EXPORT JOBS (async export pipeline)
+  // ===========================================================================
+
+  /**
+   * Atomically enforce per-user (3) and per-org (10) active-job limits, then
+   * insert the new pending job. Implemented with a SERIALIZABLE transaction so
+   * two concurrent inserts cannot both pass the limit check.
+   *
+   * Returns `{ ok: true, job }` on success, or `{ ok: false, reason }` with
+   * the current counts when a limit would be exceeded — caller maps to 429.
+   */
+  async createExportJobWithLimits(
+    data: InsertExportJob,
+    limits: { userLimit: number; orgLimit: number },
+  ): Promise<CreateExportJobResult> {
+    return await db.transaction(
+      async (tx) => {
+        // Serialize ALL export-job inserts within an organization so both the
+        // 3-per-user and 10-per-org caps are race-free even when two
+        // *different* users in the same org POST simultaneously. We use the
+        // two-int overload `pg_advisory_xact_lock(int, int)` (organizationId
+        // and userId are `serial`, i.e. 32-bit signed). The second arg is a
+        // constant `1` that namespaces this lock to "export-creates" so it
+        // does not collide with other features that key on organizationId.
+        await tx.execute(
+          sql`SELECT pg_advisory_xact_lock(${data.organizationId}::int, 1::int)`,
+        );
+
+        const activeUserCount = await tx
+          .select({ c: sql<number>`count(*)::int` })
+          .from(exportJobs)
+          .where(
+            and(
+              eq(exportJobs.organizationId, data.organizationId),
+              eq(exportJobs.userId, data.userId),
+              inArray(exportJobs.status, EXPORT_JOB_ACTIVE_STATUSES as unknown as string[]),
+            ),
+          )
+          .then((r) => r[0]?.c ?? 0);
+
+        const activeOrgCount = await tx
+          .select({ c: sql<number>`count(*)::int` })
+          .from(exportJobs)
+          .where(
+            and(
+              eq(exportJobs.organizationId, data.organizationId),
+              inArray(exportJobs.status, EXPORT_JOB_ACTIVE_STATUSES as unknown as string[]),
+            ),
+          )
+          .then((r) => r[0]?.c ?? 0);
+
+        if (activeUserCount >= limits.userLimit) {
+          return {
+            ok: false as const,
+            reason: "user_limit" as const,
+            activeUserCount,
+            activeOrgCount,
+          };
+        }
+        if (activeOrgCount >= limits.orgLimit) {
+          return {
+            ok: false as const,
+            reason: "org_limit" as const,
+            activeUserCount,
+            activeOrgCount,
+          };
+        }
+
+        const [job] = await tx
+          .insert(exportJobs)
+          .values({ ...data, status: EXPORT_JOB_STATUS.PENDING })
+          .returning();
+        return { ok: true as const, job };
+      },
+    );
+  }
+
+  async getExportJob(organizationId: number, id: number): Promise<ExportJob | undefined> {
+    const [job] = await db
+      .select()
+      .from(exportJobs)
+      .where(and(eq(exportJobs.id, id), eq(exportJobs.organizationId, organizationId)));
+    return job;
+  }
+
+  async listExportJobsForUser(
+    organizationId: number,
+    userId: number,
+    options: { limit?: number; statuses?: string[]; includeDismissed?: boolean } = {},
+  ): Promise<ExportJob[]> {
+    const conds = [
+      eq(exportJobs.organizationId, organizationId),
+      eq(exportJobs.userId, userId),
+    ];
+    if (options.statuses && options.statuses.length > 0) {
+      conds.push(inArray(exportJobs.status, options.statuses));
+    }
+    if (options.includeDismissed === false) {
+      conds.push(sql`${exportJobs.dismissedAt} IS NULL`);
+    }
+    return db
+      .select()
+      .from(exportJobs)
+      .where(and(...conds))
+      .orderBy(desc(exportJobs.createdAt))
+      .limit(options.limit ?? 50);
+  }
+
+  /**
+   * Atomically claim the next pending job for processing. Uses
+   * `FOR UPDATE SKIP LOCKED` so multiple worker instances on different
+   * containers never claim the same row.
+   */
+  async claimNextPendingExportJob(): Promise<ExportJob | undefined> {
+    const result = await db.execute<ExportJob>(sql`
+      UPDATE export_jobs
+      SET status = ${EXPORT_JOB_STATUS.RUNNING},
+          started_at = NOW(),
+          updated_at = NOW()
+      WHERE id = (
+        SELECT id FROM export_jobs
+        WHERE status = ${EXPORT_JOB_STATUS.PENDING}
+        ORDER BY created_at ASC
+        FOR UPDATE SKIP LOCKED
+        LIMIT 1
+      )
+      RETURNING *
+    `);
+    const rows = (result as unknown as { rows: ExportJob[] }).rows ?? [];
+    return rows[0];
+  }
+
+  async updateExportJob(id: number, data: Partial<ExportJob>): Promise<ExportJob | undefined> {
+    const [job] = await db
+      .update(exportJobs)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(exportJobs.id, id))
+      .returning();
+    return job;
+  }
+
+  async dismissExportJob(
+    organizationId: number,
+    userId: number,
+    id: number,
+  ): Promise<ExportJob | undefined> {
+    const [job] = await db
+      .update(exportJobs)
+      .set({ dismissedAt: new Date(), updatedAt: new Date() })
+      .where(
+        and(
+          eq(exportJobs.id, id),
+          eq(exportJobs.organizationId, organizationId),
+          eq(exportJobs.userId, userId),
+        ),
+      )
+      .returning();
+    return job;
+  }
+
+  async expireOverdueExportJobs(now: Date = new Date()): Promise<number> {
+    const updated = await db
+      .update(exportJobs)
+      .set({
+        status: EXPORT_JOB_STATUS.EXPIRED,
+        downloadUrl: null,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(exportJobs.status, EXPORT_JOB_STATUS.COMPLETED),
+          sql`${exportJobs.downloadUrlExpiresAt} IS NOT NULL`,
+          lte(exportJobs.downloadUrlExpiresAt, now),
+        ),
+      )
+      .returning({ id: exportJobs.id });
+    return updated.length;
   }
 }
 

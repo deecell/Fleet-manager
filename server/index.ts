@@ -5,6 +5,7 @@ import { runStartupMigrations } from "./startup-migrations";
 // import { startDeviceSimulator } from "./services/device-simulator";
 // SIM location polling moved to Device Manager for architectural consistency
 // import { simLocationScheduler } from "./services/sim-location-scheduler";
+import { exportJobWorker } from "./services/exports/job-worker";
 
 // Simple log function that doesn't require vite
 function log(message: string, source = "express") {
@@ -112,5 +113,8 @@ app.use((req, res, next) => {
     
     // SIM location polling moved to Device Manager for architectural consistency
     // simLocationScheduler.start();
+
+    // Async fleet-export pipeline (S3 + signed URL + email)
+    exportJobWorker.start();
   });
 })();

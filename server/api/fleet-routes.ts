@@ -745,86 +745,9 @@ router.get("/export/trucks", tenantMiddleware, async (req: Request, res: Respons
   }
 });
 
-// Export single truck history to CSV with date range
-router.get("/export/trucks/:id", tenantMiddleware, async (req: Request, res: Response) => {
-  try {
-    const truckId = parseInt(req.params.id, 10);
-    const startTime = req.query.startTime ? new Date(req.query.startTime as string) : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const endTime = req.query.endTime ? new Date(req.query.endTime as string) : new Date();
-    
-    // Validate date range
-    if (startTime > endTime) {
-      return res.status(400).json({ error: "Start date must be before end date" });
-    }
-    
-    // Get truck info
-    const truck = await storage.getTruck(req.organizationId!, truckId);
-    if (!truck) {
-      return res.status(404).json({ error: "Truck not found" });
-    }
-    
-    // Get fleet name
-    const fleets = await storage.listFleets(req.organizationId!);
-    const fleetName = fleets.find(f => f.id === truck.fleetId)?.name || "Unassigned";
-    
-    // Get measurements for the date range (up to 10000 records)
-    const measurements = await storage.getMeasurementsByTruck(
-      req.organizationId!,
-      truckId,
-      startTime,
-      endTime,
-      10000
-    );
-    
-    // CSV headers
-    const headers = [
-      "Timestamp",
-      "Truck Number",
-      "Fleet",
-      "Voltage 1 (V)",
-      "Voltage 2 (V)",
-      "Current (A)",
-      "SOC (%)",
-      "Power (W)",
-      "Temperature (C)",
-      "Energy (Wh)",
-      "Charge (Ah)",
-      "Runtime (s)",
-    ];
-    
-    // CSV rows
-    const rows = measurements.map(m => [
-      escapeCSVValue(m.recordedAt ? new Date(m.recordedAt).toISOString() : ""),
-      escapeCSVValue(truck.truckNumber),
-      escapeCSVValue(fleetName),
-      escapeCSVValue(m.voltage1 ?? ""),
-      escapeCSVValue(m.voltage2 ?? ""),
-      escapeCSVValue(m.current ?? ""),
-      escapeCSVValue(m.soc ?? ""),
-      escapeCSVValue(m.power ?? ""),
-      escapeCSVValue(m.temperature ?? ""),
-      escapeCSVValue(m.energy ?? ""),
-      escapeCSVValue(m.charge ?? ""),
-      escapeCSVValue(m.runtime ?? ""),
-    ]);
-    
-    // Build CSV content
-    const csv = [
-      headers.join(","),
-      ...rows.map(row => row.join(","))
-    ].join("\n");
-    
-    // Set headers for CSV download
-    const safeFileName = truck.truckNumber.replace(/[^a-zA-Z0-9-_]/g, "_");
-    const filename = `${safeFileName}_${startTime.toISOString().split("T")[0]}_to_${endTime.toISOString().split("T")[0]}.csv`;
-    res.setHeader("Content-Type", "text/csv");
-    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
-    res.send(csv);
-  } catch (error) {
-    console.error("Error exporting truck history:", error);
-    res.status(500).json({ error: "Failed to export truck history" });
-  }
-});
+// Legacy synchronous single-truck CSV export removed — use the async pipeline:
+//   POST /api/v1/exports  with historicalMode=true, historicalTruckId, etc.
+// See server/api/exports-routes.ts and server/services/exports/job-worker.ts.
 
 // ===========================================================================
 // SAVINGS CALCULATOR (calculates fuel savings from idle reduction/parked time)

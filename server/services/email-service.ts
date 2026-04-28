@@ -345,3 +345,96 @@ export async function sendInvitationEmail(
     html: getEmailWrapper(content),
   });
 }
+
+// =============================================================================
+// EXPORT NOTIFICATIONS
+// =============================================================================
+// Sent by the export worker when an async fleet export finishes (or fails).
+// The download URL is a 7-day signed S3 URL — keep that wording in sync with
+// the in-app banner.
+
+export async function sendExportReadyEmail(
+  email: string,
+  opts: {
+    firstName?: string;
+    filename: string;
+    rowCount: number;
+    bundleLabel: string;
+    downloadUrl: string;
+    expiresAt: Date;
+  },
+): Promise<boolean> {
+  const greeting = opts.firstName ? `Hi ${opts.firstName},` : "Hi,";
+  const expiresStr = opts.expiresAt.toLocaleString("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+  const content = `
+    <h2 style="margin: 0 0 16px 0; color: #18181b; font-size: 20px;">Your fleet export is ready</h2>
+    <p style="margin: 0 0 16px 0; color: #18181b; font-size: 14px; line-height: 1.6;">${greeting}</p>
+    <p style="margin: 0 0 16px 0; color: #18181b; font-size: 14px; line-height: 1.6;">
+      Your <strong>${opts.bundleLabel}</strong> export finished and is ready to download.
+    </p>
+    <table cellpadding="0" cellspacing="0" style="margin: 0 0 24px 0; width: 100%; border: 1px solid #e4e4e7; border-radius: 6px;">
+      <tr>
+        <td style="padding: 12px 16px; color: #71717a; font-size: 13px;">File</td>
+        <td style="padding: 12px 16px; color: #18181b; font-size: 13px; font-weight: 600; text-align: right;">${opts.filename}</td>
+      </tr>
+      <tr>
+        <td style="padding: 12px 16px; color: #71717a; font-size: 13px; border-top: 1px solid #e4e4e7;">Rows</td>
+        <td style="padding: 12px 16px; color: #18181b; font-size: 13px; font-weight: 600; text-align: right; border-top: 1px solid #e4e4e7;">${opts.rowCount.toLocaleString()}</td>
+      </tr>
+      <tr>
+        <td style="padding: 12px 16px; color: #71717a; font-size: 13px; border-top: 1px solid #e4e4e7;">Link expires</td>
+        <td style="padding: 12px 16px; color: #18181b; font-size: 13px; font-weight: 600; text-align: right; border-top: 1px solid #e4e4e7;">${expiresStr}</td>
+      </tr>
+    </table>
+    <p style="margin: 0 0 16px 0; text-align: center;">
+      <a href="${opts.downloadUrl}" style="display: inline-block; background-color: #FA4B1E; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 32px; border-radius: 6px;">
+        Download export
+      </a>
+    </p>
+    <p style="margin: 0; color: #71717a; font-size: 12px; text-align: center;">
+      This download link is private to you and expires in 7 days.
+    </p>
+    <hr style="border: none; border-top: 1px solid #e4e4e7; margin: 24px 0;">
+    <p style="margin: 0; color: #71717a; font-size: 12px;">
+      If the button doesn't work, copy and paste this link into your browser:<br>
+      <a href="${opts.downloadUrl}" style="color: #FA4B1E; word-break: break-all;">${opts.downloadUrl}</a>
+    </p>
+  `;
+
+  return sendEmail({
+    to: email,
+    subject: `Your fleet export is ready — ${opts.filename}`,
+    html: getEmailWrapper(content),
+  });
+}
+
+export async function sendExportFailedEmail(
+  email: string,
+  opts: { firstName?: string; bundleLabel: string; errorMessage: string },
+): Promise<boolean> {
+  const greeting = opts.firstName ? `Hi ${opts.firstName},` : "Hi,";
+  const content = `
+    <h2 style="margin: 0 0 16px 0; color: #18181b; font-size: 20px;">Your fleet export couldn't be generated</h2>
+    <p style="margin: 0 0 16px 0; color: #18181b; font-size: 14px; line-height: 1.6;">${greeting}</p>
+    <p style="margin: 0 0 16px 0; color: #18181b; font-size: 14px; line-height: 1.6;">
+      Your <strong>${opts.bundleLabel}</strong> export ran into an error and was not produced. You can try again from the Fleet dashboard. If the problem persists, contact support.
+    </p>
+    <p style="margin: 0 0 16px 0; padding: 12px 16px; background-color: #f4f4f5; border-left: 3px solid #ef4444; color: #18181b; font-size: 12px; font-family: ui-monospace, SFMono-Regular, monospace; line-height: 1.5;">
+      ${opts.errorMessage}
+    </p>
+    <p style="margin: 0 0 16px 0; text-align: center;">
+      <a href="${APP_URL}/dashboard" style="display: inline-block; background-color: #FA4B1E; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 32px; border-radius: 6px;">
+        Open dashboard
+      </a>
+    </p>
+  `;
+
+  return sendEmail({
+    to: email,
+    subject: `Your fleet export couldn't be generated`,
+    html: getEmailWrapper(content),
+  });
+}

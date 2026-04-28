@@ -16,8 +16,14 @@ import {
   type ShellyDevice, type InsertShellyDevice,
   type ShellySnapshot, type InsertShellySnapshot,
   type ShellyReading, type InsertShellyReading,
+  type ExportJob, type InsertExportJob,
 } from "@shared/schema";
 import type { TruckExportRow } from "./services/exports/types";
+
+// Result of attempting to enqueue an export job (concurrency-limit aware).
+export type CreateExportJobResult =
+  | { ok: true; job: ExportJob }
+  | { ok: false; reason: "user_limit" | "org_limit"; activeUserCount: number; activeOrgCount: number };
 
 export interface IStorage {
   // Organizations
@@ -206,6 +212,23 @@ export interface IStorage {
       includeSims?: boolean;
     },
   ): Promise<TruckExportRow[]>;
+
+  // Export Jobs (async pipeline)
+  createExportJobWithLimits(
+    data: InsertExportJob,
+    limits: { userLimit: number; orgLimit: number },
+  ): Promise<CreateExportJobResult>;
+  getExportJob(organizationId: number, id: number): Promise<ExportJob | undefined>;
+  listExportJobsForUser(
+    organizationId: number,
+    userId: number,
+    options?: { limit?: number; statuses?: string[]; includeDismissed?: boolean },
+  ): Promise<ExportJob[]>;
+  claimNextPendingExportJob(): Promise<ExportJob | undefined>;
+  updateExportJob(id: number, data: Partial<ExportJob>): Promise<ExportJob | undefined>;
+  dismissExportJob(organizationId: number, userId: number, id: number): Promise<ExportJob | undefined>;
+  // Sweep completed jobs whose signed URL has expired → mark expired, clear url.
+  expireOverdueExportJobs(now?: Date): Promise<number>;
 }
 
 export { dbStorage as storage } from "./db-storage";

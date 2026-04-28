@@ -83,6 +83,16 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
 - **Formula**: `(solar_Wh / 1000 / diesel_kWh_per_gallon) × fuel_price_per_gallon`.
 - **EIA Integration**: Fetches weekly diesel prices from U.S. Energy Information Administration API, determining regional pricing using PADD regions.
 
+### Fleet Export Pipeline
+- **Purpose**: Async CSV/Excel export of the fleet dashboard (snapshot mode + historical time-series for a single truck).
+- **Architecture**:
+  - **Pure layer** (Task #1): `shared/export-columns.ts` (column registry + 5 bundles), `server/services/exports/{cell-builder,csv-serializer,excel-serializer,index}.ts` (`generateExport`).
+  - **Async pipeline** (Task #2): `export_jobs` table + `server/services/exports/job-worker.ts` (in-process worker started in `server/index.ts`). The worker polls every 5s, claims rows with `FOR UPDATE SKIP LOCKED`, runs `generateExport`, uploads to S3 (`exports/<orgId>/<jobId>/<filename>`), generates a 7-day signed URL, and sends a SendGrid notification.
+- **Endpoints** (`server/api/exports-routes.ts`, mounted at `/api/v1/exports`): `POST /` (returns 202 or 429 on limits), `GET /` (banner data), `GET /:id` (poll), `PATCH /:id/dismiss`. All tenant-scoped.
+- **Concurrency limits**: 3 active jobs/user and 10 active jobs/org, enforced inside a transaction guarded by `pg_advisory_xact_lock` so concurrent POSTs cannot exceed the limit. Beyond the limit returns 429 with `{ reason, activeUserCount, activeOrgCount }`.
+- **S3 lifecycle**: `terraform/iam.tf` configures `aws_s3_bucket_lifecycle_configuration.assets` to auto-delete `exports/*` objects after 14 days (housekeeping; the 7-day expiration is enforced by signed-URL TTL).
+- **Legacy endpoint removed**: `GET /api/v1/export/trucks/:id` (synchronous single-truck CSV) was deleted. Single-truck history goes through the async pipeline with `historicalMode=true` (Task #4 wires the historical generator end-to-end).
+
 ### AI Fleet Assistant
 - **Purpose**: Natural language chat interface for fleet management queries and insights.
 - **Model**: OpenAI GPT-4o-mini via Replit AI Integrations.

@@ -11,6 +11,7 @@ import assistantRoutes from "./api/assistant-routes";
 import migrationRoutes from "./api/migration-routes";
 import mobileRoutes from "./api/mobile-routes";
 import shellyRoutes from "./api/shelly-routes";
+import exportsRoutes from "./api/exports-routes";
 import MemoryStore from "memorystore";
 
 const MemoryStoreSession = MemoryStore(session);
@@ -90,6 +91,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register Shelly Device API routes (vibration sensor webhooks)
   app.use("/api/v1/shelly", shellyRoutes);
+
+  // Register async Fleet Export API routes
+  app.use("/api/v1/exports", exportsRoutes);
 
   // Health check endpoint
   app.get("/api/health", async (req: Request, res: Response) => {
