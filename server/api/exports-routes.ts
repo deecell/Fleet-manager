@@ -286,8 +286,11 @@ router.get("/:id", tenantMiddleware, async (req: Request, res: Response) => {
 });
 
 // PATCH /api/v1/exports/:id/dismiss — hide the in-app banner.
-// Only completed/failed/expired jobs can be dismissed; pending/running jobs
-// are still in flight and should remain visible until they resolve.
+// Allowed for any status (including pending/running): the user is saying "I
+// don't want to watch this in the banner", not "cancel the job". The job
+// keeps running and the email is still sent when it finishes; the row simply
+// stops appearing in `?active=true` because it's filtered by `dismissedAt IS
+// NULL`.
 router.patch("/:id/dismiss", tenantMiddleware, async (req: Request, res: Response) => {
   const id = parseInt(req.params.id, 10);
   if (!Number.isFinite(id)) {
@@ -296,17 +299,6 @@ router.patch("/:id/dismiss", tenantMiddleware, async (req: Request, res: Respons
   const existing = await storage.getExportJob(req.organizationId!, id);
   if (!existing || existing.userId !== req.userId) {
     return res.status(404).json({ error: "Export job not found" });
-  }
-  const dismissable: string[] = [
-    EXPORT_JOB_STATUS.COMPLETED,
-    EXPORT_JOB_STATUS.FAILED,
-    EXPORT_JOB_STATUS.EXPIRED,
-  ];
-  if (!dismissable.includes(existing.status)) {
-    return res.status(409).json({
-      error: "Only completed, failed, or expired exports can be dismissed",
-      status: existing.status,
-    });
   }
   const job = await storage.dismissExportJob(req.organizationId!, req.userId!, id);
   if (!job) {

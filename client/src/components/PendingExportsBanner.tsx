@@ -41,11 +41,6 @@ interface ExportRowProps {
 }
 
 function ExportRow({ job, onDismiss }: ExportRowProps) {
-  const dismissable =
-    job.status === "completed" ||
-    job.status === "failed" ||
-    job.status === "expired";
-
   return (
     <div
       className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-md border border-[#ebeef2] bg-[#fafbfc] px-3 py-2"
@@ -77,17 +72,18 @@ function ExportRow({ job, onDismiss }: ExportRowProps) {
           </Button>
         )}
 
-        {dismissable && (
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={onDismiss}
-            aria-label="Dismiss"
-            data-testid={`button-export-dismiss-${job.id}`}
-          >
-            <X className="w-4 h-4" />
-          </Button>
-        )}
+        {/* Every row gets its own dismiss. For pending/running this hides the
+            row from the banner — the job continues processing in the
+            background and the user still gets the email when it finishes. */}
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={onDismiss}
+          aria-label="Dismiss"
+          data-testid={`button-export-dismiss-${job.id}`}
+        >
+          <X className="w-4 h-4" />
+        </Button>
       </div>
     </div>
   );
@@ -149,9 +145,12 @@ function ExportTitle({ job }: { job: SerializedExportJob }) {
 
 function ExportSubtitle({ job }: { job: SerializedExportJob }) {
   if (job.status === "pending" || job.status === "running") {
+    // Filename is null until the worker generates the file; synthesize a
+    // friendly placeholder so the user still sees what's coming.
+    const fileLabel = job.filename ?? `${job.bundleLabel}.${job.format}`;
     return (
       <p className="text-xs text-[#717182] truncate">
-        We'll email you when it's ready.
+        {fileLabel} · We'll email you when it's ready.
       </p>
     );
   }
