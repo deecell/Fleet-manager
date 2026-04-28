@@ -18,6 +18,7 @@ import TrucksPage from "@/pages/admin/TrucksPage";
 import DevicesPage from "@/pages/admin/DevicesPage";
 import UsersPage from "@/pages/admin/UsersPage";
 import IssuesPage from "@/pages/admin/IssuesPage";
+import { PendingExportsBanner } from "@/components/PendingExportsBanner";
 
 function Router() {
   return (
@@ -46,6 +47,7 @@ function App() {
       <OrgProvider>
         <TooltipProvider>
           <Toaster />
+          <PendingExportsBanner />
           <Router />
         </TooltipProvider>
       </OrgProvider>

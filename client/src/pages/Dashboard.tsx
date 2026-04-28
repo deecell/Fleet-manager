@@ -13,6 +13,7 @@ import { User, LogOut, Search, Loader2, Download, Settings } from "lucide-react"
 import { UserProfileDialog } from "@/components/UserProfileDialog";
 import { FleetAssistant } from "@/components/FleetAssistant";
 import { Footer } from "@/components/Footer";
+import { ExportDialog } from "@/components/ExportDialog";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -39,6 +40,7 @@ export default function Dashboard() {
   const [readNotifications, setReadNotifications] = useState<Set<string>>(new Set());
   const [dismissedNotifications, setDismissedNotifications] = useState<Set<string>>(new Set());
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
 
   const { data: trucks, isLoading: trucksLoading } = useLegacyTrucks();
   const { data: apiNotifications, isLoading: notificationsLoading } = useLegacyNotifications();
@@ -64,28 +66,7 @@ export default function Dashboard() {
     }
   };
 
-  const handleExportAllTrucks = async () => {
-    try {
-      const response = await fetch("/api/v1/export/trucks", {
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error("Export failed");
-      
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `fleet_trucks_${new Date().toISOString().split("T")[0]}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-      
-      toast({ title: "Export complete", description: "Fleet data downloaded successfully" });
-    } catch (error) {
-      toast({ title: "Export failed", variant: "destructive" });
-    }
-  };
+  const handleOpenExportDialog = () => setExportDialogOpen(true);
 
   if (sessionLoading) {
     return (
@@ -292,12 +273,12 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-[18px] font-semibold text-neutral-950 leading-none">Fleet Overview</h2>
               <button
-                onClick={handleExportAllTrucks}
+                onClick={handleOpenExportDialog}
                 className="shrink-0 h-[40px] flex items-center gap-2 text-sm font-medium text-neutral-950"
-                data-testid="button-export-all-trucks-mobile"
+                data-testid="button-open-export-dialog-mobile"
               >
                 <Download className="w-4 h-4" />
-                Export CSV
+                Export
               </button>
             </div>
             <div className="bg-[#fafbfc] border border-[#ebeef2] rounded-lg h-[40px] p-[6px] shadow-[0px_1px_3px_0px_rgba(96,108,128,0.05)] w-fit">
@@ -347,12 +328,12 @@ export default function Dashboard() {
             <h2 className="text-[18px] font-semibold text-neutral-950 shrink-0 leading-none pb-0 mb-0">Fleet Overview</h2>
             
             <button
-              onClick={handleExportAllTrucks}
+              onClick={handleOpenExportDialog}
               className="ml-auto shrink-0 h-[40px] flex items-center gap-2 text-sm font-medium text-neutral-950 mr-1"
-              data-testid="button-export-all-trucks"
+              data-testid="button-open-export-dialog"
             >
               <Download className="w-4 h-4" />
-              Export CSV
+              Export
             </button>
             
             <div className="bg-[#fafbfc] border border-[#ebeef2] rounded-lg h-[40px] p-[6px] shadow-[0px_1px_3px_0px_rgba(96,108,128,0.05)]">
@@ -422,6 +403,12 @@ export default function Dashboard() {
         userName={userName}
         userEmail={userEmail}
         organizationName={organizationName}
+      />
+
+      <ExportDialog
+        open={exportDialogOpen}
+        onOpenChange={setExportDialogOpen}
+        filters={{ status: filterStatus, searchQuery }}
       />
     </div>
   );

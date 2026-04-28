@@ -92,6 +92,10 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
 - **Concurrency limits**: 3 active jobs/user and 10 active jobs/org, enforced inside a transaction guarded by `pg_advisory_xact_lock` so concurrent POSTs cannot exceed the limit. Beyond the limit returns 429 with `{ reason, activeUserCount, activeOrgCount }`.
 - **S3 lifecycle**: `terraform/iam.tf` configures `aws_s3_bucket_lifecycle_configuration.assets` to auto-delete `exports/*` objects after 14 days (housekeeping; the 7-day expiration is enforced by signed-URL TTL).
 - **Legacy endpoint deprecated (not removed yet)**: `GET /api/v1/export/trucks/:id` (synchronous single-truck CSV) still works but is marked deprecated via an `X-Deprecated` response header. It will be removed in Task #4 once the async pipeline supports `historicalMode=true` end-to-end (currently returns 501).
+- **Frontend UI**:
+  - **Export dialog** (`client/src/components/ExportDialog.tsx`): Bundle radio + format toggle + read-only filter chips from the dashboard + Advanced collapsible with grouped per-column checkboxes. Submit POSTs the include/exclude diff against the bundle defaults; 429 errors render inline with plain-English copy. Opened from the Dashboard's Export button (replaces the old synchronous CSV download).
+  - **Pending exports banner** (`client/src/components/PendingExportsBanner.tsx`): Sticky app-shell banner mounted in `client/src/App.tsx` above `<Router />`. Shows pending/running (spinner), completed (green check + Download + "Expires in N days" + dismiss X), and failed (error icon + dismiss X) jobs. Renders nothing when the queue is empty.
+  - **API hooks** (`client/src/lib/exports-api.ts`): `useActiveExports` (5s polling, gated on session.authenticated + organizationId; `refetchInterval` returns `false` when nothing is in flight), `useCreateExport` (surfaces 429 reason/limits), `useDismissExport` (optimistic remove with rollback across all org-scoped query variants).
 
 ### AI Fleet Assistant
 - **Purpose**: Natural language chat interface for fleet management queries and insights.

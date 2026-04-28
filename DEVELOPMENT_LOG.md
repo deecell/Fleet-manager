@@ -4,7 +4,43 @@
 
 ---
 
-## Latest Updates (April 27, 2026)
+## Latest Updates (April 28, 2026)
+
+### Feature: Fleet Export — Export Dialog & Pending Exports Banner (April 28, 2026)
+- **Context**: Task #3 of the Fleet Dashboard CSV/Excel export feature. Tasks #1 and #2 shipped the data layer + async pipeline. This task delivers the user-facing UI: a configuration dialog (bundle picker + Advanced per-column controls + format toggle + filter chip strip) and a persistent pending-exports banner that surfaces in-flight + recently-finished jobs across every page.
+- **What's new**:
+  - **`client/src/lib/exports-api.ts`** (new): TanStack Query hooks for the new endpoints.
+    - `useActiveExports()` — polls `GET /api/v1/exports?active=true` every 5s **only while at least one job is in flight** (refetchInterval returns `false` once the list is empty so we're not hammering the server).
+    - `useCreateExport()` — POSTs to `/api/v1/exports` and surfaces structured error info on 429 (`reason`, `activeUserCount`, `activeOrgCount`, `userLimit`, `orgLimit`, `featureFlag`) so the dialog can show plain-English copy inline. Invalidates the active-exports query on success.
+    - `useDismissExport()` — PATCHes `/dismiss` with optimistic removal across every org-scoped variant of the query, with full rollback on error.
+    - `SerializedExportJob` matches the server's `serializeJob` shape exactly; status union includes `expired`.
+  - **`client/src/components/ExportDialog.tsx`** (new):
+    - Bundle radio (Default · Operations · Battery Health · Connectivity & SIM · Full Export) with per-bundle column count + description.
+    - Format toggle (CSV / Excel).
+    - Active-filters chip strip from the dashboard (`Status: …`, `Search: …`, `Fleet: …`) with explicit "No filters applied — exporting all trucks." copy when empty.
+    - "Advanced — choose columns" `Collapsible` with checkboxes grouped by registry `group` (Identity / Status / Location / Live readings / Battery configuration / Idle & savings / Health & timestamps / Lifetime stats / SIM / Hardware), preserving registry order.
+    - Selecting a bundle resets checkboxes to that bundle's defaults; manual edits are then preserved while the same bundle stays selected. Submit computes the `includeColumns` / `excludeColumns` diff against the bundle so the server stores only what the user actually changed.
+    - Disabled Submit while pending; Cancel disabled while pending. 429 errors render inline (no destructive toast — the action is "wait for one to finish"); other failures get both inline + toast so the message survives an outside-click close. Success → toast "Export queued — we'll email you when it's ready" + close.
+  - **`client/src/components/PendingExportsBanner.tsx`** (new):
+    - Sticky banner in the app shell. Renders nothing when there are no jobs, so the login page (no org context → query disabled) and any user with an empty queue both see no extra chrome.
+    - Per-job rows with three states:
+      - **Pending/Running** — spinner + "Export in progress — <bundle> (<format>)" + "We'll email you when it's ready." (no dismiss; in-flight jobs cannot be dismissed per server's 409).
+      - **Completed** — green check + "Your export is ready — <bundle>" + filename + "Expires in N day(s)" derived from `downloadUrlExpiresAt` + Download button (opens signed URL in a new tab) + X dismiss.
+      - **Failed** — red icon + "Export failed: <reason>" + X dismiss.
+    - Multiple jobs stack vertically; banner auto-hides as jobs are dismissed (optimistic UI).
+  - **`client/src/pages/Dashboard.tsx`**: removed the synchronous `handleExportAllTrucks` (which called the legacy `/api/v1/export/trucks` endpoint and triggered a browser download). The "Export CSV" buttons (mobile + desktop) are now "Export" triggers that open `<ExportDialog filters={{ status, searchQuery }} />`. Filter chips inside the dialog reflect what the dashboard has applied.
+  - **`client/src/App.tsx`**: mounted `<PendingExportsBanner />` inside `OrgProvider` / `TooltipProvider` and above the `<Router />` so it's visible on every authenticated page (Dashboard, all `/admin/*` pages) without polluting page components. The banner gates itself on `useOrganization()` so unauthenticated routes (`/login`, `/forgot-password`, etc.) make zero requests.
+- **Architectural notes**:
+  - The dialog is the only place the user picks bundle/columns/format. Dashboard owns filters and passes them in as props (no editing inside the dialog — dashboard is the source of truth).
+  - All UI uses existing shadcn primitives (Dialog, Checkbox, RadioGroup, Collapsible, Button, Badge, Toast). No new design tokens added.
+  - Polling discipline: the active-exports query's `refetchInterval` is a function that inspects current data — `false` when nothing is in flight, `5000` when something is. Combined with `refetchIntervalInBackground: false`, an idle dashboard makes one fetch on mount and then stays quiet.
+  - `setQueryData` in the optimistic dismiss iterates every cached variant of the active-exports query (org-scoped key) so the row disappears from every consumer in lockstep.
+- **Files changed**: `client/src/lib/exports-api.ts` (new), `client/src/components/ExportDialog.tsx` (new), `client/src/components/PendingExportsBanner.tsx` (new), `client/src/pages/Dashboard.tsx` (export buttons swapped, dialog mounted), `client/src/App.tsx` (banner mounted in shell).
+- **Out of scope** (Task #4): `historicalMode=true` is rejected server-side with 501 and is not exposed in the dialog. Truck-detail "Download History" still uses the legacy `GET /api/v1/export/trucks/:id` endpoint until #4 ships the historical generator.
+
+---
+
+## Earlier Updates (April 27, 2026)
 
 ### Feature: Fleet Export — Async Job Pipeline, S3 Delivery, Email (April 27, 2026)
 - **Context**: Task #2 of the Fleet Dashboard CSV/Excel export feature. Task #1 shipped the pure data + serializer layer. This task wraps it in an async job pipeline so the HTTP request returns instantly (<100ms) regardless of fleet size, files are delivered via S3 + 7-day signed URL, and the requester gets a SendGrid email when their export is ready.
