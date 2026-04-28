@@ -91,7 +91,7 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
 - **Endpoints** (`server/api/exports-routes.ts`, mounted at `/api/v1/exports`): `POST /` (returns 202 or 429 on limits), `GET /` (banner data), `GET /:id` (poll), `PATCH /:id/dismiss`. All tenant-scoped.
 - **Concurrency limits**: 3 active jobs/user and 10 active jobs/org, enforced inside a transaction guarded by `pg_advisory_xact_lock` so concurrent POSTs cannot exceed the limit. Beyond the limit returns 429 with `{ reason, activeUserCount, activeOrgCount }`.
 - **S3 lifecycle**: `terraform/iam.tf` configures `aws_s3_bucket_lifecycle_configuration.assets` to auto-delete `exports/*` objects after 14 days (housekeeping; the 7-day expiration is enforced by signed-URL TTL).
-- **Legacy endpoint removed**: `GET /api/v1/export/trucks/:id` (synchronous single-truck CSV) was deleted. Single-truck history goes through the async pipeline with `historicalMode=true` (Task #4 wires the historical generator end-to-end).
+- **Legacy endpoint deprecated (not removed yet)**: `GET /api/v1/export/trucks/:id` (synchronous single-truck CSV) still works but is marked deprecated via an `X-Deprecated` response header. It will be removed in Task #4 once the async pipeline supports `historicalMode=true` end-to-end (currently returns 501).
 
 ### AI Fleet Assistant
 - **Purpose**: Natural language chat interface for fleet management queries and insights.
