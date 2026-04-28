@@ -110,43 +110,56 @@ export function useCreateExport() {
   const queryClient = useQueryClient();
   return useMutation<SerializedExportJob, CreateExportJobError, CreateExportJobInput>({
     mutationFn: async (input) => {
-      // Custom fetch (instead of apiRequest) because we need to read the JSON
-      // body on 4xx responses to surface 429 limit details inline in the dialog.
-      const res = await fetch("/api/v1/exports", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          // Pull the org id from the OrgProvider via a state cache lookup —
-          // the standard apiRequest helper does this from a module-level
-          // variable, but to keep this file self-contained we just read it
-          // off the standard request hook results. The server also accepts
-          // session-derived org membership, so missing header is non-fatal.
-        },
-        body: JSON.stringify(input),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => null);
-        const err: CreateExportJobError = {
-          message: body?.error ?? `Export request failed (${res.status})`,
-          status: res.status,
-          reason: body?.reason,
-          activeUserCount: body?.activeUserCount,
-          activeOrgCount: body?.activeOrgCount,
-          userLimit: body?.userLimit,
-          orgLimit: body?.orgLimit,
-          featureFlag: body?.featureFlag,
-        };
-        throw err;
+      try {
+        const res = await apiRequest("POST", "/api/v1/exports", input);
+        const body = (await res.json()) as CreateExportJobResponse;
+        return body.job;
+      } catch (e) {
+        // `apiRequest`'s `throwIfResNotOk` throws `Error("${status}: ${text}")`
+        // where `text` is the raw response body. Parse it back out so the
+        // dialog can surface 429 limit details (reason / counts / limits)
+        // and the 501 historical-mode `featureFlag` inline.
+        throw parseExportError(e);
       }
-      const body = (await res.json()) as CreateExportJobResponse;
-      return body.job;
     },
     onSuccess: () => {
       // Invalidate every variant of the active-exports query (org-scoped).
       queryClient.invalidateQueries({ queryKey: [ACTIVE_EXPORTS_QUERY_KEY] });
     },
   });
+}
+
+function parseExportError(e: unknown): CreateExportJobError {
+  const message = e instanceof Error ? e.message : String(e);
+  const m = /^(\d+):\s*([\s\S]*)$/.exec(message);
+  const status = m ? parseInt(m[1], 10) : 0;
+  const rawBody = m ? m[2] : message;
+  let parsed: Record<string, unknown> | null = null;
+  try {
+    const candidate = JSON.parse(rawBody) as unknown;
+    if (candidate && typeof candidate === "object") {
+      parsed = candidate as Record<string, unknown>;
+    }
+  } catch {
+    // body wasn't JSON — fall back to the raw text below.
+  }
+  const pickStr = (k: string) =>
+    parsed && typeof parsed[k] === "string" ? (parsed[k] as string) : undefined;
+  const pickNum = (k: string) =>
+    parsed && typeof parsed[k] === "number" ? (parsed[k] as number) : undefined;
+  const reasonRaw = pickStr("reason");
+  const reason: CreateExportJobError["reason"] =
+    reasonRaw === "user_limit" || reasonRaw === "org_limit" ? reasonRaw : undefined;
+  return {
+    message: pickStr("error") ?? rawBody ?? `Export request failed (${status})`,
+    status,
+    reason,
+    activeUserCount: pickNum("activeUserCount"),
+    activeOrgCount: pickNum("activeOrgCount"),
+    userLimit: pickNum("userLimit"),
+    orgLimit: pickNum("orgLimit"),
+    featureFlag: pickStr("featureFlag"),
+  };
 }
 
 export function useDismissExport() {
