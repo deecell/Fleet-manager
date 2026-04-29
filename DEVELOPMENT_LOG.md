@@ -4,7 +4,18 @@
 
 ---
 
-## Latest Updates (April 28, 2026)
+## Latest Updates (April 29, 2026)
+
+### Production Migration: `export_jobs` table applied (April 29, 2026)
+- **What ran**: `scripts/migrations/2026-04-28_add_export_jobs_table.sh` — created the `export_jobs` table + 5 supporting indexes (`export_job_org_idx`, `export_job_org_status_idx`, `export_job_user_status_idx`, `export_job_status_idx`, `export_job_expires_idx`) plus the implicit `export_jobs_pkey`. Idempotent (`CREATE … IF NOT EXISTS`); verification query reported `row count: 0`, all 6 indexes present.
+- **Where**: production RDS via the device-manager EC2 box (`i-0a435441556fc5ab1`, us-east-2). Secret `deecell-fleet-production/database-url`.
+- **How (architecture change)**: rewrote the script to use `aws ssm send-command` instead of an interactive `aws ssm start-session`. The interactive path failed for two reasons that compounded each other: (1) macOS Terminal pasted the heredoc faster than the SSM channel could ingest, corrupting the SQL stream mid-transit; (2) the SSM session lands in `sh` (Debian dash) with a stripped PATH that didn't include `psql`. `send-command` ships the SQL via the AWS API as structured JSON (no terminal paste), runs as root with a full PATH, and (since this Ubuntu 24.04 device-manager AMI doesn't ship `psql`) auto-installs `postgresql-client` via apt before running `psql -f`. Output and exit status are fetched back to the MacBook for visibility. The script now also dynamically discovers the device-manager instance ID via `aws ec2 describe-instances --filters tag:Name=*device-manager*` so future EC2 redeploys don't break it.
+- **Iteration log** (for posterity, in case the next migration script runs into the same traps):
+  1. First version used a literal em-dash in a comment → broke macOS bash 3.2 source loading. Stripped to ASCII.
+  2. Second version used a heredoc inside `$()` → still broke bash 3.2. Split SQL out into a sidecar `.sql` file.
+  3. Third version hardcoded an old device-manager instance ID (`i-05443904f977d7301`) that had been replaced by Terraform → switched to dynamic lookup.
+  4. Fourth version used interactive `start-session` → hit paste corruption + `sh: psql: not found`. Final version uses `send-command`.
+- **Production state**: `export_jobs` table now exists in prod with the same schema Drizzle generates locally. Once Task #3 is approved and merged, the next deploy of the web app will pick up the routes/worker that read & write this table; nothing else is needed on the infra side. The S3 lifecycle rule (`exports/*` → 14-day delete) was already added in Task #2's Terraform changes and was applied during that task's `terraform apply`.
 
 ### Feature: Fleet Export — Export Dialog & Pending Exports Banner (April 28, 2026)
 - **Context**: Task #3 of the Fleet Dashboard CSV/Excel export feature. Tasks #1 and #2 shipped the data layer + async pipeline. This task delivers the user-facing UI: a configuration dialog (bundle picker + Advanced per-column controls + format toggle + filter chip strip) and a persistent pending-exports banner that surfaces in-flight + recently-finished jobs across every page.
