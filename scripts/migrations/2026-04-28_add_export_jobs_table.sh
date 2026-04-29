@@ -21,8 +21,23 @@
 set -e
 
 REGION="us-east-2"
-INSTANCE_ID="i-05443904f977d7301"
 SECRET_ID="deecell-fleet-production/database-url"
+
+# Look up the device-manager EC2 instance dynamically so the script keeps
+# working across Terraform redeploys (which can change the instance ID).
+echo "Looking up device-manager EC2 instance in $REGION..."
+INSTANCE_ID=$(aws ec2 describe-instances \
+    --filters "Name=instance-state-name,Values=running" "Name=tag:Name,Values=*device-manager*" \
+    --query 'Reservations[*].Instances[*].InstanceId' \
+    --output text --region "$REGION")
+
+if [ -z "$INSTANCE_ID" ] || [ "$INSTANCE_ID" = "None" ]; then
+    echo "Error: No running device-manager EC2 instance found in $REGION."
+    echo "Start one with:  aws ec2 start-instances --instance-ids <id> --region $REGION"
+    exit 1
+fi
+echo "Found: $INSTANCE_ID"
+echo ""
 
 # SQL file lives next to this script (avoids bash 3.2 nested-heredoc bugs on macOS)
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
