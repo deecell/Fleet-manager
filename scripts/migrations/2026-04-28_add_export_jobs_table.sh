@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS export_jobs (
     include_columns               JSONB,                             -- string[]
     exclude_columns               JSONB,                             -- string[]
 
-    -- Historical mode (reserved for Task #4 — single truck, <=1 yr, <=1 row/min)
+    -- Historical mode (reserved for Task #4 - single truck, max 1 yr, max 1 row/min)
     historical_mode               BOOLEAN DEFAULT FALSE,
     historical_truck_id           INTEGER REFERENCES trucks(id) ON DELETE SET NULL,
     historical_start_time         TIMESTAMP,
