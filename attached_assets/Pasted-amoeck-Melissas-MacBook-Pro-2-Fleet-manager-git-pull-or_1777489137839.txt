@@ -1,0 +1,60 @@
+amoeck@Melissas-MacBook-Pro-2 Fleet-manager % git pull origin main
+remote: Enumerating objects: 178, done.
+remote: Counting objects: 100% (178/178), done.
+remote: Compressing objects: 100% (28/28), done.
+remote: Total 149 (delta 122), reused 148 (delta 121), pack-reused 0 (from 0)
+Receiving objects: 100% (149/149), 526.27 KiB | 4.92 MiB/s, done.
+Resolving deltas: 100% (122/122), completed with 26 local objects.
+From https://github.com/deecell/Fleet-manager
+ * branch            main       -> FETCH_HEAD
+   1395a26..eda2e66  main       -> origin/main
+Updating 1395a26..eda2e66
+Fast-forward
+ DEVELOPMENT_LOG.md                                                     |  88 ++++++++++++++++-
+ attached_assets/Screenshot_2026-04-29_at_11.46.01_AM_1777488370254.png | Bin 0 -> 175777 bytes
+ attached_assets/Screenshot_2026-04-29_at_11.47.12_AM_1777488449045.png | Bin 0 -> 209909 bytes
+ attached_assets/Screenshot_2026-04-29_at_11.48.39_AM_1777488527940.png | Bin 0 -> 186817 bytes
+ client/src/App.tsx                                                     |   2 +
+ client/src/components/ExportDialog.tsx                                 | 385 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ client/src/components/PendingExportsBanner.tsx                         | 179 ++++++++++++++++++++++++++++++++++
+ client/src/lib/exports-api.ts                                          | 207 +++++++++++++++++++++++++++++++++++++++
+ client/src/pages/Dashboard.tsx                                         |  43 +++-----
+ package-lock.json                                                      | 999 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ package.json                                                           |   1 +
+ replit.md                                                              |  14 +++
+ scripts/migrations/2026-04-28_add_export_jobs_table.sh                 | 139 ++++++++++++++++++++++++++
+ server/api/exports-routes.ts                                           | 310 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ server/api/fleet-routes.ts                                             |  61 +++++++-----
+ server/db-storage.ts                                                   | 383 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ server/index.ts                                                        |   4 +
+ server/routes.ts                                                       |   4 +
+ server/services/email-service.ts                                       |  97 ++++++++++++++++++
+ server/services/exports/cell-builder.ts                                | 183 ++++++++++++++++++++++++++++++++++
+ server/services/exports/csv-serializer.ts                              |  94 ++++++++++++++++++
+ server/services/exports/excel-serializer.ts                            | 118 ++++++++++++++++++++++
+ server/services/exports/index.ts                                       | 172 ++++++++++++++++++++++++++++++++
+ server/services/exports/job-worker.ts                                  | 227 +++++++++++++++++++++++++++++++++++++++++++
+ server/services/exports/types.ts                                       |  83 ++++++++++++++++
+ server/storage.ts                                                      |  36 +++++++
+ shared/export-columns.ts                                               | 302 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ shared/schema.ts                                                       | 121 ++++++++++++++++++++++-
+ terraform/iam.tf                                                       |  33 +++++++
+ tests/exports.test.ts                                                  | 245 ++++++++++++++++++++++++++++++++++++++++++++++
+ 30 files changed, 4472 insertions(+), 58 deletions(-)
+ create mode 100644 attached_assets/Screenshot_2026-04-29_at_11.46.01_AM_1777488370254.png
+ create mode 100644 attached_assets/Screenshot_2026-04-29_at_11.47.12_AM_1777488449045.png
+ create mode 100644 attached_assets/Screenshot_2026-04-29_at_11.48.39_AM_1777488527940.png
+ create mode 100644 client/src/components/ExportDialog.tsx
+ create mode 100644 client/src/components/PendingExportsBanner.tsx
+ create mode 100644 client/src/lib/exports-api.ts
+ create mode 100755 scripts/migrations/2026-04-28_add_export_jobs_table.sh
+ create mode 100644 server/api/exports-routes.ts
+ create mode 100644 server/services/exports/cell-builder.ts
+ create mode 100644 server/services/exports/csv-serializer.ts
+ create mode 100644 server/services/exports/excel-serializer.ts
+ create mode 100644 server/services/exports/index.ts
+ create mode 100644 server/services/exports/job-worker.ts
+ create mode 100644 server/services/exports/types.ts
+ create mode 100644 shared/export-columns.ts
+ create mode 100644 tests/exports.test.ts
+amoeck@Melissas-MacBook-Pro-2 Fleet-manager %
