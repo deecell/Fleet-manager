@@ -19,6 +19,7 @@ export type ColumnFormat =
   | "percent"         // 1dp + " %"
   | "temperature_f"   // 1dp + " °F"
   | "kwh"             // 2dp + " kWh"
+  | "wh"              // 0dp + " Wh"
   | "amp_hours"       // 2dp + " Ah"
   | "hours"           // 2dp + " h"
   | "currency"        // USD

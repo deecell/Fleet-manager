@@ -2,7 +2,7 @@
  * Historical (single-truck time-series) cell builder.
  *
  * Mirrors `cell-builder.ts` but for `HistoricalExportRow`. Returns a
- * `RawCellValue` (string | number | Date | null) — the serializer formats
+ * `RawCellValue` (string | number | Date | null); the serializer formats
  * according to the column's `format` field.
  */
 
@@ -22,20 +22,15 @@ const WH_TO_KWH = (wh: number | null | undefined): number | null =>
 export function extractHistoricalCell(
   row: HistoricalExportRow,
   columnKey: HistoricalColumnKey,
-  granularity: HistoricalGranularity,
+  _granularity: HistoricalGranularity,
 ): RawCellValue {
-  // `granularity` reserved for future per-granularity logic (e.g. distinct
-  // formatting of the bucket label). Currently unused but kept on the API.
-  void granularity;
   switch (columnKey) {
     // Identity
     case "truck_number":     return row.truckNumber ?? null;
     case "fleet_name":       return row.fleetName ?? null;
     case "powermon_serial":  return row.powerMonSerial ?? null;
 
-    // Time bucket — daily uses `date` (no time portion), per-min/hour uses
-    // full `datetime`. The column registry's `format` drives Excel/CSV
-    // rendering; we just hand back a Date and let the serializer format it.
+    // Time bucket
     case "bucket_timestamp": return row.bucket ?? null;
     case "bucket_date":      return row.bucket ?? null;
 
@@ -68,8 +63,8 @@ export function extractHistoricalCell(
     case "min_temperature_f":     return C_TO_F(row.minTemperatureC);
     case "max_temperature_f":     return C_TO_F(row.maxTemperatureC);
     case "energy_throughput_kwh": return WH_TO_KWH(row.energyThroughputWh);
-    case "total_energy_in_kwh":   return WH_TO_KWH(row.totalEnergyInWh);
-    case "total_energy_out_kwh":  return WH_TO_KWH(row.totalEnergyOutWh);
+    case "total_energy_in_wh":    return row.totalEnergyInWh;
+    case "total_energy_out_wh":   return row.totalEnergyOutWh;
     case "drive_minutes":         return row.driveMinutes;
     case "idle_minutes":          return row.idleMinutes;
     case "parked_minutes":        return row.parkedMinutes;
@@ -79,14 +74,6 @@ export function extractHistoricalCell(
     case "alerts_raised":         return row.alertsRaised;
 
     default:
-      // Exhaustiveness check — at compile time `_exhaustive` would be `never`
-      // if every key is handled. Returning null at runtime is the safe fall-
-      // through if a future column key is added without an `extract` arm.
-      // (Cast lets us still ship in dev without a TS error.)
       return null;
   }
-  // `granularity` reserved for future per-granularity logic (e.g. distinct
-  // formatting of the bucket label). Currently unused but kept on the API so
-  // adding it later is a non-breaking change.
-  void granularity;
 }

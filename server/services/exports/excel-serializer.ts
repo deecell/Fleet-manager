@@ -21,6 +21,7 @@ function numFmtFor(format: ColumnFormat): string | undefined {
     case "percent":         return '0.0 "%"';
     case "temperature_f":   return '0.0 "°F"';
     case "kwh":             return '0.00 "kWh"';
+    case "wh":              return '0 "Wh"';
     case "amp_hours":       return '0.00 "Ah"';
     case "hours":           return '0.00 "h"';
     case "currency":        return '"$"#,##0.00';

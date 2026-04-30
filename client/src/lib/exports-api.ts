@@ -67,7 +67,7 @@ export interface CreateExportJobInput {
    * Historical (single-truck time-series) inputs. When `historicalMode` is
    * true the snapshot fields above are ignored server-side; bundleKey is
    * still required by the schema but unused for routing — the dialog sends
-   * a placeholder ("all_columns") so the request validates.
+   * a placeholder ("default") so the request validates.
    */
   historicalMode?: boolean;
   historicalTruckId?: number;

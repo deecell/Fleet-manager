@@ -1381,45 +1381,17 @@ export class DbStorage {
     }
     const id = identity[0];
 
-    // PostgreSQL `date_trunc` accepts the unit as a literal string, so we
-    // map our enum to the matching unit string here. Passing user input
-    // straight in would be a SQL-injection vector — `granularity` has
-    // already been validated by zod at the route boundary, but we still
-    // hard-map to be safe.
+    // Hard-map enum → date_trunc unit (granularity is zod-validated at the
+    // route, but date_trunc takes a literal string so we re-narrow here).
     const truncUnit: "minute" | "hour" | "day" =
       granularity === "minute" ? "minute"
       : granularity === "hour" ? "hour"
       : "day";
 
-    // Measurement aggregates per bucket. The casts to ::float8 ensure we get
-    // back JS `number` instead of `string` (Postgres returns NUMERIC as text
-    // through pg-driver).
-    //
-    // PowerMon polls every 10 seconds (see replit.md). We use that as the
-    // assumed sample interval to estimate total_energy_in/out_kwh from the
-    // power column:
-    //   energy_in_wh  = SUM(GREATEST(power, 0)) * 10 / 3600
-    //   energy_out_wh = SUM(GREATEST(-power, 0)) * 10 / 3600
-    // This is an approximation; an interval-aware integral would be more
-    // accurate but requires lag()-style window logic.
-    //
-    // is_parked / drive_minutes / parked_minutes derive from the same signal
-    // the device-manager uses to set device_snapshots.is_parked: chassis
-    // voltage (voltage2) below the parked-voltage threshold (13.0 V). See
-    // device-manager/app/database.js (PARKED_VOLTAGE_THRESHOLD).
-    //
-    // The device-manager treats NULL voltage2 as parked (it uses
-    // `(voltage2 || 0) < 13.0`), so we mirror that here: NULL voltage2 counts
-    // as a parked sample, NOT as a driving sample. Buckets with zero samples
-    // entirely stay null.
-    //
-    // For each bucket we report:
-    //   - is_parked      = majority of samples in this bucket were parked
-    //                      (a single boolean per bucket; nulled if no samples)
-    //   - parked_minutes = (count where voltage2 <  13 OR NULL) * 10s / 60
-    //   - drive_minutes  = (count where voltage2 >= 13)          * 10s / 60
-    // idle_minutes stays null because the underlying state machine only has
-    // two states (parked / driving) — there is no idle state to report.
+    // PowerMon polls every 10 s, so total_energy_in/out_wh = SUM(±power) * 10/3600.
+    // Parked/driving counts mirror device-manager (`(voltage2 || 0) < 13`):
+    // NULL voltage2 counts as parked, never as driving. idle_minutes stays
+    // null — the state machine has only two states.
     const SAMPLE_SECONDS = 10;
     const PARKED_VOLTAGE_THRESHOLD = 13.0;
     const bucketCol = sql<Date>`date_trunc(${truncUnit}, ${deviceMeasurements.recordedAt})`;
@@ -1477,11 +1449,9 @@ export class DbStorage {
       .groupBy(bucketCol)
       .orderBy(asc(bucketCol));
 
-    // Per-bucket position from sim_location_history (the only historical
-    // lat/long source — PowerMon devices themselves don't store position).
-    // For each bucket we keep the LAST recorded position in that window via
-    // DISTINCT ON, so daily exports get end-of-day position automatically.
-    // Buckets with no SIM update in their window stay null.
+    // Per-bucket position from sim_location_history (PowerMon doesn't store
+    // position). DISTINCT ON keeps the LAST recorded position per bucket, so
+    // daily exports get end-of-day position automatically.
     const positionRows = await db.execute<{
       bucket: Date | string;
       latitude: number;
@@ -1528,10 +1498,8 @@ export class DbStorage {
       }
     }
 
-    // Savings config (fallback fuel price + whether to use live EIA prices)
-    // for the org. Only needed for daily mode — `day_savings` is computed in
-    // JS so we can blend in per-day live fuel prices below. Falls back to
-    // defaults matching `savings-calculator.ts` if no row exists.
+    // Savings config (daily mode only). Defaults match savings-calculator.ts
+    // when no org row exists.
     let defaultFuelPrice = 3.5;
     let useLiveFuelPrices = true;
     let livePriceByDay = new Map<string, number>();
@@ -1548,9 +1516,8 @@ export class DbStorage {
         defaultFuelPrice = cfg[0].defaultFuelPricePerGallon ?? defaultFuelPrice;
         useLiveFuelPrices = cfg[0].useLiveFuelPrices ?? useLiveFuelPrices;
       }
-      // Live prices: pick the most recent EIA price on or before each day in
-      // the window. We pre-fetch every price row in [windowStart-7d, end] and
-      // resolve in JS so the per-row mapping below stays cheap.
+      // Pre-fetch [windowStart-7d, end] then snap each day to the most recent
+      // price on or before it (cheap per-row lookup below).
       if (useLiveFuelPrices) {
         const lookbackStart = new Date(startTime.getTime() - 7 * 86400000);
         const priceRows = await db
@@ -1599,14 +1566,12 @@ export class DbStorage {
           : psInt !== null && psInt !== undefined
             ? String(Math.round(psInt))
             : null;
-      // is_parked: majority of samples in this bucket had voltage2 below the
-      // parked threshold. Null when the bucket had no voltage2 samples at all
-      // (e.g. PowerMon was offline that whole bucket).
+      // is_parked: majority vote; null when the bucket had no samples at all.
       const totalSamples = (m.parkedSamples ?? 0) + (m.drivingSamples ?? 0);
       const isParked = totalSamples > 0
         ? (m.parkedSamples ?? 0) > totalSamples / 2
         : null;
-      // Activity minutes (daily mode only — meaningless on a 1-minute bucket).
+      // Activity minutes — daily mode only.
       const isDaily = granularity === "day";
       const parkedMinutes = isDaily
         ? Math.round(((m.parkedSamples ?? 0) * SAMPLE_SECONDS / 60) * 10) / 10
@@ -1614,24 +1579,16 @@ export class DbStorage {
       const driveMinutes = isDaily
         ? Math.round(((m.drivingSamples ?? 0) * SAMPLE_SECONDS / 60) * 10) / 10
         : null;
-      // Position from the SIM history pre-fetch.
       const pos = positionByBucket.get(bucketDate.getTime()) ?? null;
-      // day_savings: only for daily mode. Formula matches
-      // server/services/savings-calculator.ts exactly (the canonical formula
-      // used everywhere else in the app):
-      //   gallons_avoided = (parked_minutes / 60) * 1.2 gal/hr
-      //   savings_$       = gallons_avoided * fuel_price
-      // Per-day fuel price is the most recent EIA price on or before the day
-      // (live prices) or the org's default fallback. Reported as $0 (not null)
-      // on days with no parked time so the column tells the user "no savings
-      // this day" rather than "data missing".
+      // day_savings: canonical formula from savings-calculator.ts —
+      //   savings = (parked_minutes / 60) * 1.2 gal/hr * fuel_price
+      // Reported as 0 on days with no parked time (not null).
       let daySavings: number | null = null;
       if (isDaily) {
         const dayKey = bucketDate.toISOString().slice(0, 10);
         const fuelPrice = livePriceByDay.get(dayKey) ?? defaultFuelPrice;
         const parkedHours = (parkedMinutes ?? 0) / 60;
-        const gallonsSaved = parkedHours * 1.2;
-        daySavings = Math.round(gallonsSaved * fuelPrice * 100) / 100;
+        daySavings = Math.round(parkedHours * 1.2 * fuelPrice * 100) / 100;
       }
       return {
         bucket: bucketDate,

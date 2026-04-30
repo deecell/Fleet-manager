@@ -1,52 +1,25 @@
 /**
  * Fleet Export — Historical (Time-Series) Column Registries & Helpers
  *
- * Companion to `shared/export-columns.ts`. Snapshot exports describe trucks at
- * a single point in time; historical exports describe ONE truck across a date
- * range, bucketed by `HistoricalGranularity`.
+ * Companion to `shared/export-columns.ts`. Snapshot exports describe trucks
+ * at a single point in time; historical exports describe ONE truck across a
+ * date range, bucketed by `HistoricalGranularity`.
  *
- * Two registries live here:
+ *   - HISTORICAL_TIMESERIES_COLUMNS — "minute" / "hour" granularity, one row
+ *     per bucket of averaged readings.
+ *   - HISTORICAL_DAILY_COLUMNS — "day" granularity, one row per calendar day
+ *     with avg/min/max + derived energy in/out, activity minutes, day
+ *     savings, alerts-raised.
  *
- *   - HISTORICAL_TIMESERIES_COLUMNS — used for "minute" and "hour" granularity.
- *     Each row is one bucket of averaged readings.
- *
- *   - HISTORICAL_DAILY_COLUMNS — used for "day" granularity. Each row is one
- *     calendar day with avg/min/max for the most-watched readings, derived
- *     energy in/out, activity minutes, day savings, and an alerts-raised count.
- *
- * Data-availability notes (for null-prone columns):
- *
- *   - Per-bucket lat/long: pulled from `sim_location_history` (the only
- *     historical position source — PowerMon devices themselves don't store
- *     position). For each bucket the LAST recorded position in that window
- *     is reported. Buckets with no SIM update in their window stay null
- *     (e.g. truck without a SIM, or SIM polling gap).
- *
- *   - is_parked / parked_minutes / drive_minutes: derived from chassis
- *     voltage (`device_measurements.voltage2`) using the same threshold the
- *     device-manager uses to set `device_snapshots.is_parked` (13.0 V — see
- *     `device-manager/app/database.js:PARKED_VOLTAGE_THRESHOLD`). is_parked
- *     is the per-bucket majority; parked/drive minutes are sample counts ×
- *     10 s / 60 (PowerMon polling rate). idle_minutes stays null because
- *     the underlying state machine has only two states (parked / driving).
- *
- *   - End-of-day lat/long (daily mode): same value as the daily lat/long
- *     bucket — DISTINCT ON ... ORDER BY recorded_at DESC already returns the
- *     last position of the day.
- *
- *   - day_savings (daily mode): computed per day as
- *       (parked_minutes / 60) × 1.2 gal/hr × fuel_price
- *     This matches `server/services/savings-calculator.ts` exactly (the
- *     canonical formula used everywhere else in the app — savings accrue
- *     from APU/idle reduction while parked). Per-day fuel price is the
- *     most recent `fuel_prices` row on or before the day, falling back to
- *     `savings_config.defaultFuelPricePerGallon` when live prices are
- *     disabled or none are available. Reported as 0 on days with no
- *     parked time (rather than null) so the column reads "no savings
- *     this day" rather than "missing data".
- *
- *   - Total energy in / total energy out are estimated from the per-second
- *     power column and a 10-second sample assumption (PowerMon polling rate).
+ * Data-source notes (see `server/db-storage.ts:getHistoricalMeasurements`):
+ *   - lat/long + end_lat/lng: from `sim_location_history` (DISTINCT ON →
+ *     last point per bucket); null when no SIM update in the window.
+ *   - is_parked / parked_minutes / drive_minutes: chassis voltage
+ *     (voltage2 < 13.0 V or NULL → parked), matching device-manager's
+ *     PARKED_VOLTAGE_THRESHOLD. idle_minutes is always null (no idle state).
+ *   - day_savings: canonical savings-calculator.ts formula
+ *     (parked_minutes / 60) × 1.2 gal/hr × fuel_price. 0 when no parked time.
+ *   - Total energy in/out (Wh): SUM(±power) × 10 s / 3600 (PowerMon poll rate).
  */
 
 import { type ColumnFormat, type ColumnSource, type ExportColumn } from "./export-columns";
@@ -162,8 +135,8 @@ export const HISTORICAL_DAILY_COLUMNS = {
   max_temperature_f:    { key: "max_temperature_f",    label: "Max Temperature (°F)",  source: "derived",  format: "temperature_f", width: 18, group: "Temperature" },
 
   energy_throughput_kwh:{ key: "energy_throughput_kwh",label: "Energy Throughput (kWh)", source: "derived", format: "kwh",        width: 20, group: "Energy" },
-  total_energy_in_kwh:  { key: "total_energy_in_kwh",  label: "Total Energy In (kWh)", source: "derived",  format: "kwh",         width: 18, group: "Energy" },
-  total_energy_out_kwh: { key: "total_energy_out_kwh", label: "Total Energy Out (kWh)", source: "derived", format: "kwh",         width: 18, group: "Energy" },
+  total_energy_in_wh:   { key: "total_energy_in_wh",   label: "Total Energy In (Wh)",  source: "derived",  format: "wh",          width: 18, group: "Energy" },
+  total_energy_out_wh:  { key: "total_energy_out_wh",  label: "Total Energy Out (Wh)", source: "derived",  format: "wh",          width: 18, group: "Energy" },
 
   drive_minutes:        { key: "drive_minutes",        label: "Drive Minutes",         source: "derived",  format: "integer",     width: 14, group: "Activity" },
   idle_minutes:         { key: "idle_minutes",         label: "Idle Minutes",          source: "derived",  format: "integer",     width: 14, group: "Activity" },
