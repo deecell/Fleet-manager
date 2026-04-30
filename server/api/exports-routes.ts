@@ -18,6 +18,14 @@ import {
   type ColumnKey,
 } from "@shared/export-columns";
 import {
+  HISTORICAL_GRANULARITIES,
+  HISTORICAL_GRANULARITY_META,
+  HISTORICAL_MAX_RANGE_MS,
+  HISTORICAL_MAX_ROWS,
+  estimateHistoricalRows,
+  type HistoricalGranularity,
+} from "@shared/export-historical";
+import {
   EXPORT_JOB_STATUS,
   EXPORT_USER_CONCURRENCY_LIMIT,
   EXPORT_ORG_CONCURRENCY_LIMIT,
@@ -60,24 +68,21 @@ const createExportJobSchema = z
     includeColumns: columnKeyArraySchema.optional(),
     excludeColumns: columnKeyArraySchema.optional(),
 
-    // Historical mode (Task #4 wires this end-to-end)
+    // Historical mode (Task #4 — single-truck time-series)
     historicalMode: z.boolean().optional(),
     historicalTruckId: z.coerce.number().int().positive().optional(),
     historicalStartTime: z.coerce.date().optional(),
     historicalEndTime: z.coerce.date().optional(),
-    historicalIntervalSeconds: z
-      .coerce.number()
-      .int()
-      .min(60, "Historical interval must be at least 60 seconds (≤1 row/min)")
-      .optional(),
+    // Granularity is the user-facing API surface; the worker persists the
+    // matching `historicalIntervalSeconds` value (60 / 3600 / 86400). We
+    // accept the enum here so the client and the column registry agree.
+    historicalGranularity: z.enum(HISTORICAL_GRANULARITIES as [HistoricalGranularity, ...HistoricalGranularity[]]).optional(),
   })
   .strict()
   .refine((v) => v.bundleKey in EXPORT_BUNDLES, {
     path: ["bundleKey"],
     message: "Unknown bundleKey",
   });
-
-const HISTORICAL_MAX_DURATION_MS = 365 * 24 * 60 * 60 * 1000; // 1 year
 
 // Common shape returned to the client. Strips `s3Key` (internal), keeps
 // `downloadUrl` (which is a signed URL the client can hand straight to the
@@ -154,7 +159,10 @@ router.post("/", tenantMiddleware, async (req: Request, res: Response) => {
   }
   const input = parsed.data;
 
-  // Historical-mode validation (server-side; UI also blocks)
+  // Historical-mode validation (server-side; UI also blocks). Returns the
+  // resolved interval-seconds so we don't repeat the granularity → seconds
+  // map in two places.
+  let historicalIntervalSeconds = 60;
   if (input.historicalMode) {
     if (!input.historicalTruckId) {
       return res.status(400).json({ error: "historicalTruckId is required when historicalMode is true" });
@@ -165,25 +173,36 @@ router.post("/", tenantMiddleware, async (req: Request, res: Response) => {
     if (input.historicalEndTime <= input.historicalStartTime) {
       return res.status(400).json({ error: "historicalEndTime must be after historicalStartTime" });
     }
-    if (input.historicalEndTime.getTime() - input.historicalStartTime.getTime() > HISTORICAL_MAX_DURATION_MS) {
+    if (input.historicalEndTime.getTime() - input.historicalStartTime.getTime() > HISTORICAL_MAX_RANGE_MS) {
       return res.status(400).json({ error: "Historical exports are limited to 1 year" });
     }
+
+    const granularity: HistoricalGranularity = input.historicalGranularity ?? "minute";
+    historicalIntervalSeconds = HISTORICAL_GRANULARITY_META[granularity].bucketSeconds;
+
+    // Reject anything that would obviously blow past our 200k-row hard cap
+    // BEFORE we enqueue the job. The estimator slightly over-counts on
+    // sparse data (which is fine — better to err on the side of returning
+    // a 400 with a clear "pick a coarser granularity" message than to let
+    // the worker spend minutes generating a 500MB file we'd refuse to send).
+    const estimate = estimateHistoricalRows({
+      granularity,
+      startMs: input.historicalStartTime.getTime(),
+      endMs: input.historicalEndTime.getTime(),
+    });
+    if (estimate.exceedsMaxRows) {
+      return res.status(400).json({
+        error: `Estimated ${estimate.rowCount.toLocaleString()} rows exceeds the ${HISTORICAL_MAX_ROWS.toLocaleString()}-row limit. Try a shorter range or a coarser granularity.`,
+        estimatedRowCount: estimate.rowCount,
+        maxRows: HISTORICAL_MAX_ROWS,
+      });
+    }
+
     // Confirm the truck belongs to this org.
     const truck = await storage.getTruck(req.organizationId!, input.historicalTruckId);
     if (!truck) {
       return res.status(404).json({ error: "Truck not found" });
     }
-
-    // Task #4 will land the historical generator. Until then, reject the
-    // request with a clear "not yet available" response so the dialog can
-    // disable the historical mode and so we never enqueue a job that would
-    // fail in the worker. The legacy synchronous endpoint
-    // (`GET /api/v1/export/trucks/:id`) was removed as part of this task,
-    // so single-truck history is temporarily unavailable until #4 ships.
-    return res.status(501).json({
-      error: "Historical exports are coming soon — only snapshot exports are available right now.",
-      featureFlag: "historicalExports",
-    });
   }
 
   const result = await storage.createExportJobWithLimits(
@@ -199,7 +218,7 @@ router.post("/", tenantMiddleware, async (req: Request, res: Response) => {
       historicalTruckId: input.historicalTruckId ?? null,
       historicalStartTime: input.historicalStartTime ?? null,
       historicalEndTime: input.historicalEndTime ?? null,
-      historicalIntervalSeconds: input.historicalIntervalSeconds ?? 60,
+      historicalIntervalSeconds,
     },
     {
       userLimit: EXPORT_USER_CONCURRENCY_LIMIT,

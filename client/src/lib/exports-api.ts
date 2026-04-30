@@ -4,6 +4,7 @@ import { apiRequest } from "./queryClient";
 import { useOrganization } from "./org-context";
 import { useSession } from "./auth-api";
 import type { BundleKey } from "@shared/export-columns";
+import type { HistoricalGranularity } from "@shared/export-historical";
 
 export type ExportJobStatus =
   | "pending"
@@ -61,6 +62,21 @@ export interface CreateExportJobInput {
   filters?: ExportJobFilters;
   includeColumns?: string[];
   excludeColumns?: string[];
+
+  /**
+   * Historical (single-truck time-series) inputs. When `historicalMode` is
+   * true the snapshot fields above are ignored server-side; bundleKey is
+   * still required by the schema but unused for routing — the dialog sends
+   * a placeholder ("all_columns") so the request validates.
+   */
+  historicalMode?: boolean;
+  historicalTruckId?: number;
+  /** ISO string; the server coerces to Date. */
+  historicalStartTime?: string;
+  /** ISO string; the server coerces to Date. */
+  historicalEndTime?: string;
+  /** "minute" | "hour" | "day" — server maps to interval seconds. */
+  historicalGranularity?: HistoricalGranularity;
 }
 
 export interface CreateExportJobError {
@@ -71,6 +87,9 @@ export interface CreateExportJobError {
   activeOrgCount?: number;
   userLimit?: number;
   orgLimit?: number;
+  /** Set when the server returned an estimated row count over the cap. */
+  estimatedRowCount?: number;
+  maxRows?: number;
   featureFlag?: string;
 }
 
@@ -158,6 +177,8 @@ function parseExportError(e: unknown): CreateExportJobError {
     activeOrgCount: pickNum("activeOrgCount"),
     userLimit: pickNum("userLimit"),
     orgLimit: pickNum("orgLimit"),
+    estimatedRowCount: pickNum("estimatedRowCount"),
+    maxRows: pickNum("maxRows"),
     featureFlag: pickStr("featureFlag"),
   };
 }

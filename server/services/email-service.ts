@@ -362,6 +362,18 @@ export async function sendExportReadyEmail(
     bundleLabel: string;
     downloadUrl: string;
     expiresAt: Date;
+    /**
+     * When present, render two extra rows in the summary table that describe
+     * the historical window — granularity ("Per minute", "Hourly", "Daily")
+     * and the date range. The bundle label is also recipient-side already
+     * rephrased to "Truck History (…)" by the worker so this section just
+     * adds the time-range context.
+     */
+    historical?: {
+      granularityLabel: string;
+      startTime: Date;
+      endTime: Date;
+    };
   },
 ): Promise<boolean> {
   const greeting = opts.firstName ? `Hi ${opts.firstName},` : "Hi,";
@@ -369,6 +381,17 @@ export async function sendExportReadyEmail(
     dateStyle: "medium",
     timeStyle: "short",
   });
+  const historicalRows = opts.historical
+    ? `
+      <tr>
+        <td style="padding: 12px 16px; color: #71717a; font-size: 13px; border-top: 1px solid #e4e4e7;">Granularity</td>
+        <td style="padding: 12px 16px; color: #18181b; font-size: 13px; font-weight: 600; text-align: right; border-top: 1px solid #e4e4e7;">${opts.historical.granularityLabel}</td>
+      </tr>
+      <tr>
+        <td style="padding: 12px 16px; color: #71717a; font-size: 13px; border-top: 1px solid #e4e4e7;">Range</td>
+        <td style="padding: 12px 16px; color: #18181b; font-size: 13px; font-weight: 600; text-align: right; border-top: 1px solid #e4e4e7;">${opts.historical.startTime.toLocaleDateString("en-US", { dateStyle: "medium" })} → ${opts.historical.endTime.toLocaleDateString("en-US", { dateStyle: "medium" })}</td>
+      </tr>`
+    : "";
   const content = `
     <h2 style="margin: 0 0 16px 0; color: #18181b; font-size: 20px;">Your fleet export is ready</h2>
     <p style="margin: 0 0 16px 0; color: #18181b; font-size: 14px; line-height: 1.6;">${greeting}</p>
@@ -383,7 +406,7 @@ export async function sendExportReadyEmail(
       <tr>
         <td style="padding: 12px 16px; color: #71717a; font-size: 13px; border-top: 1px solid #e4e4e7;">Rows</td>
         <td style="padding: 12px 16px; color: #18181b; font-size: 13px; font-weight: 600; text-align: right; border-top: 1px solid #e4e4e7;">${opts.rowCount.toLocaleString()}</td>
-      </tr>
+      </tr>${historicalRows}
       <tr>
         <td style="padding: 12px 16px; color: #71717a; font-size: 13px; border-top: 1px solid #e4e4e7;">Link expires</td>
         <td style="padding: 12px 16px; color: #18181b; font-size: 13px; font-weight: 600; text-align: right; border-top: 1px solid #e4e4e7;">${expiresStr}</td>

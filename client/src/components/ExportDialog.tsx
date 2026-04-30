@@ -12,6 +12,14 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Collapsible,
   CollapsibleContent,
@@ -27,16 +35,35 @@ import {
   type ColumnKey,
 } from "@shared/export-columns";
 import {
+  HISTORICAL_GRANULARITIES,
+  HISTORICAL_GRANULARITY_META,
+  HISTORICAL_MAX_RANGE_MS,
+  defaultGranularityForRangeDays,
+  estimateHistoricalRows,
+  type HistoricalGranularity,
+} from "@shared/export-historical";
+import {
   useCreateExport,
   type CreateExportJobError,
   type ExportJobFilters,
 } from "@/lib/exports-api";
+import { useTrucks } from "@/lib/api";
+
+type ExportMode = "snapshot" | "historical";
 
 interface ExportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** Filters currently applied on the dashboard. Read-only here. */
   filters: ExportDialogFilters;
+  /**
+   * When opening from a single-truck context (TruckDetail page), pre-select
+   * historical mode + the truck. The dialog still lets the user switch back
+   * to snapshot mode if they change their mind.
+   */
+  initialMode?: ExportMode;
+  initialTruckId?: number;
+  initialRangeDays?: number;
 }
 
 export interface ExportDialogFilters {
@@ -69,28 +96,89 @@ const COLUMN_GROUPS: Array<{ group: string; columns: typeof EXPORT_COLUMN_LIST }
   return Array.from(map.entries()).map(([group, columns]) => ({ group, columns }));
 })();
 
-export function ExportDialog({ open, onOpenChange, filters }: ExportDialogProps) {
+// Range presets (days). "Custom" lets the user pick start/end manually.
+const RANGE_PRESETS: Array<{ label: string; days: number }> = [
+  { label: "Last 24 hours", days: 1 },
+  { label: "Last 7 days", days: 7 },
+  { label: "Last 30 days", days: 30 },
+  { label: "Last 90 days", days: 90 },
+  { label: "Last 1 year", days: 365 },
+];
+
+function isoDate(d: Date): string {
+  // Returns yyyy-MM-dd in local time — what `<Input type="date">` expects.
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${dd}`;
+}
+
+function startOfDay(d: Date): Date {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
+
+function endOfDay(d: Date): Date {
+  const x = new Date(d);
+  x.setHours(23, 59, 59, 999);
+  return x;
+}
+
+export function ExportDialog({
+  open,
+  onOpenChange,
+  filters,
+  initialMode = "snapshot",
+  initialTruckId,
+  initialRangeDays = 7,
+}: ExportDialogProps) {
   const { toast } = useToast();
   const createExport = useCreateExport();
+  const trucksQuery = useTrucks();
 
+  // Mode + snapshot state
+  const [mode, setMode] = useState<ExportMode>(initialMode);
   const [bundleKey, setBundleKey] = useState<BundleKey>("default");
   const [format, setFormat] = useState<"csv" | "xlsx">("csv");
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [selectedColumns, setSelectedColumns] = useState<Set<ColumnKey>>(
     () => new Set(EXPORT_BUNDLES.default.columnKeys as ColumnKey[]),
   );
+
+  // Historical state. We store start/end as `yyyy-MM-dd` strings so the
+  // <Input type="date"> elements can drive them directly. "custom" preset
+  // lets the user free-edit; any other preset re-derives the range on
+  // change. Granularity defaults to whatever fits the range size.
+  const [historicalTruckId, setHistoricalTruckId] = useState<number | undefined>(initialTruckId);
+  const [rangePreset, setRangePreset] = useState<number | "custom">(initialRangeDays);
+  const [customStart, setCustomStart] = useState<string>("");
+  const [customEnd, setCustomEnd] = useState<string>("");
+  const [granularity, setGranularity] = useState<HistoricalGranularity>(
+    defaultGranularityForRangeDays(initialRangeDays),
+  );
+  const [granularityTouched, setGranularityTouched] = useState(false);
+
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // When dialog opens, reset to a clean state. (Filters can change between
-  // opens, so we don't persist user's last picks across sessions.)
+  // When dialog opens, reset to a clean state. Filters / context can change
+  // between opens, so we don't persist the user's last picks across sessions.
   useEffect(() => {
     if (!open) return;
+    setMode(initialMode);
     setBundleKey("default");
     setFormat("csv");
     setSelectedColumns(new Set(EXPORT_BUNDLES.default.columnKeys as ColumnKey[]));
     setAdvancedOpen(false);
     setSubmitError(null);
-  }, [open]);
+    setHistoricalTruckId(initialTruckId);
+    setRangePreset(initialRangeDays);
+    const today = new Date();
+    setCustomStart(isoDate(new Date(today.getTime() - initialRangeDays * 86400000)));
+    setCustomEnd(isoDate(today));
+    setGranularity(defaultGranularityForRangeDays(initialRangeDays));
+    setGranularityTouched(false);
+  }, [open, initialMode, initialTruckId, initialRangeDays]);
 
   // Selecting a bundle resets checkboxes to that bundle's defaults; manual
   // checkbox edits are then preserved while the same bundle stays selected.
@@ -126,6 +214,50 @@ export function ExportDialog({ open, onOpenChange, filters }: ExportDialogProps)
     return { includeColumns: include, excludeColumns: exclude, selectedCount: selectedColumns.size };
   }, [bundleKey, selectedColumns]);
 
+  // Resolve the active date range — preset (relative to "now") or custom.
+  const { startTime, endTime, rangeDays, rangeError } = useMemo(() => {
+    const now = new Date();
+    if (rangePreset === "custom") {
+      if (!customStart || !customEnd) {
+        return { startTime: null, endTime: null, rangeDays: 0, rangeError: "Pick a start and end date." };
+      }
+      const s = startOfDay(new Date(customStart));
+      const e = endOfDay(new Date(customEnd));
+      if (!Number.isFinite(s.getTime()) || !Number.isFinite(e.getTime())) {
+        return { startTime: null, endTime: null, rangeDays: 0, rangeError: "Invalid date." };
+      }
+      if (e <= s) {
+        return { startTime: s, endTime: e, rangeDays: 0, rangeError: "End date must be after start date." };
+      }
+      const days = Math.ceil((e.getTime() - s.getTime()) / 86400000);
+      if (e.getTime() - s.getTime() > HISTORICAL_MAX_RANGE_MS) {
+        return { startTime: s, endTime: e, rangeDays: days, rangeError: "Range can't be longer than 1 year." };
+      }
+      return { startTime: s, endTime: e, rangeDays: days, rangeError: null as string | null };
+    }
+    const days = rangePreset;
+    const e = now;
+    const s = new Date(now.getTime() - days * 86400000);
+    return { startTime: s, endTime: e, rangeDays: days, rangeError: null as string | null };
+  }, [rangePreset, customStart, customEnd]);
+
+  // Auto-suggest granularity when the range changes — but stop overriding
+  // once the user has manually picked one for this dialog session.
+  useEffect(() => {
+    if (granularityTouched || rangeDays <= 0) return;
+    setGranularity(defaultGranularityForRangeDays(rangeDays));
+  }, [rangeDays, granularityTouched]);
+
+  // Estimated rows / bytes for the preview line.
+  const estimate = useMemo(() => {
+    if (!startTime || !endTime || endTime <= startTime) return null;
+    return estimateHistoricalRows({
+      granularity,
+      startMs: startTime.getTime(),
+      endMs: endTime.getTime(),
+    });
+  }, [startTime, endTime, granularity]);
+
   const filterChips = useMemo(() => {
     const chips: Array<{ label: string; testId: string }> = [];
     if (filters.status === "in-service") {
@@ -143,19 +275,61 @@ export function ExportDialog({ open, onOpenChange, filters }: ExportDialogProps)
     return chips;
   }, [filters]);
 
+  const trucks = trucksQuery.data?.trucks ?? [];
+
   const handleSubmit = async () => {
     setSubmitError(null);
-    if (selectedCount === 0) {
-      setSubmitError("Pick at least one column to export.");
+
+    if (mode === "snapshot") {
+      if (selectedCount === 0) {
+        setSubmitError("Pick at least one column to export.");
+        return;
+      }
+      try {
+        const job = await createExport.mutateAsync({
+          bundleKey,
+          format,
+          filters: toApiFilters(filters),
+          includeColumns: includeColumns.length > 0 ? includeColumns : undefined,
+          excludeColumns: excludeColumns.length > 0 ? excludeColumns : undefined,
+        });
+        toast({
+          title: "Export queued",
+          description: `We'll email you when ${job.bundleLabel} is ready.`,
+        });
+        onOpenChange(false);
+      } catch (err) {
+        handleError(err);
+      }
+      return;
+    }
+
+    // Historical mode
+    if (!historicalTruckId) {
+      setSubmitError("Pick a truck.");
+      return;
+    }
+    if (!startTime || !endTime || rangeError) {
+      setSubmitError(rangeError ?? "Pick a valid date range.");
+      return;
+    }
+    if (estimate?.exceedsMaxRows) {
+      setSubmitError(
+        `Estimated ${estimate.rowCount.toLocaleString()} rows is too many. Try a shorter range or a coarser granularity.`,
+      );
       return;
     }
     try {
       const job = await createExport.mutateAsync({
-        bundleKey,
+        // bundleKey is unused server-side for historical mode but the schema
+        // still requires a valid key — send "default" as a placeholder.
+        bundleKey: "default",
         format,
-        filters: toApiFilters(filters),
-        includeColumns: includeColumns.length > 0 ? includeColumns : undefined,
-        excludeColumns: excludeColumns.length > 0 ? excludeColumns : undefined,
+        historicalMode: true,
+        historicalTruckId,
+        historicalStartTime: startTime.toISOString(),
+        historicalEndTime: endTime.toISOString(),
+        historicalGranularity: granularity,
       });
       toast({
         title: "Export queued",
@@ -163,22 +337,28 @@ export function ExportDialog({ open, onOpenChange, filters }: ExportDialogProps)
       });
       onOpenChange(false);
     } catch (err) {
-      const e = err as CreateExportJobError;
-      setSubmitError(e.message);
-      // Non-limit failures also get a toast so the user sees something even
-      // if the dialog is closed via outside-click. Limit (429) errors stay
-      // inline because the action is "wait for one to finish".
-      if (e.status !== 429) {
-        toast({
-          title: "Export failed",
-          description: e.message,
-          variant: "destructive",
-        });
-      }
+      handleError(err);
+    }
+  };
+
+  const handleError = (err: unknown) => {
+    const e = err as CreateExportJobError;
+    setSubmitError(e.message);
+    if (e.status !== 429) {
+      toast({
+        title: "Export failed",
+        description: e.message,
+        variant: "destructive",
+      });
     }
   };
 
   const submitting = createExport.isPending;
+  const submitDisabled =
+    submitting ||
+    (mode === "snapshot" && selectedCount === 0) ||
+    (mode === "historical" &&
+      (!historicalTruckId || !startTime || !endTime || !!rangeError || estimate?.exceedsMaxRows === true));
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -189,56 +369,329 @@ export function ExportDialog({ open, onOpenChange, filters }: ExportDialogProps)
         <DialogHeader>
           <DialogTitle data-testid="text-export-title">Export Fleet Data</DialogTitle>
           <DialogDescription>
-            Pick a column bundle and format. We'll process the export in the
-            background and email you a download link when it's ready.
+            Pick what you want to export. We'll process it in the background and
+            email you a download link when it's ready.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-2">
-          {/* Bundle picker */}
+          {/* Mode toggle */}
           <section>
-            <Label className="text-sm font-semibold text-neutral-950">Bundle</Label>
+            <Label className="text-sm font-semibold text-neutral-950">What to export</Label>
             <RadioGroup
-              value={bundleKey}
-              onValueChange={handleBundleChange}
-              className="mt-3 space-y-2"
-              data-testid="radio-group-bundle"
+              value={mode}
+              onValueChange={(v) => setMode(v === "historical" ? "historical" : "snapshot")}
+              className="mt-3 flex gap-2"
+              data-testid="radio-group-mode"
             >
-              {BUNDLE_KEYS.map((key) => {
-                const bundle = EXPORT_BUNDLES[key];
-                return (
-                  <div
-                    key={key}
-                    className="flex items-start gap-3 rounded-md border border-[#ebeef2] p-3 hover-elevate"
-                    data-testid={`bundle-option-${key}`}
-                  >
-                    <RadioGroupItem
-                      value={key}
-                      id={`bundle-${key}`}
-                      className="mt-0.5"
-                      data-testid={`radio-bundle-${key}`}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <Label
-                        htmlFor={`bundle-${key}`}
-                        className="text-sm font-medium text-neutral-950 cursor-pointer"
-                      >
-                        {bundle.label}
-                        <span className="ml-2 text-xs font-normal text-[#717182]">
-                          {bundle.columnKeys.length} columns
-                        </span>
-                      </Label>
-                      <p className="text-xs text-[#4a5565] mt-0.5">
-                        {bundle.description}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
+              <div className="flex items-center gap-2 rounded-md border border-[#ebeef2] px-3 py-2 hover-elevate flex-1">
+                <RadioGroupItem value="snapshot" id="mode-snapshot" data-testid="radio-mode-snapshot" />
+                <Label htmlFor="mode-snapshot" className="text-sm cursor-pointer">
+                  Fleet snapshot
+                  <span className="block text-xs font-normal text-[#717182]">
+                    Current state of every truck
+                  </span>
+                </Label>
+              </div>
+              <div className="flex items-center gap-2 rounded-md border border-[#ebeef2] px-3 py-2 hover-elevate flex-1">
+                <RadioGroupItem value="historical" id="mode-historical" data-testid="radio-mode-historical" />
+                <Label htmlFor="mode-historical" className="text-sm cursor-pointer">
+                  Truck history
+                  <span className="block text-xs font-normal text-[#717182]">
+                    Time-series for one truck
+                  </span>
+                </Label>
+              </div>
             </RadioGroup>
           </section>
 
-          {/* Format toggle */}
+          {/* === SNAPSHOT MODE === */}
+          {mode === "snapshot" && (
+            <>
+              {/* Bundle picker */}
+              <section>
+                <Label className="text-sm font-semibold text-neutral-950">Bundle</Label>
+                <RadioGroup
+                  value={bundleKey}
+                  onValueChange={handleBundleChange}
+                  className="mt-3 space-y-2"
+                  data-testid="radio-group-bundle"
+                >
+                  {BUNDLE_KEYS.map((key) => {
+                    const bundle = EXPORT_BUNDLES[key];
+                    return (
+                      <div
+                        key={key}
+                        className="flex items-start gap-3 rounded-md border border-[#ebeef2] p-3 hover-elevate"
+                        data-testid={`bundle-option-${key}`}
+                      >
+                        <RadioGroupItem
+                          value={key}
+                          id={`bundle-${key}`}
+                          className="mt-0.5"
+                          data-testid={`radio-bundle-${key}`}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <Label
+                            htmlFor={`bundle-${key}`}
+                            className="text-sm font-medium text-neutral-950 cursor-pointer"
+                          >
+                            {bundle.label}
+                            <span className="ml-2 text-xs font-normal text-[#717182]">
+                              {bundle.columnKeys.length} columns
+                            </span>
+                          </Label>
+                          <p className="text-xs text-[#4a5565] mt-0.5">
+                            {bundle.description}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </RadioGroup>
+              </section>
+
+              {/* Active filters */}
+              <section>
+                <Label className="text-sm font-semibold text-neutral-950">
+                  Filters from dashboard
+                </Label>
+                <div className="mt-2 flex flex-wrap gap-2" data-testid="filter-chips">
+                  {filterChips.length === 0 ? (
+                    <span className="text-xs text-[#717182]" data-testid="text-no-filters">
+                      No filters applied — exporting all trucks.
+                    </span>
+                  ) : (
+                    filterChips.map((chip) => (
+                      <Badge
+                        key={chip.testId}
+                        variant="secondary"
+                        data-testid={chip.testId}
+                      >
+                        {chip.label}
+                      </Badge>
+                    ))
+                  )}
+                </div>
+              </section>
+
+              {/* Advanced — per-column checkboxes */}
+              <section>
+                <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
+                  <CollapsibleTrigger asChild>
+                    <button
+                      type="button"
+                      className="flex items-center gap-2 text-sm font-semibold text-neutral-950 hover-elevate rounded-md px-2 py-1 -mx-2"
+                      data-testid="button-toggle-advanced"
+                    >
+                      {advancedOpen ? (
+                        <ChevronDown className="w-4 h-4" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4" />
+                      )}
+                      Advanced — choose columns
+                      <span className="text-xs font-normal text-[#717182]">
+                        ({selectedCount} selected)
+                      </span>
+                    </button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-3 space-y-4 border border-[#ebeef2] rounded-md p-4">
+                    {COLUMN_GROUPS.map(({ group, columns }) => (
+                      <div key={group} data-testid={`column-group-${slug(group)}`}>
+                        <h4 className="text-xs font-semibold uppercase tracking-wide text-[#717182] mb-2">
+                          {group}
+                        </h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+                          {columns.map((col) => {
+                            const key = col.key as ColumnKey;
+                            const checked = selectedColumns.has(key);
+                            return (
+                              <label
+                                key={key}
+                                className="flex items-start gap-2 cursor-pointer"
+                                data-testid={`column-row-${key}`}
+                              >
+                                <Checkbox
+                                  checked={checked}
+                                  onCheckedChange={(v) => toggleColumn(key, v === true)}
+                                  className="mt-0.5"
+                                  data-testid={`checkbox-column-${key}`}
+                                />
+                                <div className="min-w-0">
+                                  <div className="text-sm text-neutral-950">{col.label}</div>
+                                  {col.description && (
+                                    <div className="text-xs text-[#717182]">
+                                      {col.description}
+                                    </div>
+                                  )}
+                                </div>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
+              </section>
+            </>
+          )}
+
+          {/* === HISTORICAL MODE === */}
+          {mode === "historical" && (
+            <>
+              {/* Truck */}
+              <section>
+                <Label className="text-sm font-semibold text-neutral-950">Truck</Label>
+                <Select
+                  value={historicalTruckId ? String(historicalTruckId) : undefined}
+                  onValueChange={(v) => setHistoricalTruckId(parseInt(v, 10))}
+                >
+                  <SelectTrigger className="mt-2" data-testid="select-historical-truck">
+                    <SelectValue placeholder={trucksQuery.isLoading ? "Loading…" : "Pick a truck"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {trucks.map((t) => (
+                      <SelectItem
+                        key={t.id}
+                        value={String(t.id)}
+                        data-testid={`select-truck-option-${t.id}`}
+                      >
+                        {t.truckNumber}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </section>
+
+              {/* Date range */}
+              <section>
+                <Label className="text-sm font-semibold text-neutral-950">Date range</Label>
+                <div className="mt-2 flex flex-wrap gap-2" data-testid="range-presets">
+                  {RANGE_PRESETS.map((p) => {
+                    const active = rangePreset === p.days;
+                    return (
+                      <Button
+                        key={p.days}
+                        size="sm"
+                        variant={active ? "default" : "outline"}
+                        onClick={() => setRangePreset(p.days)}
+                        data-testid={`button-range-${p.days}d`}
+                      >
+                        {p.label}
+                      </Button>
+                    );
+                  })}
+                  <Button
+                    size="sm"
+                    variant={rangePreset === "custom" ? "default" : "outline"}
+                    onClick={() => setRangePreset("custom")}
+                    data-testid="button-range-custom"
+                  >
+                    Custom
+                  </Button>
+                </div>
+                {rangePreset === "custom" && (
+                  <div className="mt-3 grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="custom-start" className="text-xs text-[#717182]">From</Label>
+                      <Input
+                        id="custom-start"
+                        type="date"
+                        value={customStart}
+                        onChange={(e) => setCustomStart(e.target.value)}
+                        className="mt-1"
+                        data-testid="input-custom-start"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="custom-end" className="text-xs text-[#717182]">To</Label>
+                      <Input
+                        id="custom-end"
+                        type="date"
+                        value={customEnd}
+                        onChange={(e) => setCustomEnd(e.target.value)}
+                        className="mt-1"
+                        data-testid="input-custom-end"
+                      />
+                    </div>
+                  </div>
+                )}
+                {rangeError && (
+                  <p className="mt-2 text-xs text-destructive" data-testid="text-range-error">
+                    {rangeError}
+                  </p>
+                )}
+              </section>
+
+              {/* Granularity */}
+              <section>
+                <Label className="text-sm font-semibold text-neutral-950">Granularity</Label>
+                <RadioGroup
+                  value={granularity}
+                  onValueChange={(v) => {
+                    setGranularity(v as HistoricalGranularity);
+                    setGranularityTouched(true);
+                  }}
+                  className="mt-3 space-y-2"
+                  data-testid="radio-group-granularity"
+                >
+                  {HISTORICAL_GRANULARITIES.map((g) => {
+                    const meta = HISTORICAL_GRANULARITY_META[g];
+                    return (
+                      <div
+                        key={g}
+                        className="flex items-start gap-3 rounded-md border border-[#ebeef2] p-3 hover-elevate"
+                        data-testid={`granularity-option-${g}`}
+                      >
+                        <RadioGroupItem
+                          value={g}
+                          id={`granularity-${g}`}
+                          className="mt-0.5"
+                          data-testid={`radio-granularity-${g}`}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <Label
+                            htmlFor={`granularity-${g}`}
+                            className="text-sm font-medium text-neutral-950 cursor-pointer"
+                          >
+                            {meta.label}
+                          </Label>
+                          <p className="text-xs text-[#4a5565] mt-0.5">{meta.description}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </RadioGroup>
+              </section>
+
+              {/* Estimate */}
+              {estimate && (
+                <section
+                  className="rounded-md border border-[#ebeef2] bg-[#f9fafb] p-3"
+                  data-testid="historical-estimate"
+                >
+                  <p className="text-xs text-[#4a5565]">
+                    Estimated{" "}
+                    <strong className="text-neutral-950" data-testid="text-estimate-rows">
+                      ≈ {estimate.rowCount.toLocaleString()} rows
+                    </strong>{" "}
+                    /{" "}
+                    <strong className="text-neutral-950">
+                      ≈ {(estimate.approxBytes / 1024 / 1024).toFixed(2)} MB
+                    </strong>
+                    {estimate.exceedsMaxRows && (
+                      <span className="ml-2 text-destructive">
+                        — too many rows. Try a coarser granularity or shorter range.
+                      </span>
+                    )}
+                  </p>
+                </section>
+              )}
+            </>
+          )}
+
+          {/* Format toggle (shared) */}
           <section>
             <Label className="text-sm font-semibold text-neutral-950">Format</Label>
             <RadioGroup
@@ -256,90 +709,6 @@ export function ExportDialog({ open, onOpenChange, filters }: ExportDialogProps)
                 <Label htmlFor="format-xlsx" className="text-sm cursor-pointer">Excel (.xlsx)</Label>
               </div>
             </RadioGroup>
-          </section>
-
-          {/* Active filters */}
-          <section>
-            <Label className="text-sm font-semibold text-neutral-950">
-              Filters from dashboard
-            </Label>
-            <div className="mt-2 flex flex-wrap gap-2" data-testid="filter-chips">
-              {filterChips.length === 0 ? (
-                <span className="text-xs text-[#717182]" data-testid="text-no-filters">
-                  No filters applied — exporting all trucks.
-                </span>
-              ) : (
-                filterChips.map((chip) => (
-                  <Badge
-                    key={chip.testId}
-                    variant="secondary"
-                    data-testid={chip.testId}
-                  >
-                    {chip.label}
-                  </Badge>
-                ))
-              )}
-            </div>
-          </section>
-
-          {/* Advanced — per-column checkboxes */}
-          <section>
-            <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
-              <CollapsibleTrigger asChild>
-                <button
-                  type="button"
-                  className="flex items-center gap-2 text-sm font-semibold text-neutral-950 hover-elevate rounded-md px-2 py-1 -mx-2"
-                  data-testid="button-toggle-advanced"
-                >
-                  {advancedOpen ? (
-                    <ChevronDown className="w-4 h-4" />
-                  ) : (
-                    <ChevronRight className="w-4 h-4" />
-                  )}
-                  Advanced — choose columns
-                  <span className="text-xs font-normal text-[#717182]">
-                    ({selectedCount} selected)
-                  </span>
-                </button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="mt-3 space-y-4 border border-[#ebeef2] rounded-md p-4">
-                {COLUMN_GROUPS.map(({ group, columns }) => (
-                  <div key={group} data-testid={`column-group-${slug(group)}`}>
-                    <h4 className="text-xs font-semibold uppercase tracking-wide text-[#717182] mb-2">
-                      {group}
-                    </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
-                      {columns.map((col) => {
-                        const key = col.key as ColumnKey;
-                        const checked = selectedColumns.has(key);
-                        return (
-                          <label
-                            key={key}
-                            className="flex items-start gap-2 cursor-pointer"
-                            data-testid={`column-row-${key}`}
-                          >
-                            <Checkbox
-                              checked={checked}
-                              onCheckedChange={(v) => toggleColumn(key, v === true)}
-                              className="mt-0.5"
-                              data-testid={`checkbox-column-${key}`}
-                            />
-                            <div className="min-w-0">
-                              <div className="text-sm text-neutral-950">{col.label}</div>
-                              {col.description && (
-                                <div className="text-xs text-[#717182]">
-                                  {col.description}
-                                </div>
-                              )}
-                            </div>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </CollapsibleContent>
-            </Collapsible>
           </section>
 
           {submitError && (
@@ -364,7 +733,7 @@ export function ExportDialog({ open, onOpenChange, filters }: ExportDialogProps)
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={submitting || selectedCount === 0}
+            disabled={submitDisabled}
             data-testid="button-export-submit"
           >
             {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}

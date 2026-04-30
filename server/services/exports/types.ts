@@ -7,6 +7,7 @@ import type {
   Truck, PowerMonDevice, DeviceSnapshot, DeviceStatistics, Sim, ShellySnapshot,
 } from "@shared/schema";
 import type { BundleKey, ColumnKey } from "@shared/export-columns";
+import type { HistoricalGranularity } from "@shared/export-historical";
 
 /**
  * One row of joined data, batched by the storage layer to avoid N+1.
@@ -80,4 +81,81 @@ export interface GeneratedExport {
   rowCount: number;
   /** The actual ordered list of column keys used. */
   columnKeys: ColumnKey[];
+}
+
+// ---------------------------------------------------------------------------
+// Historical (single-truck time-series) export types
+// ---------------------------------------------------------------------------
+
+/**
+ * A single bucket of aggregated `device_measurements` for the historical
+ * export. The storage layer fills the identity columns (truck/fleet/device)
+ * once and repeats them on every row — small price for a flat shape that the
+ * cell-builder can read by key.
+ */
+export interface HistoricalExportRow {
+  /** Bucket start timestamp (truncated to minute / hour / day boundary). */
+  bucket: Date;
+  truckNumber: string;
+  fleetName: string | null;
+  powerMonSerial: string | null;
+
+  // Time-series & daily-average readings (averages of underlying samples)
+  voltage1: number | null;
+  voltage2: number | null;
+  current: number | null;
+  power: number | null;
+  soc: number | null;
+  /** Average ambient temperature in Celsius (converted to °F at render). */
+  temperatureC: number | null;
+  /** Average remaining energy in Wh (converted to kWh at render). */
+  energyWh: number | null;
+  charge: number | null;
+  rssi: number | null;
+  /** Last non-null power_status_string in the bucket; falls back to integer. */
+  powerStatus: string | null;
+
+  // Daily-only fields (null on per-minute / hourly rows)
+  minSoc: number | null;
+  maxSoc: number | null;
+  minVoltage1: number | null;
+  maxVoltage1: number | null;
+  minVoltage2: number | null;
+  maxVoltage2: number | null;
+  minTemperatureC: number | null;
+  maxTemperatureC: number | null;
+  /** Energy throughput across the day in Wh (converted to kWh at render). */
+  energyThroughputWh: number | null;
+  /** Count of alerts whose `created_at` fell inside the bucket. */
+  alertsRaised: number | null;
+}
+
+export interface HistoricalQueryOptions {
+  organizationId: number;
+  truckId: number;
+  startTime: Date;
+  endTime: Date;
+  granularity: HistoricalGranularity;
+}
+
+export interface HistoricalQueryResult {
+  rows: HistoricalExportRow[];
+  truck: { id: number; truckNumber: string };
+  fleetName: string | null;
+  powerMonSerial: string | null;
+}
+
+export interface GenerateHistoricalExportInput {
+  organizationId: number;
+  truckId: number;
+  startTime: Date;
+  endTime: Date;
+  granularity: HistoricalGranularity;
+  format: "csv" | "xlsx";
+  /** Storage override for tests. Defaults to the singleton. */
+  storage?: HistoricalExportStorage;
+}
+
+export interface HistoricalExportStorage {
+  getHistoricalMeasurements(opts: HistoricalQueryOptions): Promise<HistoricalQueryResult>;
 }

@@ -213,6 +213,12 @@ export interface IStorage {
     },
   ): Promise<TruckExportRow[]>;
 
+  // Historical (single-truck time-series) export — aggregates
+  // `device_measurements` and joins per-bucket alert counts. Org-scoped.
+  getHistoricalMeasurements(
+    opts: import("./services/exports/types").HistoricalQueryOptions,
+  ): Promise<import("./services/exports/types").HistoricalQueryResult>;
+
   // Export Jobs (async pipeline)
   createExportJobWithLimits(
     data: InsertExportJob,

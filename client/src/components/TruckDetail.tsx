@@ -1,6 +1,5 @@
 import { TruckWithHistory, Notification, HistoricalDataPoint } from "@shared/schema";
-import { X, Battery, Zap, Activity, Thermometer, Check, ChevronDown, AlertTriangle, Loader2, Download, Plus, Minus } from "lucide-react";
-import calendarIcon from "@assets/calendar.svg";
+import { X, Battery, Zap, Activity, Thermometer, Check, ChevronDown, AlertTriangle, Download, Plus, Minus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
@@ -8,11 +7,8 @@ import { useState } from "react";
 import { useTruckHistory, LegacyTruckWithDevice } from "@/lib/api";
 import { TruckTimeline } from "./TruckTimeline";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { format, subDays } from "date-fns";
-import { useToast } from "@/hooks/use-toast";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ExportDialog } from "@/components/ExportDialog";
 
 interface TruckDetailProps {
   truck: LegacyTruckWithDevice;
@@ -85,7 +81,6 @@ function DropdownField({
 }
 
 export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps) {
-  const { toast } = useToast();
   const [voltageSource, setVoltageSource] = useState<"V1" | "V2">("V1");
   const [flipCurrentSign, setFlipCurrentSign] = useState(true);
   const [turnOnAtStartup, setTurnOnAtStartup] = useState(false);
@@ -94,47 +89,13 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
   const [mfTerminalFunction, setMfTerminalFunction] = useState("Push button input");
   const [dataLoggingMode, setDataLoggingMode] = useState("Every 10 seconds");
   
-  const [exportStartDate, setExportStartDate] = useState<Date>(subDays(new Date(), 7));
-  const [exportEndDate, setExportEndDate] = useState<Date>(new Date());
-  const [isExporting, setIsExporting] = useState(false);
-  const [showExportPopover, setShowExportPopover] = useState(false);
-  
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+
   const [powerMeterOpen, setPowerMeterOpen] = useState(false);
   const [metricsOpen, setMetricsOpen] = useState(true);
   const [historyOpen, setHistoryOpen] = useState(true);
 
   const { data: history, isLoading: historyLoading } = useTruckHistory(truck.deviceId);
-
-  const handleExportHistory = async () => {
-    setIsExporting(true);
-    try {
-      const startTime = exportStartDate.toISOString();
-      const endTime = exportEndDate.toISOString();
-      const response = await fetch(
-        `/api/v1/export/trucks/${truck.id}?startTime=${startTime}&endTime=${endTime}`,
-        { credentials: "include" }
-      );
-      if (!response.ok) throw new Error("Export failed");
-      
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      const safeName = truck.name.replace(/[^a-zA-Z0-9-_]/g, "_");
-      a.download = `${safeName}_${format(exportStartDate, "yyyy-MM-dd")}_to_${format(exportEndDate, "yyyy-MM-dd")}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-      
-      toast({ title: "Export complete", description: "Truck history downloaded successfully" });
-      setShowExportPopover(false);
-    } catch (error) {
-      toast({ title: "Export failed", variant: "destructive" });
-    } finally {
-      setIsExporting(false);
-    }
-  };
 
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp);
@@ -174,94 +135,14 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
                   {truck.status === "in-service" ? "In Service" : "Not in Service"}
                 </span>
               </div>
-              <Popover open={showExportPopover} onOpenChange={setShowExportPopover}>
-              <PopoverTrigger asChild>
-                <button 
-                  className="h-[27px] px-3 rounded-md flex items-center gap-2 border border-[#ebeef2] bg-white text-sm text-[#4a5565] hover-elevate ml-[6px] mr-[6px]"
-                  data-testid="button-export-truck-history"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  Export
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80 bg-white" align="start">
-                <div className="space-y-4">
-                  <h4 className="font-medium text-sm">Export History</h4>
-                  <p className="text-xs text-muted-foreground">Select a date range to export truck measurement data.</p>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium">Start Date</label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full justify-start text-left font-normal no-default-hover-elevate no-default-active-elevate"
-                            data-testid="button-export-start-date"
-                          >
-                            <img src={calendarIcon} alt="" className="mr-2 h-4 w-4" />
-                            {format(exportStartDate, "MMM d, yyyy")}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 bg-white" align="start">
-                          <CalendarComponent
-                            mode="single"
-                            selected={exportStartDate}
-                            onSelect={(date) => date && setExportStartDate(date)}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium">End Date</label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full justify-start text-left font-normal no-default-hover-elevate no-default-active-elevate"
-                            data-testid="button-export-end-date"
-                          >
-                            <img src={calendarIcon} alt="" className="mr-2 h-4 w-4" />
-                            {format(exportEndDate, "MMM d, yyyy")}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 bg-white" align="start">
-                          <CalendarComponent
-                            mode="single"
-                            selected={exportEndDate}
-                            onSelect={(date) => date && setExportEndDate(date)}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </div>
-                  
-                  <Button 
-                    className="w-full bg-[#FA4B1E] hover:bg-[#e0431a] text-white border-[#FA4B1E] focus-visible:ring-0 focus-visible:ring-offset-0" 
-                    onClick={handleExportHistory}
-                    disabled={isExporting}
-                    data-testid="button-confirm-export"
-                  >
-                    {isExporting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Exporting...
-                      </>
-                    ) : (
-                      <>
-                        <Download className="mr-2 h-4 w-4" />
-                        Download CSV
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </PopoverContent>
-            </Popover>
+              <button
+                onClick={() => setExportDialogOpen(true)}
+                className="h-[27px] px-3 rounded-md flex items-center gap-2 border border-[#ebeef2] bg-white text-sm text-[#4a5565] hover-elevate ml-[6px] mr-[6px]"
+                data-testid="button-export-truck-history"
+              >
+                <Download className="w-3.5 h-3.5" />
+                Export
+              </button>
             </div>
           </div>
           <button
@@ -521,6 +402,15 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
           </CollapsibleContent>
         </Collapsible>
       </div>
+
+      <ExportDialog
+        open={exportDialogOpen}
+        onOpenChange={setExportDialogOpen}
+        filters={{ status: "all", searchQuery: "" }}
+        initialMode="historical"
+        initialTruckId={parseInt(truck.id, 10)}
+        initialRangeDays={7}
+      />
     </div>
   );
 }

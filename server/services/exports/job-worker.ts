@@ -33,7 +33,12 @@ import {
   sendExportFailedEmail,
 } from "../email-service";
 import { generateExport } from "./index";
-import type { ExportFilters } from "./types";
+import { generateHistoricalExport } from "./historical-generator";
+import {
+  HISTORICAL_GRANULARITY_META,
+  type HistoricalGranularity,
+} from "@shared/export-historical";
+import type { ExportFilters, GeneratedExport } from "./types";
 
 const POLL_INTERVAL_MS = 5_000;
 const SWEEP_INTERVAL_MS = 60 * 60 * 1000; // 1 hour — per spec
@@ -115,32 +120,60 @@ class ExportJobWorker {
     );
 
     try {
-      if (job.historicalMode) {
-        // Defense-in-depth: the POST endpoint already rejects historical
-        // requests with 501 until Task #4 lands the historical generator,
-        // so a job row with `historicalMode=true` should never reach this
-        // worker. If it somehow does (e.g. an old row that pre-dates the
-        // POST validation), fail loudly rather than silently produce a
-        // snapshot file pretending to be historical data.
-        throw new Error("Historical export mode is not yet implemented");
-      }
-
-      // jsonb columns deserialize natively — no JSON.parse needed.
-      const filters = (job.filters as ExportFilters | null) ?? undefined;
-      const includeColumns = (job.includeColumns as ColumnKey[] | null) ?? undefined;
-      const excludeColumns = (job.excludeColumns as ColumnKey[] | null) ?? undefined;
       const format = (job.format === "xlsx" ? "xlsx" : "csv") as "csv" | "xlsx";
+      let result: GeneratedExport;
+      let historicalContext:
+        | { granularity: HistoricalGranularity; startTime: Date; endTime: Date; truckId: number }
+        | null = null;
 
-      // bundleKey is validated against EXPORT_BUNDLES at /POST time, so the
-      // narrowing assertion here is safe.
-      const result = await generateExport({
-        organizationId: job.organizationId,
-        bundleKey: job.bundleKey as BundleKey,
-        format,
-        filters,
-        includeColumns,
-        excludeColumns,
-      });
+      if (job.historicalMode) {
+        // Validate the row's historical fields BEFORE invoking the generator.
+        // These are persisted by the POST handler so under normal flow they're
+        // guaranteed; the explicit checks here exist so a malformed row (e.g.
+        // an older partial row, or a manual DB tweak) fails fast with a
+        // recognizable error rather than throwing inside Drizzle.
+        if (
+          !job.historicalTruckId
+          || !job.historicalStartTime
+          || !job.historicalEndTime
+          || !job.historicalIntervalSeconds
+        ) {
+          throw new Error(
+            "Historical export job is missing required fields (truckId, startTime, endTime, intervalSeconds)",
+          );
+        }
+        const granularity = intervalSecondsToGranularity(job.historicalIntervalSeconds);
+        result = await generateHistoricalExport({
+          organizationId: job.organizationId,
+          truckId: job.historicalTruckId,
+          startTime: job.historicalStartTime,
+          endTime: job.historicalEndTime,
+          granularity,
+          format,
+        });
+        historicalContext = {
+          granularity,
+          startTime: job.historicalStartTime,
+          endTime: job.historicalEndTime,
+          truckId: job.historicalTruckId,
+        };
+      } else {
+        // jsonb columns deserialize natively — no JSON.parse needed.
+        const filters = (job.filters as ExportFilters | null) ?? undefined;
+        const includeColumns = (job.includeColumns as ColumnKey[] | null) ?? undefined;
+        const excludeColumns = (job.excludeColumns as ColumnKey[] | null) ?? undefined;
+
+        // bundleKey is validated against EXPORT_BUNDLES at /POST time, so the
+        // narrowing assertion here is safe.
+        result = await generateExport({
+          organizationId: job.organizationId,
+          bundleKey: job.bundleKey as BundleKey,
+          format,
+          filters,
+          includeColumns,
+          excludeColumns,
+        });
+      }
 
       // Per spec: exports/<orgId>/<jobId>/<filename>
       const s3Key = `exports/${job.organizationId}/${job.id}/${result.filename}`;
@@ -165,14 +198,27 @@ class ExportJobWorker {
       try {
         const user = await storage.getUserById(job.userId);
         if (user?.email) {
+          // For historical exports we override the bundle label with a more
+          // descriptive "Truck History (Hourly · Truck T-104)" string so the
+          // email matches what the user actually requested. Snapshot exports
+          // continue to surface the bundle label.
+          const bundleLabel = historicalContext
+            ? `Truck History (${HISTORICAL_GRANULARITY_META[historicalContext.granularity].label})`
+            : EXPORT_BUNDLES[job.bundleKey as keyof typeof EXPORT_BUNDLES]?.label ?? job.bundleKey;
           const sent = await sendExportReadyEmail(user.email, {
             firstName: user.firstName ?? undefined,
             filename: result.filename,
             rowCount: result.rowCount,
-            bundleLabel:
-              EXPORT_BUNDLES[job.bundleKey as keyof typeof EXPORT_BUNDLES]?.label ?? job.bundleKey,
+            bundleLabel,
             downloadUrl,
             expiresAt,
+            historical: historicalContext
+              ? {
+                  granularityLabel: HISTORICAL_GRANULARITY_META[historicalContext.granularity].label,
+                  startTime: historicalContext.startTime,
+                  endTime: historicalContext.endTime,
+                }
+              : undefined,
           });
           if (sent && updated) {
             await storage.updateExportJob(job.id, { notifiedAt: new Date() });
@@ -212,6 +258,29 @@ class ExportJobWorker {
       }
     }
   }
+}
+
+/**
+ * Map the persisted `historicalIntervalSeconds` value back to the granularity
+ * enum the historical generator expects. We chose this representation (vs a
+ * separate `historical_granularity` text column) to avoid a schema migration —
+ * the existing column was always intended to encode the bucket size.
+ *
+ * 60      → "minute"
+ * 3600    → "hour"
+ * 86400   → "day"
+ *
+ * Anything outside this set is treated as "minute" (the safest finest-grained
+ * default) but logged so we notice if a non-standard value sneaks in.
+ */
+function intervalSecondsToGranularity(intervalSeconds: number): HistoricalGranularity {
+  if (intervalSeconds === 60) return "minute";
+  if (intervalSeconds === 3600) return "hour";
+  if (intervalSeconds === 86400) return "day";
+  console.warn(
+    `[exports/worker] unexpected historicalIntervalSeconds=${intervalSeconds}, defaulting to minute granularity`,
+  );
+  return "minute";
 }
 
 function errorToString(err: unknown): string {

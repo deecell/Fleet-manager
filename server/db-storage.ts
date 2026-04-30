@@ -1327,6 +1327,189 @@ export class DbStorage {
   }
 
   // ===========================================================================
+  // HISTORICAL TIME-SERIES EXPORT (single truck, ≤1 year)
+  // ===========================================================================
+  //
+  // Aggregates `device_measurements` into minute / hour / day buckets and
+  // joins per-bucket alert counts. Always org-scoped: the truck FK is checked
+  // up front and every measurement WHERE pins `organizationId`.
+  //
+  // For per-minute / hourly granularity, all aggregates are AVG. For daily
+  // granularity, MIN/MAX columns are also computed (the daily column registry
+  // displays them). `temperature` and `energy` are stored in C and Wh
+  // respectively — the cell-builder converts them to °F and kWh at render
+  // time.
+
+  async getHistoricalMeasurements(
+    opts: import("./services/exports/types").HistoricalQueryOptions,
+  ): Promise<import("./services/exports/types").HistoricalQueryResult> {
+    const { organizationId, truckId, startTime, endTime, granularity } = opts;
+
+    if (!(endTime > startTime)) {
+      throw new Error("getHistoricalMeasurements: endTime must be after startTime");
+    }
+
+    // Org-scoped truck lookup + identity columns. We deliberately resolve
+    // these here so the historical export NEVER returns rows whose identity
+    // columns belong to a different org's truck (defense-in-depth — the
+    // measurements WHERE also pins organizationId).
+    const identity = await db
+      .select({
+        truckId: trucks.id,
+        truckNumber: trucks.truckNumber,
+        fleetName: fleets.name,
+        powerMonSerial: powerMonDevices.serialNumber,
+      })
+      .from(trucks)
+      .leftJoin(fleets, and(
+        eq(fleets.id, trucks.fleetId),
+        eq(fleets.organizationId, organizationId),
+      ))
+      .leftJoin(powerMonDevices, and(
+        eq(powerMonDevices.truckId, trucks.id),
+        eq(powerMonDevices.organizationId, organizationId),
+      ))
+      .where(and(
+        eq(trucks.id, truckId),
+        eq(trucks.organizationId, organizationId),
+      ))
+      .orderBy(desc(powerMonDevices.id))
+      .limit(1);
+
+    if (identity.length === 0) {
+      throw new Error(`Truck ${truckId} not found in organization ${organizationId}`);
+    }
+    const id = identity[0];
+
+    // PostgreSQL `date_trunc` accepts the unit as a literal string, so we
+    // map our enum to the matching unit string here. Passing user input
+    // straight in would be a SQL-injection vector — `granularity` has
+    // already been validated by zod at the route boundary, but we still
+    // hard-map to be safe.
+    const truncUnit: "minute" | "hour" | "day" =
+      granularity === "minute" ? "minute"
+      : granularity === "hour" ? "hour"
+      : "day";
+
+    // Measurement aggregates per bucket. The casts to ::float8 ensure we get
+    // back JS `number` instead of `string` (Postgres returns NUMERIC as text
+    // through pg-driver).
+    const bucketCol = sql<Date>`date_trunc(${truncUnit}, ${deviceMeasurements.recordedAt})`;
+    const measurementRows = await db
+      .select({
+        bucket: bucketCol.as("bucket"),
+        avgVoltage1:    sql<number | null>`avg(${deviceMeasurements.voltage1})::float8`.as("avg_v1"),
+        avgVoltage2:    sql<number | null>`avg(${deviceMeasurements.voltage2})::float8`.as("avg_v2"),
+        avgCurrent:     sql<number | null>`avg(${deviceMeasurements.current})::float8`.as("avg_curr"),
+        avgPower:       sql<number | null>`avg(${deviceMeasurements.power})::float8`.as("avg_pow"),
+        avgSoc:         sql<number | null>`avg(${deviceMeasurements.soc})::float8`.as("avg_soc"),
+        avgTemperature: sql<number | null>`avg(${deviceMeasurements.temperature})::float8`.as("avg_temp"),
+        avgEnergy:      sql<number | null>`avg(${deviceMeasurements.energy})::float8`.as("avg_energy"),
+        avgCharge:      sql<number | null>`avg(${deviceMeasurements.charge})::float8`.as("avg_charge"),
+        avgRssi:        sql<number | null>`avg(${deviceMeasurements.rssi})::float8`.as("avg_rssi"),
+        // Last non-null status string seen in the bucket; window-style picks
+        // are awkward inside an aggregate query, so we use MAX which is
+        // deterministic and good-enough for "what status applied here".
+        powerStatusString: sql<string | null>`max(${deviceMeasurements.powerStatusString})`.as("ps_str"),
+        powerStatusInt:    sql<number | null>`max(${deviceMeasurements.powerStatus})::float8`.as("ps_int"),
+
+        // Daily-only MIN/MAX (cheap to compute even on minute/hour buckets,
+        // and we just don't render them in those modes).
+        minSoc:         sql<number | null>`min(${deviceMeasurements.soc})::float8`.as("min_soc"),
+        maxSoc:         sql<number | null>`max(${deviceMeasurements.soc})::float8`.as("max_soc"),
+        minVoltage1:    sql<number | null>`min(${deviceMeasurements.voltage1})::float8`.as("min_v1"),
+        maxVoltage1:    sql<number | null>`max(${deviceMeasurements.voltage1})::float8`.as("max_v1"),
+        minVoltage2:    sql<number | null>`min(${deviceMeasurements.voltage2})::float8`.as("min_v2"),
+        maxVoltage2:    sql<number | null>`max(${deviceMeasurements.voltage2})::float8`.as("max_v2"),
+        minTemperature: sql<number | null>`min(${deviceMeasurements.temperature})::float8`.as("min_temp"),
+        maxTemperature: sql<number | null>`max(${deviceMeasurements.temperature})::float8`.as("max_temp"),
+        // Energy throughput = max(energy_remaining) - min(energy_remaining)
+        // within the day — a reasonable proxy for total energy that flowed
+        // through the bank, given the per-measurement column is cumulative
+        // remaining energy.
+        energyThroughput: sql<number | null>`(max(${deviceMeasurements.energy}) - min(${deviceMeasurements.energy}))::float8`.as("energy_throughput"),
+      })
+      .from(deviceMeasurements)
+      .where(and(
+        eq(deviceMeasurements.organizationId, organizationId),
+        eq(deviceMeasurements.truckId, truckId),
+        gte(deviceMeasurements.recordedAt, startTime),
+        lte(deviceMeasurements.recordedAt, endTime),
+      ))
+      .groupBy(bucketCol)
+      .orderBy(asc(bucketCol));
+
+    // Daily granularity also reports an "alerts raised" count per day.
+    // Cheap separate query keyed by `created_at` truncated the same way.
+    let alertsByBucket = new Map<number, number>();
+    if (granularity === "day") {
+      const alertBucket = sql<Date>`date_trunc('day', ${alerts.createdAt})`;
+      const alertRows = await db
+        .select({
+          bucket: alertBucket.as("bucket"),
+          count: sql<number>`count(*)::int`.as("alert_count"),
+        })
+        .from(alerts)
+        .where(and(
+          eq(alerts.organizationId, organizationId),
+          eq(alerts.truckId, truckId),
+          gte(alerts.createdAt, startTime),
+          lte(alerts.createdAt, endTime),
+        ))
+        .groupBy(alertBucket);
+      for (const r of alertRows) {
+        const ts = (r.bucket instanceof Date ? r.bucket : new Date(r.bucket as unknown as string)).getTime();
+        alertsByBucket.set(ts, r.count);
+      }
+    }
+
+    const rows = measurementRows.map((m) => {
+      const bucketDate = m.bucket instanceof Date ? m.bucket : new Date(m.bucket as unknown as string);
+      const psString = m.powerStatusString;
+      const psInt = m.powerStatusInt;
+      const powerStatus =
+        psString && psString.trim().length > 0
+          ? psString
+          : psInt !== null && psInt !== undefined
+            ? String(Math.round(psInt))
+            : null;
+      return {
+        bucket: bucketDate,
+        truckNumber: id.truckNumber,
+        fleetName: id.fleetName,
+        powerMonSerial: id.powerMonSerial,
+        voltage1: m.avgVoltage1,
+        voltage2: m.avgVoltage2,
+        current: m.avgCurrent,
+        power: m.avgPower,
+        soc: m.avgSoc,
+        temperatureC: m.avgTemperature,
+        energyWh: m.avgEnergy,
+        charge: m.avgCharge,
+        rssi: m.avgRssi !== null && m.avgRssi !== undefined ? Math.round(m.avgRssi) : null,
+        powerStatus,
+        minSoc: m.minSoc,
+        maxSoc: m.maxSoc,
+        minVoltage1: m.minVoltage1,
+        maxVoltage1: m.maxVoltage1,
+        minVoltage2: m.minVoltage2,
+        maxVoltage2: m.maxVoltage2,
+        minTemperatureC: m.minTemperature,
+        maxTemperatureC: m.maxTemperature,
+        energyThroughputWh: m.energyThroughput,
+        alertsRaised: granularity === "day" ? (alertsByBucket.get(bucketDate.getTime()) ?? 0) : null,
+      };
+    });
+
+    return {
+      rows,
+      truck: { id: id.truckId, truckNumber: id.truckNumber },
+      fleetName: id.fleetName,
+      powerMonSerial: id.powerMonSerial,
+    };
+  }
+
+  // ===========================================================================
   // EXPORT JOBS (async export pipeline)
   // ===========================================================================
 
