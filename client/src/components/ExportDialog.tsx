@@ -300,32 +300,37 @@ export function ExportDialog({
   }, [bundleKey, selectedColumns]);
 
   // Resolve the active date range — preset (relative to "now") or custom.
+  // The 1-year cap is enforced uniformly here so presets (e.g. "Last year"
+  // on a leap-year window) and custom ranges fail the same way client-side.
   const { startTime, endTime, rangeDays, rangeError } = useMemo(() => {
     const now = new Date();
+    let s: Date;
+    let e: Date;
     if (rangePresetId === "custom") {
       if (!customStart || !customEnd) {
         return { startTime: null, endTime: null, rangeDays: 0, rangeError: "Pick a start and end date." };
       }
-      const s = startOfDay(new Date(customStart));
-      const e = endOfDay(new Date(customEnd));
+      s = startOfDay(new Date(customStart));
+      e = endOfDay(new Date(customEnd));
       if (!Number.isFinite(s.getTime()) || !Number.isFinite(e.getTime())) {
         return { startTime: null, endTime: null, rangeDays: 0, rangeError: "Invalid date." };
       }
       if (e <= s) {
         return { startTime: s, endTime: e, rangeDays: 0, rangeError: "End date must be after start date." };
       }
-      const days = Math.ceil((e.getTime() - s.getTime()) / 86400000);
-      if (e.getTime() - s.getTime() > HISTORICAL_MAX_RANGE_MS) {
-        return { startTime: s, endTime: e, rangeDays: days, rangeError: "Range can't be longer than 1 year." };
+    } else {
+      const preset = RANGE_PRESETS_BY_ID[rangePresetId];
+      if (!preset) {
+        return { startTime: null, endTime: null, rangeDays: 0, rangeError: "Unknown range." };
       }
-      return { startTime: s, endTime: e, rangeDays: days, rangeError: null as string | null };
+      const resolved = preset.resolve(now);
+      s = resolved.start;
+      e = resolved.end;
     }
-    const preset = RANGE_PRESETS_BY_ID[rangePresetId];
-    if (!preset) {
-      return { startTime: null, endTime: null, rangeDays: 0, rangeError: "Unknown range." };
+    const days = Math.max(1, Math.ceil((e.getTime() - s.getTime()) / 86400000));
+    if (e.getTime() - s.getTime() > HISTORICAL_MAX_RANGE_MS) {
+      return { startTime: s, endTime: e, rangeDays: days, rangeError: "Range can't be longer than 1 year." };
     }
-    const { start: s, end: e } = preset.resolve(now);
-    const days = preset.days ?? Math.max(1, Math.ceil((e.getTime() - s.getTime()) / 86400000));
     return { startTime: s, endTime: e, rangeDays: days, rangeError: null as string | null };
   }, [rangePresetId, customStart, customEnd]);
 

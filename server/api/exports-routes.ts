@@ -180,11 +180,12 @@ router.post("/", tenantMiddleware, async (req: Request, res: Response) => {
     const granularity: HistoricalGranularity = input.historicalGranularity ?? "minute";
     historicalIntervalSeconds = HISTORICAL_GRANULARITY_META[granularity].bucketSeconds;
 
-    // Reject anything that would obviously blow past our 200k-row hard cap
-    // BEFORE we enqueue the job. The estimator slightly over-counts on
-    // sparse data (which is fine — better to err on the side of returning
-    // a 400 with a clear "pick a coarser granularity" message than to let
-    // the worker spend minutes generating a 500MB file we'd refuse to send).
+    // Reject anything that would obviously blow past the HISTORICAL_MAX_ROWS
+    // hard cap (currently 600k) BEFORE we enqueue the job. The estimator
+    // slightly over-counts on sparse data (which is fine — better to err on
+    // the side of returning a 400 with a clear "pick a coarser granularity"
+    // message than to let the worker spend minutes generating a huge file
+    // we'd refuse to send).
     const estimate = estimateHistoricalRows({
       granularity,
       startMs: input.historicalStartTime.getTime(),
