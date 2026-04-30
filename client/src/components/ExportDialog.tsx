@@ -96,14 +96,82 @@ const COLUMN_GROUPS: Array<{ group: string; columns: typeof EXPORT_COLUMN_LIST }
   return Array.from(map.entries()).map(([group, columns]) => ({ group, columns }));
 })();
 
-// Range presets (days). "Custom" lets the user pick start/end manually.
-const RANGE_PRESETS: Array<{ label: string; days: number }> = [
-  { label: "Last 24 hours", days: 1 },
-  { label: "Last 7 days", days: 7 },
-  { label: "Last 30 days", days: 30 },
-  { label: "Last 90 days", days: 90 },
-  { label: "Last 1 year", days: 365 },
+// Range presets. Trailing-window presets carry a `days` field that also
+// drives the granularity auto-suggest. Calendar-anchored presets (MTD, YTD,
+// Last month, Last year) compute their own bounds and report a derived day
+// count from the resolved range.
+type RangePreset = {
+  id: string;
+  label: string;
+  /** Trailing-window day count, if applicable. Falsy for calendar presets. */
+  days?: number;
+  /** Computes the absolute [start, end] for the preset relative to "now". */
+  resolve: (now: Date) => { start: Date; end: Date };
+};
+
+function trailingPreset(id: string, label: string, days: number): RangePreset {
+  return {
+    id,
+    label,
+    days,
+    resolve: (now) => ({
+      start: new Date(now.getTime() - days * 86400000),
+      end: now,
+    }),
+  };
+}
+
+const RANGE_PRESETS: RangePreset[] = [
+  trailingPreset("d1", "Last 24 hours", 1),
+  trailingPreset("d7", "Last 7 days", 7),
+  trailingPreset("d30", "Last 30 days", 30),
+  trailingPreset("d90", "Last 90 days", 90),
+  trailingPreset("d365", "Last 1 year", 365),
+  {
+    id: "mtd",
+    label: "Month to date",
+    resolve: (now) => ({
+      start: startOfDay(new Date(now.getFullYear(), now.getMonth(), 1)),
+      end: now,
+    }),
+  },
+  {
+    id: "ytd",
+    label: "Year to date",
+    resolve: (now) => ({
+      start: startOfDay(new Date(now.getFullYear(), 0, 1)),
+      end: now,
+    }),
+  },
+  {
+    id: "last_month",
+    label: "Last month",
+    resolve: (now) => {
+      const start = startOfDay(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+      const end = endOfDay(new Date(now.getFullYear(), now.getMonth(), 0));
+      return { start, end };
+    },
+  },
+  {
+    id: "last_year",
+    label: "Last year",
+    resolve: (now) => {
+      const start = startOfDay(new Date(now.getFullYear() - 1, 0, 1));
+      const end = endOfDay(new Date(now.getFullYear() - 1, 11, 31));
+      return { start, end };
+    },
+  },
 ];
+
+const RANGE_PRESETS_BY_ID: Record<string, RangePreset> = Object.fromEntries(
+  RANGE_PRESETS.map((p) => [p.id, p]),
+);
+
+function presetIdForDays(days: number): string {
+  // Map a days hint (e.g. seeded by TruckDetail) to an existing trailing preset.
+  const exact = RANGE_PRESETS.find((p) => p.days === days);
+  return exact?.id ?? "d30";
+}
 
 function isoDate(d: Date): string {
   // Returns yyyy-MM-dd in local time — what `<Input type="date">` expects.
@@ -151,7 +219,7 @@ export function ExportDialog({
   // lets the user free-edit; any other preset re-derives the range on
   // change. Granularity defaults to whatever fits the range size.
   const [historicalTruckId, setHistoricalTruckId] = useState<number | undefined>(initialTruckId);
-  const [rangePreset, setRangePreset] = useState<number | "custom">(initialRangeDays);
+  const [rangePresetId, setRangePresetId] = useState<string>(presetIdForDays(initialRangeDays));
   const [customStart, setCustomStart] = useState<string>("");
   const [customEnd, setCustomEnd] = useState<string>("");
   const [granularity, setGranularity] = useState<HistoricalGranularity>(
@@ -172,7 +240,7 @@ export function ExportDialog({
     setAdvancedOpen(false);
     setSubmitError(null);
     setHistoricalTruckId(initialTruckId);
-    setRangePreset(initialRangeDays);
+    setRangePresetId(presetIdForDays(initialRangeDays));
     const today = new Date();
     setCustomStart(isoDate(new Date(today.getTime() - initialRangeDays * 86400000)));
     setCustomEnd(isoDate(today));
@@ -217,7 +285,7 @@ export function ExportDialog({
   // Resolve the active date range — preset (relative to "now") or custom.
   const { startTime, endTime, rangeDays, rangeError } = useMemo(() => {
     const now = new Date();
-    if (rangePreset === "custom") {
+    if (rangePresetId === "custom") {
       if (!customStart || !customEnd) {
         return { startTime: null, endTime: null, rangeDays: 0, rangeError: "Pick a start and end date." };
       }
@@ -235,11 +303,14 @@ export function ExportDialog({
       }
       return { startTime: s, endTime: e, rangeDays: days, rangeError: null as string | null };
     }
-    const days = rangePreset;
-    const e = now;
-    const s = new Date(now.getTime() - days * 86400000);
+    const preset = RANGE_PRESETS_BY_ID[rangePresetId];
+    if (!preset) {
+      return { startTime: null, endTime: null, rangeDays: 0, rangeError: "Unknown range." };
+    }
+    const { start: s, end: e } = preset.resolve(now);
+    const days = preset.days ?? Math.max(1, Math.ceil((e.getTime() - s.getTime()) / 86400000));
     return { startTime: s, endTime: e, rangeDays: days, rangeError: null as string | null };
-  }, [rangePreset, customStart, customEnd]);
+  }, [rangePresetId, customStart, customEnd]);
 
   // Auto-suggest granularity when the range changes — but stop overriding
   // once the user has manually picked one for this dialog session.
@@ -569,14 +640,14 @@ export function ExportDialog({
                 <Label className="text-sm font-semibold text-neutral-950">Date range</Label>
                 <div className="mt-2 flex flex-wrap gap-2" data-testid="range-presets">
                   {RANGE_PRESETS.map((p) => {
-                    const active = rangePreset === p.days;
+                    const active = rangePresetId === p.id;
                     return (
                       <Button
-                        key={p.days}
+                        key={p.id}
                         size="sm"
                         variant={active ? "default" : "outline"}
-                        onClick={() => setRangePreset(p.days)}
-                        data-testid={`button-range-${p.days}d`}
+                        onClick={() => setRangePresetId(p.id)}
+                        data-testid={`button-range-${p.id}`}
                       >
                         {p.label}
                       </Button>
@@ -584,14 +655,14 @@ export function ExportDialog({
                   })}
                   <Button
                     size="sm"
-                    variant={rangePreset === "custom" ? "default" : "outline"}
-                    onClick={() => setRangePreset("custom")}
+                    variant={rangePresetId === "custom" ? "default" : "outline"}
+                    onClick={() => setRangePresetId("custom")}
                     data-testid="button-range-custom"
                   >
                     Custom
                   </Button>
                 </div>
-                {rangePreset === "custom" && (
+                {rangePresetId === "custom" && (
                   <div className="mt-3 grid grid-cols-2 gap-3">
                     <div>
                       <Label htmlFor="custom-start" className="text-xs text-[#717182]">From</Label>

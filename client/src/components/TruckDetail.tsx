@@ -409,7 +409,7 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
         filters={{ status: "all", searchQuery: "" }}
         initialMode="historical"
         initialTruckId={parseInt(truck.id, 10)}
-        initialRangeDays={7}
+        initialRangeDays={30}
       />
     </div>
   );

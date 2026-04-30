@@ -370,22 +370,42 @@ export async function sendExportReadyEmail(
      * adds the time-range context.
      */
     historical?: {
+      truckNumber: string;
+      fleetName?: string | null;
       granularityLabel: string;
       startTime: Date;
       endTime: Date;
     };
   },
 ): Promise<boolean> {
-  const greeting = opts.firstName ? `Hi ${opts.firstName},` : "Hi,";
+  const escapeHtml = (s: string): string =>
+    s.replace(/[&<>"']/g, (c) =>
+      c === "&" ? "&amp;"
+      : c === "<" ? "&lt;"
+      : c === ">" ? "&gt;"
+      : c === '"' ? "&quot;"
+      : "&#39;");
+  const safeFirstName = opts.firstName ? escapeHtml(opts.firstName) : "";
+  const greeting = safeFirstName ? `Hi ${safeFirstName},` : "Hi,";
   const expiresStr = opts.expiresAt.toLocaleString("en-US", {
     dateStyle: "medium",
     timeStyle: "short",
   });
+  const safeBundleLabel = escapeHtml(opts.bundleLabel);
+  const safeFilename = escapeHtml(opts.filename);
+  // Download URL is a presigned S3 URL we generate, but we still escape it
+  // defensively so a future code path that ever inserts a user-controlled URL
+  // here cannot break out of the attribute or text content.
+  const safeDownloadUrl = escapeHtml(opts.downloadUrl);
   const historicalRows = opts.historical
     ? `
       <tr>
+        <td style="padding: 12px 16px; color: #71717a; font-size: 13px; border-top: 1px solid #e4e4e7;">Truck</td>
+        <td style="padding: 12px 16px; color: #18181b; font-size: 13px; font-weight: 600; text-align: right; border-top: 1px solid #e4e4e7;">${escapeHtml(opts.historical.truckNumber)}${opts.historical.fleetName ? ` <span style="color:#71717a; font-weight: 400;">· ${escapeHtml(opts.historical.fleetName)}</span>` : ""}</td>
+      </tr>
+      <tr>
         <td style="padding: 12px 16px; color: #71717a; font-size: 13px; border-top: 1px solid #e4e4e7;">Granularity</td>
-        <td style="padding: 12px 16px; color: #18181b; font-size: 13px; font-weight: 600; text-align: right; border-top: 1px solid #e4e4e7;">${opts.historical.granularityLabel}</td>
+        <td style="padding: 12px 16px; color: #18181b; font-size: 13px; font-weight: 600; text-align: right; border-top: 1px solid #e4e4e7;">${escapeHtml(opts.historical.granularityLabel)}</td>
       </tr>
       <tr>
         <td style="padding: 12px 16px; color: #71717a; font-size: 13px; border-top: 1px solid #e4e4e7;">Range</td>
@@ -396,12 +416,12 @@ export async function sendExportReadyEmail(
     <h2 style="margin: 0 0 16px 0; color: #18181b; font-size: 20px;">Your fleet export is ready</h2>
     <p style="margin: 0 0 16px 0; color: #18181b; font-size: 14px; line-height: 1.6;">${greeting}</p>
     <p style="margin: 0 0 16px 0; color: #18181b; font-size: 14px; line-height: 1.6;">
-      Your <strong>${opts.bundleLabel}</strong> export finished and is ready to download.
+      Your <strong>${safeBundleLabel}</strong> export finished and is ready to download.
     </p>
     <table cellpadding="0" cellspacing="0" style="margin: 0 0 24px 0; width: 100%; border: 1px solid #e4e4e7; border-radius: 6px;">
       <tr>
         <td style="padding: 12px 16px; color: #71717a; font-size: 13px;">File</td>
-        <td style="padding: 12px 16px; color: #18181b; font-size: 13px; font-weight: 600; text-align: right;">${opts.filename}</td>
+        <td style="padding: 12px 16px; color: #18181b; font-size: 13px; font-weight: 600; text-align: right;">${safeFilename}</td>
       </tr>
       <tr>
         <td style="padding: 12px 16px; color: #71717a; font-size: 13px; border-top: 1px solid #e4e4e7;">Rows</td>
@@ -413,7 +433,7 @@ export async function sendExportReadyEmail(
       </tr>
     </table>
     <p style="margin: 0 0 16px 0; text-align: center;">
-      <a href="${opts.downloadUrl}" style="display: inline-block; background-color: #FA4B1E; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 32px; border-radius: 6px;">
+      <a href="${safeDownloadUrl}" style="display: inline-block; background-color: #FA4B1E; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 32px; border-radius: 6px;">
         Download export
       </a>
     </p>
@@ -427,7 +447,7 @@ export async function sendExportReadyEmail(
     <hr style="border: none; border-top: 1px solid #e4e4e7; margin: 24px 0;">
     <p style="margin: 0; color: #71717a; font-size: 12px;">
       If the button doesn't work, copy and paste this link into your browser:<br>
-      <a href="${opts.downloadUrl}" style="color: #FA4B1E; word-break: break-all;">${opts.downloadUrl}</a>
+      <a href="${safeDownloadUrl}" style="color: #FA4B1E; word-break: break-all;">${safeDownloadUrl}</a>
     </p>
   `;
 
@@ -442,15 +462,25 @@ export async function sendExportFailedEmail(
   email: string,
   opts: { firstName?: string; bundleLabel: string; errorMessage: string },
 ): Promise<boolean> {
-  const greeting = opts.firstName ? `Hi ${opts.firstName},` : "Hi,";
+  const escapeHtml = (s: string): string =>
+    s.replace(/[&<>"']/g, (c) =>
+      c === "&" ? "&amp;"
+      : c === "<" ? "&lt;"
+      : c === ">" ? "&gt;"
+      : c === '"' ? "&quot;"
+      : "&#39;");
+  const safeFirstName = opts.firstName ? escapeHtml(opts.firstName) : "";
+  const greeting = safeFirstName ? `Hi ${safeFirstName},` : "Hi,";
+  const safeBundleLabel = escapeHtml(opts.bundleLabel);
+  const safeErrorMessage = escapeHtml(opts.errorMessage);
   const content = `
     <h2 style="margin: 0 0 16px 0; color: #18181b; font-size: 20px;">Your fleet export couldn't be generated</h2>
     <p style="margin: 0 0 16px 0; color: #18181b; font-size: 14px; line-height: 1.6;">${greeting}</p>
     <p style="margin: 0 0 16px 0; color: #18181b; font-size: 14px; line-height: 1.6;">
-      Your <strong>${opts.bundleLabel}</strong> export ran into an error and was not produced. You can try again from the Fleet dashboard. If the problem persists, contact support.
+      Your <strong>${safeBundleLabel}</strong> export ran into an error and was not produced. You can try again from the Fleet dashboard. If the problem persists, contact support.
     </p>
     <p style="margin: 0 0 16px 0; padding: 12px 16px; background-color: #f4f4f5; border-left: 3px solid #ef4444; color: #18181b; font-size: 12px; font-family: ui-monospace, SFMono-Regular, monospace; line-height: 1.5;">
-      ${opts.errorMessage}
+      ${safeErrorMessage}
     </p>
     <p style="margin: 0 0 16px 0; text-align: center;">
       <a href="${APP_URL}/dashboard" style="display: inline-block; background-color: #FA4B1E; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 32px; border-radius: 6px;">

@@ -203,7 +203,7 @@ class ExportJobWorker {
           // email matches what the user actually requested. Snapshot exports
           // continue to surface the bundle label.
           const bundleLabel = historicalContext
-            ? `Truck History (${HISTORICAL_GRANULARITY_META[historicalContext.granularity].label})`
+            ? `Truck History (${HISTORICAL_GRANULARITY_META[historicalContext.granularity].label}${result.historicalMeta?.truckNumber ? ` · ${result.historicalMeta.truckNumber}` : ""})`
             : EXPORT_BUNDLES[job.bundleKey as keyof typeof EXPORT_BUNDLES]?.label ?? job.bundleKey;
           const sent = await sendExportReadyEmail(user.email, {
             firstName: user.firstName ?? undefined,
@@ -214,6 +214,8 @@ class ExportJobWorker {
             expiresAt,
             historical: historicalContext
               ? {
+                  truckNumber: result.historicalMeta?.truckNumber ?? `Truck #${historicalContext.truckId}`,
+                  fleetName: result.historicalMeta?.fleetName ?? null,
                   granularityLabel: HISTORICAL_GRANULARITY_META[historicalContext.granularity].label,
                   startTime: historicalContext.startTime,
                   endTime: historicalContext.endTime,

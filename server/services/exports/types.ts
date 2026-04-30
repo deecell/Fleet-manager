@@ -7,7 +7,7 @@ import type {
   Truck, PowerMonDevice, DeviceSnapshot, DeviceStatistics, Sim, ShellySnapshot,
 } from "@shared/schema";
 import type { BundleKey, ColumnKey } from "@shared/export-columns";
-import type { HistoricalGranularity } from "@shared/export-historical";
+import type { HistoricalColumnKey, HistoricalGranularity } from "@shared/export-historical";
 
 /**
  * One row of joined data, batched by the storage layer to avoid N+1.
@@ -79,8 +79,22 @@ export interface GeneratedExport {
   /** File extension without leading dot — `"csv"` or `"xlsx"`. */
   mimeExtension: "csv" | "xlsx";
   rowCount: number;
-  /** The actual ordered list of column keys used. */
-  columnKeys: ColumnKey[];
+  /**
+   * The actual ordered list of column keys used. Snapshot exports return
+   * `ColumnKey[]`; historical exports return `HistoricalColumnKey[]`. Both
+   * are stable strings — downstream uses `.length` for the column-count
+   * stat on the job record.
+   */
+  columnKeys: ColumnKey[] | HistoricalColumnKey[];
+  /**
+   * Identity metadata for the row's subject — set only by the historical
+   * generator. The worker passes this into the completion email so the
+   * recipient can identify the truck without opening the file.
+   */
+  historicalMeta?: {
+    truckNumber: string;
+    fleetName: string | null;
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -115,6 +129,12 @@ export interface HistoricalExportRow {
   /** Last non-null power_status_string in the bucket; falls back to integer. */
   powerStatus: string | null;
 
+  /** Snapshot/derived parked flag for the bucket. Null when not derivable. */
+  isParked: boolean | null;
+  /** Truck position for the bucket. Null on per-min/hour rows (no history). */
+  latitude: number | null;
+  longitude: number | null;
+
   // Daily-only fields (null on per-minute / hourly rows)
   minSoc: number | null;
   maxSoc: number | null;
@@ -126,6 +146,19 @@ export interface HistoricalExportRow {
   maxTemperatureC: number | null;
   /** Energy throughput across the day in Wh (converted to kWh at render). */
   energyThroughputWh: number | null;
+  /** Sum of positive (charging) power × sample interval, in Wh. */
+  totalEnergyInWh: number | null;
+  /** Sum of negative (discharging) power magnitude × sample interval, in Wh. */
+  totalEnergyOutWh: number | null;
+  /** Activity minutes for the day (null when not derivable). */
+  driveMinutes: number | null;
+  idleMinutes: number | null;
+  parkedMinutes: number | null;
+  /** Day savings in USD (null when not derivable per-day). */
+  daySavings: number | null;
+  /** End-of-day position (null when not derivable). */
+  endLatitude: number | null;
+  endLongitude: number | null;
   /** Count of alerts whose `created_at` fell inside the bucket. */
   alertsRaised: number | null;
 }

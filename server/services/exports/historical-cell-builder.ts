@@ -50,6 +50,9 @@ export function extractHistoricalCell(
     case "charge":               return row.charge;
     case "signal_rssi":          return row.rssi;
     case "power_status":         return row.powerStatus;
+    case "is_parked":            return row.isParked === null ? null : row.isParked ? "Yes" : "No";
+    case "latitude":             return row.latitude;
+    case "longitude":            return row.longitude;
 
     // Daily aggregates
     case "avg_soc":               return row.soc;
@@ -65,7 +68,15 @@ export function extractHistoricalCell(
     case "min_temperature_f":     return C_TO_F(row.minTemperatureC);
     case "max_temperature_f":     return C_TO_F(row.maxTemperatureC);
     case "energy_throughput_kwh": return WH_TO_KWH(row.energyThroughputWh);
-    case "alerts_raised":         return row.alertsRaised ?? 0;
+    case "total_energy_in_kwh":   return WH_TO_KWH(row.totalEnergyInWh);
+    case "total_energy_out_kwh":  return WH_TO_KWH(row.totalEnergyOutWh);
+    case "drive_minutes":         return row.driveMinutes;
+    case "idle_minutes":          return row.idleMinutes;
+    case "parked_minutes":        return row.parkedMinutes;
+    case "day_savings":           return row.daySavings;
+    case "end_latitude":          return row.endLatitude;
+    case "end_longitude":         return row.endLongitude;
+    case "alerts_raised":         return row.alertsRaised;
 
     default:
       // Exhaustiveness check — at compile time `_exhaustive` would be `never`

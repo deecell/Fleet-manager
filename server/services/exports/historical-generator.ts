@@ -308,10 +308,8 @@ export async function generateHistoricalExport(
       contentType: "text/csv; charset=utf-8",
       mimeExtension: "csv",
       rowCount: rows.length,
-      // Cast: GeneratedExport's `columnKeys` was originally typed as snapshot
-      // ColumnKey[]. Historical keys are a different namespace; the field is
-      // only used for `columnCount` on the job record, so the cast is safe.
-      columnKeys: columnKeys as unknown as GeneratedExport["columnKeys"],
+      columnKeys,
+      historicalMeta: { truckNumber: truck.truckNumber, fleetName },
     };
   }
 
@@ -334,6 +332,7 @@ export async function generateHistoricalExport(
     contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     mimeExtension: "xlsx",
     rowCount: rows.length,
-    columnKeys: columnKeys as unknown as GeneratedExport["columnKeys"],
+    columnKeys,
+    historicalMeta: { truckNumber: truck.truckNumber, fleetName },
   };
 }

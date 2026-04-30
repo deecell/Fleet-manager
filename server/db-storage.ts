@@ -1394,6 +1394,15 @@ export class DbStorage {
     // Measurement aggregates per bucket. The casts to ::float8 ensure we get
     // back JS `number` instead of `string` (Postgres returns NUMERIC as text
     // through pg-driver).
+    //
+    // PowerMon polls every 10 seconds (see replit.md). We use that as the
+    // assumed sample interval to estimate total_energy_in/out_kwh from the
+    // power column:
+    //   energy_in_wh  = SUM(GREATEST(power, 0)) * 10 / 3600
+    //   energy_out_wh = SUM(GREATEST(-power, 0)) * 10 / 3600
+    // This is an approximation; an interval-aware integral would be more
+    // accurate but requires lag()-style window logic.
+    const SAMPLE_SECONDS = 10;
     const bucketCol = sql<Date>`date_trunc(${truncUnit}, ${deviceMeasurements.recordedAt})`;
     const measurementRows = await db
       .select({
@@ -1428,6 +1437,9 @@ export class DbStorage {
         // through the bank, given the per-measurement column is cumulative
         // remaining energy.
         energyThroughput: sql<number | null>`(max(${deviceMeasurements.energy}) - min(${deviceMeasurements.energy}))::float8`.as("energy_throughput"),
+        // Sign-segregated power sums for total energy in/out (Wh).
+        sumPosPower:    sql<number | null>`(sum(case when ${deviceMeasurements.power} > 0 then ${deviceMeasurements.power} else 0 end) * ${SAMPLE_SECONDS} / 3600.0)::float8`.as("energy_in_wh"),
+        sumNegPower:    sql<number | null>`(sum(case when ${deviceMeasurements.power} < 0 then -${deviceMeasurements.power} else 0 end) * ${SAMPLE_SECONDS} / 3600.0)::float8`.as("energy_out_wh"),
       })
       .from(deviceMeasurements)
       .where(and(
@@ -1488,6 +1500,14 @@ export class DbStorage {
         charge: m.avgCharge,
         rssi: m.avgRssi !== null && m.avgRssi !== undefined ? Math.round(m.avgRssi) : null,
         powerStatus,
+        // Per-bucket lat/long, is_parked, activity minutes, and end-of-day
+        // position are emitted to satisfy the export contract but populated
+        // null because the underlying tables do not record historical
+        // position or activity. See `shared/export-historical.ts` data-
+        // availability notes.
+        isParked: null,
+        latitude: null,
+        longitude: null,
         minSoc: m.minSoc,
         maxSoc: m.maxSoc,
         minVoltage1: m.minVoltage1,
@@ -1497,6 +1517,14 @@ export class DbStorage {
         minTemperatureC: m.minTemperature,
         maxTemperatureC: m.maxTemperature,
         energyThroughputWh: m.energyThroughput,
+        totalEnergyInWh: m.sumPosPower,
+        totalEnergyOutWh: m.sumNegPower,
+        driveMinutes: null,
+        idleMinutes: null,
+        parkedMinutes: null,
+        daySavings: null,
+        endLatitude: null,
+        endLongitude: null,
         alertsRaised: granularity === "day" ? (alertsByBucket.get(bucketDate.getTime()) ?? 0) : null,
       };
     });

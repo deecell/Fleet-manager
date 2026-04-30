@@ -11,24 +11,24 @@
  *     Each row is one bucket of averaged readings.
  *
  *   - HISTORICAL_DAILY_COLUMNS — used for "day" granularity. Each row is one
- *     calendar day with avg/min/max for the most-watched readings plus an
- *     alerts-raised count.
+ *     calendar day with avg/min/max for the most-watched readings, derived
+ *     energy in/out, activity minutes, day savings, and an alerts-raised count.
  *
- * Data-availability notes (intentional omissions from spec; documented so the
- * next iteration knows what's blocked vs. unimplemented):
+ * Data-availability notes (for null-prone columns):
  *
- *   - Historical lat/long is NOT included. `device_measurements` does not
- *     store position; only the truck's current location lives on `trucks`.
- *     Adding a per-bucket location column would be misleading (it would just
- *     be the truck's current location stamped on every row).
+ *   - Per-bucket lat/long, is_parked, and per-day idle/drive/parked minutes
+ *     are emitted as columns to satisfy the export contract, but the
+ *     underlying tables (`device_measurements`) do not record historical
+ *     position or activity. The storage layer leaves those cells null.
  *
- *   - Activity status (Driving / Idling / Parked) and the activity-minutes
- *     buckets are NOT included. Activity is derived from voltage AND vibration,
- *     and vibration history is not retained per measurement.
+ *   - End-of-day lat/long is emitted but populated null for the same reason.
  *
- *   - Day savings is NOT included. The savings calculator runs against current
- *     state and per-org regional pricing — it does not produce per-day historical
- *     values yet.
+ *   - Day savings is emitted but populated null. The savings calculator runs
+ *     against current state and per-org regional pricing — a per-day
+ *     historical replay is not implemented yet.
+ *
+ *   - Total energy in / total energy out are estimated from the per-second
+ *     power column and a 10-second sample assumption (PowerMon polling rate).
  */
 
 import { type ColumnFormat, type ColumnSource, type ExportColumn } from "./export-columns";
@@ -60,25 +60,25 @@ export const HISTORICAL_GRANULARITY_META: Record<HistoricalGranularity, Historic
     key: "hour",
     label: "Hourly",
     bucketSeconds: 60 * 60,
-    description: "One row per hour. Good for week-to-month windows.",
+    description: "One row per hour. Good for week-to-quarter windows.",
   },
   day: {
     key: "day",
     label: "Daily",
     bucketSeconds: 24 * 60 * 60,
-    description: "One row per calendar day with avg / min / max. Best for ranges over a month.",
+    description: "One row per calendar day with avg / min / max. Best for ranges over a quarter.",
   },
 };
 
 /**
  * Suggested default granularity given a window size in days.
  *  - ≤7 days  → per minute
- *  - ≤45 days → hourly
- *  - >45 days → daily
+ *  - ≤90 days → hourly
+ *  - >90 days → daily
  */
 export function defaultGranularityForRangeDays(rangeDays: number): HistoricalGranularity {
   if (rangeDays <= 7) return "minute";
-  if (rangeDays <= 45) return "hour";
+  if (rangeDays <= 90) return "hour";
   return "day";
 }
 
@@ -105,6 +105,9 @@ export const HISTORICAL_TIMESERIES_COLUMNS = {
   charge:               { key: "charge",               label: "Charge (Ah)",           source: "snapshot", format: "amp_hours",   width: 12, group: "Readings" },
   signal_rssi:          { key: "signal_rssi",          label: "Signal RSSI",           source: "snapshot", format: "integer",     width: 10, group: "Connectivity" },
   power_status:         { key: "power_status",         label: "Power Status",          source: "snapshot", format: "text",        width: 14, group: "Connectivity" },
+  is_parked:            { key: "is_parked",            label: "Parked",                source: "snapshot", format: "text",        width: 10, group: "Activity" },
+  latitude:             { key: "latitude",             label: "Latitude",              source: "truck",    format: "number",      width: 12, group: "Location" },
+  longitude:            { key: "longitude",            label: "Longitude",             source: "truck",    format: "number",      width: 12, group: "Location" },
 } as const satisfies Record<string, ExportColumn>;
 
 export type HistoricalTimeseriesColumnKey = keyof typeof HISTORICAL_TIMESERIES_COLUMNS;
@@ -114,7 +117,8 @@ export const HISTORICAL_TIMESERIES_COLUMN_LIST: ExportColumn[] = Object.values(
 ) as ExportColumn[];
 
 /**
- * Daily row keys — wider set with avg/min/max for the most-watched readings
+ * Daily row keys — wider set with avg/min/max for the most-watched readings,
+ * derived energy in/out, activity minutes, day savings, end-of-day position,
  * and an alerts-raised count joined from `alerts`.
  */
 export const HISTORICAL_DAILY_COLUMNS = {
@@ -140,6 +144,18 @@ export const HISTORICAL_DAILY_COLUMNS = {
   max_temperature_f:    { key: "max_temperature_f",    label: "Max Temperature (°F)",  source: "derived",  format: "temperature_f", width: 18, group: "Temperature" },
 
   energy_throughput_kwh:{ key: "energy_throughput_kwh",label: "Energy Throughput (kWh)", source: "derived", format: "kwh",        width: 20, group: "Energy" },
+  total_energy_in_kwh:  { key: "total_energy_in_kwh",  label: "Total Energy In (kWh)", source: "derived",  format: "kwh",         width: 18, group: "Energy" },
+  total_energy_out_kwh: { key: "total_energy_out_kwh", label: "Total Energy Out (kWh)", source: "derived", format: "kwh",         width: 18, group: "Energy" },
+
+  drive_minutes:        { key: "drive_minutes",        label: "Drive Minutes",         source: "derived",  format: "integer",     width: 14, group: "Activity" },
+  idle_minutes:         { key: "idle_minutes",         label: "Idle Minutes",          source: "derived",  format: "integer",     width: 14, group: "Activity" },
+  parked_minutes:       { key: "parked_minutes",       label: "Parked Minutes",        source: "derived",  format: "integer",     width: 14, group: "Activity" },
+
+  day_savings:          { key: "day_savings",          label: "Day Savings",           source: "savings",  format: "currency",    width: 14, group: "Savings" },
+
+  end_latitude:         { key: "end_latitude",         label: "End Latitude",          source: "truck",    format: "number",      width: 12, group: "Location" },
+  end_longitude:        { key: "end_longitude",        label: "End Longitude",         source: "truck",    format: "number",      width: 12, group: "Location" },
+
   alerts_raised:        { key: "alerts_raised",        label: "Alerts Raised",         source: "alertCount", format: "integer",   width: 12, group: "Health" },
 } as const satisfies Record<string, ExportColumn>;
 
@@ -186,7 +202,11 @@ export function getHistoricalColumn(key: HistoricalColumnKey): ExportColumn | un
 // ---------------------------------------------------------------------------
 
 export const HISTORICAL_MAX_RANGE_MS = 365 * 24 * 60 * 60 * 1000; // 1 year
-export const HISTORICAL_MAX_ROWS = 200_000; // hard cap; the dialog also warns earlier
+/**
+ * Hard row cap. Sized so a one-year per-minute export (525,600 rows) is
+ * always permitted, with a small headroom for clock skew / DST overlap.
+ */
+export const HISTORICAL_MAX_ROWS = 600_000;
 
 export interface HistoricalEstimateInput {
   startMs: number;
@@ -204,11 +224,11 @@ export interface HistoricalEstimate {
 }
 
 const APPROX_BYTES_PER_ROW: Record<HistoricalGranularity, number> = {
-  // Per-minute / hourly: ~14 columns × ~12 chars + separators
-  minute: 200,
-  hour: 200,
-  // Daily: ~18 columns × ~12 chars + separators
-  day: 280,
+  // Per-minute / hourly: ~17 columns × ~12 chars + separators
+  minute: 240,
+  hour: 240,
+  // Daily: ~28 columns × ~12 chars + separators
+  day: 380,
 };
 
 /**
