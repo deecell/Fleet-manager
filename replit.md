@@ -1,7 +1,7 @@
 # Deecell Fleet Tracking Dashboard
 
 ## Overview
-The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managing a fleet of clean energy trucks. It provides comprehensive visibility into truck locations, battery states, performance metrics, and system health. The system supports tracking individual vehicles, viewing historical data, and receiving notifications. It is designed as a data-heavy enterprise application, prioritizing clarity, scanability, and operational efficiency with a clean, minimalistic design for fleet management.
+The Deecell Fleet Tracking Dashboard is a real-time monitoring system designed for managing a fleet of clean energy trucks. It provides comprehensive visibility into truck locations, battery states, performance metrics, and system health. Key capabilities include tracking individual vehicles, viewing historical data, receiving notifications, and calculating fuel cost savings from solar energy. The project aims to provide a data-heavy enterprise application with a clean, minimalistic design for efficient fleet management.
 
 ## User Preferences
 - Preferred communication style: Simple, everyday language.
@@ -17,110 +17,34 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
 ## System Architecture
 
 ### Frontend
-- **Framework**: React 18 with TypeScript and Vite.
-- **Routing**: Wouter for client-side routing.
-- **State Management**: TanStack React Query for server state; React hooks for component state.
-- **UI Component Library**: Radix UI primitives with shadcn/ui patterns ("new-york" style).
-- **Styling**: Tailwind CSS with custom design tokens, CSS variables for theming (light/dark modes), and DM Sans font.
-- **Data Visualization**: Recharts for historical performance charts.
-- **Map Integration**: Static map image with SVG overlays for truck location.
-- **Form Validation**: React Hook Form with Zod resolvers.
+The frontend uses React 18 with TypeScript and Vite, Wouter for routing, and TanStack React Query for server state. UI components are built with Radix UI primitives and shadcn/ui patterns, styled with Tailwind CSS for a consistent, responsive design with light/dark modes. Data visualization is handled by Recharts, and map integration uses static images with SVG overlays. Form validation is managed by React Hook Form with Zod.
 
 ### Backend
-- **Runtime**: Node.js with Express.js.
-- **Type Safety**: Full TypeScript, shared types via `/shared` directory.
-- **API Pattern**: RESTful API, `/api` prefix.
-- **Data Validation**: Zod schemas (`shared/schema.ts`).
-- **Storage Layer**: Abstracted `IStorage` interface, implemented with PostgreSQL (`DbStorage`), supporting multi-tenant queries.
-- **API Hooks**: React Query hooks (`client/src/lib/api.ts`) for data fetching and type mapping.
+The backend is built with Node.js and Express.js, leveraging TypeScript for type safety and Zod for data validation. It exposes a RESTful API and uses an abstracted `IStorage` interface implemented with PostgreSQL for data persistence, supporting multi-tenant queries.
 
 ### Data Storage
-- **Database**: PostgreSQL with Drizzle ORM, using Neon serverless driver.
-- **Schema Management**: Drizzle Kit, schema in `./shared/schema.ts`.
-- **Session Storage**: PostgreSQL-backed sessions using `connect-pg-simple`.
-- **Data Models**: 14 tables including Organizations, Users, Fleets, Trucks, Devices, Snapshots, Measurements, Statistics, Alerts. A `device_statistics` table stores lifetime fuel gauge stats.
-- **Multi-tenancy**: `organization_id` on all business tables, row-level security enforced by middleware.
+PostgreSQL with Drizzle ORM and Neon serverless driver is used for data storage. Drizzle Kit manages the schema, and `connect-pg-simple` handles PostgreSQL-backed sessions. The database includes tables for Organizations, Users, Fleets, Trucks, Devices, and various performance and alert data. Multi-tenancy is enforced with `organization_id` and row-level security.
 
 ### Design System
-- **Color Palette**: Neutral-based with green primary accent (142° hue, 76% saturation).
-- **Component Patterns**: Rounded cards (9px radius), hover elevation, badge system, sortable data tables, side panels.
-- **Spacing System**: Consistent spacing using Tailwind's scale.
-- **Responsive Design**: Mobile-first approach.
+The design system features a neutral-based color palette with a green primary accent, rounded cards, hover elevation, and a badge system. It emphasizes a consistent spacing system and a mobile-first responsive design approach.
 
 ### Authentication
-- **Admin Authentication**: Session-based authentication via `/admin/login` using `ADMIN_PASSWORD` secret for cross-organizational access.
-- **Customer Authentication**: Email/password login at `/login` with bcrypt verification and session management.
-- **Security**: Session-based auth, `tenantMiddleware` for active user/org verification.
+Both admin and customer authentication are session-based. Admin access uses an `ADMIN_PASSWORD` secret, while customer login uses email/password verification with bcrypt. `tenantMiddleware` ensures active user/organization verification.
 
 ### Device Manager
-- **Purpose**: Standalone application for managing device polling and data collection (PowerMon devices, SIM cards, GPS locations).
-- **Deployment**: Designed for AWS EC2, scales independently from web app.
-- **Architecture**: Supervisor/worker process isolation with cohort-based sharding.
-  - **Supervisor** (`supervisor.js`): Forks one worker per cohort. Monitors workers, respawns on crash with exponential backoff. Runs shared services (SIM poller, InHand GPS, SIM sync, metrics).
-  - **Worker** (`worker.js`): Each worker manages one cohort's devices with its own native library instance. If a device corrupts the native lib, only that worker crashes (~10% blast radius). Receives `WORKER_COHORT_ID` env var.
-  - **Entry point** (`index.js`): Default mode is supervisor. Set `DEVICE_MANAGER_MODE=single` for legacy single-process mode.
-- **Polling Intervals**: PowerMon (10 seconds), SIM Cards (60 seconds), InHand GPS (2 minutes).
-- **Native Addon**: `libpowermon_bin` v1.17 (Thornwave's C++ library).
-- **InHand Networks GPS Poller**: Fetches lat/long from InHand routers via `GET /api/devices?verbose=100`. Matches devices to SIM records using `mobileNumber` (MSISDN). Updates truck locations.
-  - **Auth**: OAuth2 via `POST /oauth2/access_token` with MD5-hashed password (password_type=2)
-  - **Fixed Client Credentials**: client_id=`000017953450251798098136`, client_secret=`08E9EC6793345759456CB8BAE52615F3`
-  - **Base URL**: `https://iot.inhandnetworks.com`
-  - **Matching**: `device.mobileNumber` (MSISDN) → `sims.msisdn` → `sims.truck_id` → update truck lat/long
-  - **Fallback matching**: `info.iccid` → `sims.iccid`, `info.imsi` → `sims.imsi`
-- **Monitoring Architecture**: Service status and monitoring are separated:
-  - **Truck level**: Only has "In Service" / "Not In Service" status (fleet manager controlled). All trucks are always monitored.
-  - **Device level**: `is_active` on `device_credentials` controls whether the device is polled (admin-only). Fleet routes strip `isActive` from truck payloads.
-  - Device manager queries only check `c.is_active` (credential), not `t.is_active` (truck).
-- **Circuit Breaker**: Protects against devices that corrupt the native C++ library:
-  - `no_power` (2 instant disconnects <200ms): 5-minute quarantine. Recovery is done via **solo probe workers** — the supervisor spawns a dedicated one-device process to test the device. If the probe crashes, only that device is affected (zero blast radius). If it succeeds (30s stable), the device rejoins the shared worker. Escalating backoff on repeated failures: 5m → 15m → 60m → 4h.
-  - `unstable` (3 rapid disconnects >100ms): Auto-reset on startup. Worker process exits.
-  - `offline` (admin-set): Never auto-reset, requires admin "Set Online".
-  - After any circuit breaker event, the worker exits and the supervisor respawns it with a clean native library. Other workers continue unaffected.
-  - **Solo probe workers**: `WORKER_SOLO_SERIAL` env var tells a worker to only manage one device. Used by the supervisor for no_power recovery to achieve full device isolation.
+A standalone Node.js application manages device polling and data collection (PowerMon devices, SIM cards, GPS). It's designed for AWS EC2 and uses a supervisor/worker architecture with cohort-based sharding for fault isolation. It integrates with `libpowermon_bin` (Thornwave's C++ library), polls various devices at different intervals, and includes a circuit breaker mechanism for isolating problematic devices and recovering them via solo probe workers.
 
 ### Savings Calculation System
-- **Purpose**: Calculate fuel cost savings from solar energy generated by PowerMon devices.
-- **Formula**: `(solar_Wh / 1000 / diesel_kWh_per_gallon) × fuel_price_per_gallon`.
-- **EIA Integration**: Fetches weekly diesel prices from U.S. Energy Information Administration API, determining regional pricing using PADD regions.
+This system calculates fuel cost savings from solar energy using a formula that integrates solar energy data and regional diesel prices fetched from the U.S. Energy Information Administration (EIA) API.
 
 ### Fleet Export Pipeline
-- **Purpose**: Async CSV/Excel export of the fleet dashboard (snapshot mode + historical time-series for a single truck).
-- **Architecture**:
-  - **Pure layer** (Task #1): `shared/export-columns.ts` (snapshot column registry + 5 bundles), `shared/export-historical.ts` (historical TIMESERIES + DAILY column registries, granularity enum, row estimator, 1-year/600k-row safety caps; defaults: ≤7d → minute, ≤90d → hour, else day), `server/services/exports/{cell-builder,csv-serializer,excel-serializer,index}.ts` (`generateExport`), `server/services/exports/{historical-cell-builder,historical-generator}.ts` (historical writers; generator returns `historicalMeta:{truckNumber, fleetName}` for the worker to surface in the email + bundle label).
-  - **Async pipeline** (Task #2): `export_jobs` table + `server/services/exports/job-worker.ts` (in-process worker started in `server/index.ts`). The worker polls every 5s, claims rows with `FOR UPDATE SKIP LOCKED`, dispatches to `generateExport` (snapshot) or the historical generator depending on the row's `historical_mode` flag, uploads to S3 (`exports/<orgId>/<jobId>/<filename>`), generates a 7-day signed URL, and sends a SendGrid notification.
-- **Endpoints** (`server/api/exports-routes.ts`, mounted at `/api/v1/exports`): `POST /` (returns 202; 429 on concurrency limits, 400 on historical row-cap pre-check failure with `{estimatedRowCount, maxRows}`), `GET /` (banner data), `GET /:id` (poll), `PATCH /:id/dismiss`. All tenant-scoped.
-- **Concurrency limits**: 3 active jobs/user and 10 active jobs/org, enforced inside a transaction guarded by `pg_advisory_xact_lock` so concurrent POSTs cannot exceed the limit. Beyond the limit returns 429 with `{ reason, activeUserCount, activeOrgCount }`.
-- **Historical mode** (Task #4): `POST /api/v1/exports` accepts `{historicalMode:true, historicalTruckId, historicalStartTime, historicalEndTime, historicalGranularity:"minute"|"hour"|"day"}`. Granularity maps to `intervalSeconds` (60/3600/86400) persisted on the job. Server runs `estimateHistoricalRows()` as a pre-check before queuing. The legacy synchronous `GET /api/v1/export/trucks/:id` endpoint was **removed** in Task #4.
-- **S3 lifecycle**: `terraform/iam.tf` configures `aws_s3_bucket_lifecycle_configuration.assets` to auto-delete `exports/*` objects after 14 days (housekeeping; the 7-day expiration is enforced by signed-URL TTL).
-- **Frontend UI**:
-  - **Export dialog** (`client/src/components/ExportDialog.tsx`): top-level Mode toggle ("Fleet snapshot" / "Truck history"). Snapshot mode: bundle radio + format toggle + read-only filter chips + Advanced collapsible with grouped per-column checkboxes. Historical mode: truck single-select + range presets (Last 24h/7d/30d/90d/1y, Month-to-date, Year-to-date, Last month, Last year, Custom with date inputs — defined as `RangePreset[]` with `{id, label, days?, resolve(now)}` and looked up by id) + granularity radio (auto-suggested from range; auto-pick stops once user toggles) + live `≈ N rows / ≈ M MB` estimate. Submit POSTs the appropriate body; 429 + 400 row-cap errors render inline. Accepts `initialMode`, `initialTruckId`, `initialRangeDays` props so callers can seed it.
-  - **Pending exports banner** (`client/src/components/PendingExportsBanner.tsx`): Sticky app-shell banner mounted in `client/src/App.tsx` above `<Router />`. Shows pending/running (spinner), completed (green check + Download + "Expires in N days" + dismiss X), and failed (error icon + dismiss X) jobs. Renders nothing when the queue is empty. The bundle label includes the truck identifier for historical jobs (e.g. `"Truck History (Hourly · T-104)"`) so the user can tell their historical exports apart at a glance.
-  - **Truck detail integration** (`client/src/components/TruckDetail.tsx`): the "Export" button in the truck detail header opens the global ExportDialog seeded with `initialMode="historical"` + the truck's id + a 30-day range. Replaces the old in-place popover that hit the now-removed legacy endpoint.
-  - **API hooks** (`client/src/lib/exports-api.ts`): `useActiveExports` (5s polling, gated on session.authenticated + organizationId; `refetchInterval` returns `false` when nothing is in flight), `useCreateExport` (surfaces 429 reason/limits + 400 row-cap pre-check), `useDismissExport` (optimistic remove with rollback across all org-scoped query variants).
+An asynchronous pipeline handles CSV/Excel exports of fleet snapshots and historical time-series data for individual trucks. It uses dedicated services for cell building and serialization, stores export jobs in a database, processes them with an in-process worker, uploads results to S3, and notifies users via SendGrid. Concurrency limits are enforced per user and organization.
 
 ### AI Fleet Assistant
-- **Purpose**: Natural language chat interface for fleet management queries and insights.
-- **Model**: OpenAI GPT-4o-mini via Replit AI Integrations.
-- **Architecture**: Function calling for real-time data access to prevent hallucination.
+A natural language chat interface, powered by OpenAI GPT-4o-mini via Replit AI Integrations, provides fleet management queries and insights using function calling for real-time data access.
 
 ### AWS Deployment Infrastructure
-- **Status**: Deployed and running in AWS.
-- **Infrastructure as Code**: Terraform in `terraform/` directory.
-- **CI/CD**: GitHub Actions workflows in `.github/workflows/`.
-- **Components**: ECS Fargate for web app, RDS PostgreSQL for database, ALB, EC2 for Device Manager, VPC, Secrets Manager, CloudWatch, CloudTrail.
-
-### AWS Secrets & Database Access
-- **Production Database Secret**: `deecell-fleet-production/database-url`
-- **To get DATABASE_URL from EC2**:
-  ```bash
-  aws secretsmanager get-secret-value --secret-id deecell-fleet-production/database-url --query SecretString --output text
-  ```
-- **To query production database from EC2**:
-  ```bash
-  export DATABASE_URL=$(aws secretsmanager get-secret-value --secret-id deecell-fleet-production/database-url --query SecretString --output text)
-  psql "$DATABASE_URL" -c "SELECT * FROM ..."
-  ```
-- **Other secrets**: See `docs/IAM_PERMISSIONS.md` for full list
+The project is deployed on AWS using Terraform for Infrastructure as Code and GitHub Actions for CI/CD. It leverages ECS Fargate for the web app, RDS PostgreSQL, ALB, EC2 for the Device Manager, VPC, Secrets Manager, CloudWatch, and CloudTrail.
 
 ## External Dependencies
 
@@ -137,10 +61,10 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
 - **Icons**: Lucide React
 
 ### External APIs
-- **SIMPro API**: For SIM card location tracking and data usage monitoring.
-- **InHand Networks API**: For GPS location tracking (lat/long) from InHand routers. OAuth2 auth, polls every 2 minutes.
-- **U.S. Energy Information Administration (EIA) API**: For fetching diesel fuel prices.
-- **OpenAI API**: For the AI Fleet Assistant (GPT-4o-mini).
+- **SIMPro API**: SIM card location and data usage.
+- **InHand Networks API**: GPS location tracking from routers (OAuth2).
+- **U.S. Energy Information Administration (EIA) API**: Diesel fuel prices.
+- **OpenAI API**: GPT-4o-mini for AI Fleet Assistant.
 
 ### Development Tools
 - **Build Tool**: Vite
@@ -157,5 +81,4 @@ The Deecell Fleet Tracking Dashboard is a real-time monitoring system for managi
 - **ID Generation**: nanoid
 
 ### Integrations
-- **Slack**: For daily development activity summaries.
 - **AWS Services**: ECS, RDS, ALB, EC2, Secrets Manager, CloudWatch, CloudTrail.

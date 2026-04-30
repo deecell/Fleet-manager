@@ -14,18 +14,35 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronRight, Loader2, AlertTriangle } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  ChevronDown,
+  ChevronRight,
+  Check,
+  Calendar as CalendarIcon,
+  Loader2,
+  AlertTriangle,
+} from "lucide-react";
+import { format as formatDate } from "date-fns";
+import type { DateRange } from "react-day-picker";
+import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import {
   BUNDLE_KEYS,
@@ -611,28 +628,15 @@ export function ExportDialog({
           {/* === HISTORICAL MODE === */}
           {mode === "historical" && (
             <>
-              {/* Truck */}
+              {/* Truck — searchable single-select combobox */}
               <section>
                 <Label className="text-sm font-semibold text-neutral-950">Truck</Label>
-                <Select
-                  value={historicalTruckId ? String(historicalTruckId) : undefined}
-                  onValueChange={(v) => setHistoricalTruckId(parseInt(v, 10))}
-                >
-                  <SelectTrigger className="mt-2" data-testid="select-historical-truck">
-                    <SelectValue placeholder={trucksQuery.isLoading ? "Loading…" : "Pick a truck"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {trucks.map((t) => (
-                      <SelectItem
-                        key={t.id}
-                        value={String(t.id)}
-                        data-testid={`select-truck-option-${t.id}`}
-                      >
-                        {t.truckNumber}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <TruckCombobox
+                  trucks={trucks}
+                  isLoading={trucksQuery.isLoading}
+                  selectedId={historicalTruckId}
+                  onSelect={setHistoricalTruckId}
+                />
               </section>
 
               {/* Date range */}
@@ -663,30 +667,14 @@ export function ExportDialog({
                   </Button>
                 </div>
                 {rangePresetId === "custom" && (
-                  <div className="mt-3 grid grid-cols-2 gap-3">
-                    <div>
-                      <Label htmlFor="custom-start" className="text-xs text-[#717182]">From</Label>
-                      <Input
-                        id="custom-start"
-                        type="date"
-                        value={customStart}
-                        onChange={(e) => setCustomStart(e.target.value)}
-                        className="mt-1"
-                        data-testid="input-custom-start"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="custom-end" className="text-xs text-[#717182]">To</Label>
-                      <Input
-                        id="custom-end"
-                        type="date"
-                        value={customEnd}
-                        onChange={(e) => setCustomEnd(e.target.value)}
-                        className="mt-1"
-                        data-testid="input-custom-end"
-                      />
-                    </div>
-                  </div>
+                  <CustomRangePicker
+                    customStart={customStart}
+                    customEnd={customEnd}
+                    onChange={(s, e) => {
+                      setCustomStart(s);
+                      setCustomEnd(e);
+                    }}
+                  />
                 )}
                 {rangeError && (
                   <p className="mt-2 text-xs text-destructive" data-testid="text-range-error">
@@ -822,4 +810,148 @@ function isBundleKey(value: string): value is BundleKey {
 
 function slug(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+// ---------------------------------------------------------------------------
+// Truck combobox — searchable single-select (Command + Popover).
+// Replaces the former Shadcn Select so users with large fleets can type to
+// filter instead of scrolling through every truck.
+// ---------------------------------------------------------------------------
+type TruckOption = { id: number; truckNumber: string };
+
+function TruckCombobox({
+  trucks,
+  isLoading,
+  selectedId,
+  onSelect,
+}: {
+  trucks: TruckOption[];
+  isLoading: boolean;
+  selectedId: number | undefined;
+  onSelect: (id: number) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const selected = selectedId != null
+    ? trucks.find((t) => t.id === selectedId)
+    : undefined;
+  const placeholder = isLoading ? "Loading…" : "Pick a truck";
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="mt-2 w-full justify-between font-normal"
+          data-testid="select-historical-truck"
+        >
+          <span className={cn(!selected && "text-[#717182]")}>
+            {selected ? selected.truckNumber : placeholder}
+          </span>
+          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        className="p-0"
+        align="start"
+        style={{ width: "var(--radix-popover-trigger-width)" }}
+      >
+        <Command>
+          <CommandInput
+            placeholder="Search trucks…"
+            data-testid="input-truck-search"
+          />
+          <CommandList>
+            <CommandEmpty>No trucks found.</CommandEmpty>
+            <CommandGroup>
+              {trucks.map((t) => (
+                <CommandItem
+                  key={t.id}
+                  value={t.truckNumber}
+                  onSelect={() => {
+                    onSelect(t.id);
+                    setOpen(false);
+                  }}
+                  data-testid={`select-truck-option-${t.id}`}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      selectedId === t.id ? "opacity-100" : "opacity-0",
+                    )}
+                  />
+                  {t.truckNumber}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Custom date-range picker — single Calendar in range mode, opened from a
+// trigger button that shows the current selection. Replaces the prior pair
+// of <Input type="date"> fields so users get a real calendar interaction.
+// Internally still drives the same `customStart` / `customEnd` ISO strings
+// so the rest of the dialog logic is unchanged.
+// ---------------------------------------------------------------------------
+function CustomRangePicker({
+  customStart,
+  customEnd,
+  onChange,
+}: {
+  customStart: string;
+  customEnd: string;
+  onChange: (start: string, end: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const fromDate = customStart ? new Date(`${customStart}T00:00:00`) : undefined;
+  const toDate = customEnd ? new Date(`${customEnd}T00:00:00`) : undefined;
+  const selected: DateRange | undefined =
+    fromDate || toDate ? { from: fromDate, to: toDate } : undefined;
+  const buttonLabel = (() => {
+    if (fromDate && toDate) {
+      return `${formatDate(fromDate, "MMM d, yyyy")} → ${formatDate(toDate, "MMM d, yyyy")}`;
+    }
+    if (fromDate) return `${formatDate(fromDate, "MMM d, yyyy")} → …`;
+    return "Pick a date range";
+  })();
+  return (
+    <div className="mt-3">
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className={cn(
+              "w-full justify-start font-normal",
+              !fromDate && "text-[#717182]",
+            )}
+            data-testid="button-custom-range"
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {buttonLabel}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            mode="range"
+            numberOfMonths={2}
+            selected={selected}
+            onSelect={(range) => {
+              const next: DateRange | undefined = range;
+              const nextStart = next?.from ? isoDate(next.from) : "";
+              const nextEnd = next?.to ? isoDate(next.to) : "";
+              onChange(nextStart, nextEnd);
+              if (next?.from && next?.to) setOpen(false);
+            }}
+            disabled={(date) => date > new Date()}
+            initialFocus
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
 }
