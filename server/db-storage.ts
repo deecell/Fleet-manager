@@ -5,7 +5,7 @@ import {
   deviceCredentials, deviceSnapshots, deviceMeasurements,
   deviceSyncStatus, alerts, auditLogs, pollingSettings,
   passwordResetTokens, invitationTokens, shellyDevices, shellySnapshots, shellyReadings,
-  sims, deviceStatistics, exportJobs,
+  sims, simLocationHistory, savingsConfig, fuelPrices, deviceStatistics, exportJobs,
   EXPORT_JOB_STATUS, EXPORT_JOB_ACTIVE_STATUSES,
   type Sim, type DeviceStatistics,
   type Organization, type InsertOrganization,
@@ -1402,7 +1402,26 @@ export class DbStorage {
     //   energy_out_wh = SUM(GREATEST(-power, 0)) * 10 / 3600
     // This is an approximation; an interval-aware integral would be more
     // accurate but requires lag()-style window logic.
+    //
+    // is_parked / drive_minutes / parked_minutes derive from the same signal
+    // the device-manager uses to set device_snapshots.is_parked: chassis
+    // voltage (voltage2) below the parked-voltage threshold (13.0 V). See
+    // device-manager/app/database.js (PARKED_VOLTAGE_THRESHOLD).
+    //
+    // The device-manager treats NULL voltage2 as parked (it uses
+    // `(voltage2 || 0) < 13.0`), so we mirror that here: NULL voltage2 counts
+    // as a parked sample, NOT as a driving sample. Buckets with zero samples
+    // entirely stay null.
+    //
+    // For each bucket we report:
+    //   - is_parked      = majority of samples in this bucket were parked
+    //                      (a single boolean per bucket; nulled if no samples)
+    //   - parked_minutes = (count where voltage2 <  13 OR NULL) * 10s / 60
+    //   - drive_minutes  = (count where voltage2 >= 13)          * 10s / 60
+    // idle_minutes stays null because the underlying state machine only has
+    // two states (parked / driving) — there is no idle state to report.
     const SAMPLE_SECONDS = 10;
+    const PARKED_VOLTAGE_THRESHOLD = 13.0;
     const bucketCol = sql<Date>`date_trunc(${truncUnit}, ${deviceMeasurements.recordedAt})`;
     const measurementRows = await db
       .select({
@@ -1421,6 +1440,13 @@ export class DbStorage {
         // deterministic and good-enough for "what status applied here".
         powerStatusString: sql<string | null>`max(${deviceMeasurements.powerStatusString})`.as("ps_str"),
         powerStatusInt:    sql<number | null>`max(${deviceMeasurements.powerStatus})::float8`.as("ps_int"),
+
+        // Parked / drive sample counts (see comment block above). NULL
+        // voltage2 counts as parked to match the device-manager's
+        // `(voltage2 || 0) < 13.0` semantics. drivingSamples explicitly
+        // requires a non-null reading.
+        parkedSamples: sql<number>`count(*) filter (where ${deviceMeasurements.voltage2} <  ${PARKED_VOLTAGE_THRESHOLD} OR ${deviceMeasurements.voltage2} IS NULL)::int`.as("parked_samples"),
+        drivingSamples: sql<number>`count(*) filter (where ${deviceMeasurements.voltage2} >= ${PARKED_VOLTAGE_THRESHOLD})::int`.as("drive_samples"),
 
         // Daily-only MIN/MAX (cheap to compute even on minute/hour buckets,
         // and we just don't render them in those modes).
@@ -1451,6 +1477,33 @@ export class DbStorage {
       .groupBy(bucketCol)
       .orderBy(asc(bucketCol));
 
+    // Per-bucket position from sim_location_history (the only historical
+    // lat/long source — PowerMon devices themselves don't store position).
+    // For each bucket we keep the LAST recorded position in that window via
+    // DISTINCT ON, so daily exports get end-of-day position automatically.
+    // Buckets with no SIM update in their window stay null.
+    const positionRows = await db.execute<{
+      bucket: Date | string;
+      latitude: number;
+      longitude: number;
+    }>(sql`
+      SELECT DISTINCT ON (date_trunc(${truncUnit}, recorded_at))
+        date_trunc(${truncUnit}, recorded_at) AS bucket,
+        latitude::float8                       AS latitude,
+        longitude::float8                      AS longitude
+      FROM ${simLocationHistory}
+      WHERE organization_id = ${organizationId}
+        AND truck_id = ${truckId}
+        AND recorded_at >= ${startTime}
+        AND recorded_at <= ${endTime}
+      ORDER BY date_trunc(${truncUnit}, recorded_at), recorded_at DESC
+    `);
+    const positionByBucket = new Map<number, { latitude: number; longitude: number }>();
+    for (const r of positionRows.rows) {
+      const ts = (r.bucket instanceof Date ? r.bucket : new Date(r.bucket as unknown as string)).getTime();
+      positionByBucket.set(ts, { latitude: r.latitude, longitude: r.longitude });
+    }
+
     // Daily granularity also reports an "alerts raised" count per day.
     // Cheap separate query keyed by `created_at` truncated the same way.
     let alertsByBucket = new Map<number, number>();
@@ -1475,6 +1528,67 @@ export class DbStorage {
       }
     }
 
+    // Savings config (fallback fuel price + whether to use live EIA prices)
+    // for the org. Only needed for daily mode — `day_savings` is computed in
+    // JS so we can blend in per-day live fuel prices below. Falls back to
+    // defaults matching `savings-calculator.ts` if no row exists.
+    let defaultFuelPrice = 3.5;
+    let useLiveFuelPrices = true;
+    let livePriceByDay = new Map<string, number>();
+    if (granularity === "day") {
+      const cfg = await db
+        .select({
+          defaultFuelPricePerGallon: savingsConfig.defaultFuelPricePerGallon,
+          useLiveFuelPrices: savingsConfig.useLiveFuelPrices,
+        })
+        .from(savingsConfig)
+        .where(eq(savingsConfig.organizationId, organizationId))
+        .limit(1);
+      if (cfg.length > 0) {
+        defaultFuelPrice = cfg[0].defaultFuelPricePerGallon ?? defaultFuelPrice;
+        useLiveFuelPrices = cfg[0].useLiveFuelPrices ?? useLiveFuelPrices;
+      }
+      // Live prices: pick the most recent EIA price on or before each day in
+      // the window. We pre-fetch every price row in [windowStart-7d, end] and
+      // resolve in JS so the per-row mapping below stays cheap.
+      if (useLiveFuelPrices) {
+        const lookbackStart = new Date(startTime.getTime() - 7 * 86400000);
+        const priceRows = await db
+          .select({
+            priceDate: fuelPrices.priceDate,
+            pricePerGallon: fuelPrices.pricePerGallon,
+          })
+          .from(fuelPrices)
+          .where(and(
+            gte(fuelPrices.priceDate, lookbackStart),
+            lte(fuelPrices.priceDate, endTime),
+          ))
+          .orderBy(asc(fuelPrices.priceDate));
+        // Walk the day window and snap each day to the nearest preceding price.
+        const sorted = priceRows.map((r) => ({
+          ts: (r.priceDate instanceof Date ? r.priceDate : new Date(r.priceDate as unknown as string)).getTime(),
+          price: r.pricePerGallon,
+        })).sort((a, b) => a.ts - b.ts);
+        let lastPrice = defaultFuelPrice;
+        let pi = 0;
+        const dayMs = 86400000;
+        const startDay = new Date(Date.UTC(
+          startTime.getUTCFullYear(), startTime.getUTCMonth(), startTime.getUTCDate(),
+        )).getTime();
+        const endDay = new Date(Date.UTC(
+          endTime.getUTCFullYear(), endTime.getUTCMonth(), endTime.getUTCDate(),
+        )).getTime();
+        for (let d = startDay; d <= endDay; d += dayMs) {
+          while (pi < sorted.length && sorted[pi].ts <= d) {
+            lastPrice = sorted[pi].price;
+            pi++;
+          }
+          const key = new Date(d).toISOString().slice(0, 10);
+          livePriceByDay.set(key, lastPrice);
+        }
+      }
+    }
+
     const rows = measurementRows.map((m) => {
       const bucketDate = m.bucket instanceof Date ? m.bucket : new Date(m.bucket as unknown as string);
       const psString = m.powerStatusString;
@@ -1485,6 +1599,40 @@ export class DbStorage {
           : psInt !== null && psInt !== undefined
             ? String(Math.round(psInt))
             : null;
+      // is_parked: majority of samples in this bucket had voltage2 below the
+      // parked threshold. Null when the bucket had no voltage2 samples at all
+      // (e.g. PowerMon was offline that whole bucket).
+      const totalSamples = (m.parkedSamples ?? 0) + (m.drivingSamples ?? 0);
+      const isParked = totalSamples > 0
+        ? (m.parkedSamples ?? 0) > totalSamples / 2
+        : null;
+      // Activity minutes (daily mode only — meaningless on a 1-minute bucket).
+      const isDaily = granularity === "day";
+      const parkedMinutes = isDaily
+        ? Math.round(((m.parkedSamples ?? 0) * SAMPLE_SECONDS / 60) * 10) / 10
+        : null;
+      const driveMinutes = isDaily
+        ? Math.round(((m.drivingSamples ?? 0) * SAMPLE_SECONDS / 60) * 10) / 10
+        : null;
+      // Position from the SIM history pre-fetch.
+      const pos = positionByBucket.get(bucketDate.getTime()) ?? null;
+      // day_savings: only for daily mode. Formula matches
+      // server/services/savings-calculator.ts exactly (the canonical formula
+      // used everywhere else in the app):
+      //   gallons_avoided = (parked_minutes / 60) * 1.2 gal/hr
+      //   savings_$       = gallons_avoided * fuel_price
+      // Per-day fuel price is the most recent EIA price on or before the day
+      // (live prices) or the org's default fallback. Reported as $0 (not null)
+      // on days with no parked time so the column tells the user "no savings
+      // this day" rather than "data missing".
+      let daySavings: number | null = null;
+      if (isDaily) {
+        const dayKey = bucketDate.toISOString().slice(0, 10);
+        const fuelPrice = livePriceByDay.get(dayKey) ?? defaultFuelPrice;
+        const parkedHours = (parkedMinutes ?? 0) / 60;
+        const gallonsSaved = parkedHours * 1.2;
+        daySavings = Math.round(gallonsSaved * fuelPrice * 100) / 100;
+      }
       return {
         bucket: bucketDate,
         truckNumber: id.truckNumber,
@@ -1500,14 +1648,9 @@ export class DbStorage {
         charge: m.avgCharge,
         rssi: m.avgRssi !== null && m.avgRssi !== undefined ? Math.round(m.avgRssi) : null,
         powerStatus,
-        // Per-bucket lat/long, is_parked, activity minutes, and end-of-day
-        // position are emitted to satisfy the export contract but populated
-        // null because the underlying tables do not record historical
-        // position or activity. See `shared/export-historical.ts` data-
-        // availability notes.
-        isParked: null,
-        latitude: null,
-        longitude: null,
+        isParked,
+        latitude: pos?.latitude ?? null,
+        longitude: pos?.longitude ?? null,
         minSoc: m.minSoc,
         maxSoc: m.maxSoc,
         minVoltage1: m.minVoltage1,
@@ -1519,13 +1662,19 @@ export class DbStorage {
         energyThroughputWh: m.energyThroughput,
         totalEnergyInWh: m.sumPosPower,
         totalEnergyOutWh: m.sumNegPower,
-        driveMinutes: null,
+        driveMinutes,
+        // No "idle" state in the underlying state machine (parked/driving
+        // only) — see comment block in the aggregation query above.
         idleMinutes: null,
-        parkedMinutes: null,
-        daySavings: null,
-        endLatitude: null,
-        endLongitude: null,
-        alertsRaised: granularity === "day" ? (alertsByBucket.get(bucketDate.getTime()) ?? 0) : null,
+        parkedMinutes,
+        daySavings,
+        // For daily granularity `latitude`/`longitude` already point to the
+        // last position of the day (DISTINCT ON ... ORDER BY recorded_at
+        // DESC). We surface the same value as `endLatitude`/`endLongitude`
+        // so the daily column contract is satisfied without an extra query.
+        endLatitude: isDaily ? (pos?.latitude ?? null) : null,
+        endLongitude: isDaily ? (pos?.longitude ?? null) : null,
+        alertsRaised: isDaily ? (alertsByBucket.get(bucketDate.getTime()) ?? 0) : null,
       };
     });
 

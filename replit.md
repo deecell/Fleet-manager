@@ -38,7 +38,7 @@ A standalone Node.js application manages device polling and data collection (Pow
 This system calculates fuel cost savings from solar energy using a formula that integrates solar energy data and regional diesel prices fetched from the U.S. Energy Information Administration (EIA) API.
 
 ### Fleet Export Pipeline
-An asynchronous pipeline handles CSV/Excel exports of fleet snapshots and historical time-series data for individual trucks. It uses dedicated services for cell building and serialization, stores export jobs in a database, processes them with an in-process worker, uploads results to S3, and notifies users via SendGrid. Concurrency limits are enforced per user and organization.
+An asynchronous pipeline handles CSV/Excel exports of fleet snapshots and historical time-series data for individual trucks (per-minute, hourly, or daily granularity, up to 1 year, 600k row cap). It uses dedicated services for cell building and serialization, stores export jobs in a database, processes them with an in-process worker, uploads results to S3, and notifies users via SendGrid. Historical aggregation reuses existing data sources — chassis voltage (`voltage2 < 13.0 V`) for parked/driving state and minutes, `sim_location_history` for per-bucket lat/long, and `savings_config` + `fuel_prices` for daily savings — so no new telemetry tables are required. Concurrency limits are enforced per user and organization.
 
 ### AI Fleet Assistant
 A natural language chat interface, powered by OpenAI GPT-4o-mini via Replit AI Integrations, provides fleet management queries and insights using function calling for real-time data access.

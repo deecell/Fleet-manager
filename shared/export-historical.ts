@@ -16,16 +16,34 @@
  *
  * Data-availability notes (for null-prone columns):
  *
- *   - Per-bucket lat/long, is_parked, and per-day idle/drive/parked minutes
- *     are emitted as columns to satisfy the export contract, but the
- *     underlying tables (`device_measurements`) do not record historical
- *     position or activity. The storage layer leaves those cells null.
+ *   - Per-bucket lat/long: pulled from `sim_location_history` (the only
+ *     historical position source — PowerMon devices themselves don't store
+ *     position). For each bucket the LAST recorded position in that window
+ *     is reported. Buckets with no SIM update in their window stay null
+ *     (e.g. truck without a SIM, or SIM polling gap).
  *
- *   - End-of-day lat/long is emitted but populated null for the same reason.
+ *   - is_parked / parked_minutes / drive_minutes: derived from chassis
+ *     voltage (`device_measurements.voltage2`) using the same threshold the
+ *     device-manager uses to set `device_snapshots.is_parked` (13.0 V — see
+ *     `device-manager/app/database.js:PARKED_VOLTAGE_THRESHOLD`). is_parked
+ *     is the per-bucket majority; parked/drive minutes are sample counts ×
+ *     10 s / 60 (PowerMon polling rate). idle_minutes stays null because
+ *     the underlying state machine has only two states (parked / driving).
  *
- *   - Day savings is emitted but populated null. The savings calculator runs
- *     against current state and per-org regional pricing — a per-day
- *     historical replay is not implemented yet.
+ *   - End-of-day lat/long (daily mode): same value as the daily lat/long
+ *     bucket — DISTINCT ON ... ORDER BY recorded_at DESC already returns the
+ *     last position of the day.
+ *
+ *   - day_savings (daily mode): computed per day as
+ *       (parked_minutes / 60) × 1.2 gal/hr × fuel_price
+ *     This matches `server/services/savings-calculator.ts` exactly (the
+ *     canonical formula used everywhere else in the app — savings accrue
+ *     from APU/idle reduction while parked). Per-day fuel price is the
+ *     most recent `fuel_prices` row on or before the day, falling back to
+ *     `savings_config.defaultFuelPricePerGallon` when live prices are
+ *     disabled or none are available. Reported as 0 on days with no
+ *     parked time (rather than null) so the column reads "no savings
+ *     this day" rather than "missing data".
  *
  *   - Total energy in / total energy out are estimated from the per-second
  *     power column and a 10-second sample assumption (PowerMon polling rate).
