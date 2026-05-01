@@ -106,8 +106,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.error("Failed to bootstrap deecell-internal admin setup:", error);
   }
 
-  // Setup session middleware for admin authentication
-  const sessionSecret = process.env.SESSION_SECRET || process.env.ADMIN_PASSWORD || "deecell-session-secret-2024";
+  // Setup session middleware for admin authentication.
+  // SESSION_SECRET is required in production. ADMIN_PASSWORD is no longer
+  // accepted as a fallback — admin auth now goes through per-user bcrypt
+  // identity, and ADMIN_PASSWORD is reserved exclusively for the one-shot
+  // /api/migrate-database endpoint in `migration-routes.ts`.
+  const sessionSecret = process.env.SESSION_SECRET;
+  if (!sessionSecret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "SESSION_SECRET is required in production but was not set",
+      );
+    }
+    console.warn(
+      "[session] SESSION_SECRET not set — using insecure dev fallback. Set SESSION_SECRET before deploying.",
+    );
+  }
+  const resolvedSessionSecret =
+    sessionSecret || "dev-only-insecure-session-secret";
   
   // Trust proxy for AWS ALB (needed for secure cookies behind load balancer)
   app.set("trust proxy", 1);
@@ -117,7 +133,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const requireSecureCookies = process.env.FORCE_HTTPS === "true";
   
   app.use(session({
-    secret: sessionSecret,
+    secret: resolvedSessionSecret,
     resave: false,
     saveUninitialized: false,
     store: new MemoryStoreSession({
