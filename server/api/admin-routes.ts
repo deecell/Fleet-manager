@@ -27,6 +27,15 @@ declare module "express-session" {
     // Synthetic "Deecell Admin" identity backing ADMIN_PASSWORD sessions so
     // admin export jobs can satisfy export_jobs.user_id (NOT NULL FK to
     // users.id) and the org-scoped concurrency-limit advisory lock.
+    //
+    // Design trade-off (Task #5 soft launch):
+    //   ADMIN_PASSWORD is a single shared credential — there is no per-admin
+    //   identity in the auth model — so we deliberately reuse one synthetic
+    //   user/org for every admin session. Concurrency limits therefore apply
+    //   to the *fleet of admins* as a group, which is acceptable while the
+    //   admin export surface is gated by a single shared password. If admin
+    //   auth ever becomes per-user, swap this for a real user lookup keyed
+    //   off the authenticated identity (and remove ensureAdminUserAndOrg).
     // Provisioned idempotently via storage.ensureAdminUserAndOrg().
     adminUserId?: number;
     adminOrganizationId?: number;

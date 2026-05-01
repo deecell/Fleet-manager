@@ -29,8 +29,14 @@ export interface AdminDeviceColumn extends Omit<ExportColumn, "source"> {
  * Build Date and Circuit Breaker State are intentionally derived/synthetic:
  *   • build_date — not stored anywhere; emitted as null today, scaffolded so
  *     a later schema migration can populate it without UI changes.
- *   • circuit_breaker_state — derived from `connection_status` + the
- *     supervisor's `markedOfflineAt`; matches what the device manager logs.
+ *   • circuit_breaker_state — derived from the device manager's
+ *     `connection_status` (online | no_power | unstable | offline). The
+ *     enum we emit is the operator-facing taxonomy agreed for the soft
+ *     launch: `healthy | no_power_quarantine | unstable_pending | offline`.
+ *
+ * `is_active` is sourced from `device_credentials.is_active` (whether the
+ * stored WiFi access key is currently in use), not `power_mon_devices.is_active`,
+ * so admins can spot devices that are physically present but credential-disabled.
  */
 export const ADMIN_DEVICE_COLUMNS = {
   // Identity (5)
@@ -46,8 +52,10 @@ export const ADMIN_DEVICE_COLUMNS = {
   build_date:           { key: "build_date",           label: "Build Date",          source: "device",       format: "date",     width: 14, group: "Hardware",
     description: "Not currently stored; reserved column for a future field." },
 
-  // Connectivity (5)
+  // Connectivity (6)
   host_id:              { key: "host_id",              label: "Host ID / IP",        source: "credential",   format: "text",     width: 18, group: "Connectivity" },
+  is_active:            { key: "is_active",            label: "Credential Active",   source: "credential",   format: "text",     width: 14, group: "Connectivity",
+    description: "Whether the device's stored WiFi access credential is currently active." },
   iccid:                { key: "iccid",                label: "ICCID",               source: "sim",          format: "text",     width: 22, group: "Connectivity" },
   imsi:                 { key: "imsi",                 label: "IMSI",                source: "sim",          format: "text",     width: 18, group: "Connectivity" },
   msisdn:               { key: "msisdn",               label: "MSISDN",              source: "sim",          format: "text",     width: 16, group: "Connectivity" },
@@ -56,13 +64,14 @@ export const ADMIN_DEVICE_COLUMNS = {
   // Operations (3)
   last_reported:        { key: "last_reported",        label: "Last Reported",       source: "device",       format: "datetime", width: 22, group: "Operations" },
   last_seen:            { key: "last_seen",            label: "Last Seen",           source: "device",       format: "datetime", width: 22, group: "Operations" },
-  circuit_breaker_state:{ key: "circuit_breaker_state",label: "Circuit Breaker",     source: "derived",      format: "text",     width: 14, group: "Operations",
-    description: "Derived from connection_status + markedOfflineAt." },
+  circuit_breaker_state:{ key: "circuit_breaker_state",label: "Circuit Breaker",     source: "derived",      format: "text",     width: 22, group: "Operations",
+    description: "Derived from connection_status: healthy | no_power_quarantine | unstable_pending | offline." },
 
-  // Worker / live (3)
+  // Worker / live (4)
   worker_cohort:        { key: "worker_cohort",        label: "Worker Cohort",       source: "syncStatus",   format: "text",     width: 14, group: "Worker / live" },
   soc:                  { key: "soc",                  label: "SOC (%)",             source: "snapshot",     format: "percent",  width: 10, group: "Worker / live" },
   voltage1:             { key: "voltage1",             label: "Voltage 1 (Chassis)", source: "snapshot",     format: "voltage",  width: 16, group: "Worker / live" },
+  rssi:                 { key: "rssi",                 label: "RSSI (dBm)",          source: "snapshot",     format: "number",   width: 12, group: "Worker / live" },
 } as const satisfies Record<string, AdminDeviceColumn>;
 
 export type AdminDeviceColumnKey = keyof typeof ADMIN_DEVICE_COLUMNS;

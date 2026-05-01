@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { eq, and, desc, asc, gte, lte, sql, inArray, or, ilike } from "drizzle-orm";
+import { eq, and, desc, asc, gte, lte, sql, inArray, or, ilike, type SQL } from "drizzle-orm";
 import {
   organizations, users, fleets, trucks, powerMonDevices,
   deviceCredentials, deviceSnapshots, deviceMeasurements,
@@ -869,15 +869,16 @@ export class DbStorage {
     //   d  = power_mon_devices, t = trucks, f = fleets, o = organizations,
     //   c  = device_credentials, s = sims, ss = device_sync_status,
     //   ds = device_snapshots
-    const orgFilter =
-      filters.organizationId != null
-        ? eq(powerMonDevices.organizationId, filters.organizationId)
-        : undefined;
-
-    let searchFilter: ReturnType<typeof or> | undefined;
+    // Compose the WHERE clause from typed `SQL` predicates. Each predicate
+    // is appended only when it has a value, so we never pass `undefined` into
+    // `and()` and never need to fall back to an `any` cast.
+    const conditions: SQL[] = [];
+    if (filters.organizationId != null) {
+      conditions.push(eq(powerMonDevices.organizationId, filters.organizationId));
+    }
     if (filters.searchQuery && filters.searchQuery.trim().length > 0) {
       const needle = `%${filters.searchQuery.trim()}%`;
-      searchFilter = or(
+      const searchPredicate = or(
         ilike(powerMonDevices.deviceName, needle),
         ilike(powerMonDevices.serialNumber, needle),
         ilike(sims.iccid, needle),
@@ -885,9 +886,9 @@ export class DbStorage {
         ilike(trucks.truckNumber, needle),
         ilike(organizations.name, needle),
       );
+      if (searchPredicate) conditions.push(searchPredicate);
     }
-
-    const where = and(...[orgFilter, searchFilter].filter(Boolean) as any[]);
+    const where = conditions.length > 0 ? and(...conditions) : undefined;
 
     const rows = await db
       .select({
@@ -901,6 +902,7 @@ export class DbStorage {
         hardwareRevision: powerMonDevices.hardwareRevision,
         firmwareVersion: powerMonDevices.firmwareVersion,
         hostId: powerMonDevices.hostId,
+        credentialIsActive: deviceCredentials.isActive,
         iccid: sims.iccid,
         imsi: sims.imsi,
         msisdn: sims.msisdn,
@@ -908,16 +910,17 @@ export class DbStorage {
         lastReportedAt: powerMonDevices.lastReportedAt,
         lastSeenAt: powerMonDevices.lastSeenAt,
         markedOfflineAt: powerMonDevices.markedOfflineAt,
-        consecutiveDisconnects: powerMonDevices.consecutiveDisconnects,
         workerCohort: deviceSyncStatus.cohortId,
         soc: deviceSnapshots.soc,
         voltage1: deviceSnapshots.voltage1,
+        rssi: deviceSnapshots.rssi,
       })
       .from(powerMonDevices)
       .innerJoin(organizations, eq(organizations.id, powerMonDevices.organizationId))
       .leftJoin(trucks, eq(trucks.id, powerMonDevices.truckId))
       .leftJoin(fleets, eq(fleets.id, trucks.fleetId))
       .leftJoin(sims, eq(sims.deviceId, powerMonDevices.id))
+      .leftJoin(deviceCredentials, eq(deviceCredentials.deviceId, powerMonDevices.id))
       .leftJoin(deviceSyncStatus, eq(deviceSyncStatus.deviceId, powerMonDevices.id))
       .leftJoin(deviceSnapshots, eq(deviceSnapshots.deviceId, powerMonDevices.id))
       .where(where)
@@ -935,6 +938,7 @@ export class DbStorage {
       firmwareVersion: r.firmwareVersion ?? null,
       buildDate: null, // Not stored in schema today; reserved column.
       hostId: r.hostId ?? null,
+      credentialIsActive: r.credentialIsActive ?? null,
       iccid: r.iccid ?? null,
       imsi: r.imsi ?? null,
       msisdn: r.msisdn ?? null,
@@ -942,10 +946,10 @@ export class DbStorage {
       lastReportedAt: r.lastReportedAt ?? null,
       lastSeenAt: r.lastSeenAt ?? null,
       markedOfflineAt: r.markedOfflineAt ?? null,
-      consecutiveDisconnects: r.consecutiveDisconnects ?? null,
       workerCohort: r.workerCohort ?? null,
       soc: r.soc ?? null,
       voltage1: r.voltage1 ?? null,
+      rssi: r.rssi ?? null,
     }));
   }
 

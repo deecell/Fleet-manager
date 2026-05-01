@@ -15,26 +15,30 @@ import type { AdminDeviceExportRow } from "./admin-types";
 
 function connectionStatusLabel(value: string | null | undefined): string | null {
   if (!value) return null;
-  // Values: online / offline / unstable / connecting / disconnected
+  // Values from the device manager: online / offline / unstable / no_power / connecting / disconnected
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
 /**
- * Derive the admin-facing "Circuit Breaker State". The supervisor (Device
- * Manager) marks devices as offline + tracks consecutiveDisconnects; we
- * surface the operator-friendly state without bringing the supervisor's
- * runtime into the export server.
+ * Derive the admin-facing "Circuit Breaker State" by mapping the device
+ * manager's `connection_status` into the operator-facing taxonomy agreed
+ * for the soft launch. Source state comes from `device-manager/app/database.js`
+ * (`markDeviceUnstable` writes `unstable` or `no_power`; supervisor sets
+ * `offline` + `markedOfflineAt`).
  *
- *   • Tripped — currently offline AND markedOfflineAt is set
- *   • Recovering — connection_status = 'unstable' OR a recent reconnect
- *   • Closed — anything else
+ *   connection_status     →  exported circuit_breaker_state
+ *   ─────────────────────    ────────────────────────────────
+ *   no_power              →  no_power_quarantine
+ *   unstable              →  unstable_pending
+ *   offline (or markedOfflineAt set) → offline
+ *   online (or anything else) → healthy
  */
 function deriveCircuitBreakerState(row: AdminDeviceExportRow): string {
   const status = (row.connectionStatus ?? "").toLowerCase();
-  if (status === "offline" && row.markedOfflineAt) return "Tripped";
-  if (status === "unstable") return "Recovering";
-  if ((row.consecutiveDisconnects ?? 0) > 0 && status !== "online") return "Recovering";
-  return "Closed";
+  if (status === "no_power") return "no_power_quarantine";
+  if (status === "unstable") return "unstable_pending";
+  if (status === "offline" || row.markedOfflineAt) return "offline";
+  return "healthy";
 }
 
 export function extractAdminDeviceCell(
@@ -56,6 +60,10 @@ export function extractAdminDeviceCell(
 
     // Connectivity
     case "host_id":              return row.hostId ?? null;
+    case "is_active":
+      return row.credentialIsActive === null || row.credentialIsActive === undefined
+        ? null
+        : row.credentialIsActive ? "Yes" : "No";
     case "iccid":                return row.iccid ?? null;
     case "imsi":                 return row.imsi ?? null;
     case "msisdn":               return row.msisdn ?? null;
@@ -73,6 +81,7 @@ export function extractAdminDeviceCell(
         : `Cohort ${row.workerCohort}`;
     case "soc":                  return row.soc ?? null;
     case "voltage1":             return row.voltage1 ?? null;
+    case "rssi":                 return row.rssi ?? null;
 
     default: {
       // Exhaustiveness sentinel — keeps the registry and switch in sync.

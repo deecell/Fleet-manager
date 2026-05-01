@@ -29,21 +29,22 @@ export interface AdminDeviceExportRow {
 
   // Connectivity
   hostId: string | null;       // PowerMon WiFi access key host id (acts as IP)
+  credentialIsActive: boolean | null; // device_credentials.is_active
   iccid: string | null;
   imsi: string | null;
   msisdn: string | null;
-  connectionStatus: string | null; // online / offline / unstable / connecting
+  connectionStatus: string | null; // online / offline / unstable / no_power / connecting
 
   // Operations
   lastReportedAt: Date | null;
   lastSeenAt: Date | null;
-  markedOfflineAt: Date | null;        // input for circuit_breaker_state derivation
-  consecutiveDisconnects: number | null;
+  markedOfflineAt: Date | null;        // surfaces alongside circuit_breaker_state for triage
 
   // Worker / live
   workerCohort: number | null;         // device_sync_status.cohort_id
   soc: number | null;                  // device_snapshots.soc (%)
   voltage1: number | null;             // device_snapshots.voltage1 (V)
+  rssi: number | null;                 // device_snapshots.rssi (dBm)
 }
 
 export interface GetAdminDevicesForExportFilters {
