@@ -3,9 +3,28 @@ import sgMail from "@sendgrid/mail";
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 const SENDER_EMAIL = "hello@deecell.com";
 const SENDER_NAME = "Deecell Fleet Manager";
-const APP_URL = process.env.NODE_ENV === "production" 
-  ? "https://app.deecell.com" 
-  : "http://localhost:5000";
+// APP_URL is the public origin used for every link in outgoing emails
+// (password reset, invitation accept, dashboard links). Resolution
+// order:
+//   1. Explicit `APP_URL` env var (highest priority — production ECS
+//      sets this to `https://app.deecell.com`, and ops can override
+//      it for staging environments).
+//   2. NODE_ENV=production safety fallback to the canonical prod URL,
+//      in case APP_URL is missing in a prod deploy.
+//   3. `REPLIT_DOMAINS` — auto-detected so the Replit dev workspace
+//      (which has SendGrid configured and actually delivers to real
+//      inboxes) emits links that recipients can open in their browser
+//      instead of unreachable `http://localhost:5000` links.
+//   4. Final localhost fallback for `node` CLI runs where neither
+//      env var is set (typically no email is actually sent in this
+//      mode anyway because SendGrid isn't configured).
+const APP_URL =
+  process.env.APP_URL ||
+  (process.env.NODE_ENV === "production"
+    ? "https://app.deecell.com"
+    : process.env.REPLIT_DOMAINS
+      ? `https://${process.env.REPLIT_DOMAINS.split(",")[0]}`
+      : "http://localhost:5000");
 
 if (SENDGRID_API_KEY) {
   sgMail.setApiKey(SENDGRID_API_KEY);
