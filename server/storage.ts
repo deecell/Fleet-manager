@@ -164,11 +164,23 @@ export interface IStorage {
     organizationId: number;
     andyUserId: number;
     /**
-     * True only on the boot where Andy was freshly INSERTed. Lets the caller
-     * trigger a one-shot password-setup email so he doesn't have to use the
-     * generic "Forgot password?" form to bootstrap his account.
+     * True only on the boot where Andy was freshly INSERTed by this method.
+     * Useful for telemetry; the caller should drive email sending off
+     * needsInvitation, not this flag, so prod (where the SQL migration
+     * pre-seeds Andy) and dev (where this method seeds him) share one
+     * code path.
      */
     andyJustCreated: boolean;
+    /**
+     * True when Andy needs a password-setup invitation email — i.e. he
+     * exists, is_platform_admin = true, password_hash IS NULL, AND he
+     * has no unused/non-expired invitation token outstanding. Becomes
+     * false again once the caller mints a token (or once Andy completes
+     * his password setup), so this is naturally idempotent across boots.
+     * Critically: returns false when Andy has been revoked
+     * (is_platform_admin = false), so a revoked admin is never re-invited.
+     */
+    needsInvitation: boolean;
   }>;
   // Lists all platform admins (users with is_platform_admin = true) across
   // every organization. In practice they all live in deecell-internal but

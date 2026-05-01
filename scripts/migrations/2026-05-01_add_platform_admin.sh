@@ -1,29 +1,34 @@
 #!/bin/bash
 #
-# Production Database Migration: Add users.is_platform_admin column (Task #8)
+# Production Database Migration: Add users.is_platform_admin + seed Andy (Task #8)
 # Created: 2026-05-01
 #
-# Adds the users.is_platform_admin boolean column. This replaces the shared
-# ADMIN_PASSWORD model with per-admin email/password identity.
+# Replaces the shared ADMIN_PASSWORD model with per-admin email/password
+# identity. This script:
+#   1. Adds the users.is_platform_admin boolean column.
+#   2. Bootstraps the deecell-internal organization (slug-unique).
+#   3. Seeds Andy (andy@deecell.com) as the first platform admin with
+#      password_hash = NULL — no plaintext credential ever lives in the
+#      script itself.
 #
-# IMPORTANT — this migration only adds the COLUMN. It does NOT seed the
-# deecell-internal organization or the Andy admin user. Those are created
-# by the application's startup bootstrap (server/routes.ts →
-# storage.ensureDeecellInternalSetup) on the first boot of the new app
-# image, which is the only path that can both create Andy AND send him a
-# SendGrid password-setup invitation in the same atomic step. If the SQL
-# pre-created Andy, the bootstrap would observe an existing row, skip the
-# invite, and Andy would never get an email.
+# Andy's password-setup email is sent by the application's startup
+# bootstrap on the next ECS deploy: it detects Andy exists with NULL
+# password and no active invitation token, mints a token, and emails
+# him via SendGrid. This is idempotent — once an active token exists,
+# subsequent boots skip re-sending.
 #
 # Deploy order:
-#   1. Run this script (column only).
+#   1. Run this script (creates column + org + Andy row).
 #   2. Roll the ECS web service to the new app image.
-#   3. App boot creates the org + Andy and emails his invitation.
-#      Watch CloudWatch for "[admin-bootstrap] Andy seed user invited".
+#   3. App boot mints invitation token + emails Andy. Watch CloudWatch
+#      for "[admin-bootstrap] Andy seed user invited; email sent=true".
 # If the email never arrives, /forgot-password on /admin/login is the
 # manual fallback.
 #
-# Idempotent: ADD COLUMN IF NOT EXISTS. Safe to re-run.
+# Idempotent: ADD COLUMN IF NOT EXISTS, ON CONFLICT DO NOTHING for the
+# org, WHERE NOT EXISTS for Andy. Safe to re-run. NOTE: the SQL does NOT
+# auto-repair Andy's is_platform_admin flag — once revoked, it stays
+# revoked across reboots and re-runs.
 #
 # Architecture:
 #   - SQL lives in 2026-05-01_add_platform_admin.sql (sidecar file).
@@ -60,7 +65,7 @@ if ! command -v aws >/dev/null 2>&1; then
 fi
 
 echo "=== Deecell Production Database Migration ==="
-echo "Migration: Add users.is_platform_admin column (org + Andy seeded by app on next boot)"
+echo "Migration: Add users.is_platform_admin column + seed Andy as first platform admin"
 echo ""
 
 # -- 1. Look up the running device-manager EC2 instance ----------------------
@@ -126,7 +131,7 @@ echo "[4/5] Sending command to $INSTANCE_ID via SSM..."
 COMMAND_ID=$(aws ssm send-command \
     --instance-ids "$INSTANCE_ID" \
     --document-name "AWS-RunShellScript" \
-    --comment "Migration: add users.is_platform_admin column" \
+    --comment "Migration: add users.is_platform_admin column + seed Andy" \
     --parameters "$PARAMS" \
     --query 'Command.CommandId' \
     --output text \

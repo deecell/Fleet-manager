@@ -58,9 +58,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // /forgot-password form himself — matches the invitation flow used for
   // every subsequent admin invited via the UI.
   try {
-    const { organizationId: deecellOrgId, andyUserId, andyJustCreated } =
+    const { organizationId: deecellOrgId, andyUserId, andyJustCreated, needsInvitation } =
       await storage.ensureDeecellInternalSetup();
     if (andyJustCreated) {
+      console.log(
+        `[admin-bootstrap] Andy seed user freshly created (id=${andyUserId})`,
+      );
+    }
+    if (needsInvitation) {
       try {
         const { isEmailConfigured, sendInvitationEmail } = await import(
           "./services/email-service"

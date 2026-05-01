@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { eq, and, desc, asc, gte, lte, sql, inArray, or, ilike, type SQL } from "drizzle-orm";
+import { eq, and, desc, asc, gt, gte, lte, sql, inArray, isNull, or, ilike, type SQL } from "drizzle-orm";
 import {
   organizations, users, fleets, trucks, powerMonDevices,
   deviceCredentials, deviceSnapshots, deviceMeasurements,
@@ -865,6 +865,7 @@ export class DbStorage {
     organizationId: number;
     andyUserId: number;
     andyJustCreated: boolean;
+    needsInvitation: boolean;
   }> {
     // Idempotent boot-time bootstrap for the platform admin model (Task #8).
     // 1. Make sure the deecell-internal organization exists.
@@ -903,6 +904,8 @@ export class DbStorage {
 
     let andyUserId: number;
     let andyJustCreated = false;
+    let andyIsPlatformAdmin: boolean;
+    let andyHasPassword: boolean;
     if (!existing) {
       const [created] = await db.insert(users).values({
         organizationId: org.id,
@@ -917,18 +920,45 @@ export class DbStorage {
       }).returning({ id: users.id });
       andyUserId = created.id;
       andyJustCreated = true;
+      andyIsPlatformAdmin = true;
+      andyHasPassword = false;
     } else {
       andyUserId = existing.id;
-      if (!existing.isPlatformAdmin) {
-        // Repair drift: if Andy exists but the flag was cleared, re-flag him
-        // so he doesn't get locked out of /admin/login.
-        await db.update(users)
-          .set({ isPlatformAdmin: true, updatedAt: new Date() })
-          .where(eq(users.id, existing.id));
+      andyIsPlatformAdmin = existing.isPlatformAdmin;
+      andyHasPassword = existing.passwordHash !== null;
+      // We INTENTIONALLY do NOT re-flag isPlatformAdmin here. If an admin
+      // was revoked (via the Manage Admins UI or a manual UPDATE), that
+      // decision must persist across reboots and re-runs of the seed
+      // migration. Auto-repair here would silently undo every revoke.
+    }
+
+    // Andy needs a password-setup invitation email iff he is currently a
+    // platform admin, has no password yet, and has no outstanding
+    // invitation token. The "no outstanding token" check makes the boot
+    // path naturally idempotent across restarts (mint once, then skip)
+    // and across the SQL-pre-seeded → app-boot handoff in production.
+    let needsInvitation = false;
+    if (andyIsPlatformAdmin && !andyHasPassword) {
+      const now = new Date();
+      const [activeToken] = await db.select({ id: invitationTokens.id })
+        .from(invitationTokens)
+        .where(and(
+          eq(invitationTokens.userId, andyUserId),
+          isNull(invitationTokens.usedAt),
+          gt(invitationTokens.expiresAt, now),
+        ))
+        .limit(1);
+      if (!activeToken) {
+        needsInvitation = true;
       }
     }
 
-    return { organizationId: org.id, andyUserId, andyJustCreated };
+    return {
+      organizationId: org.id,
+      andyUserId,
+      andyJustCreated,
+      needsInvitation,
+    };
   }
 
   async getActivePlatformAdminByEmail(email: string): Promise<User | undefined> {

@@ -1,32 +1,81 @@
 -- =============================================
--- users.is_platform_admin column (Task #8)
+-- users.is_platform_admin + Andy seed user (Task #8)
 -- =============================================
 -- Replaces the shared ADMIN_PASSWORD model with per-admin email/password
--- identity. This migration ONLY adds the boolean flag column on users.
+-- identity. This migration:
+--   1. Adds the boolean flag column on users.
+--   2. Bootstraps the deecell-internal organization (slug-unique).
+--   3. Seeds Andy (andy@deecell.com) as the first platform admin with
+--      password_hash = NULL so no plaintext credential ever lives in
+--      the migration.
 --
--- The deecell-internal organization and the seed Andy (andy@deecell.com)
--- admin user are intentionally NOT inserted here. They are created by the
--- application's startup bootstrap (server/routes.ts →
--- storage.ensureDeecellInternalSetup) the first time the new app image
--- boots. The bootstrap can detect a fresh INSERT and triggers a SendGrid
--- password-setup invitation in the same flow — if we pre-created Andy
--- here the bootstrap would observe an existing row, skip the invite, and
--- Andy would never receive an email.
+-- Andy's password-setup invitation email is sent by the application's
+-- startup bootstrap (server/routes.ts → ensureDeecellInternalSetup):
+-- after this migration runs, the next app boot detects that Andy exists
+-- with NULL password_hash AND no active invitation token, mints a token
+-- via createInvitationToken, and emails him via SendGrid. This pattern
+-- is idempotent — once an active token exists, subsequent boots skip
+-- re-sending. Watch CloudWatch for
+--   "[admin-bootstrap] Andy seed user invited; email sent=true"
+-- on the first boot after the new app image rolls. If the email never
+-- arrives, /forgot-password on /admin/login is the manual fallback.
 --
--- Deploy sequence:
---   1. Run this SQL migration (column only, schema-safe).
---   2. Roll the ECS web service to the new app image.
---   3. App boots: ensureDeecellInternalSetup creates the org + Andy and
---      sends his password-setup invitation. Watch CloudWatch for
---      "[admin-bootstrap] Andy seed user invited; email sent=true".
--- If the email never arrives (SendGrid misconfigured), the
--- /forgot-password form on /admin/login is the manual fallback.
---
--- Idempotent: ADD COLUMN IF NOT EXISTS. Safe to re-run.
+-- Idempotent in three places:
+--   1. ADD COLUMN IF NOT EXISTS for the flag.
+--   2. INSERT ... ON CONFLICT (slug) DO NOTHING for the org.
+--   3. INSERT ... WHERE NOT EXISTS for Andy.
+-- Safe to re-run.
 
 -- 1. Schema change
 ALTER TABLE users
     ADD COLUMN IF NOT EXISTS is_platform_admin BOOLEAN NOT NULL DEFAULT false;
+
+-- 2. Bootstrap the deecell-internal organization (org backing every admin
+-- session). The ON CONFLICT (slug) clause requires organizations.slug to be
+-- UNIQUE, which it already is in the schema.
+INSERT INTO organizations (name, slug, plan, is_active)
+VALUES ('Deecell Internal', 'deecell-internal', 'internal', true)
+ON CONFLICT (slug) DO NOTHING;
+
+-- 3. Seed Andy as the first platform admin. password_hash NULL forces
+-- him through the password-setup flow (the app bootstrap will email him
+-- the invitation token on next boot — see header comment above).
+INSERT INTO users (
+    organization_id,
+    email,
+    password_hash,
+    name,
+    first_name,
+    last_name,
+    role,
+    is_active,
+    is_platform_admin
+)
+SELECT
+    o.id,
+    'andy@deecell.com',
+    NULL,
+    'Andy Moeck',
+    'Andy',
+    'Moeck',
+    'admin',
+    true,
+    true
+FROM organizations o
+WHERE o.slug = 'deecell-internal'
+  AND NOT EXISTS (
+      SELECT 1 FROM users u
+      WHERE u.organization_id = o.id
+        AND u.email = 'andy@deecell.com'
+  );
+
+-- NOTE: we intentionally do NOT include a "drift repair" UPDATE that
+-- re-flags Andy's is_platform_admin if it was cleared. Once an admin has
+-- been revoked through the Manage Admins UI (or an operator), that
+-- decision should persist across migrations and reboots — re-flagging
+-- here would silently undo that revoke. If Andy needs to be re-promoted
+-- after a revoke, do it explicitly via the Manage Admins UI or a
+-- targeted UPDATE.
 
 -- Verification
 SELECT 'users.is_platform_admin added/verified' AS result;
@@ -36,8 +85,6 @@ FROM information_schema.columns
 WHERE table_name = 'users'
   AND column_name = 'is_platform_admin';
 
--- After the next app deploy, this query should show Andy as the first
--- platform admin (and any subsequent admins invited via /admin/users):
 SELECT u.email,
        u.first_name,
        u.last_name,
