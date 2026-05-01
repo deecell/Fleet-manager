@@ -20,23 +20,9 @@ const SALT_ROUNDS = 10;
 
 const router = Router();
 
-declare module "express-session" {
-  interface SessionData {
-    // Set to true when the user has authenticated successfully at
-    // /admin/login AND their users.is_platform_admin = true. Drives the
-    // platformAdminMiddleware gate below and is the only flag the admin
-    // surface inspects to decide whether to render. We keep it in addition
-    // to userId/organizationId (which are also used by the customer auth
-    // session) so the customer login can never accidentally elevate to
-    // admin — only the admin login route sets this bit.
-    isPlatformAdmin?: boolean;
-    // Mirrors the customer session shape so a single platformAdminMiddleware
-    // pass can satisfy req.userId / req.organizationId for downstream code
-    // (admin export jobs attribute to users.id, org-scoped advisory locks
-    // hash on organization_id, etc).
-    adminEmail?: string;
-  }
-}
+// Session shape (isPlatformAdmin, userId, organizationId, adminEmail)
+// is declared in `server/types/session.d.ts` so customer + admin auth
+// share one source of truth and don't drift.
 
 // Request augmentation: platformAdminMiddleware writes the freshly-validated
 // admin's identity onto req.* so downstream handlers can identify the acting

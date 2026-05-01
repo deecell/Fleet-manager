@@ -7,14 +7,8 @@ import { uploadFile, deleteFile } from "../aws/s3";
 
 const router = Router();
 
-declare module "express-session" {
-  interface SessionData {
-    userId?: number;
-    organizationId?: number;
-    userEmail?: string;
-    userName?: string;
-  }
-}
+// Session shape is declared in `server/types/session.d.ts` so customer
+// + admin auth share one source of truth and don't drift.
 
 export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   if (!req.session?.userId || !req.session?.organizationId) {
