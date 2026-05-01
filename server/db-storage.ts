@@ -861,7 +861,11 @@ export class DbStorage {
     return { userId: user.id, organizationId: org.id };
   }
 
-  async ensureDeecellInternalSetup(): Promise<{ organizationId: number }> {
+  async ensureDeecellInternalSetup(): Promise<{
+    organizationId: number;
+    andyUserId: number;
+    andyJustCreated: boolean;
+  }> {
     // Idempotent boot-time bootstrap for the platform admin model (Task #8).
     // 1. Make sure the deecell-internal organization exists.
     // 2. Make sure the seed Andy user (andy@deecell.com) exists in that org
@@ -897,8 +901,10 @@ export class DbStorage {
       ))
       .then((rows) => rows[0]);
 
+    let andyUserId: number;
+    let andyJustCreated = false;
     if (!existing) {
-      await db.insert(users).values({
+      const [created] = await db.insert(users).values({
         organizationId: org.id,
         email: SEED_ADMIN_EMAIL,
         passwordHash: null,
@@ -908,16 +914,32 @@ export class DbStorage {
         role: "admin",
         isActive: true,
         isPlatformAdmin: true,
-      });
-    } else if (!existing.isPlatformAdmin) {
-      // Repair drift: if Andy exists but the flag was cleared, re-flag him
-      // so he doesn't get locked out of /admin/login.
-      await db.update(users)
-        .set({ isPlatformAdmin: true, updatedAt: new Date() })
-        .where(eq(users.id, existing.id));
+      }).returning({ id: users.id });
+      andyUserId = created.id;
+      andyJustCreated = true;
+    } else {
+      andyUserId = existing.id;
+      if (!existing.isPlatformAdmin) {
+        // Repair drift: if Andy exists but the flag was cleared, re-flag him
+        // so he doesn't get locked out of /admin/login.
+        await db.update(users)
+          .set({ isPlatformAdmin: true, updatedAt: new Date() })
+          .where(eq(users.id, existing.id));
+      }
     }
 
-    return { organizationId: org.id };
+    return { organizationId: org.id, andyUserId, andyJustCreated };
+  }
+
+  async getActivePlatformAdminByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users)
+      .where(and(
+        eq(users.email, email),
+        eq(users.isActive, true),
+        eq(users.isPlatformAdmin, true),
+      ))
+      .limit(1);
+    return user;
   }
 
   async listPlatformAdmins(): Promise<User[]> {

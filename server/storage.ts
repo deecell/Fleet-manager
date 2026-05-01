@@ -160,11 +160,28 @@ export interface IStorage {
   // is_platform_admin = true and a NULL password (Andy sets the password
   // via the standard /forgot-password reset email). Safe to call on every
   // boot. Returns the org id.
-  ensureDeecellInternalSetup(): Promise<{ organizationId: number }>;
+  ensureDeecellInternalSetup(): Promise<{
+    organizationId: number;
+    andyUserId: number;
+    /**
+     * True only on the boot where Andy was freshly INSERTed. Lets the caller
+     * trigger a one-shot password-setup email so he doesn't have to use the
+     * generic "Forgot password?" form to bootstrap his account.
+     */
+    andyJustCreated: boolean;
+  }>;
   // Lists all platform admins (users with is_platform_admin = true) across
   // every organization. In practice they all live in deecell-internal but
   // we don't enforce that here.
   listPlatformAdmins(): Promise<User[]>;
+  // Returns any ACTIVE platform admin row whose email matches, regardless
+  // of which organization the row lives in. Used by the customer login
+  // route to deterministically reject admins even when the same email is
+  // also registered as a customer in another org — schema only enforces
+  // UNIQUE(email, organization_id), so the same address can theoretically
+  // appear in multiple orgs and we cannot rely on getUserByEmailGlobal's
+  // first-match semantics for a security-relevant gate.
+  getActivePlatformAdminByEmail(email: string): Promise<User | undefined>;
   // Admin Devices Export (Task #5). Returns the flat per-device row shape
   // consumed by the admin export generator. Filters are applied at the SQL
   // layer; all relations are LEFT JOINed so devices without a sim/snapshot/

@@ -37,8 +37,26 @@ router.post("/login", async (req: Request, res: Response) => {
       });
     }
 
-    const user = await storage.getUserByEmailGlobal(email.toLowerCase().trim());
-    
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Platform admins must use /admin/login — the customer surface is for
+    // tenant users only. We gate on a deterministic "is this email a
+    // platform admin anywhere?" lookup BEFORE the regular per-row check,
+    // because the schema only enforces UNIQUE(email, organization_id) and
+    // getUserByEmailGlobal returns the first matching row with no ordering.
+    // If the same email existed as both a customer and an admin, relying
+    // on `user.isPlatformAdmin` from that first-match query would make the
+    // gate nondeterministic. This explicit query closes that hole.
+    const adminMatch = await storage.getActivePlatformAdminByEmail(normalizedEmail);
+    if (adminMatch) {
+      return res.status(401).json({
+        error: "Use admin login",
+        message: "Platform admins must sign in at /admin/login.",
+      });
+    }
+
+    const user = await storage.getUserByEmailGlobal(normalizedEmail);
+
     if (!user) {
       return res.status(401).json({ 
         error: "Invalid credentials", 

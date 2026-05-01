@@ -38,6 +38,23 @@ declare module "express-session" {
   }
 }
 
+// Request augmentation: platformAdminMiddleware writes the freshly-validated
+// admin's identity onto req.* so downstream handlers can identify the acting
+// user without re-reading the session. tenantMiddleware writes the same
+// fields for customer routes, so handlers shared across both surfaces have
+// a uniform identity contract.
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Express {
+    interface Request {
+      userId?: number;
+      organizationId?: number;
+      userEmail?: string;
+      userName?: string;
+    }
+  }
+}
+
 // Exported so admin-exports-routes (Task #5) can reuse the same auth gate.
 // Renamed conceptually from adminMiddleware → platformAdminMiddleware; the
 // old name is re-exported below as an alias so existing imports keep working
@@ -80,6 +97,14 @@ export const platformAdminMiddleware = async (
     // organization migration is reflected immediately.
     req.session.userId = user.id;
     req.session.organizationId = user.organizationId;
+    // Expose identity on the request object so downstream handlers can
+    // identify the acting admin without re-reading the session. This mirrors
+    // tenantMiddleware's contract and is what admin-exports-routes consumes
+    // via req.userId / req.organizationId.
+    req.userId = user.id;
+    req.organizationId = user.organizationId;
+    req.userEmail = user.email;
+    req.userName = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email;
   } catch (err) {
     console.error("[admin] Failed to re-validate platform admin:", err);
     return res.status(500).json({ error: "Auth check failed" });
@@ -854,7 +879,7 @@ router.post("/platform-admins", platformAdminMiddleware, async (req: Request, re
     const existing = await storage.getUserByEmail(organizationId, email);
     if (existing) {
       if (!existing.isPlatformAdmin) {
-        await storage.updateUser(organizationId, existing.id, { isPlatformAdmin: true } as any);
+        await storage.updateUser(organizationId, existing.id, { isPlatformAdmin: true });
         return res.json({
           user: toPlatformAdminDto({ ...existing, isPlatformAdmin: true }),
           alreadyExisted: true,
@@ -876,7 +901,7 @@ router.post("/platform-admins", platformAdminMiddleware, async (req: Request, re
       isActive: true,
       isPlatformAdmin: true,
       passwordHash: null,
-    } as any);
+    });
 
     let invitationEmailSent = false;
     if (isEmailConfigured()) {
@@ -930,7 +955,7 @@ router.delete("/platform-admins/:id", platformAdminMiddleware, async (req: Reque
     if (!target || !target.isPlatformAdmin) {
       return res.status(404).json({ error: "Platform admin not found" });
     }
-    await storage.updateUser(target.organizationId, target.id, { isPlatformAdmin: false } as any);
+    await storage.updateUser(target.organizationId, target.id, { isPlatformAdmin: false });
     res.json({ success: true });
   } catch (error) {
     console.error("Error revoking platform admin:", error);

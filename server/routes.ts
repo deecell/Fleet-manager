@@ -53,8 +53,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // RDS in prod), independently of the AWS RDS health check above. Safe
   // to re-run on every boot. If the is_platform_admin column is missing
   // we log and continue so the server still starts before a schema push.
+  // When Andy is freshly seeded (first boot after migration), kick off a
+  // one-shot password-setup email so he doesn't have to discover the
+  // /forgot-password form himself — matches the invitation flow used for
+  // every subsequent admin invited via the UI.
   try {
-    await storage.ensureDeecellInternalSetup();
+    const { organizationId: deecellOrgId, andyUserId, andyJustCreated } =
+      await storage.ensureDeecellInternalSetup();
+    if (andyJustCreated) {
+      try {
+        const { isEmailConfigured, sendInvitationEmail } = await import(
+          "./services/email-service"
+        );
+        if (isEmailConfigured()) {
+          const { nanoid } = await import("nanoid");
+          const token = nanoid(32);
+          const expiresAt = new Date();
+          expiresAt.setDate(expiresAt.getDate() + 7);
+          await storage.createInvitationToken({
+            userId: andyUserId,
+            organizationId: deecellOrgId,
+            token,
+            expiresAt,
+          });
+          const sent = await sendInvitationEmail(
+            "andy@deecell.com",
+            "Andy",
+            "Deecell Internal",
+            token,
+          );
+          console.log(
+            `[admin-bootstrap] Andy seed user invited; email sent=${sent}`,
+          );
+        } else {
+          console.warn(
+            "[admin-bootstrap] Andy seed user created but SENDGRID is not configured — skipping invitation email. Use /forgot-password manually.",
+          );
+        }
+      } catch (emailError) {
+        console.error(
+          "[admin-bootstrap] Failed to send Andy invitation email:",
+          emailError,
+        );
+      }
+    }
   } catch (error) {
     console.error("Failed to bootstrap deecell-internal admin setup:", error);
   }
