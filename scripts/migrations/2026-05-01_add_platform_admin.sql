@@ -9,16 +9,17 @@
 --      password_hash = NULL so no plaintext credential ever lives in
 --      the migration.
 --
--- Andy's password-setup invitation email is sent by the application's
--- startup bootstrap (server/routes.ts → ensureDeecellInternalSetup):
--- after this migration runs, the next app boot detects that Andy exists
--- with NULL password_hash AND no active invitation token, mints a token
--- via createInvitationToken, and emails him via SendGrid. This pattern
--- is idempotent — once an active token exists, subsequent boots skip
--- re-sending. Watch CloudWatch for
---   "[admin-bootstrap] Andy seed user invited; email sent=true"
--- on the first boot after the new app image rolls. If the email never
--- arrives, /forgot-password on /admin/login is the manual fallback.
+-- Andy's password-setup invitation email is sent by the .sh wrapper
+-- (2026-05-01_add_platform_admin.sh) immediately after this SQL runs:
+-- it mints a 32-char URL-safe token, INSERTs into invitation_tokens
+-- (7-day expiry), and POSTs the email to SendGrid via the v3 API.
+-- The application's startup bootstrap (server/routes.ts →
+-- ensureDeecellInternalSetup) is a no-op fallback for the same flow:
+-- if the .sh email step fails, the next ECS deploy will detect Andy
+-- still has NULL password + no active invite and re-mint + re-send,
+-- logging "[admin-bootstrap] Andy seed user invited; email sent=true"
+-- to CloudWatch. Either path is idempotent. /forgot-password on
+-- /admin/login remains the documented manual fallback.
 --
 -- Idempotent in three places:
 --   1. ADD COLUMN IF NOT EXISTS for the flag.

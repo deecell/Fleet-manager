@@ -973,9 +973,19 @@ export class DbStorage {
   }
 
   async listPlatformAdmins(): Promise<User[]> {
+    // Platform admins are modelled as users inside the `deecell-internal`
+    // org. We restrict to that org explicitly so an accidental
+    // `is_platform_admin = true` row in a customer org would not appear
+    // in the Manage Admins panel — and would not be treated as a real
+    // platform admin operationally.
     return db.select().from(users)
-      .where(eq(users.isPlatformAdmin, true))
-      .orderBy(asc(users.email));
+      .innerJoin(organizations, eq(users.organizationId, organizations.id))
+      .where(and(
+        eq(users.isPlatformAdmin, true),
+        eq(organizations.slug, "deecell-internal"),
+      ))
+      .orderBy(asc(users.email))
+      .then((rows) => rows.map((r) => r.users));
   }
 
   async getAdminDevicesForExport(
