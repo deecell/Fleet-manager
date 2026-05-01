@@ -880,9 +880,39 @@ router.post("/platform-admins", platformAdminMiddleware, async (req: Request, re
     if (existing) {
       if (!existing.isPlatformAdmin) {
         await storage.updateUser(organizationId, existing.id, { isPlatformAdmin: true });
+        // Parity with the new-user invite path: if this promoted user has
+        // no password yet (e.g. seeded earlier with NULL password_hash),
+        // mint a fresh invitation token and email them. Without this
+        // they would have to discover /forgot-password manually.
+        let invitationEmailSent = false;
+        if (existing.passwordHash === null && isEmailConfigured()) {
+          try {
+            const token = nanoid(32);
+            const expiresAt = new Date();
+            expiresAt.setDate(expiresAt.getDate() + 7);
+            await storage.createInvitationToken({
+              userId: existing.id,
+              organizationId,
+              token,
+              expiresAt,
+            });
+            invitationEmailSent = await sendInvitationEmail(
+              existing.email!,
+              existing.firstName || existing.name || "",
+              "Deecell Internal",
+              token,
+            );
+          } catch (emailError) {
+            console.error(
+              `Failed to send promoted-admin invitation to ${existing.email}:`,
+              emailError,
+            );
+          }
+        }
         return res.json({
           user: toPlatformAdminDto({ ...existing, isPlatformAdmin: true }),
           alreadyExisted: true,
+          invitationEmailSent,
         });
       }
       return res.status(409).json({
