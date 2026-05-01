@@ -12,6 +12,7 @@ import migrationRoutes from "./api/migration-routes";
 import mobileRoutes from "./api/mobile-routes";
 import shellyRoutes from "./api/shelly-routes";
 import exportsRoutes from "./api/exports-routes";
+import adminExportsRoutes from "./api/admin-exports-routes";
 import MemoryStore from "memorystore";
 
 const MemoryStoreSession = MemoryStore(session);
@@ -76,6 +77,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register Customer Auth API routes
   app.use("/api/auth", authRoutes);
+
+  // Register Admin Devices Export API routes (Task #5 — must mount BEFORE
+  // /api/v1/admin so /api/v1/admin/exports doesn't get swallowed by the
+  // admin router's catch-all sub-routes).
+  app.use("/api/v1/admin/exports", adminExportsRoutes);
 
   // Register Admin API routes
   app.use("/api/v1/admin", adminRoutes);

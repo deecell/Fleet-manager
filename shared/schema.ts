@@ -717,6 +717,11 @@ export const exportJobs = pgTable("export_jobs", {
     .references(() => users.id, { onDelete: "cascade" }),
 
   // What to export
+  // Job kind selects the generator + S3 path:
+  //   • 'snapshot'      — customer fleet snapshot (Task #2 / #3)
+  //   • 'historical'    — single-truck time-series (Task #4); also gates on historical_mode
+  //   • 'admin_devices' — cross-org admin device registry (Task #5 soft launch)
+  kind: text("kind").notNull().default("snapshot"),
   bundleKey: text("bundle_key").notNull(),
   format: text("format").notNull(), // 'csv' | 'xlsx'
   // Stored as jsonb so future read paths can index/query inside the
@@ -726,6 +731,9 @@ export const exportJobs = pgTable("export_jobs", {
     fleetId?: number;
     operationalStatus?: string;
     searchQuery?: string;
+    // Admin-devices export (Task #5) reuses this column with its own keys.
+    organizationId?: number | null;
+    organizationName?: string | null;
   }>(),
   includeColumns: jsonb("include_columns").$type<string[]>(),
   excludeColumns: jsonb("exclude_columns").$type<string[]>(),
@@ -947,6 +955,13 @@ export const EXPORT_JOB_ACTIVE_STATUSES: ExportJobStatus[] = [
 export const EXPORT_USER_CONCURRENCY_LIMIT = 3;
 export const EXPORT_ORG_CONCURRENCY_LIMIT = 10;
 export const EXPORT_DOWNLOAD_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days
+
+export const EXPORT_JOB_KIND = {
+  SNAPSHOT: "snapshot",
+  HISTORICAL: "historical",
+  ADMIN_DEVICES: "admin_devices",
+} as const;
+export type ExportJobKind = typeof EXPORT_JOB_KIND[keyof typeof EXPORT_JOB_KIND];
 
 // =============================================================================
 // LEGACY SCHEMAS (for backward compatibility with existing dashboard)

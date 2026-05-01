@@ -45,9 +45,10 @@ import {
   useResetDeviceStatus,
   useSetDeviceOffline,
 } from "@/lib/admin-api";
-import { Plus, Pencil, Cpu, Link2, Unlink, Key, Search, Trash2, RotateCcw, WifiOff } from "lucide-react";
+import { Plus, Pencil, Cpu, Link2, Unlink, Key, Search, Trash2, RotateCcw, WifiOff, Download } from "lucide-react";
 import type { PowerMonDevice } from "@shared/schema";
 import type { DeviceWithSnapshot } from "@/lib/admin-api";
+import { AdminExportDialog } from "@/components/AdminExportDialog";
 
 function SortIcon() {
   return (
@@ -106,6 +107,7 @@ export default function DevicesPage() {
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isExportOpen, setIsExportOpen] = useState(false);
 
   const handleSort = (field: string) => {
     if (sortField === field) {
@@ -370,6 +372,14 @@ export default function DevicesPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsExportOpen(true)}
+              data-testid="button-export-devices"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
             <Button 
               onClick={() => setIsCreateOpen(true)} 
               disabled={!selectedOrgId}
@@ -1094,6 +1104,18 @@ export default function DevicesPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        <AdminExportDialog
+          open={isExportOpen}
+          onOpenChange={setIsExportOpen}
+          organizationId={selectedOrgId ?? null}
+          organizationName={
+            selectedOrgId
+              ? organizations.find((o) => o.id === selectedOrgId)?.name ?? null
+              : null
+          }
+          searchQuery={searchQuery}
+        />
       </div>
     </AdminLayout>
   );

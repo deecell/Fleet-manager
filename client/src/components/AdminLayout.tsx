@@ -5,6 +5,8 @@ import { useAdminSession, useAdminLogout } from "@/lib/admin-api";
 import { useEffect } from "react";
 import { AdminAssistant } from "@/components/AdminAssistant";
 import { Footer } from "@/components/Footer";
+import { ExportsBanner } from "@/components/ExportsBanner";
+import { ADMIN_EXPORTS_ENDPOINT } from "@/lib/exports-api";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -99,6 +101,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         </div>
       </aside>
       <div className="flex-1 flex flex-col overflow-hidden pb-[66px]">
+        <ExportsBanner endpoint={ADMIN_EXPORTS_ENDPOINT} />
         <main className="flex-1 overflow-auto">
           {children}
         </main>

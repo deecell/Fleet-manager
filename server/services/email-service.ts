@@ -376,6 +376,15 @@ export async function sendExportReadyEmail(
       startTime: Date;
       endTime: Date;
     };
+    /**
+     * When present, render an extra summary row identifying the admin scope.
+     * Used by Task #5 admin device exports — keeps the operator email
+     * distinct from a customer-facing fleet export at a glance.
+     */
+    admin?: {
+      organizationName: string | null;
+      searchQuery: string | null;
+    };
   },
 ): Promise<boolean> {
   const escapeHtml = (s: string): string =>
@@ -412,6 +421,13 @@ export async function sendExportReadyEmail(
         <td style="padding: 12px 16px; color: #18181b; font-size: 13px; font-weight: 600; text-align: right; border-top: 1px solid #e4e4e7;">${opts.historical.startTime.toLocaleDateString("en-US", { dateStyle: "medium" })} → ${opts.historical.endTime.toLocaleDateString("en-US", { dateStyle: "medium" })}</td>
       </tr>`
     : "";
+  const adminRows = opts.admin
+    ? `
+      <tr>
+        <td style="padding: 12px 16px; color: #71717a; font-size: 13px; border-top: 1px solid #e4e4e7;">Scope</td>
+        <td style="padding: 12px 16px; color: #18181b; font-size: 13px; font-weight: 600; text-align: right; border-top: 1px solid #e4e4e7;">${opts.admin.organizationName ? escapeHtml(opts.admin.organizationName) : "All organizations"}${opts.admin.searchQuery ? ` <span style="color:#71717a; font-weight: 400;">· "${escapeHtml(opts.admin.searchQuery)}"</span>` : ""}</td>
+      </tr>`
+    : "";
   const content = `
     <h2 style="margin: 0 0 16px 0; color: #18181b; font-size: 20px;">Your fleet export is ready</h2>
     <p style="margin: 0 0 16px 0; color: #18181b; font-size: 14px; line-height: 1.6;">${greeting}</p>
@@ -426,7 +442,7 @@ export async function sendExportReadyEmail(
       <tr>
         <td style="padding: 12px 16px; color: #71717a; font-size: 13px; border-top: 1px solid #e4e4e7;">Rows</td>
         <td style="padding: 12px 16px; color: #18181b; font-size: 13px; font-weight: 600; text-align: right; border-top: 1px solid #e4e4e7;">${opts.rowCount.toLocaleString()}</td>
-      </tr>${historicalRows}
+      </tr>${historicalRows}${adminRows}
       <tr>
         <td style="padding: 12px 16px; color: #71717a; font-size: 13px; border-top: 1px solid #e4e4e7;">Link expires</td>
         <td style="padding: 12px 16px; color: #18181b; font-size: 13px; font-weight: 600; text-align: right; border-top: 1px solid #e4e4e7;">${expiresStr}</td>

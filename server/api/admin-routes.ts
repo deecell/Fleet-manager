@@ -24,6 +24,12 @@ declare module "express-session" {
   interface SessionData {
     isAdmin?: boolean;
     adminEmail?: string;
+    // Synthetic "Deecell Admin" identity backing ADMIN_PASSWORD sessions so
+    // admin export jobs can satisfy export_jobs.user_id (NOT NULL FK to
+    // users.id) and the org-scoped concurrency-limit advisory lock.
+    // Provisioned idempotently via storage.ensureAdminUserAndOrg().
+    adminUserId?: number;
+    adminOrganizationId?: number;
   }
 }
 
@@ -34,12 +40,25 @@ if (!ADMIN_PASSWORD) {
   console.warn("[Admin] WARNING: ADMIN_PASSWORD not set. Admin login disabled for security.");
 }
 
-const adminMiddleware = (req: Request, res: Response, next: NextFunction) => {
+// Exported so admin-exports-routes (Task #5) can reuse the same auth gate.
+export const adminMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   if (!req.session?.isAdmin) {
     return res.status(401).json({ 
       error: "Unauthorized", 
       message: "Admin authentication required. Please login at /admin/login" 
     });
+  }
+  // Lazily backfill the synthetic admin identity so already-logged-in admin
+  // sessions (created before Task #5 shipped) get one without re-auth.
+  if (!req.session.adminUserId || !req.session.adminOrganizationId) {
+    try {
+      const { userId, organizationId } = await storage.ensureAdminUserAndOrg();
+      req.session.adminUserId = userId;
+      req.session.adminOrganizationId = organizationId;
+    } catch (err) {
+      console.error("[admin] Failed to backfill synthetic admin identity:", err);
+      // Fall through — only routes that actually need adminUserId will fail.
+    }
   }
   next();
 };
@@ -55,15 +74,27 @@ router.post("/login", async (req: Request, res: Response) => {
   }
   
   if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+    // Provision the synthetic admin user/org BEFORE regenerate so any
+    // failure surfaces as a 500 rather than a half-built session.
+    let synthetic: { userId: number; organizationId: number };
+    try {
+      synthetic = await storage.ensureAdminUserAndOrg();
+    } catch (err) {
+      console.error("[admin] ensureAdminUserAndOrg failed:", err);
+      return res.status(500).json({ error: "Login failed" });
+    }
+
     req.session.regenerate((err) => {
       if (err) {
         console.error("Session regeneration error:", err);
         return res.status(500).json({ error: "Login failed" });
       }
-      
+
       req.session.isAdmin = true;
       req.session.adminEmail = username;
-      
+      req.session.adminUserId = synthetic.userId;
+      req.session.adminOrganizationId = synthetic.organizationId;
+
       req.session.save((saveErr) => {
         if (saveErr) {
           console.error("Session save error:", saveErr);

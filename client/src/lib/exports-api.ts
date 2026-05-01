@@ -93,27 +93,76 @@ export interface CreateExportJobError {
   featureFlag?: string;
 }
 
-export const ACTIVE_EXPORTS_QUERY_KEY = "/api/v1/exports?active=true";
+/**
+ * Default endpoint for customer-facing exports. The admin Devices export
+ * (Task #5) reuses the same hooks with `endpoint = "/api/v1/admin/exports"`
+ * — query keys and invalidations are scoped to the endpoint so the two
+ * caches do not collide.
+ */
+export const CUSTOMER_EXPORTS_ENDPOINT = "/api/v1/exports";
+export const ADMIN_EXPORTS_ENDPOINT = "/api/v1/admin/exports";
+
+/** @deprecated use `activeExportsQueryKey(endpoint)` instead. Kept so existing
+ * consumers that pass this around as an opaque string keep working. */
+export const ACTIVE_EXPORTS_QUERY_KEY = `${CUSTOMER_EXPORTS_ENDPOINT}?active=true`;
 
 const ACTIVE_STATUSES: ExportJobStatus[] = ["pending", "running"];
+
+/**
+ * Banner shape — the minimal subset of fields ExportsBanner renders. Both
+ * the customer `SerializedExportJob` and the admin `SerializedAdminExportJob`
+ * satisfy this. Hooks are typed against this so callers that don't need the
+ * extra customer/admin fields don't have to do narrowing.
+ */
+export interface BannerExportJob {
+  id: number;
+  bundleLabel: string;
+  format: "csv" | "xlsx" | string;
+  status: ExportJobStatus;
+  errorMessage: string | null;
+  filename: string | null;
+  downloadUrl: string | null;
+  downloadUrlExpiresAt: string | null;
+}
+
+interface ActiveExportsResponse {
+  jobs: BannerExportJob[];
+}
+
+function activeExportsQueryKey(endpoint: string) {
+  return [`${endpoint}?active=true`];
+}
 
 /**
  * Banner data: pending + running + completed-not-dismissed + failed-not-dismissed.
  * Polls every 5s while at least one job is still in flight; pauses polling
  * otherwise so we're not hammering the server when there's nothing to watch.
+ *
+ * @param endpoint Defaults to the customer endpoint. Pass
+ *                 `ADMIN_EXPORTS_ENDPOINT` for the admin banner — that
+ *                 endpoint is gated by `adminMiddleware` and does not
+ *                 require an X-Organization-Id header.
  */
-export function useActiveExports() {
+export function useActiveExports(endpoint: string = CUSTOMER_EXPORTS_ENDPOINT) {
   const { organizationId } = useOrganization();
   const { data: session } = useSession();
-  // Belt-and-suspenders gate: also check session.authenticated, because the
-  // org-context state is only cleared on explicit logout — a server-side
-  // session expiry would otherwise leave a stale `organizationId` in memory
-  // and let the banner keep firing requests after the user lands on /login.
-  const enabled = !!organizationId && session?.authenticated === true;
-  return useQuery<ListExportJobsResponse>({
-    // Default queryFn uses queryKey[0] as the URL and adds the X-Organization-Id
-    // header automatically via setOrganizationIdForRequests().
-    queryKey: [ACTIVE_EXPORTS_QUERY_KEY, "org", organizationId],
+  const isAdmin = endpoint === ADMIN_EXPORTS_ENDPOINT;
+  // Customer endpoint requires both a customer session and an org context.
+  // Admin endpoint is gated server-side by the admin cookie, which the
+  // browser sends automatically — but we still want the banner to stop
+  // polling once the customer logs out, so disable when neither auth
+  // surface is present.
+  const enabled = isAdmin
+    ? true
+    : !!organizationId && session?.authenticated === true;
+  return useQuery<ActiveExportsResponse>({
+    // Default queryFn uses queryKey[0] as the URL and adds the
+    // X-Organization-Id header automatically via setOrganizationIdForRequests().
+    // Org id is part of the customer key so switching orgs gets a fresh
+    // cache; admin doesn't vary by org so its key is single-entry.
+    queryKey: isAdmin
+      ? activeExportsQueryKey(endpoint)
+      : [...activeExportsQueryKey(endpoint), "org", organizationId],
     enabled,
     refetchInterval: (query) => {
       const jobs = query.state.data?.jobs ?? [];
@@ -125,12 +174,16 @@ export function useActiveExports() {
   });
 }
 
-export function useCreateExport() {
+/**
+ * Customer create-export hook. Admin code paths use `useCreateAdminExport`
+ * in `admin-exports-api.ts` (different request body shape).
+ */
+export function useCreateExport(endpoint: string = CUSTOMER_EXPORTS_ENDPOINT) {
   const queryClient = useQueryClient();
   return useMutation<SerializedExportJob, CreateExportJobError, CreateExportJobInput>({
     mutationFn: async (input) => {
       try {
-        const res = await apiRequest("POST", "/api/v1/exports", input);
+        const res = await apiRequest("POST", endpoint, input);
         const body = (await res.json()) as CreateExportJobResponse;
         return body.job;
       } catch (e) {
@@ -143,7 +196,7 @@ export function useCreateExport() {
     },
     onSuccess: () => {
       // Invalidate every variant of the active-exports query (org-scoped).
-      queryClient.invalidateQueries({ queryKey: [ACTIVE_EXPORTS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: activeExportsQueryKey(endpoint) });
     },
   });
 }
@@ -183,36 +236,34 @@ function parseExportError(e: unknown): CreateExportJobError {
   };
 }
 
-export function useDismissExport() {
+export function useDismissExport(endpoint: string = CUSTOMER_EXPORTS_ENDPOINT) {
   const queryClient = useQueryClient();
-  return useMutation<SerializedExportJob, Error, number>({
+  const queryKey = activeExportsQueryKey(endpoint);
+  return useMutation<unknown, Error, number>({
     mutationFn: async (jobId) => {
-      const res = await apiRequest("PATCH", `/api/v1/exports/${jobId}/dismiss`);
-      const body = (await res.json()) as CreateExportJobResponse;
-      return body.job;
+      const res = await apiRequest("PATCH", `${endpoint}/${jobId}/dismiss`);
+      return await res.json();
     },
     onMutate: async (jobId) => {
-      await queryClient.cancelQueries({ queryKey: [ACTIVE_EXPORTS_QUERY_KEY] });
-      const snapshots = queryClient.getQueriesData<ListExportJobsResponse>({
-        queryKey: [ACTIVE_EXPORTS_QUERY_KEY],
-      });
+      await queryClient.cancelQueries({ queryKey });
+      const snapshots = queryClient.getQueriesData<ActiveExportsResponse>({ queryKey });
       for (const [key, data] of snapshots) {
         if (!data) continue;
-        queryClient.setQueryData<ListExportJobsResponse>(key, {
+        queryClient.setQueryData<ActiveExportsResponse>(key, {
           jobs: data.jobs.filter((j) => j.id !== jobId),
         });
       }
       return { snapshots };
     },
     onError: (_err, _jobId, context) => {
-      const ctx = context as { snapshots?: Array<[unknown, ListExportJobsResponse | undefined]> } | undefined;
+      const ctx = context as { snapshots?: Array<[unknown, ActiveExportsResponse | undefined]> } | undefined;
       if (!ctx?.snapshots) return;
       for (const [key, data] of ctx.snapshots) {
         if (data) queryClient.setQueryData(key as readonly unknown[], data);
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: [ACTIVE_EXPORTS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 }

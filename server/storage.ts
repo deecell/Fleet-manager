@@ -146,6 +146,17 @@ export interface IStorage {
   }>;
 
   // Admin Operations (cross-tenant)
+  // Idempotently provisions the synthetic "Deecell Admin" user + "Deecell
+  // Internal" org used to back ADMIN_PASSWORD-based admin sessions. Returns
+  // their ids so they can be stashed in the session and used to attribute
+  // admin export jobs to a real users.id row (export_jobs.user_id is NOT NULL
+  // FK → users.id, and the concurrency-limit advisory lock keys on org id).
+  ensureAdminUserAndOrg(): Promise<{ userId: number; organizationId: number }>;
+  // Admin Devices Export (Task #5). Returns the flat per-device row shape
+  // consumed by the admin export generator. Filters are applied at the SQL
+  // layer; all relations are LEFT JOINed so devices without a sim/snapshot/
+  // sync row still appear in the output.
+  getAdminDevicesForExport(filters: import("./services/exports/admin-types").GetAdminDevicesForExportFilters): Promise<import("./services/exports/admin-types").AdminDeviceExportRow[]>;
   deleteOrganization(id: number): Promise<boolean>;
   listAllDevices(): Promise<PowerMonDevice[]>;
   listAllDevicesWithSnapshots(): Promise<(PowerMonDevice & { snapshot?: DeviceSnapshot })[]>;

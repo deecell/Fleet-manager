@@ -8,6 +8,7 @@ import type {
 } from "@shared/schema";
 import type { BundleKey, ColumnKey } from "@shared/export-columns";
 import type { HistoricalColumnKey, HistoricalGranularity } from "@shared/export-historical";
+import type { AdminDeviceColumnKey } from "@shared/export-admin-devices";
 
 /**
  * One row of joined data, batched by the storage layer to avoid N+1.
@@ -85,7 +86,7 @@ export interface GeneratedExport {
    * are stable strings — downstream uses `.length` for the column-count
    * stat on the job record.
    */
-  columnKeys: ColumnKey[] | HistoricalColumnKey[];
+  columnKeys: ColumnKey[] | HistoricalColumnKey[] | AdminDeviceColumnKey[];
   /**
    * Identity metadata for the row's subject — set only by the historical
    * generator. The worker passes this into the completion email so the

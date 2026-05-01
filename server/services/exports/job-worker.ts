@@ -24,7 +24,9 @@ import {
 import {
   EXPORT_JOB_STATUS,
   EXPORT_DOWNLOAD_TTL_SECONDS,
+  EXPORT_JOB_KIND,
   type ExportJob,
+  type ExportJobKind,
 } from "@shared/schema";
 import { storage } from "../../storage";
 import { uploadFile, getFileUrl } from "../../aws/s3";
@@ -34,6 +36,7 @@ import {
 } from "../email-service";
 import { generateExport } from "./index";
 import { generateHistoricalExport } from "./historical-generator";
+import { generateAdminDevicesExport } from "./admin-devices-generator";
 import {
   HISTORICAL_GRANULARITY_META,
   type HistoricalGranularity,
@@ -115,8 +118,12 @@ class ExportJobWorker {
 
   private async processJob(job: ExportJob): Promise<void> {
     const startedAt = Date.now();
+    // `kind` defaults to 'snapshot' for legacy rows that pre-date Task #5,
+    // so the dispatch below behaves identically for those.
+    const jobKind: ExportJobKind = (job.kind as ExportJobKind | null)
+      ?? EXPORT_JOB_KIND.SNAPSHOT;
     console.log(
-      `[exports/worker] processing job ${job.id} (org=${job.organizationId}, user=${job.userId}, bundle=${job.bundleKey}, format=${job.format})`,
+      `[exports/worker] processing job ${job.id} (kind=${jobKind}, org=${job.organizationId}, user=${job.userId}, bundle=${job.bundleKey}, format=${job.format})`,
     );
 
     try {
@@ -125,8 +132,30 @@ class ExportJobWorker {
       let historicalContext:
         | { granularity: HistoricalGranularity; startTime: Date; endTime: Date; truckId: number }
         | null = null;
+      let adminContext:
+        | { organizationName: string | null; searchQuery: string | null }
+        | null = null;
 
-      if (job.historicalMode) {
+      if (jobKind === EXPORT_JOB_KIND.ADMIN_DEVICES) {
+        // Admin device registry export — filters live on the same `filters`
+        // jsonb column the snapshot pipeline uses, with an admin-specific shape.
+        const adminFilters =
+          (job.filters as {
+            organizationId?: number | null;
+            organizationName?: string | null;
+            searchQuery?: string | null;
+          } | null) ?? {};
+        result = await generateAdminDevicesExport({
+          format,
+          organizationId: adminFilters.organizationId ?? null,
+          organizationName: adminFilters.organizationName ?? null,
+          searchQuery: adminFilters.searchQuery ?? null,
+        });
+        adminContext = {
+          organizationName: adminFilters.organizationName ?? null,
+          searchQuery: adminFilters.searchQuery ?? null,
+        };
+      } else if (job.historicalMode) {
         // Validate the row's historical fields BEFORE invoking the generator.
         // These are persisted by the POST handler so under normal flow they're
         // guaranteed; the explicit checks here exist so a malformed row (e.g.
@@ -175,8 +204,15 @@ class ExportJobWorker {
         });
       }
 
-      // Per spec: exports/<orgId>/<jobId>/<filename>
-      const s3Key = `exports/${job.organizationId}/${job.id}/${result.filename}`;
+      // Per spec:
+      //   • snapshot / historical → exports/<orgId>/<jobId>/<filename>
+      //   • admin_devices         → exports/admin/<jobId>/<filename>
+      // The admin path keeps cross-org admin exports visually segregated
+      // from per-customer artifacts in S3 (and in the eventual access logs).
+      const s3Key =
+        jobKind === EXPORT_JOB_KIND.ADMIN_DEVICES
+          ? `exports/admin/${job.id}/${result.filename}`
+          : `exports/${job.organizationId}/${job.id}/${result.filename}`;
       await uploadFile(s3Key, result.buffer, result.contentType);
 
       const downloadUrl = await getFileUrl(s3Key, EXPORT_DOWNLOAD_TTL_SECONDS);
@@ -202,9 +238,19 @@ class ExportJobWorker {
           // descriptive "Truck History (Hourly · Truck T-104)" string so the
           // email matches what the user actually requested. Snapshot exports
           // continue to surface the bundle label.
-          const bundleLabel = historicalContext
-            ? `Truck History (${HISTORICAL_GRANULARITY_META[historicalContext.granularity].label}${result.historicalMeta?.truckNumber ? ` · ${result.historicalMeta.truckNumber}` : ""})`
-            : EXPORT_BUNDLES[job.bundleKey as keyof typeof EXPORT_BUNDLES]?.label ?? job.bundleKey;
+          let bundleLabel: string;
+          if (adminContext) {
+            const scope = adminContext.organizationName
+              ? `Org: ${adminContext.organizationName}`
+              : "All organizations";
+            bundleLabel = `Admin Devices (${scope})`;
+          } else if (historicalContext) {
+            bundleLabel = `Truck History (${HISTORICAL_GRANULARITY_META[historicalContext.granularity].label}${result.historicalMeta?.truckNumber ? ` · ${result.historicalMeta.truckNumber}` : ""})`;
+          } else {
+            bundleLabel =
+              EXPORT_BUNDLES[job.bundleKey as keyof typeof EXPORT_BUNDLES]?.label
+              ?? job.bundleKey;
+          }
           const sent = await sendExportReadyEmail(user.email, {
             firstName: user.firstName ?? undefined,
             filename: result.filename,
@@ -219,6 +265,12 @@ class ExportJobWorker {
                   granularityLabel: HISTORICAL_GRANULARITY_META[historicalContext.granularity].label,
                   startTime: historicalContext.startTime,
                   endTime: historicalContext.endTime,
+                }
+              : undefined,
+            admin: adminContext
+              ? {
+                  organizationName: adminContext.organizationName,
+                  searchQuery: adminContext.searchQuery,
                 }
               : undefined,
           });

@@ -29,6 +29,10 @@ import {
 } from "@shared/schema";
 import { sendAlertNotifications, shouldNotifyForAlert } from "./services/alert-notifications";
 import type { CreateExportJobResult } from "./storage";
+import type {
+  AdminDeviceExportRow,
+  GetAdminDevicesForExportFilters,
+} from "./services/exports/admin-types";
 
 export class DbStorage {
   // ===========================================================================
@@ -798,6 +802,152 @@ export class DbStorage {
   // ===========================================================================
   // ADMIN OPERATIONS (cross-tenant queries)
   // ===========================================================================
+
+  async ensureAdminUserAndOrg(): Promise<{ userId: number; organizationId: number }> {
+    // ADMIN_PASSWORD-based admin sessions don't have a real users.id row by
+    // default. The export pipeline (Task #2) requires a NOT-NULL FK to
+    // users.id and keys its concurrency-limit advisory lock on org id, so we
+    // back the admin session with a synthetic, idempotent "Deecell Admin"
+    // user inside a synthetic "Deecell Internal" org. This stays usable
+    // even after Task #8 introduces real per-admin user rows: the platform
+    // admins can be migrated into this same org or replaced entirely.
+    const ADMIN_ORG_SLUG = "deecell-internal";
+    const ADMIN_ORG_NAME = "Deecell Internal";
+    const ADMIN_USER_EMAIL =
+      process.env.ADMIN_NOTIFICATION_EMAIL ?? "hello@deecell.com";
+
+    let org = await db.select().from(organizations)
+      .where(eq(organizations.slug, ADMIN_ORG_SLUG))
+      .then((rows) => rows[0]);
+
+    if (!org) {
+      const [created] = await db.insert(organizations).values({
+        name: ADMIN_ORG_NAME,
+        slug: ADMIN_ORG_SLUG,
+        plan: "internal",
+        isActive: true,
+      }).returning();
+      org = created;
+    }
+
+    let user = await db.select().from(users)
+      .where(and(
+        eq(users.organizationId, org.id),
+        eq(users.email, ADMIN_USER_EMAIL),
+      ))
+      .then((rows) => rows[0]);
+
+    if (!user) {
+      const [created] = await db.insert(users).values({
+        organizationId: org.id,
+        email: ADMIN_USER_EMAIL,
+        name: "Deecell Admin",
+        firstName: "Deecell",
+        lastName: "Admin",
+        role: "admin",
+        isActive: true,
+      }).returning();
+      user = created;
+    } else if (!user.isActive || user.email !== ADMIN_USER_EMAIL) {
+      // Repair drift (deactivated by mistake or env email changed) so admin
+      // exports always have a deliverable destination.
+      const [refreshed] = await db.update(users)
+        .set({ isActive: true, email: ADMIN_USER_EMAIL, updatedAt: new Date() })
+        .where(eq(users.id, user.id))
+        .returning();
+      user = refreshed;
+    }
+
+    return { userId: user.id, organizationId: org.id };
+  }
+
+  async getAdminDevicesForExport(
+    filters: GetAdminDevicesForExportFilters,
+  ): Promise<AdminDeviceExportRow[]> {
+    // One round-trip with LEFT JOINs so devices missing a sim/snapshot/sync
+    // row still show up. Aliases:
+    //   d  = power_mon_devices, t = trucks, f = fleets, o = organizations,
+    //   c  = device_credentials, s = sims, ss = device_sync_status,
+    //   ds = device_snapshots
+    const orgFilter =
+      filters.organizationId != null
+        ? eq(powerMonDevices.organizationId, filters.organizationId)
+        : undefined;
+
+    let searchFilter: ReturnType<typeof or> | undefined;
+    if (filters.searchQuery && filters.searchQuery.trim().length > 0) {
+      const needle = `%${filters.searchQuery.trim()}%`;
+      searchFilter = or(
+        ilike(powerMonDevices.deviceName, needle),
+        ilike(powerMonDevices.serialNumber, needle),
+        ilike(sims.iccid, needle),
+        ilike(sims.msisdn, needle),
+        ilike(trucks.truckNumber, needle),
+        ilike(organizations.name, needle),
+      );
+    }
+
+    const where = and(...[orgFilter, searchFilter].filter(Boolean) as any[]);
+
+    const rows = await db
+      .select({
+        deviceId: powerMonDevices.id,
+        organizationId: powerMonDevices.organizationId,
+        organizationName: organizations.name,
+        fleetName: fleets.name,
+        truckNumber: trucks.truckNumber,
+        serialNumber: powerMonDevices.serialNumber,
+        deviceName: powerMonDevices.deviceName,
+        hardwareRevision: powerMonDevices.hardwareRevision,
+        firmwareVersion: powerMonDevices.firmwareVersion,
+        hostId: powerMonDevices.hostId,
+        iccid: sims.iccid,
+        imsi: sims.imsi,
+        msisdn: sims.msisdn,
+        connectionStatus: powerMonDevices.connectionStatus,
+        lastReportedAt: powerMonDevices.lastReportedAt,
+        lastSeenAt: powerMonDevices.lastSeenAt,
+        markedOfflineAt: powerMonDevices.markedOfflineAt,
+        consecutiveDisconnects: powerMonDevices.consecutiveDisconnects,
+        workerCohort: deviceSyncStatus.cohortId,
+        soc: deviceSnapshots.soc,
+        voltage1: deviceSnapshots.voltage1,
+      })
+      .from(powerMonDevices)
+      .innerJoin(organizations, eq(organizations.id, powerMonDevices.organizationId))
+      .leftJoin(trucks, eq(trucks.id, powerMonDevices.truckId))
+      .leftJoin(fleets, eq(fleets.id, trucks.fleetId))
+      .leftJoin(sims, eq(sims.deviceId, powerMonDevices.id))
+      .leftJoin(deviceSyncStatus, eq(deviceSyncStatus.deviceId, powerMonDevices.id))
+      .leftJoin(deviceSnapshots, eq(deviceSnapshots.deviceId, powerMonDevices.id))
+      .where(where)
+      .orderBy(asc(organizations.name), asc(powerMonDevices.serialNumber));
+
+    return rows.map((r) => ({
+      deviceId: r.deviceId,
+      organizationId: r.organizationId,
+      organizationName: r.organizationName,
+      fleetName: r.fleetName ?? null,
+      truckNumber: r.truckNumber ?? null,
+      serialNumber: r.serialNumber ?? null,
+      deviceName: r.deviceName ?? null,
+      hardwareRevision: r.hardwareRevision ?? null,
+      firmwareVersion: r.firmwareVersion ?? null,
+      buildDate: null, // Not stored in schema today; reserved column.
+      hostId: r.hostId ?? null,
+      iccid: r.iccid ?? null,
+      imsi: r.imsi ?? null,
+      msisdn: r.msisdn ?? null,
+      connectionStatus: r.connectionStatus ?? null,
+      lastReportedAt: r.lastReportedAt ?? null,
+      lastSeenAt: r.lastSeenAt ?? null,
+      markedOfflineAt: r.markedOfflineAt ?? null,
+      consecutiveDisconnects: r.consecutiveDisconnects ?? null,
+      workerCohort: r.workerCohort ?? null,
+      soc: r.soc ?? null,
+      voltage1: r.voltage1 ?? null,
+    }));
+  }
 
   async deleteOrganization(id: number): Promise<boolean> {
     const result = await db.delete(organizations).where(eq(organizations.id, id));
