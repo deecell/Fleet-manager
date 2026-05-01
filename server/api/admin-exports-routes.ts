@@ -108,8 +108,13 @@ function serializeAdminJob(job: ExportJob): SerializedAdminExportJob {
 }
 
 function getAdminIds(req: Request): { userId: number; organizationId: number } | null {
-  const userId = req.session?.adminUserId;
-  const organizationId = req.session?.adminOrganizationId;
+  // Task #8 — admin sessions now use the standard userId / organizationId
+  // session fields (mirrored from the customer auth session shape) so admin
+  // export jobs are attributed to the actual logged-in admin's users.id row
+  // rather than a shared synthetic identity. platformAdminMiddleware has
+  // already verified isPlatformAdmin + active user before we get here.
+  const userId = req.session?.userId;
+  const organizationId = req.session?.organizationId;
   if (!userId || !organizationId) return null;
   return { userId, organizationId };
 }

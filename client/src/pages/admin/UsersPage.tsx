@@ -38,8 +38,13 @@ import {
   useUpdateUser,
   useDeleteUser,
   useAssignTruckToUser,
+  useAdminSession,
+  usePlatformAdmins,
+  useInvitePlatformAdmin,
+  useRevokePlatformAdmin,
+  type PlatformAdminDto,
 } from "@/lib/admin-api";
-import { Plus, Pencil, Trash2, Users, Mail, Truck } from "lucide-react";
+import { Plus, Pencil, Trash2, Users, Mail, Truck, ShieldCheck } from "lucide-react";
 import type { User, Truck as TruckType } from "@shared/schema";
 
 export default function UsersPage() {
@@ -233,6 +238,8 @@ export default function UsersPage() {
             Add User
           </Button>
         </div>
+
+        <PlatformAdminsCard />
 
         <Card className="mb-6">
           <CardContent className="p-4">
@@ -621,5 +628,265 @@ export default function UsersPage() {
         </Dialog>
       </div>
     </AdminLayout>
+  );
+}
+
+// Manage Platform Admins (Task #8). Lists every user with is_platform_admin
+// and lets an existing admin invite a new one (passwordless — the invitee
+// gets a 7-day invitation token email and sets their own password). Self-
+// revoke is blocked server-side; the UI hides the button entirely for the
+// currently logged-in admin.
+function PlatformAdminsCard() {
+  const { toast } = useToast();
+  const { data: session } = useAdminSession();
+  const { data, isLoading } = usePlatformAdmins();
+  const invite = useInvitePlatformAdmin();
+  const revoke = useRevokePlatformAdmin();
+
+  const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const [inviteForm, setInviteForm] = useState({ email: "", firstName: "", lastName: "" });
+  const [revokeTarget, setRevokeTarget] = useState<PlatformAdminDto | null>(null);
+
+  const admins = data?.admins ?? [];
+  const currentEmail = session?.email ?? null;
+
+  const submitInvite = async () => {
+    try {
+      const result = await invite.mutateAsync({
+        email: inviteForm.email.trim().toLowerCase(),
+        firstName: inviteForm.firstName.trim(),
+        lastName: inviteForm.lastName.trim(),
+      });
+      if (result.alreadyExisted) {
+        toast({
+          title: "Existing user promoted",
+          description: `${inviteForm.email} now has admin access.`,
+        });
+      } else if (result.invitationEmailSent) {
+        toast({
+          title: "Admin invited",
+          description: `Invitation sent to ${inviteForm.email}.`,
+        });
+      } else {
+        toast({
+          title: "Admin created",
+          description: "Email is not configured — share the password reset link manually.",
+        });
+      }
+      setIsInviteOpen(false);
+      setInviteForm({ email: "", firstName: "", lastName: "" });
+    } catch (error: any) {
+      toast({
+        title: "Failed to invite admin",
+        description: error?.message ?? "Unknown error",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const submitRevoke = async () => {
+    if (!revokeTarget) return;
+    try {
+      await revoke.mutateAsync(revokeTarget.id);
+      toast({
+        title: "Admin access revoked",
+        description: `${revokeTarget.email} can no longer sign in to /admin.`,
+      });
+      setRevokeTarget(null);
+    } catch (error: any) {
+      toast({
+        title: "Failed to revoke",
+        description: error?.message ?? "Unknown error",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
+    <>
+      <Card className="mb-6">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+              <h2 className="text-sm font-semibold text-foreground" data-testid="text-platform-admins-title">
+                Platform Admins
+              </h2>
+              <Badge
+                variant="secondary"
+                className="bg-[#dedede] text-[#636363]"
+                data-testid="badge-platform-admin-count"
+              >
+                {admins.length}
+              </Badge>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => setIsInviteOpen(true)}
+              data-testid="button-invite-platform-admin"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Invite admin
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground mb-3">
+            Users that can sign in at /admin/login. Admins are invited by email and set their
+            own password.
+          </p>
+          {isLoading ? (
+            <div className="text-sm text-muted-foreground py-2">Loading admins...</div>
+          ) : admins.length === 0 ? (
+            <div className="text-sm text-muted-foreground py-2">No platform admins yet.</div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Last login</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {admins.map((admin) => {
+                  const isSelf = currentEmail && admin.email === currentEmail;
+                  return (
+                    <TableRow key={admin.id} data-testid={`row-platform-admin-${admin.id}`}>
+                      <TableCell className="font-medium">{admin.email}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {[admin.firstName, admin.lastName].filter(Boolean).join(" ") || "-"}
+                      </TableCell>
+                      <TableCell>
+                        {admin.hasPassword ? (
+                          <Badge
+                            className="rounded-md font-medium"
+                            style={{ backgroundColor: "rgba(0, 201, 80, 0.14)", color: "#00953b" }}
+                          >
+                            Active
+                          </Badge>
+                        ) : (
+                          <Badge
+                            variant="secondary"
+                            className="bg-[#dedede] text-[#636363]"
+                          >
+                            Pending invite
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-xs">
+                        {admin.lastLoginAt
+                          ? new Date(admin.lastLoginAt).toLocaleString()
+                          : "Never"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {isSelf ? (
+                          <span className="text-xs text-muted-foreground">You</span>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setRevokeTarget(admin)}
+                            data-testid={`button-revoke-platform-admin-${admin.id}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Invite platform admin</DialogTitle>
+            <DialogDescription>
+              The invitee receives a one-time link to set their password. The link expires in
+              7 days.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="invite-email">Email</Label>
+              <Input
+                id="invite-email"
+                type="email"
+                value={inviteForm.email}
+                onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
+                data-testid="input-invite-admin-email"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="invite-first">First name</Label>
+                <Input
+                  id="invite-first"
+                  value={inviteForm.firstName}
+                  onChange={(e) => setInviteForm({ ...inviteForm, firstName: e.target.value })}
+                  data-testid="input-invite-admin-first-name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="invite-last">Last name</Label>
+                <Input
+                  id="invite-last"
+                  value={inviteForm.lastName}
+                  onChange={(e) => setInviteForm({ ...inviteForm, lastName: e.target.value })}
+                  data-testid="input-invite-admin-last-name"
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsInviteOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={submitInvite}
+              disabled={
+                invite.isPending ||
+                !inviteForm.email.trim() ||
+                !inviteForm.firstName.trim() ||
+                !inviteForm.lastName.trim()
+              }
+              data-testid="button-submit-invite-admin"
+            >
+              {invite.isPending ? "Inviting..." : "Send invite"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!revokeTarget} onOpenChange={(open) => !open && setRevokeTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Revoke admin access?</DialogTitle>
+            <DialogDescription>
+              {revokeTarget?.email} will no longer be able to sign in to /admin. Their user
+              account is preserved so historical export jobs remain attributed.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRevokeTarget(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={submitRevoke}
+              disabled={revoke.isPending}
+              data-testid="button-confirm-revoke-platform-admin"
+            >
+              {revoke.isPending ? "Revoking..." : "Revoke access"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

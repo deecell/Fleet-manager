@@ -861,6 +861,71 @@ export class DbStorage {
     return { userId: user.id, organizationId: org.id };
   }
 
+  async ensureDeecellInternalSetup(): Promise<{ organizationId: number }> {
+    // Idempotent boot-time bootstrap for the platform admin model (Task #8).
+    // 1. Make sure the deecell-internal organization exists.
+    // 2. Make sure the seed Andy user (andy@deecell.com) exists in that org
+    //    with is_platform_admin = true. Password is left NULL so the very
+    //    first login forces Andy through /forgot-password — we never bake a
+    //    shared/default password into the codebase.
+    // The dedicated production migration script does the same thing via
+    // SSM → EC2 → psql for the prod DB; this method makes the dev/Replit
+    // environment self-bootstrapping so we don't have to also remember to
+    // hand-seed the dev database.
+    const ADMIN_ORG_SLUG = "deecell-internal";
+    const ADMIN_ORG_NAME = "Deecell Internal";
+    const SEED_ADMIN_EMAIL = "andy@deecell.com";
+
+    let org = await db.select().from(organizations)
+      .where(eq(organizations.slug, ADMIN_ORG_SLUG))
+      .then((rows) => rows[0]);
+
+    if (!org) {
+      const [created] = await db.insert(organizations).values({
+        name: ADMIN_ORG_NAME,
+        slug: ADMIN_ORG_SLUG,
+        plan: "internal",
+        isActive: true,
+      }).returning();
+      org = created;
+    }
+
+    const existing = await db.select().from(users)
+      .where(and(
+        eq(users.organizationId, org.id),
+        eq(users.email, SEED_ADMIN_EMAIL),
+      ))
+      .then((rows) => rows[0]);
+
+    if (!existing) {
+      await db.insert(users).values({
+        organizationId: org.id,
+        email: SEED_ADMIN_EMAIL,
+        passwordHash: null,
+        name: "Andy Moeck",
+        firstName: "Andy",
+        lastName: "Moeck",
+        role: "admin",
+        isActive: true,
+        isPlatformAdmin: true,
+      });
+    } else if (!existing.isPlatformAdmin) {
+      // Repair drift: if Andy exists but the flag was cleared, re-flag him
+      // so he doesn't get locked out of /admin/login.
+      await db.update(users)
+        .set({ isPlatformAdmin: true, updatedAt: new Date() })
+        .where(eq(users.id, existing.id));
+    }
+
+    return { organizationId: org.id };
+  }
+
+  async listPlatformAdmins(): Promise<User[]> {
+    return db.select().from(users)
+      .where(eq(users.isPlatformAdmin, true))
+      .orderBy(asc(users.email));
+  }
+
   async getAdminDevicesForExport(
     filters: GetAdminDevicesForExportFilters,
   ): Promise<AdminDeviceExportRow[]> {

@@ -26,11 +26,14 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const { data: session, isLoading } = useAdminSession();
   const logout = useAdminLogout();
 
+  const isAuthenticated = !!session?.isPlatformAdmin;
+  const adminLabel = session?.name || session?.email || "Signed in";
+
   useEffect(() => {
-    if (!isLoading && !session?.isAdmin) {
+    if (!isLoading && !isAuthenticated) {
       setLocation("/admin/login");
     }
-  }, [session, isLoading, setLocation]);
+  }, [isAuthenticated, isLoading, setLocation]);
 
   const handleLogout = async () => {
     await logout.mutateAsync();
@@ -45,7 +48,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     );
   }
 
-  if (!session?.isAdmin) {
+  if (!isAuthenticated) {
     return null;
   }
 
@@ -81,6 +84,13 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           })}
         </nav>
         <div className="p-4 border-t border-border space-y-2 bg-[#ffffff]">
+          <div
+            className="px-3 py-2 text-xs text-muted-foreground truncate"
+            data-testid="text-admin-identity"
+            title={session?.email ?? undefined}
+          >
+            Signed in as <span className="font-medium text-foreground">{adminLabel}</span>
+          </div>
           <Link href="/">
             <div 
               className="admin-nav-item flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground cursor-pointer"

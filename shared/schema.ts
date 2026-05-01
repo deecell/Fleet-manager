@@ -35,6 +35,11 @@ export const users = pgTable("users", {
   role: text("role").default("user"),
   assignedTruckId: integer("assigned_truck_id"),
   isActive: boolean("is_active").default(true),
+  // Platform admin flag (Task #8). When true, the user belongs to the
+  // "deecell-internal" org and can authenticate at /admin/login to access
+  // the cross-tenant admin surface. Default false so existing customer
+  // users are unaffected by the migration.
+  isPlatformAdmin: boolean("is_platform_admin").notNull().default(false),
   lastLoginAt: timestamp("last_login_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

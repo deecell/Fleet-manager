@@ -22,76 +22,129 @@ const router = Router();
 
 declare module "express-session" {
   interface SessionData {
-    isAdmin?: boolean;
+    // Set to true when the user has authenticated successfully at
+    // /admin/login AND their users.is_platform_admin = true. Drives the
+    // platformAdminMiddleware gate below and is the only flag the admin
+    // surface inspects to decide whether to render. We keep it in addition
+    // to userId/organizationId (which are also used by the customer auth
+    // session) so the customer login can never accidentally elevate to
+    // admin — only the admin login route sets this bit.
+    isPlatformAdmin?: boolean;
+    // Mirrors the customer session shape so a single platformAdminMiddleware
+    // pass can satisfy req.userId / req.organizationId for downstream code
+    // (admin export jobs attribute to users.id, org-scoped advisory locks
+    // hash on organization_id, etc).
     adminEmail?: string;
-    // Synthetic "Deecell Admin" identity backing ADMIN_PASSWORD sessions so
-    // admin export jobs can satisfy export_jobs.user_id (NOT NULL FK to
-    // users.id) and the org-scoped concurrency-limit advisory lock.
-    //
-    // Design trade-off (Task #5 soft launch):
-    //   ADMIN_PASSWORD is a single shared credential — there is no per-admin
-    //   identity in the auth model — so we deliberately reuse one synthetic
-    //   user/org for every admin session. Concurrency limits therefore apply
-    //   to the *fleet of admins* as a group, which is acceptable while the
-    //   admin export surface is gated by a single shared password. If admin
-    //   auth ever becomes per-user, swap this for a real user lookup keyed
-    //   off the authenticated identity (and remove ensureAdminUserAndOrg).
-    // Provisioned idempotently via storage.ensureAdminUserAndOrg().
-    adminUserId?: number;
-    adminOrganizationId?: number;
   }
-}
-
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "admin";
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
-
-if (!ADMIN_PASSWORD) {
-  console.warn("[Admin] WARNING: ADMIN_PASSWORD not set. Admin login disabled for security.");
 }
 
 // Exported so admin-exports-routes (Task #5) can reuse the same auth gate.
-export const adminMiddleware = async (req: Request, res: Response, next: NextFunction) => {
-  if (!req.session?.isAdmin) {
-    return res.status(401).json({ 
-      error: "Unauthorized", 
-      message: "Admin authentication required. Please login at /admin/login" 
+// Renamed conceptually from adminMiddleware → platformAdminMiddleware; the
+// old name is re-exported below as an alias so existing imports keep working
+// without a touch-up.
+export const platformAdminMiddleware = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  if (!req.session?.isPlatformAdmin || !req.session?.userId || !req.session?.organizationId) {
+    return res.status(401).json({
+      error: "Unauthorized",
+      message: "Admin authentication required. Please login at /admin/login",
     });
   }
-  // Lazily backfill the synthetic admin identity so already-logged-in admin
-  // sessions (created before Task #5 shipped) get one without re-auth.
-  if (!req.session.adminUserId || !req.session.adminOrganizationId) {
-    try {
-      const { userId, organizationId } = await storage.ensureAdminUserAndOrg();
-      req.session.adminUserId = userId;
-      req.session.adminOrganizationId = organizationId;
-    } catch (err) {
-      console.error("[admin] Failed to backfill synthetic admin identity:", err);
-      // Fall through — only routes that actually need adminUserId will fail.
+  // Defence-in-depth: re-load both the user and the organization on every
+  // request so a flag flip in the DB (e.g. an admin revoking another admin's
+  // access, or the deecell-internal org getting deactivated) takes effect on
+  // the next request rather than waiting for the session to expire. The
+  // tenant middleware does the same for customer surfaces and we mirror that
+  // contract here.
+  try {
+    const user = await storage.getUserById(req.session.userId);
+    if (!user || !user.isActive || !user.isPlatformAdmin) {
+      req.session.destroy(() => {});
+      return res.status(401).json({
+        error: "Unauthorized",
+        message: "Admin access revoked. Please login again.",
+      });
     }
+    const organization = await storage.getOrganization(user.organizationId);
+    if (!organization || !organization.isActive) {
+      req.session.destroy(() => {});
+      return res.status(401).json({
+        error: "Unauthorized",
+        message: "Organization inactive. Please contact support.",
+      });
+    }
+    // Re-pin canonical IDs to the freshly-loaded user so a subsequent
+    // organization migration is reflected immediately.
+    req.session.userId = user.id;
+    req.session.organizationId = user.organizationId;
+  } catch (err) {
+    console.error("[admin] Failed to re-validate platform admin:", err);
+    return res.status(500).json({ error: "Auth check failed" });
   }
   next();
 };
 
+// Backward-compat alias so existing `import { adminMiddleware } from ...`
+// callers (notably admin-exports-routes.ts) keep compiling.
+export const adminMiddleware = platformAdminMiddleware;
+
 router.post("/login", async (req: Request, res: Response) => {
-  const { username, password } = req.body;
-  
-  if (!ADMIN_PASSWORD) {
-    return res.status(503).json({ 
-      error: "Service unavailable", 
-      message: "Admin authentication not configured. Set ADMIN_PASSWORD environment variable." 
-    });
-  }
-  
-  if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-    // Provision the synthetic admin user/org BEFORE regenerate so any
-    // failure surfaces as a 500 rather than a half-built session.
-    let synthetic: { userId: number; organizationId: number };
-    try {
-      synthetic = await storage.ensureAdminUserAndOrg();
-    } catch (err) {
-      console.error("[admin] ensureAdminUserAndOrg failed:", err);
-      return res.status(500).json({ error: "Login failed" });
+  try {
+    const { email, password } = req.body ?? {};
+
+    if (!email || !password) {
+      return res.status(400).json({
+        error: "Missing credentials",
+        message: "Email and password are required",
+      });
     }
+
+    // Platform admins live exclusively in deecell-internal. Scope the lookup
+    // to that org so admin auth is deterministic even if a customer happens
+    // to share an email address (the schema's UNIQUE key is (email, org_id),
+    // so duplicates across orgs are valid). Bootstrap is idempotent and
+    // cheap — it runs at startup but we re-call it here to defend against
+    // a missing setup row in test environments.
+    const { organizationId: deecellOrgId } = await storage.ensureDeecellInternalSetup();
+    const normalizedEmail = String(email).toLowerCase().trim();
+    const user = await storage.getUserByEmail(deecellOrgId, normalizedEmail);
+
+    // Use a generic error for every failure mode (no account, wrong password,
+    // non-admin user) so we don't leak which emails are registered as admins.
+    const genericFail = () =>
+      res.status(401).json({
+        error: "Invalid credentials",
+        message: "Email or password is incorrect",
+      });
+
+    if (!user || !user.isActive || !user.isPlatformAdmin) {
+      return genericFail();
+    }
+
+    if (!user.passwordHash) {
+      return res.status(401).json({
+        error: "Account not configured",
+        message: "Please use 'Forgot password?' to set up your password",
+      });
+    }
+
+    const passwordMatch = await bcrypt.compare(password, user.passwordHash);
+    if (!passwordMatch) {
+      return genericFail();
+    }
+
+    const organization = await storage.getOrganization(user.organizationId);
+    if (!organization || !organization.isActive) {
+      return res.status(401).json({
+        error: "Organization inactive",
+        message: "Your organization is no longer active. Contact support.",
+      });
+    }
+
+    await storage.updateUserLastLogin(user.organizationId, user.id);
 
     req.session.regenerate((err) => {
       if (err) {
@@ -99,23 +152,34 @@ router.post("/login", async (req: Request, res: Response) => {
         return res.status(500).json({ error: "Login failed" });
       }
 
-      req.session.isAdmin = true;
-      req.session.adminEmail = username;
-      req.session.adminUserId = synthetic.userId;
-      req.session.adminOrganizationId = synthetic.organizationId;
+      req.session.isPlatformAdmin = true;
+      req.session.userId = user.id;
+      req.session.organizationId = user.organizationId;
+      req.session.userEmail = user.email;
+      req.session.userName =
+        [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email;
+      req.session.adminEmail = user.email;
 
       req.session.save((saveErr) => {
         if (saveErr) {
           console.error("Session save error:", saveErr);
           return res.status(500).json({ error: "Login failed" });
         }
-        return res.json({ success: true, message: "Admin login successful" });
+        return res.json({
+          success: true,
+          message: "Admin login successful",
+          user: {
+            id: user.id,
+            email: user.email,
+            name: req.session.userName,
+          },
+        });
       });
     });
-    return;
+  } catch (err) {
+    console.error("[admin] login failure:", err);
+    return res.status(500).json({ error: "Login failed" });
   }
-  
-  return res.status(401).json({ error: "Invalid credentials" });
 });
 
 router.post("/logout", (req: Request, res: Response) => {
@@ -130,9 +194,13 @@ router.post("/logout", (req: Request, res: Response) => {
 });
 
 router.get("/session", (req: Request, res: Response) => {
-  res.json({ 
-    isAdmin: !!req.session?.isAdmin,
-    email: req.session?.adminEmail 
+  res.json({
+    isPlatformAdmin: !!req.session?.isPlatformAdmin,
+    email: req.session?.userEmail ?? req.session?.adminEmail ?? null,
+    name: req.session?.userName ?? null,
+    // Backward-compat for the brief window while the frontend is migrating
+    // off the old `isAdmin` flag — safe to remove after the new client ships.
+    isAdmin: !!req.session?.isPlatformAdmin,
   });
 });
 
@@ -727,6 +795,146 @@ router.get("/organizations/:orgId/users", adminMiddleware, async (req: Request, 
   } catch (error) {
     console.error("Error listing users:", error);
     res.status(500).json({ error: "Failed to list users" });
+  }
+});
+
+// Platform admins (Task #8). List + invite endpoints for managing the set
+// of users that can authenticate at /admin/login. We deliberately do not
+// expose a "create with password" path — every new admin is invited via
+// email + the existing nanoid invitation token flow so we never have to
+// hand a plaintext password to the inviter.
+//
+// Sanitized DTO — never echo passwordHash or other sensitive User columns
+// to the client. Frontend uses `hasPassword` to distinguish "Active" from
+// "Pending invite" without ever seeing the bcrypt hash itself.
+function toPlatformAdminDto(u: import("@shared/schema").User) {
+  return {
+    id: u.id,
+    email: u.email,
+    name: u.name,
+    firstName: u.firstName,
+    lastName: u.lastName,
+    role: u.role,
+    isActive: u.isActive,
+    isPlatformAdmin: u.isPlatformAdmin,
+    organizationId: u.organizationId,
+    lastLoginAt: u.lastLoginAt,
+    hasPassword: u.passwordHash !== null && u.passwordHash !== undefined && u.passwordHash !== "",
+  };
+}
+
+router.get("/platform-admins", platformAdminMiddleware, async (_req: Request, res: Response) => {
+  try {
+    const admins = await storage.listPlatformAdmins();
+    res.json({ admins: admins.map(toPlatformAdminDto) });
+  } catch (error) {
+    console.error("Error listing platform admins:", error);
+    res.status(500).json({ error: "Failed to list platform admins" });
+  }
+});
+
+router.post("/platform-admins", platformAdminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const inviteSchema = z.object({
+      email: z.string().email(),
+      firstName: z.string().min(1),
+      lastName: z.string().min(1),
+    });
+    const data = inviteSchema.parse(req.body ?? {});
+    const email = data.email.toLowerCase().trim();
+
+    // The seed Andy + every additional admin all live in deecell-internal so
+    // listPlatformAdmins() / org-scoped lookups stay simple.
+    const { organizationId } = await storage.ensureDeecellInternalSetup();
+
+    // Scope the existence check to deecell-internal: customer orgs may
+    // legitimately have a user with the same email (UNIQUE is on (email,
+    // org_id)). Promote-in-place if the row exists here but lost the flag,
+    // otherwise insert a fresh invited admin in deecell-internal.
+    const existing = await storage.getUserByEmail(organizationId, email);
+    if (existing) {
+      if (!existing.isPlatformAdmin) {
+        await storage.updateUser(organizationId, existing.id, { isPlatformAdmin: true } as any);
+        return res.json({
+          user: toPlatformAdminDto({ ...existing, isPlatformAdmin: true }),
+          alreadyExisted: true,
+        });
+      }
+      return res.status(409).json({
+        error: "Conflict",
+        message: "A platform admin with that email already exists.",
+      });
+    }
+
+    const user = await storage.createUser({
+      organizationId,
+      email,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      name: `${data.firstName} ${data.lastName}`,
+      role: "admin",
+      isActive: true,
+      isPlatformAdmin: true,
+      passwordHash: null,
+    } as any);
+
+    let invitationEmailSent = false;
+    if (isEmailConfigured()) {
+      try {
+        const token = nanoid(32);
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 7);
+
+        await storage.createInvitationToken({
+          userId: user.id,
+          organizationId,
+          token,
+          expiresAt,
+        });
+
+        invitationEmailSent = await sendInvitationEmail(
+          user.email!,
+          user.firstName || user.name || "",
+          "Deecell Internal",
+          token,
+        );
+      } catch (emailError) {
+        console.error(`Failed to send admin invitation to ${user.email}:`, emailError);
+      }
+    }
+
+    return res.status(201).json({ user: toPlatformAdminDto(user), invitationEmailSent });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: "Validation failed", details: error.errors });
+    }
+    console.error("Error inviting platform admin:", error);
+    res.status(500).json({ error: "Failed to invite platform admin" });
+  }
+});
+
+router.delete("/platform-admins/:id", platformAdminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) {
+      return res.status(400).json({ error: "Invalid id" });
+    }
+    if (id === req.session.userId) {
+      // Block self-revocation so an admin can't accidentally lock the entire
+      // org out by demoting themselves while alone.
+      return res.status(400).json({
+        error: "Cannot revoke your own admin access",
+      });
+    }
+    const target = await storage.getUserById(id);
+    if (!target || !target.isPlatformAdmin) {
+      return res.status(404).json({ error: "Platform admin not found" });
+    }
+    await storage.updateUser(target.organizationId, target.id, { isPlatformAdmin: false } as any);
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Error revoking platform admin:", error);
+    res.status(500).json({ error: "Failed to revoke platform admin" });
   }
 });
 

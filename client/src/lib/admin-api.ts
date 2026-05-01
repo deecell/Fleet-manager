@@ -89,8 +89,13 @@ async function adminFetch<T>(url: string, options?: RequestInit): Promise<T> {
 }
 
 interface AdminSession {
-  isAdmin: boolean;
-  email?: string;
+  // Server returns isPlatformAdmin as the canonical flag (Task #8). isAdmin
+  // is kept as a temporary backward-compat alias while the rest of the
+  // frontend migrates off the old name.
+  isPlatformAdmin: boolean;
+  isAdmin?: boolean;
+  email?: string | null;
+  name?: string | null;
 }
 
 export function useAdminSession() {
@@ -107,12 +112,12 @@ export function useAdminSession() {
 export function useAdminLogin() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ username, password }: { username: string; password: string }) => {
+    mutationFn: async ({ email, password }: { email: string; password: string }) => {
       const res = await fetch("/api/v1/admin/login", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ email, password }),
       });
       if (!res.ok) {
         const error = await res.json();
@@ -122,6 +127,64 @@ export function useAdminLogin() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/session"] });
+    },
+  });
+}
+
+// Sanitized DTO matching the server's `toPlatformAdminDto`. We deliberately
+// drop `passwordHash` and other sensitive User fields and add `hasPassword`
+// as a boolean derived signal so the UI can show "Active" vs "Pending invite"
+// without ever seeing the bcrypt hash itself.
+export interface PlatformAdminDto {
+  id: number;
+  email: string;
+  name: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  role: string;
+  isActive: boolean;
+  isPlatformAdmin: boolean;
+  organizationId: number;
+  lastLoginAt: string | null;
+  hasPassword: boolean;
+}
+
+interface PlatformAdminsResponse {
+  admins: PlatformAdminDto[];
+}
+
+export function usePlatformAdmins() {
+  return useQuery<PlatformAdminsResponse>({
+    queryKey: ["/api/v1/admin/platform-admins"],
+    queryFn: () => adminFetch("/api/v1/admin/platform-admins"),
+  });
+}
+
+export function useInvitePlatformAdmin() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { email: string; firstName: string; lastName: string }) =>
+      adminFetch<{ user: PlatformAdminDto; invitationEmailSent?: boolean; alreadyExisted?: boolean }>(
+        "/api/v1/admin/platform-admins",
+        { method: "POST", body: JSON.stringify(data) },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/platform-admins"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/users"] });
+    },
+  });
+}
+
+export function useRevokePlatformAdmin() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) =>
+      adminFetch<{ success: boolean }>(`/api/v1/admin/platform-admins/${id}`, {
+        method: "DELETE",
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/platform-admins"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/users"] });
     },
   });
 }

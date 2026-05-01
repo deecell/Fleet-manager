@@ -151,7 +151,20 @@ export interface IStorage {
   // their ids so they can be stashed in the session and used to attribute
   // admin export jobs to a real users.id row (export_jobs.user_id is NOT NULL
   // FK → users.id, and the concurrency-limit advisory lock keys on org id).
+  // Retained for backward compatibility with historical export_jobs rows;
+  // platform admin sessions (Task #8) attribute jobs to the logged-in
+  // user instead.
   ensureAdminUserAndOrg(): Promise<{ userId: number; organizationId: number }>;
+  // Platform admin bootstrap (Task #8). Idempotently provisions the
+  // "deecell-internal" organization and the seed Andy user with
+  // is_platform_admin = true and a NULL password (Andy sets the password
+  // via the standard /forgot-password reset email). Safe to call on every
+  // boot. Returns the org id.
+  ensureDeecellInternalSetup(): Promise<{ organizationId: number }>;
+  // Lists all platform admins (users with is_platform_admin = true) across
+  // every organization. In practice they all live in deecell-internal but
+  // we don't enforce that here.
+  listPlatformAdmins(): Promise<User[]>;
   // Admin Devices Export (Task #5). Returns the flat per-device row shape
   // consumed by the admin export generator. Filters are applied at the SQL
   // layer; all relations are LEFT JOINed so devices without a sim/snapshot/

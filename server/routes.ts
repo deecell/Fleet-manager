@@ -47,6 +47,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.warn("AWS RDS connection failed - using in-memory storage");
   }
 
+  // Platform admin bootstrap (Task #8) — idempotently creates the
+  // deecell-internal organization and the seed Andy admin user. Runs
+  // against whatever Postgres dbStorage points at (local Replit DB in dev,
+  // RDS in prod), independently of the AWS RDS health check above. Safe
+  // to re-run on every boot. If the is_platform_admin column is missing
+  // we log and continue so the server still starts before a schema push.
+  try {
+    await storage.ensureDeecellInternalSetup();
+  } catch (error) {
+    console.error("Failed to bootstrap deecell-internal admin setup:", error);
+  }
+
   // Setup session middleware for admin authentication
   const sessionSecret = process.env.SESSION_SECRET || process.env.ADMIN_PASSWORD || "deecell-session-secret-2024";
   

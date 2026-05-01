@@ -16,14 +16,16 @@ export default function AdminLogin() {
   const { data: session, isLoading: sessionLoading } = useAdminSession();
   const login = useAdminLogin();
   
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const isAuthenticated = !!session?.isPlatformAdmin;
+
   useEffect(() => {
-    if (session?.isAdmin) {
+    if (isAuthenticated) {
       setLocation("/admin");
     }
-  }, [session?.isAdmin, setLocation]);
+  }, [isAuthenticated, setLocation]);
 
   if (sessionLoading) {
     return (
@@ -33,7 +35,7 @@ export default function AdminLogin() {
     );
   }
 
-  if (session?.isAdmin) {
+  if (isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -44,7 +46,7 @@ export default function AdminLogin() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await login.mutateAsync({ username, password });
+      await login.mutateAsync({ email, password });
       setLocation("/admin");
     } catch (error: any) {
       toast({ 
@@ -71,16 +73,17 @@ export default function AdminLogin() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="admin"
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@deecell.com"
                 required
+                autoComplete="email"
                 className="focus-visible:ring-0 focus-visible:ring-offset-0"
-                data-testid="input-admin-username"
+                data-testid="input-admin-email"
               />
             </div>
             <div className="space-y-2">
@@ -90,8 +93,9 @@ export default function AdminLogin() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter admin password"
+                placeholder="Enter your password"
                 required
+                autoComplete="current-password"
                 className="focus-visible:ring-0 focus-visible:ring-offset-0"
                 data-testid="input-admin-password"
               />
@@ -113,7 +117,14 @@ export default function AdminLogin() {
               )}
             </Button>
           </form>
-          <div className="mt-6 text-center">
+          <div className="mt-6 flex flex-col items-center gap-2 text-center">
+            <a
+              href="/forgot-password"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              data-testid="link-admin-forgot-password"
+            >
+              Forgot password?
+            </a>
             <a 
               href="/" 
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
