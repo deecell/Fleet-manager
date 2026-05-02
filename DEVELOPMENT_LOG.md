@@ -4,6 +4,19 @@
 
 ---
 
+## Latest Updates (May 2, 2026)
+
+### Hotfix: Device Manager deploy zip missing PowerMon SDK (May 2, 2026)
+- **Context**: After the Device Manager EC2 was rebuilt fresh on Apr 29, the first run of the `Deploy Device Manager` GitHub Actions workflow failed during `npm rebuild` on the target instance. The native addon build crashed with `fatal error: powermon.h: No such file or directory`. Polling has been down for 3 days, blocking all dashboard data.
+- **Root cause**: `device-manager/binding.gyp` references `<(module_root_dir)/libpowermon_bin/inc` (headers) and `<(module_root_dir)/libpowermon_bin/powermon_lib_pic.a` (static lib). The workflow's Package step copied `app/`, `lib/`, `src/`, `build/`, `package*.json`, `binding.gyp` — but never copied `libpowermon_bin/`. The previous EC2 instance presumably had a stale copy from an older deploy; the fresh box did not, so node-gyp blew up the moment it tried to find the header. The Ubuntu user-data already installs `libbluetooth-dev` and `libdbus-1-dev`, so system deps were never the issue.
+- **Fix** (`.github/workflows/deploy-device-manager.yml`): added two lines to the Package step to ship `libpowermon_bin/inc/` and `libpowermon_bin/powermon_lib_pic.a` inside the zip. Total size add ≈ 650KB. The on-box `/opt/device-manager/deploy.sh` (`npm ci --only=production` then `npm rebuild`) is unchanged — it now succeeds because node-gyp finds the headers.
+- **Recovery sequence**: push the workflow fix from Replit → run `Deploy Device Manager` (workflow_dispatch) → verify via `aws ssm send-command "systemctl status device-manager"` and `SELECT MAX(created_at) FROM device_data`.
+- **Follow-ups (deferred until prod is back up)**:
+  1. Auto-fire the deploy workflow on ASG instance launch (EventBridge rule on `EC2 Instance Launch Successful` + `aws events put-events` calling GitHub via repository_dispatch). Today nothing wires terraform-replaces-the-box to the deploy workflow.
+  2. CloudWatch alarm: "no Device Manager logs for >10 min" via metric filter on the existing `/ec2/deecell-fleet-production/device-manager` log group → SNS → Andy. Would have paged him on Apr 29 instead of him noticing 3 days later.
+
+---
+
 ## Latest Updates (May 1, 2026)
 
 ### Feature: Per-Admin Identity — Replace Shared `ADMIN_PASSWORD` (May 1, 2026)
