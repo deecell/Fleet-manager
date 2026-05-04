@@ -74,6 +74,13 @@ jobs:
           cp package.json package/
           cp package-lock.json package/
           cp binding.gyp package/
+ 
+          # Copy PowerMon SDK (headers + static library) so node-gyp can rebuild
+          # the native addon on the target EC2 instance. Without this, npm rebuild
+          # fails with: fatal error: powermon.h: No such file or directory
+          mkdir -p package/libpowermon_bin
+          cp -r ../libpowermon_bin/inc package/libpowermon_bin/
+          cp ../libpowermon_bin/powermon_lib_pic.a package/libpowermon_bin/
           
           # Create version info
           echo "{\"version\": \"${{ github.sha }}\", \"built\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\", \"branch\": \"${{ github.ref_name }}\"}" > package/version.json
