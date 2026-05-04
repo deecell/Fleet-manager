@@ -1,25 +1,42 @@
 /**
- * Admin Devices Export client hooks (Task #5 — soft launch).
+ * Admin Exports client hooks.
  *
  * The customer-facing hooks (`useActiveExports`, `useDismissExport`) work
  * for both endpoints — pass `ADMIN_EXPORTS_ENDPOINT` to scope them to the
- * admin pipeline. Only the create-export call differs (admin payload
- * shape) so it lives here on its own.
+ * admin pipeline. Mutations and the recent-exports query live here.
  */
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "./queryClient";
 import {
   ADMIN_EXPORTS_ENDPOINT,
   type CreateExportJobError,
   type ExportJobStatus,
 } from "./exports-api";
+import type { HistoricalGranularity } from "@shared/export-historical";
 
-export interface CreateAdminExportInput {
+export interface CreateAdminDevicesExportInput {
+  kind: "devices";
   format: "csv" | "xlsx";
   organizationId?: number | null;
   searchQuery?: string | null;
 }
+
+export interface CreateAdminHistoricalExportInput {
+  kind: "historical";
+  format: "csv" | "xlsx";
+  organizationId: number;
+  truckId: number;
+  granularity: HistoricalGranularity;
+  /** ISO 8601 string. */
+  startTime: string;
+  /** ISO 8601 string. */
+  endTime: string;
+}
+
+export type CreateAdminExportInput =
+  | CreateAdminDevicesExportInput
+  | CreateAdminHistoricalExportInput;
 
 export interface SerializedAdminExportJob {
   id: number;
@@ -38,6 +55,13 @@ export interface SerializedAdminExportJob {
     organizationName: string | null;
     searchQuery: string | null;
   };
+  historical: {
+    truckId: number | null;
+    truckNumber: string | null;
+    granularity: HistoricalGranularity | null;
+    startTime: string | null;
+    endTime: string | null;
+  } | null;
   notifiedAt: string | null;
   dismissedAt: string | null;
   requestedAt: string | null;
@@ -49,10 +73,14 @@ interface CreateAdminExportResponse {
   job: SerializedAdminExportJob;
 }
 
+interface ListAdminExportsResponse {
+  jobs: SerializedAdminExportJob[];
+}
+
 /**
- * Mutation: enqueue an admin Devices export. Mirrors the customer
- * `useCreateExport` error-parsing so the dialog can surface 429 limit
- * details inline.
+ * Mutation: enqueue an admin export (devices OR historical, discriminated by
+ * `kind`). Mirrors the customer error-parsing so the page can surface 429
+ * limit details inline.
  */
 export function useCreateAdminExport() {
   const queryClient = useQueryClient();
@@ -70,7 +98,30 @@ export function useCreateAdminExport() {
       queryClient.invalidateQueries({
         queryKey: [`${ADMIN_EXPORTS_ENDPOINT}?active=true`],
       });
+      queryClient.invalidateQueries({
+        queryKey: [ADMIN_EXPORTS_ENDPOINT, "recent"],
+      });
     },
+  });
+}
+
+/**
+ * Recent admin export jobs (any status, includes dismissed) — drives the
+ * recent-exports table on /admin/export. Polls every 5s while the page is
+ * mounted so in-flight rows progress through pending → running → completed
+ * without manual refresh.
+ */
+export function useAdminExportJobs(limit = 20) {
+  return useQuery<ListAdminExportsResponse>({
+    queryKey: [ADMIN_EXPORTS_ENDPOINT, "recent", limit],
+    queryFn: async () => {
+      const res = await fetch(`${ADMIN_EXPORTS_ENDPOINT}?limit=${limit}`, {
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error(`Failed to load admin exports (${res.status})`);
+      return res.json();
+    },
+    refetchInterval: 5000,
   });
 }
 

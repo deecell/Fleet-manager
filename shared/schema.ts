@@ -739,6 +739,8 @@ export const exportJobs = pgTable("export_jobs", {
     // Admin-devices export (Task #5) reuses this column with its own keys.
     organizationId?: number | null;
     organizationName?: string | null;
+    // Admin-historical export adds the target truck's number for table labels.
+    truckNumber?: string | null;
   }>(),
   includeColumns: jsonb("include_columns").$type<string[]>(),
   excludeColumns: jsonb("exclude_columns").$type<string[]>(),
@@ -965,6 +967,7 @@ export const EXPORT_JOB_KIND = {
   SNAPSHOT: "snapshot",
   HISTORICAL: "historical",
   ADMIN_DEVICES: "admin_devices",
+  ADMIN_HISTORICAL: "admin_historical",
 } as const;
 export type ExportJobKind = typeof EXPORT_JOB_KIND[keyof typeof EXPORT_JOB_KIND];
 

@@ -18,6 +18,7 @@ import TrucksPage from "@/pages/admin/TrucksPage";
 import DevicesPage from "@/pages/admin/DevicesPage";
 import UsersPage from "@/pages/admin/UsersPage";
 import IssuesPage from "@/pages/admin/IssuesPage";
+import ExportPage from "@/pages/admin/ExportPage";
 import { ExportsBanner } from "@/components/ExportsBanner";
 
 function Router() {
@@ -36,6 +37,7 @@ function Router() {
       <Route path="/admin/devices" component={DevicesPage}/>
       <Route path="/admin/users" component={UsersPage}/>
       <Route path="/admin/issues" component={IssuesPage}/>
+      <Route path="/admin/export" component={ExportPage}/>
       <Route component={NotFound} />
     </Switch>
   );

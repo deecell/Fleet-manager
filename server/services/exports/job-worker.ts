@@ -136,6 +136,10 @@ class ExportJobWorker {
         | { organizationName: string | null; searchQuery: string | null }
         | null = null;
 
+      const isAdminKind =
+        jobKind === EXPORT_JOB_KIND.ADMIN_DEVICES
+        || jobKind === EXPORT_JOB_KIND.ADMIN_HISTORICAL;
+
       if (jobKind === EXPORT_JOB_KIND.ADMIN_DEVICES) {
         // Admin device registry export — filters live on the same `filters`
         // jsonb column the snapshot pipeline uses, with an admin-specific shape.
@@ -172,8 +176,27 @@ class ExportJobWorker {
           );
         }
         const granularity = intervalSecondsToGranularity(job.historicalIntervalSeconds);
+        // For admin_historical jobs, the customer org being exported lives in
+        // filters.organizationId — `job.organizationId` is the admin's
+        // synthetic Deecell Internal org and would return zero rows.
+        let targetOrgId = job.organizationId;
+        let adminHistoricalOrgName: string | null = null;
+        if (jobKind === EXPORT_JOB_KIND.ADMIN_HISTORICAL) {
+          const adminFilters =
+            (job.filters as {
+              organizationId?: number | null;
+              organizationName?: string | null;
+            } | null) ?? {};
+          if (!adminFilters.organizationId) {
+            throw new Error(
+              "Admin historical export job is missing filters.organizationId",
+            );
+          }
+          targetOrgId = adminFilters.organizationId;
+          adminHistoricalOrgName = adminFilters.organizationName ?? null;
+        }
         result = await generateHistoricalExport({
-          organizationId: job.organizationId,
+          organizationId: targetOrgId,
           truckId: job.historicalTruckId,
           startTime: job.historicalStartTime,
           endTime: job.historicalEndTime,
@@ -186,6 +209,12 @@ class ExportJobWorker {
           endTime: job.historicalEndTime,
           truckId: job.historicalTruckId,
         };
+        if (jobKind === EXPORT_JOB_KIND.ADMIN_HISTORICAL) {
+          adminContext = {
+            organizationName: adminHistoricalOrgName,
+            searchQuery: null,
+          };
+        }
       } else {
         // jsonb columns deserialize natively — no JSON.parse needed.
         const filters = (job.filters as ExportFilters | null) ?? undefined;
@@ -209,10 +238,9 @@ class ExportJobWorker {
       //   • admin_devices         → exports/admin/<jobId>/<filename>
       // The admin path keeps cross-org admin exports visually segregated
       // from per-customer artifacts in S3 (and in the eventual access logs).
-      const s3Key =
-        jobKind === EXPORT_JOB_KIND.ADMIN_DEVICES
-          ? `exports/admin/${job.id}/${result.filename}`
-          : `exports/${job.organizationId}/${job.id}/${result.filename}`;
+      const s3Key = isAdminKind
+        ? `exports/admin/${job.id}/${result.filename}`
+        : `exports/${job.organizationId}/${job.id}/${result.filename}`;
       await uploadFile(s3Key, result.buffer, result.contentType);
 
       const downloadUrl = await getFileUrl(s3Key, EXPORT_DOWNLOAD_TTL_SECONDS);
@@ -239,7 +267,12 @@ class ExportJobWorker {
           // email matches what the user actually requested. Snapshot exports
           // continue to surface the bundle label.
           let bundleLabel: string;
-          if (adminContext) {
+          if (adminContext && jobKind === EXPORT_JOB_KIND.ADMIN_HISTORICAL && historicalContext) {
+            const scope = adminContext.organizationName
+              ? `Org: ${adminContext.organizationName}`
+              : "Cross-org";
+            bundleLabel = `Admin Truck History (${HISTORICAL_GRANULARITY_META[historicalContext.granularity].label} · ${scope}${result.historicalMeta?.truckNumber ? ` · ${result.historicalMeta.truckNumber}` : ""})`;
+          } else if (adminContext) {
             const scope = adminContext.organizationName
               ? `Org: ${adminContext.organizationName}`
               : "All organizations";

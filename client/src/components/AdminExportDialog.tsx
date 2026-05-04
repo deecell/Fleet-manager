@@ -63,6 +63,7 @@ export function AdminExportDialog({
     setErrorBanner(null);
     try {
       await createExport.mutateAsync({
+        kind: "devices",
         format,
         organizationId: organizationId ?? null,
         searchQuery: trimmedSearch.length > 0 ? trimmedSearch : null,

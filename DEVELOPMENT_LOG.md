@@ -6,6 +6,16 @@
 
 ## Latest Updates (May 4, 2026)
 
+### Task #N: New /admin/export page (admin truck-history + device-registry exports)
+- **What shipped**: New left-nav `/admin/export` page that combines the admin truck-history export and the existing admin device-registry export into one form, plus a recent-exports table that polls every 5s.
+- **Frontend** (`client/src/pages/admin/ExportPage.tsx`): mode radio (Truck history / Device registry); historical form sequence org → truck → range preset (or custom dates) → granularity → format with live row estimate, 1-year-range warning, and 600k-row cap warning; devices form keeps the existing org+search+format inputs; recent-exports table with status badges, row/size columns, download links. Polling lives in `useAdminExportJobs(limit)` (TanStack Query, `refetchInterval: 5000`).
+- **Backend** (`server/api/admin-exports-routes.ts`): `POST /api/admin/exports` switched from a single object schema to a discriminated Zod union (`kind: 'devices' | 'historical'`). Historical branch validates dates, enforces `HISTORICAL_MAX_RANGE_MS` (1 year) and `HISTORICAL_MAX_ROWS` (600k via `estimateHistoricalRows`), looks up org and `storage.getTruck(orgId, truckId)`, then enqueues a job with `kind = 'admin_historical'`. `GET /api/admin/exports` filters to admin kinds (`admin_devices`, `admin_historical`).
+- **Worker** (`server/services/exports/job-worker.ts`): new `EXPORT_JOB_KIND.ADMIN_HISTORICAL` branch reads the target customer org from `filters.organizationId` (NOT `job.organizationId`, which stays as the admin's Deecell Internal org for concurrency caps + email lookup) and passes it into `generateHistoricalExport`. S3 keys land under `exports/admin/<jobId>/<filename>`. Email bundle label becomes `Admin Truck History (Hourly · Org: X · Truck T-104)`.
+- **Schema** (`shared/schema.ts`): added `EXPORT_JOB_KIND.ADMIN_HISTORICAL = 'admin_historical'` and extended the `filters` jsonb type to include optional `truckNumber` for table labeling. **No DB column changes — `npm run db:push` not required.**
+- **Backwards compat**: existing `/admin/devices` "Export" dialog now sends `kind: 'devices'` to satisfy the discriminated union; behavior is unchanged.
+- **Code review**: passed — confirmed correct org-targeting semantics, guardrails, S3 segregation, and email labels.
+
+
 ### Incident: ECS task restart loop after first admin login (May 4, 2026)
 - **Context**: Right after Andy completed his first platform-admin login (Task #8) and the admin dashboard rendered (17 orgs, 18 devices, 18 trucks, 14 users), every admin endpoint started returning 502/504, and shortly after the entire app at `app.deecell.com` went 502. Triaged from MacBook via AWS CLI.
 - **Diagnosis**:

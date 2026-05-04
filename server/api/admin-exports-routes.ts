@@ -1,16 +1,17 @@
 /**
- * Admin Devices Export endpoints (Task #5 — soft launch).
+ * Admin Exports endpoints.
  *
- *   POST   /api/admin/exports             — enqueue an admin device export
+ *   POST   /api/admin/exports             — enqueue an admin export
+ *                                            (kind: 'devices' | 'historical')
  *   GET    /api/admin/exports             — list this admin user's recent jobs
  *   GET    /api/admin/exports/:id         — single-job poll target
  *   PATCH  /api/admin/exports/:id/dismiss — hide a finished job from the banner
  *
  * All routes are gated by `adminMiddleware`. Jobs are attributed to the
- * synthetic "Deecell Admin" user inside the "Deecell Internal" org so the
- * existing concurrency caps, advisory lock, and email lookup keep working
- * without per-admin-user changes (those land in Task #8). The S3 key for
- * admin jobs is `exports/admin/<jobId>/<filename>` (handled in the worker).
+ * platform-admin's `users` row inside the `Deecell Internal` org so the
+ * existing concurrency caps, advisory lock, and email lookup keep working.
+ * The S3 key for admin jobs is `exports/admin/<jobId>/<filename>` (handled
+ * in the worker).
  */
 
 import { Router, type Request, type Response } from "express";
@@ -22,30 +23,54 @@ import {
   EXPORT_ORG_CONCURRENCY_LIMIT,
   type ExportJob,
 } from "@shared/schema";
+import {
+  HISTORICAL_MAX_RANGE_MS,
+  HISTORICAL_MAX_ROWS,
+  estimateHistoricalRows,
+  type HistoricalGranularity,
+} from "@shared/export-historical";
 import { storage } from "../storage";
 import { adminMiddleware } from "./admin-routes";
 import { exportJobWorker } from "../services/exports/job-worker";
 
 const router = Router();
 
-const createAdminExportSchema = z
-  .object({
-    format: z.enum(["csv", "xlsx"]),
-    organizationId: z.coerce.number().int().positive().nullish(),
-    searchQuery: z.string().trim().min(1).max(200).nullish(),
-  })
-  .strict();
+const devicesPayload = z.object({
+  kind: z.literal("devices"),
+  format: z.enum(["csv", "xlsx"]),
+  organizationId: z.coerce.number().int().positive().nullish(),
+  searchQuery: z.string().trim().min(1).max(200).nullish(),
+});
+
+const historicalPayload = z.object({
+  kind: z.literal("historical"),
+  format: z.enum(["csv", "xlsx"]),
+  organizationId: z.coerce.number().int().positive(),
+  truckId: z.coerce.number().int().positive(),
+  granularity: z.enum(["minute", "hour", "day"]),
+  startTime: z.string().min(1),
+  endTime: z.string().min(1),
+});
+
+const createAdminExportSchema = z.discriminatedUnion("kind", [
+  devicesPayload,
+  historicalPayload,
+]);
+
+const ADMIN_KINDS = new Set<string>([
+  EXPORT_JOB_KIND.ADMIN_DEVICES,
+  EXPORT_JOB_KIND.ADMIN_HISTORICAL,
+]);
 
 /**
- * Trimmed serialized shape returned to the admin client. We deliberately do
- * NOT reuse the customer `SerializedExportJob` because the admin UI does not
- * need historicalMode / bundleKey / column-count fields and surfacing them
- * would conflate the two trust boundaries on the wire.
+ * Trimmed serialized shape returned to the admin client. Carries enough info
+ * for the recent-exports table to label rows for both `admin_devices` and
+ * `admin_historical` kinds.
  */
 interface SerializedAdminExportJob {
   id: number;
   kind: string;
-  /** Human-readable label rendered by ExportsBanner (e.g. "Admin Devices — ACME"). */
+  /** Human-readable label rendered by the table + ExportsBanner. */
   bundleLabel: string;
   format: string;
   status: string;
@@ -60,6 +85,13 @@ interface SerializedAdminExportJob {
     organizationName: string | null;
     searchQuery: string | null;
   };
+  historical: {
+    truckId: number | null;
+    truckNumber: string | null;
+    granularity: HistoricalGranularity | null;
+    startTime: Date | null;
+    endTime: Date | null;
+  } | null;
   notifiedAt: Date | null;
   dismissedAt: Date | null;
   requestedAt: Date | null;
@@ -67,25 +99,52 @@ interface SerializedAdminExportJob {
   completedAt: Date | null;
 }
 
-function buildAdminBundleLabel(filters: {
+function intervalSecondsToGranularity(s: number | null): HistoricalGranularity | null {
+  if (s === 60) return "minute";
+  if (s === 3600) return "hour";
+  if (s === 86400) return "day";
+  return null;
+}
+
+function granularityToIntervalSeconds(g: HistoricalGranularity): number {
+  if (g === "hour") return 3600;
+  if (g === "day") return 86400;
+  return 60;
+}
+
+function buildAdminBundleLabel(job: ExportJob, filters: {
   organizationName?: string | null;
   searchQuery?: string | null;
+  truckNumber?: string | null;
 }): string {
+  if (job.kind === EXPORT_JOB_KIND.ADMIN_HISTORICAL) {
+    const parts: string[] = ["Admin Truck History"];
+    if (filters.organizationName) parts.push(filters.organizationName);
+    if (filters.truckNumber) parts.push(`Truck ${filters.truckNumber}`);
+    const g = intervalSecondsToGranularity(job.historicalIntervalSeconds);
+    if (g) parts.push(g === "minute" ? "Per minute" : g === "hour" ? "Hourly" : "Daily");
+    return parts.join(" — ");
+  }
   const parts: string[] = ["Admin Devices"];
-  if (filters.organizationName) parts.push(filters.organizationName);
-  else parts.push("All organizations");
+  parts.push(filters.organizationName ?? "All organizations");
   if (filters.searchQuery) parts.push(`"${filters.searchQuery}"`);
   return parts.join(" — ");
 }
 
 function serializeAdminJob(job: ExportJob): SerializedAdminExportJob {
   const filters = (job.filters as
-    | { organizationId?: number | null; organizationName?: string | null; searchQuery?: string | null }
+    | {
+        organizationId?: number | null;
+        organizationName?: string | null;
+        searchQuery?: string | null;
+        truckNumber?: string | null;
+      }
     | null) ?? {};
+  const isHistorical = job.kind === EXPORT_JOB_KIND.ADMIN_HISTORICAL;
   return {
     id: job.id,
     kind: job.kind ?? EXPORT_JOB_KIND.ADMIN_DEVICES,
-    bundleLabel: buildAdminBundleLabel(filters),
+    bundleLabel: buildAdminBundleLabel(job, filters),
     format: job.format,
     status: job.status,
     errorMessage: job.errorMessage,
@@ -99,6 +158,15 @@ function serializeAdminJob(job: ExportJob): SerializedAdminExportJob {
       organizationName: filters.organizationName ?? null,
       searchQuery: filters.searchQuery ?? null,
     },
+    historical: isHistorical
+      ? {
+          truckId: job.historicalTruckId,
+          truckNumber: filters.truckNumber ?? null,
+          granularity: intervalSecondsToGranularity(job.historicalIntervalSeconds),
+          startTime: job.historicalStartTime,
+          endTime: job.historicalEndTime,
+        }
+      : null,
     notifiedAt: job.notifiedAt,
     dismissedAt: job.dismissedAt,
     requestedAt: job.requestedAt,
@@ -108,18 +176,12 @@ function serializeAdminJob(job: ExportJob): SerializedAdminExportJob {
 }
 
 function getAdminIds(req: Request): { userId: number; organizationId: number } | null {
-  // Task #8 — admin sessions now carry the actual users.id of the logged-in
-  // admin instead of a synthetic shared identity. platformAdminMiddleware
-  // re-validates the user every request and writes req.userId / req.orgId
-  // (mirroring tenantMiddleware's contract), so we read those first and
-  // fall back to the session for safety.
   const userId = req.userId ?? req.session?.userId;
   const organizationId = req.organizationId ?? req.session?.organizationId;
   if (!userId || !organizationId) return null;
   return { userId, organizationId };
 }
 
-// POST /api/admin/exports — enqueue a new admin device export.
 router.post("/", adminMiddleware, async (req: Request, res: Response) => {
   const parsed = createAdminExportSchema.safeParse(req.body ?? {});
   if (!parsed.success) {
@@ -137,39 +199,99 @@ router.post("/", adminMiddleware, async (req: Request, res: Response) => {
 
   const input = parsed.data;
 
-  // Resolve organization name eagerly so the worker (and the eventual email)
-  // can show "Org: ACME Trucking" without a second lookup at render time.
-  let organizationName: string | null = null;
-  if (input.organizationId != null) {
-    const org = await storage.getOrganization(input.organizationId);
-    if (!org) {
-      return res.status(404).json({ error: "Organization not found" });
+  if (input.kind === "devices") {
+    let organizationName: string | null = null;
+    if (input.organizationId != null) {
+      const org = await storage.getOrganization(input.organizationId);
+      if (!org) return res.status(404).json({ error: "Organization not found" });
+      organizationName = org.name;
     }
-    organizationName = org.name;
+
+    const result = await storage.createExportJobWithLimits(
+      {
+        organizationId: ids.organizationId,
+        userId: ids.userId,
+        kind: EXPORT_JOB_KIND.ADMIN_DEVICES,
+        bundleKey: "admin_devices",
+        format: input.format,
+        filters: {
+          organizationId: input.organizationId ?? null,
+          organizationName,
+          searchQuery: input.searchQuery ?? null,
+        },
+        includeColumns: null,
+        excludeColumns: null,
+        historicalMode: false,
+        historicalTruckId: null,
+        historicalStartTime: null,
+        historicalEndTime: null,
+        historicalIntervalSeconds: 60,
+      },
+      {
+        userLimit: EXPORT_USER_CONCURRENCY_LIMIT,
+        orgLimit: EXPORT_ORG_CONCURRENCY_LIMIT,
+      },
+    );
+
+    if (!result.ok) return respondLimit(res, result);
+    exportJobWorker.nudge();
+    return res.status(202).json({ job: serializeAdminJob(result.job) });
+  }
+
+  // ---- historical ----
+  const startTime = new Date(input.startTime);
+  const endTime = new Date(input.endTime);
+  if (Number.isNaN(startTime.getTime()) || Number.isNaN(endTime.getTime())) {
+    return res.status(400).json({ error: "Invalid startTime or endTime" });
+  }
+  if (endTime.getTime() <= startTime.getTime()) {
+    return res.status(400).json({ error: "endTime must be after startTime" });
+  }
+  const rangeMs = endTime.getTime() - startTime.getTime();
+  if (rangeMs > HISTORICAL_MAX_RANGE_MS) {
+    return res.status(400).json({ error: "Date range exceeds 1 year maximum" });
+  }
+  const estimate = estimateHistoricalRows({
+    startMs: startTime.getTime(),
+    endMs: endTime.getTime(),
+    granularity: input.granularity,
+  });
+  if (estimate.exceedsMaxRows) {
+    return res.status(400).json({
+      error: `Estimated ${estimate.rowCount.toLocaleString()} rows exceeds the ${HISTORICAL_MAX_ROWS.toLocaleString()} row cap. Choose a coarser granularity or a shorter range.`,
+    });
+  }
+
+  const org = await storage.getOrganization(input.organizationId);
+  if (!org) return res.status(404).json({ error: "Organization not found" });
+
+  const truck = await storage.getTruck(input.organizationId, input.truckId);
+  if (!truck) {
+    return res.status(404).json({
+      error: "Truck not found in the selected organization",
+    });
   }
 
   const result = await storage.createExportJobWithLimits(
     {
       organizationId: ids.organizationId,
       userId: ids.userId,
-      kind: EXPORT_JOB_KIND.ADMIN_DEVICES,
-      // bundleKey is a NOT NULL text column on `export_jobs`. Admin exports
-      // have no bundle (the column set is fixed) so we store a stable
-      // sentinel that the worker ignores when kind === 'admin_devices'.
-      bundleKey: "admin_devices",
+      kind: EXPORT_JOB_KIND.ADMIN_HISTORICAL,
+      bundleKey: "admin_historical",
       format: input.format,
       filters: {
-        organizationId: input.organizationId ?? null,
-        organizationName,
-        searchQuery: input.searchQuery ?? null,
+        organizationId: input.organizationId,
+        organizationName: org.name,
+        truckNumber: truck.truckNumber ?? null,
+        searchQuery: null,
       },
       includeColumns: null,
       excludeColumns: null,
-      historicalMode: false,
-      historicalTruckId: null,
-      historicalStartTime: null,
-      historicalEndTime: null,
-      historicalIntervalSeconds: 60,
+      historicalMode: true,
+      historicalTruckId: input.truckId,
+      historicalStartTime: startTime,
+      historicalEndTime: endTime,
+      historicalIntervalSeconds: granularityToIntervalSeconds(input.granularity),
     },
     {
       userLimit: EXPORT_USER_CONCURRENCY_LIMIT,
@@ -177,28 +299,34 @@ router.post("/", adminMiddleware, async (req: Request, res: Response) => {
     },
   );
 
-  if (!result.ok) {
-    const message =
-      result.reason === "user_limit"
-        ? `You already have ${EXPORT_USER_CONCURRENCY_LIMIT} admin exports in progress — wait for one to finish.`
-        : `The admin queue already has ${EXPORT_ORG_CONCURRENCY_LIMIT} exports in progress — wait for one to finish.`;
-    return res.status(429).json({
-      error: message,
-      reason: result.reason,
-      activeUserCount: result.activeUserCount,
-      activeOrgCount: result.activeOrgCount,
-      userLimit: EXPORT_USER_CONCURRENCY_LIMIT,
-      orgLimit: EXPORT_ORG_CONCURRENCY_LIMIT,
-    });
-  }
-
+  if (!result.ok) return respondLimit(res, result);
   exportJobWorker.nudge();
   return res.status(202).json({ job: serializeAdminJob(result.job) });
 });
 
-// GET /api/admin/exports — list this admin's jobs.
-//   ?active=true  → banner data: pending + running + completed-not-dismissed
-//                   + failed-not-dismissed.
+function respondLimit(
+  res: Response,
+  result: {
+    ok: false;
+    reason: "user_limit" | "org_limit";
+    activeUserCount?: number;
+    activeOrgCount?: number;
+  },
+) {
+  const message =
+    result.reason === "user_limit"
+      ? `You already have ${EXPORT_USER_CONCURRENCY_LIMIT} admin exports in progress — wait for one to finish.`
+      : `The admin queue already has ${EXPORT_ORG_CONCURRENCY_LIMIT} exports in progress — wait for one to finish.`;
+  return res.status(429).json({
+    error: message,
+    reason: result.reason,
+    activeUserCount: result.activeUserCount,
+    activeOrgCount: result.activeOrgCount,
+    userLimit: EXPORT_USER_CONCURRENCY_LIMIT,
+    orgLimit: EXPORT_ORG_CONCURRENCY_LIMIT,
+  });
+}
+
 router.get("/", adminMiddleware, async (req: Request, res: Response) => {
   const ids = getAdminIds(req);
   if (!ids) return res.status(500).json({ error: "Admin identity not provisioned" });
@@ -227,8 +355,7 @@ router.get("/", adminMiddleware, async (req: Request, res: Response) => {
     statuses,
     includeDismissed,
   });
-  // Defensive: only ever surface admin_devices kind through this endpoint.
-  const adminJobs = jobs.filter((j) => (j.kind ?? "") === EXPORT_JOB_KIND.ADMIN_DEVICES);
+  const adminJobs = jobs.filter((j) => ADMIN_KINDS.has(j.kind ?? ""));
   return res.json({ jobs: adminJobs.map(serializeAdminJob) });
 });
 
@@ -236,11 +363,9 @@ router.get("/:id", adminMiddleware, async (req: Request, res: Response) => {
   const ids = getAdminIds(req);
   if (!ids) return res.status(500).json({ error: "Admin identity not provisioned" });
   const id = parseInt(req.params.id, 10);
-  if (!Number.isFinite(id)) {
-    return res.status(400).json({ error: "Invalid job id" });
-  }
+  if (!Number.isFinite(id)) return res.status(400).json({ error: "Invalid job id" });
   const job = await storage.getExportJob(ids.organizationId, id);
-  if (!job || job.userId !== ids.userId || job.kind !== EXPORT_JOB_KIND.ADMIN_DEVICES) {
+  if (!job || job.userId !== ids.userId || !ADMIN_KINDS.has(job.kind ?? "")) {
     return res.status(404).json({ error: "Export job not found" });
   }
   return res.json({ job: serializeAdminJob(job) });
@@ -250,17 +375,13 @@ router.patch("/:id/dismiss", adminMiddleware, async (req: Request, res: Response
   const ids = getAdminIds(req);
   if (!ids) return res.status(500).json({ error: "Admin identity not provisioned" });
   const id = parseInt(req.params.id, 10);
-  if (!Number.isFinite(id)) {
-    return res.status(400).json({ error: "Invalid job id" });
-  }
+  if (!Number.isFinite(id)) return res.status(400).json({ error: "Invalid job id" });
   const existing = await storage.getExportJob(ids.organizationId, id);
-  if (!existing || existing.userId !== ids.userId || existing.kind !== EXPORT_JOB_KIND.ADMIN_DEVICES) {
+  if (!existing || existing.userId !== ids.userId || !ADMIN_KINDS.has(existing.kind ?? "")) {
     return res.status(404).json({ error: "Export job not found" });
   }
   const job = await storage.dismissExportJob(ids.organizationId, ids.userId, id);
-  if (!job) {
-    return res.status(404).json({ error: "Export job not found" });
-  }
+  if (!job) return res.status(404).json({ error: "Export job not found" });
   return res.json({ job: serializeAdminJob(job) });
 });
 
