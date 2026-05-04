@@ -1,5 +1,5 @@
 import { TruckWithHistory, Notification, HistoricalDataPoint } from "@shared/schema";
-import { X, Battery, Zap, Activity, Thermometer, Check, ChevronDown, AlertTriangle, Download, Plus, Minus } from "lucide-react";
+import { X, Battery, Zap, Activity, Thermometer, Check, ChevronDown, AlertTriangle, Plus, Minus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
@@ -8,7 +8,6 @@ import { useTruckHistory, LegacyTruckWithDevice } from "@/lib/api";
 import { TruckTimeline } from "./TruckTimeline";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ExportDialog } from "@/components/ExportDialog";
 
 interface TruckDetailProps {
   truck: LegacyTruckWithDevice;
@@ -88,8 +87,6 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
   const [invertRelayLogic, setInvertRelayLogic] = useState(false);
   const [mfTerminalFunction, setMfTerminalFunction] = useState("Push button input");
   const [dataLoggingMode, setDataLoggingMode] = useState("Every 10 seconds");
-  
-  const [exportDialogOpen, setExportDialogOpen] = useState(false);
 
   const [powerMeterOpen, setPowerMeterOpen] = useState(false);
   const [metricsOpen, setMetricsOpen] = useState(true);
@@ -135,14 +132,6 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
                   {truck.status === "in-service" ? "In Service" : "Not in Service"}
                 </span>
               </div>
-              <button
-                onClick={() => setExportDialogOpen(true)}
-                className="h-[27px] px-3 rounded-md flex items-center gap-2 border border-[#ebeef2] bg-white text-sm text-[#4a5565] hover-elevate ml-[6px] mr-[6px]"
-                data-testid="button-export-truck-history"
-              >
-                <Download className="w-3.5 h-3.5" />
-                Export
-              </button>
             </div>
           </div>
           <button
@@ -403,14 +392,6 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
         </Collapsible>
       </div>
 
-      <ExportDialog
-        open={exportDialogOpen}
-        onOpenChange={setExportDialogOpen}
-        filters={{ status: "all", searchQuery: "" }}
-        initialMode="historical"
-        initialTruckId={parseInt(truck.id, 10)}
-        initialRangeDays={30}
-      />
     </div>
   );
 }
