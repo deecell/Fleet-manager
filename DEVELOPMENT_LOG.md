@@ -4682,6 +4682,39 @@ After deploying the updated InHand poller, truck locations will automatically ge
 
 ---
 
+---
+
+## May 4, 2026 — Device Manager Redeployment Complete
+
+### Summary
+Completed the full Device Manager recovery after 5 days of polling downtime (EC2 rebuilt Apr 29 but deploy never ran). All fixes are now live and the service is running with 13 workers polling.
+
+### What Was Done
+
+1. **Fixed deployment workflow** (`deploy-device-manager.yml`): Added `libpowermon_bin/` directory to the deploy zip so the native PowerMon SDK ships with the package.
+
+2. **Fixed PowerMon C++ wrapper** (`powermon_wrapper.cpp`): Updated to match the new Thornwave SDK — `info.address` instead of `info.mac`, 3-argument `decode()` signature, `vector<uint8_t>` types.
+
+3. **Fixed `lastConnectedAt` crash** (`connection-pool.js` line 1547): `lastConnectedAt` is stored as a number from `Date.now()`, not a Date object, so calling `.getTime()` on it was crashing. Removed the `.getTime()` call. This was causing 4 devices to fail their probe cycles.
+
+4. **Resolved Git merge conflicts**: The deploy workflow file had conflicts between Replit and GitHub (pushed via API). Resolved via Shell commands after the Git pane hit INVALID_STATE errors.
+
+### Current State
+- Device Manager: **active (running)** on EC2 `i-0a435441556fc5ab1` (us-east-2)
+- 13 workers polling devices
+- All changes pushed to GitHub and deployed via GitHub Actions
+- Replit and GitHub repos are fully in sync
+
+### Key Files Modified
+
+| File | Change |
+|------|--------|
+| `.github/workflows/deploy-device-manager.yml` | Include `libpowermon_bin/` in deploy zip |
+| `device-manager/src/powermon_wrapper.cpp` | SDK API updates (address, decode signature) |
+| `device-manager/app/connection-pool.js` | Fix `lastConnectedAt.getTime()` crash |
+
+---
+
 ## Team Notes
 
 *Add notes here during development for future reference*
