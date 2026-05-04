@@ -1,0 +1,16 @@
+amoeck@Melissas-MacBook-Pro-2 Fleet-manager % for tid in b08fb97f2b3b4597bf06f24900085bb6 d195c19b34314e1bb61e68ff6e9912bb; do
+  echo "=== Task $tid ==="
+  aws logs get-log-events \
+    --region us-east-2 \
+    --log-group-name /ecs/deecell-fleet-production \
+    --log-stream-name "ecs/deecell-fleet/$tid" \
+    --limit 30 \
+    --no-start-from-head \
+    --query 'events[*].message' \
+    --output text
+done
+=== Task b08fb97f2b3b4597bf06f24900085bb6 ===
+8:27:55 PM [express] GET /api/health 200 in 57ms :: {"status":"ok","version":"2026.01.27","rds":"con…   8:27:56 PM [express] POST /api/v1/admin/login 200 in 128ms :: {"success":true,"message":"Admin login…   8:27:56 PM [express] GET /api/v1/admin/session 200 in 1ms :: {"isPlatformAdmin":true,"email":"andy@d…        /app/node_modules/pg-pool/index.js:45       Error.captureStackTrace(err)                  ^     error: column "kind" does not exist      at /app/node_modules/pg-pool/index.js:45:11     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)           at async file:///app/node_modules/drizzle-orm/node-postgres/session.js:83:22         at async file:///app/dist/index.js:10095:16 {         length: 165,    severity: 'ERROR',      code: '42703',          detail: undefined,      hint: 'Perhaps you meant to reference the column "export_jobs.id".',         position: '44',         internalPosition: undefined,    internalQuery: undefined,       where: undefined,       schema: undefined,      table: undefined,       column: undefined,      dataType: undefined,    constraint: undefined,       file: 'parse_relation.c',       line: '3675',   routine: 'errorMissingColumn' }       Node.js v20.20.2
+=== Task d195c19b34314e1bb61e68ff6e9912bb ===
+8:25:57 PM [express] POST /api/v1/admin/login 200 in 148ms :: {"success":true,"message":"Admin login…   8:25:57 PM [express] GET /api/v1/admin/session 200 in 1ms :: {"isPlatformAdmin":true,"email":"andy@d…   8:25:57 PM [express] GET /api/v1/admin/stats 200 in 61ms :: {"stats":{"totalOrganizations":17,"total…        /app/node_modules/pg-pool/index.js:45       Error.captureStackTrace(err)                  ^     error: column "kind" does not exist      at /app/node_modules/pg-pool/index.js:45:11     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)           at async file:///app/node_modules/drizzle-orm/node-postgres/session.js:83:22         at async file:///app/dist/index.js:10095:16 {         length: 165,    severity: 'ERROR',      code: '42703',          detail: undefined,      hint: 'Perhaps you meant to reference the column "export_jobs.id".',         position: '44',         internalPosition: undefined,    internalQuery: undefined,       where: undefined,       schema: undefined,      table: undefined,       column: undefined,      dataType: undefined,    constraint: undefined,       file: 'parse_relation.c',       line: '3675',   routine: 'errorMissingColumn' }       Node.js v20.20.2
+amoeck@Melissas-MacBook-Pro-2 Fleet-manager %
