@@ -41,7 +41,7 @@ private:
     std::atomic<bool> connected_;
     std::atomic<bool> connecting_;
     std::atomic<bool> ble_available_;
-    Powermon::WifiAccessKey access_key_;
+    Powermon::RemoteAccessKey access_key_;
     
     Napi::ThreadSafeFunction on_connect_tsfn_;
     Napi::ThreadSafeFunction on_disconnect_tsfn_;

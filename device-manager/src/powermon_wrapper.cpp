@@ -214,7 +214,7 @@ Napi::Value PowermonWrapper::Connect(const Napi::CallbackInfo& info) {
         }
         
         connecting_ = true;
-        powermon_->connectWifi(access_key_);
+        powermon_->connectIp(access_key_);
         
     } else if (options.Has("url") && options.Get("url").IsString()) {
         std::string url = options.Get("url").As<Napi::String>().Utf8Value();
@@ -227,7 +227,7 @@ Napi::Value PowermonWrapper::Connect(const Napi::CallbackInfo& info) {
         
         access_key_ = id.access_key;
         connecting_ = true;
-        powermon_->connectWifi(access_key_);
+        powermon_->connectIp(access_key_);
         
     } else {
         Napi::TypeError::New(env, "Either 'accessKey' or 'url' option required")

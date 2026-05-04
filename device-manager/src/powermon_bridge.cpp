@@ -221,7 +221,7 @@ static void cmd_connect(const std::string& cmd_id, const std::string& url) {
     }
     
     connecting = true;
-    powermon->connectWifi(id.access_key);
+    powermon->connectIp(id.access_key);
     output_result(cmd_id, true, 0);
 }
 

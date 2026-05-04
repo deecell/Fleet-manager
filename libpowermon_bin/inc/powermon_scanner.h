@@ -78,12 +78,6 @@ public:
 
 	
 	/**
-	 * \brief Initialized the BLE adapter
-	 * \return True if the BLE was initialized
-	*/
-	virtual bool initBle(void) = 0;
-
-	/**
 	 * \brief Sets the callback to be called by the Powermon scanner when a new advertisement has been received
 	 * \param cb Lambda of type `void(const Advertisement&)`
 	*/
@@ -91,23 +85,27 @@ public:
 
 	/**
 	 * \brief Starts scanning for WiFi device advertisements
+	 * \return Returns true if the WiFi scanning was started successfully, false if not.
 	 */
-	virtual void startWifiScan(void) = 0;
+	virtual bool startWifiScan(void) = 0;
 
 	/**
 	 * \brief Stops scanning for WiFi device advertisements
+	 * \return Returns true if the WiFi scanning was stopped successfully, false if not.
 	 */
-	virtual void stopWifiScan(void) = 0;
+	virtual bool stopWifiScan(void) = 0;
 
 	/**
 	 * Starts scanning for BLE device advertisements
+	 * \return Returns true if the BLE scanning was started successfully, false if not.
 	 */
-	virtual void startBleScan(void) = 0;
+	virtual bool startBleScan(void) = 0;
 
 	/**
 	 * Stops scanning for BLE device advertisements
+	 * \return Returns true if the BLE scanning was stopped successfully, false if not.
 	 */
-	virtual void stopBleScan(void) = 0;
+	virtual bool stopBleScan(void) = 0;
 };
 
 

@@ -147,9 +147,9 @@ public:
 
 
 	/**
- 	* \brief WifiAccessKey is a structure representing the access keys used to connect to a WiFi/Ethernet PowerMon remotely (via the Internet)
+ 	* \brief RemoteAccessKey is a structure representing the access keys used to connect to a WiFi/Ethernet PowerMon remotely (via the Internet)
  	*/
-	struct WifiAccessKey
+	struct RemoteAccessKey
 	{
 		uint8_t channel_id[CHANNEL_ID_SIZE];
 		uint8_t encryption_key[ENCRYPTION_KEY_SIZE];
@@ -202,7 +202,7 @@ public:
 			uint8_t wpa : 1;                                        ///< Network supports WPA. If both WPA bits are set the network supports mixed mode.
 			uint8_t wpa2 : 1;                                       ///< Network supports WPA2. If both WPA bits are set the network supports mixed mode.
 			uint8_t wpa3 : 1;                                       ///< Network supports WPA3. If multiple WPA bits are set the network supports mixed mode.
-			uint8_t pmf : 1;                                        ///< Networks requires use of Protected Management Frames
+			uint8_t pmf : 1;                                        ///< Network requires use of Protected Management Frames
 			uint8_t unused : 1;                                     ///< Reserved, set to zero
 			uint8_t psk : 1;                                        ///< Network supports Personal authentication
 			uint8_t eap : 1;                                        ///< Network supports Enterprise authentication
@@ -253,7 +253,7 @@ public:
 		uint8_t hardware_revision_bcd;		///<Identifies if it's a WiFi or BLE device
 		uint64_t address;					///<contains the BLE MAC address for a BLE device of the IP address of a local WiFi device. 
 
-		WifiAccessKey access_key;			///<Contains the access keys for a remote WiFi device. In this case address is zero.
+		RemoteAccessKey access_key;			///<Contains the access keys for a remote WiFi device. In this case address is zero.
 
 		DeviceIdentifier();
 
@@ -282,7 +282,7 @@ public:
 		uint16_t firmware_version_bcd;			///<current firmware version in BCD format xx.yy
 		uint8_t hardware_revision_bcd;			///<current hardware revision in BCD format x.y
 
-		uint32_t time;							///<UNIX time in localtime (not UTC)
+		uint32_t time;							///<UNIX time in local time (not UTC)
 		uint32_t flags;							///<various flags - do not use directly
 
 		float voltage1;							///<Voltage 1 in Volts
@@ -296,8 +296,8 @@ public:
 
 		PowerStatus power_status;				///<Device power status
 
-		uint8_t fg_soc;							///<Fuelgauge SoC (State of Charge) in percentage. 0xFF means the FG is not enabled. 0xFE means the SoC is unknown
-		uint16_t fg_runtime;					///<Fuelgauge runtime in minutes. 0xFFFF means the FG is not enabled. The maximum valid value is 0xFFF0.
+		uint8_t fg_soc;							///<Fuel gauge SoC (State of Charge) in percentage. 0xFF means the FG is not enabled. 0xFE means the SoC is unknown
+		uint16_t fg_runtime;					///<Fuel gauge runtime in minutes. 0xFFFF means the FG is not enabled. The maximum valid value is 0xFFF0.
 
 		int16_t rssi = INT16_MIN;							///<RSSI as seen by the device in dBm
 
@@ -381,37 +381,38 @@ public:
 
 
 	/**
-	 * \brief Initialized the BLE sub-system. This should be called once after creating the Powermon object.
-	 * \return True if the initialization was successful. If the initialization fails or the BLE adapter is turned off it will return false.
-	 */
-	virtual bool initBle(void) = 0;
-
-	
-	/**
-	 * \brief Connects to a remote WiFi PowerMon
+	 * \brief Connects to a remote network PowerMon (Ethernet / WiFi)
 	 * \param key The access key used to connect
+	 * \return True if the request was successfully initiated. False if not. 
+	 * This function returning false means that the object is already connected to a PowerMon device.
 	 */
-	virtual void connectWifi(const WifiAccessKey &key) = 0;
+	virtual bool connectIp(const RemoteAccessKey &key) = 0;
 
 	
 	/**
-	 * \brief Connects to a local WiFi PowerMon
+	 * \brief Connects to a local network PowerMon (Ethernet / WiFi)
 	 * \param ipaddr The IPv4 address of the local WiFi PowerMon device
+	 * \return True if the request was successfully initiated. False if not. 
+	 * This function returning false means that the object is already connected to a PowerMon device.
 	 */
-	virtual void connectWifi(uint32_t ipaddr) = 0;
+	virtual bool connectIp(uint32_t ipaddr) = 0;
 	
 	
 	/**
 	 * \brief Connects to a local BLE PowerMon
 	 * \param ble_address The Bluetooth address of the PowerMon device
+	 * \return True if the request was successfully initiated. False if not. 
+	 * This function returning false means that the object is already connected to a PowerMon device.
 	 */
-	virtual void connectBle(uint64_t ble_address) = 0;
+	virtual bool connectBle(uint64_t ble_address) = 0;
 	
 	
 	/**
 	 * \brief Disconnects from a connected device
+	 * \return True if the request was successfully initiated. False if not. 
+	 * This function returning false means that the object is already in the disconnected state
 	 */
-	virtual void disconnect(void) = 0;
+	virtual bool disconnect(void) = 0;
 
 	
 	/**
@@ -436,7 +437,7 @@ public:
 	
 	/**
 	 * \brief Sets the callback to be called by the driver when new monitor data is received. This applies to the BLE devices only.
-	 * For the WiFi devices, use the request to retrieve the monitor data.
+	 * For the network devices (WiFi / Ethernet), use the request to retrieve the monitor data.
 	 * \param cb Lambda of type `void(Powermon::MonitorData&)`
 	*/
 	virtual void setOnMonitorDataCallback(const std::function<void(const MonitorData&)> &cb) = 0;
@@ -467,7 +468,7 @@ public:
 
 
 	/**
-	 * \brief Requests the device monitor data. It only applies to the WiFi devices.
+	 * \brief Requests the device monitor data. It only applies to the network devices (WiFi / Ethernet).
 	 * \param cb Lambda of type void(ResponseCode, const MonitorData&) that will be called to signal the result of the request
 	 */
 	virtual void requestGetMonitorData(const std::function<void(ResponseCode, const MonitorData&)> &cb) = 0;
@@ -585,7 +586,7 @@ public:
 
 	/**
 	 * \brief Resets the PowerMon configuration to factory settings
-	 * This will also clear the data log, reset the name, authentication keys and access keys (for WiFi devices).
+	 * This will also clear the data log, reset the name, authentication keys and remote access keys (for network devices).
 	 * \param cb Lambda of type void(ResponseCode) that will be called to signal the result of the request.
 	 */
 	virtual void requestResetConfig(const std::function<void(ResponseCode)> &cb) = 0;
@@ -593,7 +594,7 @@ public:
 
 	/**
 	 * \brief Requests renaming the PowerMon device
-	 * \param name New name. For Bluetooth PowerMons the name is limited to 8 characters. For WiFi PowerMons the name can be up to 32 characters in length.
+	 * \param name New name. For Bluetooth PowerMons the name is limited to 8 characters. For network PowerMons the name can be up to 32 characters in length.
 	 * \param cb Lambda of type void(ResponseCode) that will be called to signal the result of the request
 	 */
 	virtual void requestRename(const char* name, const std::function<void(ResponseCode)> &cb) = 0;
@@ -653,14 +654,14 @@ public:
 	
 
 	/**
-	 * \brief Requests the WiFi access keys (only applies to the WiFi PowerMons). The access keys are used to remotely access the device.
-	 * \param cb Lambda of type void(ResponseCode, const WifiAccessKey&) that will be called to signal the result of the request
+	 * \brief Requests the network remote access keys (only applies to the network PowerMons). The access keys are used to remotely access the device.
+	 * \param cb Lambda of type void(ResponseCode, const RemoteAccessKey&) that will be called to signal the result of the request
 	 */
-	virtual void requestGetAccessKeys(const std::function<void(ResponseCode, const WifiAccessKey&)> &cb) = 0;
+	virtual void requestGetAccessKeys(const std::function<void(ResponseCode, const RemoteAccessKey&)> &cb) = 0;
 
 
 	/**
-	 * \brief Requests resetting of the WiFi access keys (only applies to the WiFi PowerMons). This effectively severs the connection to all the paired clients.
+	 * \brief Requests resetting of the network remote access keys (only applies to the network PowerMons). This effectively severs the connection to all the paired clients.
 	 * \param cb Lambda of type void(ResponseCode) that will be called to signal the result of the request
 	 */
 	virtual void requestResetAccessKeys(const std::function<void(ResponseCode)> &cb) = 0;
@@ -714,7 +715,7 @@ public:
 	
 
 	/**
-	 * \brief Requests clearing of all schedule
+	 * \brief Requests clearing of all schedules
 	 * \param cb Lambda of type void(ResponseCode) that will be called to signal the result of the request
 	 */
 	virtual void requestClearSchedules(const std::function<void(ResponseCode)> &cb) = 0;
@@ -745,7 +746,7 @@ public:
 
 
 	/**
-	 * \brief Requests committing the schedules to non-volatile memory
+	 * \brief Requests clearing of all schedules
 	 * \param cb Lambda of type void(ResponseCode) that will be called to signal the result of the request
 	 */
 	virtual void requestClearLog(const std::function<void(ResponseCode)> &cb) = 0;
@@ -756,22 +757,18 @@ public:
 	 * \param firmware_image The firmware update image
 	 * \param size Size of the firmware update image
 	 * \param progress_cb Lambda of type bool(uint32_t progress, uint32_t total) that will be called regularly with updates about the progress. 
-	 * 						Returning false fronm the lambda will abort the update operation.
+	 * 						Returning false from the lambda will abort the update operation.
 	 * \param done_cb Lambda of type void(ResponseCode) that will be called to signal the result of the request upon completion of the firmware update
 	 */
 	virtual void requestUpdateFirmware(const uint8_t* firmware_image, uint32_t size, const std::function<bool(uint32_t, uint32_t)> &progress_cb, 
 																			const std::function<void(ResponseCode)> &done_cb) = 0;
 
 
-
 	virtual void requestReadDebug(uint32_t offset, uint32_t read_size, const std::function<void(ResponseCode, const uint8_t*, size_t)> &cb) = 0;
 	virtual void requestEraseDebug(const std::function<void(ResponseCode)> &cb) = 0;
-
-
 	virtual void requestReboot(const std::function<void(ResponseCode)> &cb) = 0;
 
-
-
+	
 	/**
 	 * \brief Returns the IP address as string
 	 */
@@ -821,7 +818,7 @@ public:
 
 
 	/**
-	 * \brief Returns true if the PowerMon described by the BCD hardware revision has an initegrated shunt
+	 * \brief Returns true if the PowerMon described by the BCD hardware revision has an integrated shunt
 	 */
 	static bool hasIntegratedShunt(uint8_t bcd);
 
@@ -839,7 +836,7 @@ public:
 
 
 	/**
-	 * \brief Returns true if the PowerMon described by the BCD hardware revision has Ethernet
+	 * \brief Returns true if the PowerMon described by the BCD hardware revision has any network connection (WiFi or Ethernet)
 	 */
 	static bool hasNetwork(uint8_t bcd);
 
