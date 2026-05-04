@@ -1,0 +1,27 @@
+amoeck@Melissas-MacBook-Pro-2 Fleet-manager % aws ecs describe-services \
+  --region us-east-2 \
+  --cluster deecell-fleet-production-cluster \
+  --services deecell-fleet \
+  --query 'services[0].{running:runningCount,desired:desiredCount,pending:pendingCount,events:events[0:10].message}' \
+  --output table
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+|                                                                                    DescribeServices                                                                                    |
++------------------------------------------------------------+-------------------------------------------------------------+-------------------------------------------------------------+
+|                           desired                          |                           pending                           |                           running                           |
++------------------------------------------------------------+-------------------------------------------------------------+-------------------------------------------------------------+
+|  1                                                         |  1                                                          |  0                                                          |
++------------------------------------------------------------+-------------------------------------------------------------+-------------------------------------------------------------+
+||                                                                                        events                                                                                        ||
+|+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+|
+||  (service deecell-fleet) has started 1 tasks: (task 45ff5d0416b94fbc877d55eededfdf33).                                                                                               ||
+||  (service deecell-fleet, taskSet ecs-svc/2218063950519513956) has begun draining connections on 1 tasks.                                                                             ||
+||  (service deecell-fleet) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:892213647605:targetgroup/dcltg-20251224225245578000000009/64e07a1118151673)  ||
+||  (service deecell-fleet) has reached a steady state.                                                                                                                                 ||
+||  (service deecell-fleet) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:892213647605:targetgroup/dcltg-20251224225245578000000009/64e07a1118151673)    ||
+||  (service deecell-fleet) has started 1 tasks: (task b08fb97f2b3b4597bf06f24900085bb6).                                                                                               ||
+||  (service deecell-fleet, taskSet ecs-svc/2218063950519513956) has begun draining connections on 1 tasks.                                                                             ||
+||  (service deecell-fleet) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:892213647605:targetgroup/dcltg-20251224225245578000000009/64e07a1118151673)  ||
+||  (service deecell-fleet) has reached a steady state.                                                                                                                                 ||
+||  (service deecell-fleet) (deployment ecs-svc/2218063950519513956) deployment completed.                                                                                              ||
+|+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+|
+amoeck@Melissas-MacBook-Pro-2 Fleet-manager %
