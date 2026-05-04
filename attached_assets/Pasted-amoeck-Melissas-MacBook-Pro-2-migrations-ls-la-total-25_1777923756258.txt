@@ -1,0 +1,28 @@
+amoeck@Melissas-MacBook-Pro-2 migrations % ls -la  
+total 256
+-rwxr-xr-x   1 amoeck  staff   1515 Jan  9 12:41 _TEMPLATE.sh
+drwxr-xr-x  26 amoeck  staff    832 May  2 11:04 .
+drwxr-xr-x   8 amoeck  staff    256 Jan  9 12:41 ..
+-rwxr-xr-x   1 amoeck  staff   2680 Jan  9 12:41 2026-01-08_add_shelly_tables.sh
+-rwxr-xr-x   1 amoeck  staff   3239 Jan 15 11:16 2026-01-10_fix_device_data_status.sh
+-rw-r--r--   1 amoeck  staff   1481 Jan 15 11:16 2026-01-14_add_shelly_pulse_tracking.sh
+-rw-r--r--   1 amoeck  staff    606 Jan 15 11:16 2026-01-14_add_shelly_pulse_tracking.sql
+-rwxr-xr-x   1 amoeck  staff   2301 Jan 15 11:16 2026-01-14_add_shelly_readings_table.sh
+-rwxr-xr-x   1 amoeck  staff   2216 Jan 20 11:44 2026-01-15_add_shelly_last_movement_at.sh
+-rwxr-xr-x   1 amoeck  staff   2022 Jan 20 11:44 2026-01-16_drop_shelly_voltage_column.sh
+-rwxr-xr-x   1 amoeck  staff   2449 Jan 20 12:03 2026-01-20_add_invitation_tokens.sh
+-rwxr-xr-x   1 amoeck  staff   2648 Jan 24 17:13 2026-01-22_verify_and_assign_truck.sh
+-rwxr-xr-x   1 amoeck  staff   2445 Jan 24 17:13 2026-01-24_fix_offline_device_polling.sh
+-rwxr-xr-x   1 amoeck  staff   2357 Jan 24 17:22 2026-01-25_add_offline_recovery.sh
+-rwxr-xr-x   1 amoeck  staff   3243 Feb 11 16:47 2026-02-10_add_inhand_gps_poller.sh
+-rwxr-xr-x   1 amoeck  staff   1790 Mar 15 17:34 2026-02-12_add_location_description.sh
+-rwxr-xr-x   1 amoeck  staff   8996 Mar 15 17:34 2026-02-12_sync_simpro_sims.sh
+-rwxr-xr-x   1 amoeck  staff   2406 Mar 15 17:34 2026-02-14_update_libpowermon_v112.sh
+-rwxr-xr-x   1 amoeck  staff   4694 Apr 13 16:08 2026-04-13_add_simpro_to_ecs.sh
+-rwxr-xr-x   1 amoeck  staff   1739 Apr 14 08:14 2026-04-14_cleanup_gto_orphan_sims.sh
+-rwxr-xr-x   1 amoeck  staff   5439 Apr 29 12:19 2026-04-28_add_export_jobs_table.sh
+-rw-r--r--   1 amoeck  staff   2586 Apr 29 12:07 2026-04-28_add_export_jobs_table.sql
+-rwxr-xr-x   1 amoeck  staff   5532 May  2 11:04 2026-05-01_add_export_kind_column.sh
+-rw-r--r--   1 amoeck  staff   1052 May  2 11:04 2026-05-01_add_export_kind_column.sql
+-rwxr-xr-x   1 amoeck  staff  13281 May  2 11:04 2026-05-01_add_platform_admin.sh
+-rw-r--r--   1 amoeck  staff   3617 May  2 11:04 2026-05-01_add_platform_admin.sql
