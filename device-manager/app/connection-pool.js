@@ -1541,7 +1541,7 @@ class ConnectionPool {
   hasAnySuccessfulPoll() {
     for (const conn of this.connections.values()) {
       if (conn.lastSuccessfulPollAt && conn.lastConnectedAt &&
-          conn.lastSuccessfulPollAt.getTime() >= conn.lastConnectedAt.getTime()) {
+          conn.lastSuccessfulPollAt.getTime() >= conn.lastConnectedAt) {
         return true;
       }
     }

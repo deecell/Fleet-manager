@@ -1,0 +1,38 @@
+ssm-user@ip-10-0-12-190:/var/snap/amazon-ssm-agent/13009$ sudo journalctl -u device-manager -f
+May 04 18:21:54 ip-10-0-12-190 start.sh[49232]: 2026-05-04 18:21:54.259 INFO  Fetched device info from PowerMon  deviceId=8  serial=E844BD0A2017EB7A  cohort=5  serialNumber=E844BD0A2017EB7A  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Kruse
+May 04 18:21:54 ip-10-0-12-190 start.sh[49232]: 2026-05-04 18:21:54.262 INFO  Updated device info  deviceId=8  serialNumber=E844BD0A2017EB7A  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Kruse
+May 04 18:21:55 ip-10-0-12-190 start.sh[49150]: 2026-05-04 18:21:55.891 INFO  DCL-Radian-1 (M53)                       parked   v1= 14.39  v2=  0.0000  today= 1102m  month=  1102m  since=2026-03-25 23:01:53
+May 04 18:21:56 ip-10-0-12-190 start.sh[48595]: 2026-05-04 18:21:56.482 INFO  DCL-Howard (MHR-01)                      parked   v1= 26.63  v2=  0.0414  today= 1102m  month=  1102m  since=2025-12-30 22:17:33
+May 04 18:21:56 ip-10-0-12-190 start.sh[48718]: 2026-05-04 18:21:56.727 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 28.76  v2=  0.0414  today= 1102m  month=  1102m  since=2025-12-29 23:38:19
+May 04 18:21:57 ip-10-0-12-190 start.sh[49022]: 2026-05-04 18:21:57.275 INFO  DCL-Howard (MHR-01)                      parked   v1= 26.63  v2=  0.0412  today= 1102m  month=  1102m  since=2025-12-30 22:17:33
+May 04 18:21:58 ip-10-0-12-190 start.sh[49022]: 2026-05-04 18:21:58.023 ERROR [probe:A93B7B8CC0D672FE] Unhandled rejection  reason=TypeError: conn.lastConnectedAt.getTime is not a function
+May 04 18:21:58 ip-10-0-12-190 start.sh[49023]: 2026-05-04 18:21:58.027 ERROR [probe:A8839FDD47E0D9B9] Unhandled rejection  reason=TypeError: conn.lastConnectedAt.getTime is not a function
+May 04 18:21:58 ip-10-0-12-190 start.sh[48946]: 2026-05-04 18:21:58.183 ERROR [probe:B051375C222A5334] Unhandled rejection  reason=TypeError: conn.lastConnectedAt.getTime is not a function
+May 04 18:21:58 ip-10-0-12-190 start.sh[48718]: 2026-05-04 18:21:58.610 ERROR [probe:1B1034C2B3399A18] Unhandled rejection  reason=TypeError: conn.lastConnectedAt.getTime is not a function
+May 04 18:22:03 ip-10-0-12-190 start.sh[49022]: 2026-05-04 18:22:03.024 ERROR [probe:A93B7B8CC0D672FE] Unhandled rejection  reason=TypeError: conn.lastConnectedAt.getTime is not a function
+May 04 18:22:03 ip-10-0-12-190 start.sh[49023]: 2026-05-04 18:22:03.030 ERROR [probe:A8839FDD47E0D9B9] Unhandled rejection  reason=TypeError: conn.lastConnectedAt.getTime is not a function
+May 04 18:22:03 ip-10-0-12-190 start.sh[49059]: 2026-05-04 18:22:03.086 WARN  Poll failed  deviceId=5  serial=B051375C222A5334  cohort=4  code=8  failures=2
+May 04 18:22:03 ip-10-0-12-190 start.sh[48946]: 2026-05-04 18:22:03.186 ERROR [probe:B051375C222A5334] Unhandled rejection  reason=TypeError: conn.lastConnectedAt.getTime is not a function
+May 04 18:22:03 ip-10-0-12-190 start.sh[49023]: 2026-05-04 18:22:03.243 INFO  DCL-Radian-1 (M53)                       parked   v1= 14.39  v2=  0.0001  today= 1102m  month=  1102m  since=2026-03-25 23:01:53
+May 04 18:22:03 ip-10-0-12-190 start.sh[48592]: 2026-05-04 18:22:03.252 INFO  DCL-Brown (RBR-01)                       parked   v1= 27.70  v2= 12.6860  today= 1102m  month=  1102m  since=2026-04-29 07:59:34
+May 04 18:22:03 ip-10-0-12-190 start.sh[48571]: 2026-05-04 18:22:03.419 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 28.79  v2=  0.0430  today= 1102m  month=  1102m  since=2025-12-29 23:38:54
+May 04 18:22:03 ip-10-0-12-190 start.sh[48571]: 2026-05-04 18:22:03.426 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 28.76  v2=  0.0415  today= 1102m  month=  1102m  since=2025-12-29 23:38:19
+May 04 18:22:03 ip-10-0-12-190 start.sh[48718]: 2026-05-04 18:22:03.611 ERROR [probe:1B1034C2B3399A18] Unhandled rejection  reason=TypeError: conn.lastConnectedAt.getTime is not a function
+May 04 18:22:05 ip-10-0-12-190 start.sh[49232]: 2026-05-04 18:22:05.395 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 56.38  v2=  0.0380  today= 1102m  month=  1102m  since=2026-02-16 19:41:58
+May 04 18:22:05 ip-10-0-12-190 start.sh[49232]: 2026-05-04 18:22:05.403 INFO  DCL-Kruse (WKR-01)                       parked   v1= 28.75  v2=  0.0355  today= 1102m  month=  1102m  since=2025-12-29 23:27:57
+May 04 18:22:05 ip-10-0-12-190 start.sh[49150]: 2026-05-04 18:22:05.908 INFO  DCL-Radian-1 (M53)                       parked   v1= 14.38  v2=  0.0000  today= 1102m  month=  1102m  since=2026-03-25 23:01:53
+May 04 18:22:05 ip-10-0-12-190 start.sh[49150]: 2026-05-04 18:22:05.915 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.82  v2=  0.0382  today= 1102m  month=  1102m  since=2026-01-09 21:34:37
+May 04 18:22:05 ip-10-0-12-190 start.sh[49150]: 2026-05-04 18:22:05.922 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.57  v2=  0.0375  today= 1102m  month=  1102m  since=2025-12-29 23:22:12
+May 04 18:22:06 ip-10-0-12-190 start.sh[48946]: 2026-05-04 18:22:06.604 WARN  Poll failed  deviceId=5  serial=B051375C222A5334  cohort=4  code=8  failures=3
+May 04 18:22:06 ip-10-0-12-190 start.sh[48946]: 2026-05-04 18:22:06.605 INFO  Poll failure threshold reached, granting reconnect grace period  deviceId=5  serial=B051375C222A5334  cohort=4  graceReconnects=2
+May 04 18:22:06 ip-10-0-12-190 start.sh[48946]: 2026-05-04 18:22:06.705 INFO  Disconnected  deviceId=5  serial=B051375C222A5334  cohort=4
+May 04 18:22:06 ip-10-0-12-190 start.sh[48946]: 2026-05-04 18:22:06.705 INFO  Using longer reconnect delay after poll failure  deviceId=5  serial=B051375C222A5334  cohort=4  delayMs=5000
+May 04 18:22:06 ip-10-0-12-190 start.sh[48946]: 2026-05-04 18:22:06.705 INFO  Scheduling reconnect  deviceId=5  serial=B051375C222A5334  cohort=4  attempt=1  delayMs=5000
+May 04 18:22:06 ip-10-0-12-190 start.sh[48946]: 2026-05-04 18:22:06.705 INFO  onDisconnect fired  deviceId=5  serial=B051375C222A5334  cohort=4  reason=none  connDurationMs=52368  hadSuccessfulPoll=false  wasConnected=false  consecutiveFailures=3  rapidDisconnects=0
+May 04 18:22:06 ip-10-0-12-190 start.sh[48718]: 2026-05-04 18:22:06.747 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 28.74  v2=  0.0413  today= 1102m  month=  1102m  since=2025-12-29 23:38:19
+May 04 18:22:07 ip-10-0-12-190 start.sh[49022]: 2026-05-04 18:22:07.293 INFO  DCL-Howard (MHR-01)                      parked   v1= 26.63  v2=  0.0415  today= 1102m  month=  1102m  since=2025-12-30 22:17:33
+May 04 18:22:08 ip-10-0-12-190 start.sh[49022]: 2026-05-04 18:22:08.025 ERROR [probe:A93B7B8CC0D672FE] Unhandled rejection  reason=TypeError: conn.lastConnectedAt.getTime is not a function
+May 04 18:22:08 ip-10-0-12-190 start.sh[49023]: 2026-05-04 18:22:08.030 ERROR [probe:A8839FDD47E0D9B9] Unhandled rejection  reason=TypeError: conn.lastConnectedAt.getTime is not a function
+May 04 18:22:08 ip-10-0-12-190 start.sh[48946]: 2026-05-04 18:22:08.187 ERROR [probe:B051375C222A5334] Unhandled rejection  reason=TypeError: conn.lastConnectedAt.getTime is not a function
+May 04 18:22:08 ip-10-0-12-190 start.sh[48595]: 2026-05-04 18:22:08.503 INFO  DCL-Howard (MHR-01)                      parked   v1= 26.63  v2=  0.0417  today= 1102m  month=  1102m  since=2025-12-30 22:17:33
+May 04 18:22:08 ip-10-0-12-190 start.sh[48718]: 2026-05-04 18:22:08.612 ERROR [probe:1B1034C2B3399A18] Unhandled rejection  reason=TypeError: conn.lastConnectedAt.getTime is not a function
