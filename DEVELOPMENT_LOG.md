@@ -4,6 +4,32 @@
 
 ---
 
+## Latest Updates (May 4, 2026)
+
+### Incident: ECS task restart loop after first admin login (May 4, 2026)
+- **Context**: Right after Andy completed his first platform-admin login (Task #8) and the admin dashboard rendered (17 orgs, 18 devices, 18 trucks, 14 users), every admin endpoint started returning 502/504, and shortly after the entire app at `app.deecell.com` went 502. Triaged from MacBook via AWS CLI.
+- **Diagnosis**:
+  - `aws ecs describe-services --cluster deecell-fleet-production-cluster --services deecell-fleet` showed `desired:1, pending:1, running:0` — the service was flapping between starts and drains.
+  - `aws ecs describe-tasks` on two stopped tasks (`b08fb97f…`, `d195c19b…`) returned `stopCode: EssentialContainerExited`, `exitCode: 1`. Exit code 1 = Node unhandled error/explicit exit, **not** OOM (137).
+  - `aws logs tail /ecs/deecell-fleet-production --since 15m` showed each task booted cleanly, served `/api/health` 200s for ~15 minutes, then died. **No admin requests appear in the logs immediately before the crash** — health checks are the only traffic visible. That points at a background job (exports worker, polling, or unhandled promise rejection) as the killer, not the admin endpoints themselves.
+  - The `truck_history_truck_id_fkey` error in startup logs (`Key columns "truck_id" and "id" are of incompatible types: character varying and integer`) is a **pre-existing schema drift** from the legacy `initializeTables()` path. The server logs the error and continues past it (`serving on port 5000` lands on the next line), so it is not the cause of the restart loop.
+- **Resolution (immediate)**: ECS auto-restart eventually placed a healthy task (`45ff5d04…` at 20:32 UTC) and the site came back. Andy verified the admin dashboard loads. No code change was needed to recover — site is up, the underlying recurring-crash bug is open.
+- **Outstanding (open follow-up)**: find the recurring crash. Suggested next step on MacBook: pull the last 30 lines of the two stopped task streams to capture whatever exception/unhandled rejection terminated each one:
+  ```bash
+  for tid in b08fb97f2b3b4597bf06f24900085bb6 d195c19b34314e1bb61e68ff6e9912bb; do
+    echo "=== $tid ==="
+    aws logs get-log-events --region us-east-2 \
+      --log-group-name /ecs/deecell-fleet-production \
+      --log-stream-name "ecs/deecell-fleet/$tid" \
+      --limit 30 --start-from-head false \
+      --query 'events[*].message' --output text
+  done
+  ```
+  Once the offending stack trace is in hand, fix it at the source (likely `server/exports/worker.ts` or one of the polling jobs) and add a top-level `process.on('unhandledRejection')` handler that logs+exits cleanly so future crashes show up in CloudWatch with a proper trace instead of a bare `exit 1`.
+- **Separately worth fixing (lower priority)**: the `truck_history_truck_id_fkey` startup error. The legacy `initializeTables()` in `server/db/init.ts` (or wherever `initializeTables` lives in `dist/index.js:2887`) is trying to add an FK from `truck_history.truck_id (varchar)` → `trucks.id (integer)`. Either the column type in `truck_history` should be `integer` to match `trucks.id`, or the FK should be dropped from the legacy init path entirely (Drizzle migrations are the source of truth now). Non-blocking — the server starts up despite the error — but it's noise in every boot log.
+
+---
+
 ## Latest Updates (May 2, 2026)
 
 ### Hotfix: Device Manager deploy zip missing PowerMon SDK (May 2, 2026)
