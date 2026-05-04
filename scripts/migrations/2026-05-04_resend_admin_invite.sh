@@ -47,6 +47,21 @@ fi
 echo "      Found: $INSTANCE_ID"
 echo ""
 
+# -- 2. Resolve SendGrid secret name locally (EC2 role lacks ListSecrets) ----
+echo "[2/5] Resolving SendGrid secret name..."
+SENDGRID_SECRET_NAME=$(aws secretsmanager list-secrets \
+    --region "$REGION" \
+    --filters Key=name,Values="$SENDGRID_SECRET_PREFIX" \
+    --query "SecretList[0].Name" \
+    --output text)
+
+if [ -z "$SENDGRID_SECRET_NAME" ] || [ "$SENDGRID_SECRET_NAME" = "None" ]; then
+    echo "Error: SendGrid secret not found with prefix: $SENDGRID_SECRET_PREFIX"
+    exit 1
+fi
+echo "      Found: $SENDGRID_SECRET_NAME"
+echo ""
+
 read -p "Send a new invitation email to $ANDY_EMAIL? (y/n) " -n 1 -r
 echo ""
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -54,9 +69,9 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     exit 0
 fi
 
-# -- 2. Write the remote script to a temp file and build SSM params ----------
+# -- 3. Write the remote script and build SSM params ----------
 echo ""
-echo "[2/4] Building SSM command..."
+echo "[3/5] Building SSM command..."
 
 REMOTE_SCRIPT=$(cat <<'REMOTESCRIPT'
 set -e
@@ -80,12 +95,11 @@ if [ ${#INVITE_TOKEN} -ne 32 ]; then echo "ERROR: token generation failed"; exit
 "$PSQL" "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "INSERT INTO invitation_tokens (user_id, organization_id, token, expires_at, created_at) VALUES ($ANDY_USER_ID, $ANDY_ORG_ID, '$INVITE_TOKEN', NOW() + INTERVAL '7 days', NOW());"
 echo "[invite] Token minted (expires in 7 days)"
 
-SENDGRID_SECRET_NAME=$(aws secretsmanager list-secrets --region __REGION__ --filters Key=name,Values=__SENDGRID_PREFIX__ --query "SecretList[0].Name" --output text)
-if [ -z "$SENDGRID_SECRET_NAME" ] || [ "$SENDGRID_SECRET_NAME" = "None" ]; then
-  echo "ERROR: SendGrid secret not found. Token was minted; use /forgot-password as fallback."
+SENDGRID_API_KEY=$(aws secretsmanager get-secret-value --secret-id "__SENDGRID_SECRET_NAME__" --region __REGION__ --query SecretString --output text)
+if [ -z "$SENDGRID_API_KEY" ]; then
+  echo "ERROR: SendGrid API key empty. Token was minted; use /forgot-password as fallback."
   exit 1
 fi
-SENDGRID_API_KEY=$(aws secretsmanager get-secret-value --secret-id "$SENDGRID_SECRET_NAME" --region __REGION__ --query SecretString --output text)
 
 INVITE_URL="__APP_URL__/accept-invitation?token=$INVITE_TOKEN"
 
@@ -146,7 +160,7 @@ REMOTE_SCRIPT="${REMOTE_SCRIPT//__ANDY_EMAIL__/$ANDY_EMAIL}"
 REMOTE_SCRIPT="${REMOTE_SCRIPT//__ANDY_FIRST__/$ANDY_FIRST_NAME}"
 REMOTE_SCRIPT="${REMOTE_SCRIPT//__ORG_NAME__/$ORG_NAME}"
 REMOTE_SCRIPT="${REMOTE_SCRIPT//__APP_URL__/$APP_URL}"
-REMOTE_SCRIPT="${REMOTE_SCRIPT//__SENDGRID_PREFIX__/$SENDGRID_SECRET_PREFIX}"
+REMOTE_SCRIPT="${REMOTE_SCRIPT//__SENDGRID_SECRET_NAME__/$SENDGRID_SECRET_NAME}"
 REMOTE_SCRIPT="${REMOTE_SCRIPT//__SENDER_EMAIL__/$SENDER_EMAIL}"
 REMOTE_SCRIPT="${REMOTE_SCRIPT//__SENDER_NAME__/$SENDER_NAME}"
 
@@ -158,8 +172,8 @@ lines = script.strip().split('\n')
 print(json.dumps({'commands': lines}))
 " <<< "$REMOTE_SCRIPT")
 
-# -- 3. Send SSM command ------------------------------------------------------
-echo "[3/4] Sending command to $INSTANCE_ID via SSM..."
+# -- 4. Send SSM command ------------------------------------------------------
+echo "[4/5] Sending command to $INSTANCE_ID via SSM..."
 COMMAND_ID=$(aws ssm send-command \
     --instance-ids "$INSTANCE_ID" \
     --document-name "AWS-RunShellScript" \
@@ -171,7 +185,7 @@ COMMAND_ID=$(aws ssm send-command \
 
 echo "      Command ID: $COMMAND_ID"
 echo ""
-echo "[4/4] Waiting for completion..."
+echo "[5/5] Waiting for completion..."
 
 while true; do
     STATUS=$(aws ssm get-command-invocation \
