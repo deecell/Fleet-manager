@@ -1,0 +1,67 @@
+Skipping 8 offline/unstable devices:
+                  [offline]   DCL-KTR                                  (0 disconnects)
+                  [no_power]  DCL-Howard                               (0 disconnects) (retry in 1m)
+                  [no_power]  DCL-Epler                                (0 disconnects) (retry in 2m)
+                  [no_power]  DCL-NHRA-Tech-Trailer                    (0 disconnects) (probe on next check)
+                  [offline]   DCL-Moeck-Shop                           (0 disconnects)
+                  [offline]   DCL-Moeck                                (0 disconnects)
+                  [no_power]  DCL-Radian-2                             (0 disconnects) (retry in 3m)
+                  [no_power]  DCL-Penske01                             (0 disconnects) (retry in 4m)
+19:29:41 PROBE Spawned solo probe for DCL-NHRA-Tech-Trailer (attempt #1, pid 51227)
+2026-05-04 19:29:41.973 INFO  PowerMon addon loaded successfully
+2026-05-04 19:29:41.977 INFO  [probe:A15102C4CCF4B6B2] Starting solo probe
+2026-05-04 19:29:41.978 INFO  Database connection configured  host=deecell-fleet-production-postgres.cn4qsw8g8yyx.us-east-2.rds.amazonaws.com  database=deecell_fleet
+2026-05-04 19:29:41.978 INFO  Database pool initialized  poolSize=10
+2026-05-04 19:29:41.978 INFO  Initializing connection pool for solo device  serial=A15102C4CCF4B6B2
+2026-05-04 19:29:42.107 INFO  Solo device initialized  serial=A15102C4CCF4B6B2  deviceId=19  deviceName=DCL-NHRA-Tech-Trailer
+2026-05-04 19:29:42.107 INFO  Batch writer started  flushIntervalMs=2000  maxBatchSize=500
+2026-05-04 19:29:42.108 INFO  === STARTUP: Connecting to all devices ===  deviceCount=1  timestamp=2026-05-04T19:29:42.108Z
+2026-05-04 19:29:42.108 INFO  Connecting device 1/1  serialNumber=A15102C4CCF4B6B2  deviceName=DCL-NHRA-Tech-Trailer  cohort=3
+2026-05-04 19:29:42.108 INFO  Connecting to device  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3
+2026-05-04 19:29:42.115 INFO  Connected successfully  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3  durationMs=7
+2026-05-04 19:29:42.118 INFO  onDisconnect fired  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3  reason=2  connDurationMs=3  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=0
+2026-05-04 19:29:42.119 WARN  Rapid disconnect detected (error)  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3  reason=2  rapidDisconnects=1  connectionDurationMs=3
+2026-05-04 19:29:42.119 WARN  Weak signal detected - 1st instant disconnect, marking weak_signal  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3  connectionDurationMs=3  deviceName=DCL-NHRA-Tech-Trailer
+2026-05-04 19:29:42.119 WARN  Marking device as weak_signal in database  deviceId=19
+2026-05-04 19:29:42.125 INFO  Device disconnected (unexpected)  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3  reason=2  isRapidDisconnect=true
+2026-05-04 19:29:42.131 INFO  Device 1/1 connected  serialNumber=A15102C4CCF4B6B2  durationMs=7
+2026-05-04 19:29:42.131 INFO  === STARTUP COMPLETE: Connection Summary ===  success=1  failed=0  skipped=0  timedOut=0  totalDurationMs=23  averageDurationMs=7
+2026-05-04 19:29:42.131 INFO  Starting polling scheduler (worker mode)  intervalMs=10000
+2026-05-04 19:29:42.132 INFO  [probe:A15102C4CCF4B6B2] Connected, monitoring for 30 seconds
+2026-05-04 19:29:42.170 INFO  Scheduling reconnect  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3  attempt=1  delayMs=1000
+2026-05-04 19:29:42.278 WARN  WEAK_SIGNAL DIAGNOSTIC  deviceId=19  deviceName=DCL-NHRA-Tech-Trailer  truckId=13  routerReachable=true  gpsLastUpdate=Tue Apr 14 2026 14:55:16 GMT+0000 (Coordinated Universal Time)  gpsAgeMinutes=29074  gpsLocation=null
+2026-05-04 19:29:43.171 INFO  Connecting to device  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3
+2026-05-04 19:29:43.178 INFO  Connected successfully  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3  durationMs=7
+2026-05-04 19:29:43.181 INFO  onDisconnect fired  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3  reason=2  connDurationMs=3  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=1
+2026-05-04 19:29:43.181 WARN  Rapid disconnect detected (error)  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3  reason=2  rapidDisconnects=2  connectionDurationMs=3
+2026-05-04 19:29:43.181 ERROR Circuit breaker OPEN - 2 instant disconnects, device appears powered off  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3  rapidDisconnects=2  instantDisconnects=2  connectionDurationMs=3  backoffMinutes=5  resetAt=2026-05-04T19:34:43.181Z
+2026-05-04 19:29:43.181 WARN  Nulled native references for all pool devices  nulledCount=0  triggerDevice=19
+2026-05-04 19:29:43.181 ERROR NATIVE LIBRARY COMPROMISED - blocking all native calls, scheduling graceful restart  deviceId=19  deviceName=DCL-NHRA-Tech-Trailer  status=no_power  restartInMs=3000
+2026-05-04 19:29:43.182 WARN  Marking device as no_power in database  deviceId=19
+2026-05-04 19:29:43.325 WARN  NO_POWER DIAGNOSTIC  deviceId=19  deviceName=DCL-NHRA-Tech-Trailer  truckId=13  routerReachable=true  gpsLastUpdate=Tue Apr 14 2026 14:55:16 GMT+0000 (Coordinated Universal Time)  gpsAgeMinutes=29074  gpsLocation=null  verdict=ROUTER REACHABLE - likely connectivity issue, NOT power loss
+2026-05-04 19:29:45.317 INFO  DCL-Radian-1 (M53)                       parked   v1= 14.37  v2=  0.0001  today= 1170m  month=  1170m  since=2026-03-25 23:01:53
+2026-05-04 19:29:45.323 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.82  v2=  0.0377  today= 1170m  month=  1170m  since=2026-01-09 21:34:37
+2026-05-04 19:29:46.184 ERROR Exiting process for clean native library restart
+19:29:46 PROBE DCL-NHRA-Tech-Trailer still offline (attempt #1, next retry in 5m)
+2026-05-04 19:29:47.124 WARN  Poll failed  deviceId=5  serial=B051375C222A5334  cohort=4  code=8  failures=1
+2026-05-04 19:29:47.207 INFO  DCL-Brown (RBR-01)                       driving  v1= 27.70  v2= 13.7293  today= 1151m  month=  1151m  since=2026-05-04 19:10:56
+2026-05-04 19:29:47.286 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 56.35  v2=  0.0401  today= 1170m  month=  1170m  since=2026-02-16 19:41:58
+2026-05-04 19:29:47.288 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 28.77  v2=  0.0426  today= 1170m  month=  1170m  since=2025-12-29 23:38:54
+2026-05-04 19:29:47.294 INFO  DCL-Kruse (WKR-01)                       parked   v1= 28.75  v2=  0.0358  today= 1170m  month=  1170m  since=2025-12-29 23:27:57
+2026-05-04 19:29:47.295 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 28.72  v2=  0.0412  today= 1170m  month=  1170m  since=2025-12-29 23:38:19
+2026-05-04 19:29:47.335 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.54  v2=  0.0388  today= 1170m  month=  1170m  since=2025-12-29 23:22:12
+2026-05-04 19:29:57.230 INFO  DCL-Brown (RBR-01)                       driving  v1= 27.70  v2= 13.7215  today= 1151m  month=  1151m  since=2026-05-04 19:10:56
+2026-05-04 19:29:57.312 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 28.74  v2=  0.0420  today= 1170m  month=  1170m  since=2025-12-29 23:38:19
+2026-05-04 19:29:57.312 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 56.37  v2=  0.0381  today= 1170m  month=  1170m  since=2026-02-16 19:41:58
+2026-05-04 19:29:57.318 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 28.77  v2=  0.0429  today= 1170m  month=  1170m  since=2025-12-29 23:38:54
+2026-05-04 19:29:57.319 INFO  DCL-Kruse (WKR-01)                       parked   v1= 28.75  v2=  0.0358  today= 1170m  month=  1170m  since=2025-12-29 23:27:57
+2026-05-04 19:29:57.350 INFO  DCL-Radian-1 (M53)                       parked   v1= 14.38  v2=  0.0001  today= 1170m  month=  1170m  since=2026-03-25 23:01:53
+2026-05-04 19:29:57.356 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.82  v2=  0.0378  today= 1170m  month=  1170m  since=2026-01-09 21:34:37
+2026-05-04 19:29:57.362 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.54  v2=  0.0395  today= 1170m  month=  1170m  since=2025-12-29 23:22:12
+2026-05-04 19:29:58.593 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 27.15  v2= 13.6733  today=    0m  month=     0m  since=2026-04-27 20:42:09
+2026-05-04 19:29:58.599 INFO  DCL-Carter (CTR-69)                      parked   v1= 28.73  v2=  0.0474  today= 1170m  month=  1170m  since=2025-12-03 17:15:48
+2026-05-04 19:30:07.249 INFO  DCL-Brown (RBR-01)                       driving  v1= 27.70  v2= 13.7251  today= 1151m  month=  1151m  since=2026-05-04 19:10:56
+2026-05-04 19:30:07.335 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 28.76  v2=  0.0415  today= 1170m  month=  1170m  since=2025-12-29 23:38:19
+2026-05-04 19:30:07.341 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 28.79  v2=  0.0431  today= 1170m  month=  1170m  since=2025-12-29 23:38:54
+2026-05-04 19:30:07.382 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.82  v2=  0.0380  today= 1170m  month=  1170m  since=2026-01-09 21:34:37
+2026-05-04 19:30:07.389 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.54  v2=  0.0405  today= 1170m  month=  1170m  since=2025-12-29 23:22:12
