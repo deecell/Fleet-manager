@@ -275,10 +275,11 @@ Napi::Object PowermonWrapper::DeviceInfoToObject(Napi::Env env, const Powermon::
     obj.Set("isWifiConnected", Napi::Boolean::New(env, info.isWifiConnected()));
     
     std::stringstream mac_ss;
-    for (int i = 0; i < 6; i++) {
-        if (i > 0) mac_ss << ":";
+    uint64_t addr = info.address;
+    for (int i = 5; i >= 0; i--) {
+        if (i < 5) mac_ss << ":";
         mac_ss << std::hex << std::uppercase << std::setfill('0') 
-               << std::setw(2) << static_cast<int>(info.mac[i]);
+               << std::setw(2) << static_cast<int>((addr >> (i * 8)) & 0xFF);
     }
     obj.Set("mac", Napi::String::New(env, mac_ss.str()));
     
@@ -601,24 +602,28 @@ Napi::Value PowermonWrapper::DecodeLogData(const Napi::CallbackInfo& info) {
         return env.Null();
     }
     
-    std::vector<char> data;
+    std::vector<uint8_t> data;
     
     if (info[0].IsTypedArray()) {
         Napi::Uint8Array arr = info[0].As<Napi::Uint8Array>();
-        data.assign(reinterpret_cast<char*>(arr.Data()), 
-                    reinterpret_cast<char*>(arr.Data()) + arr.ByteLength());
+        data.assign(arr.Data(), arr.Data() + arr.ByteLength());
     } else if (info[0].IsArrayBuffer()) {
         Napi::ArrayBuffer buf = info[0].As<Napi::ArrayBuffer>();
-        data.assign(reinterpret_cast<char*>(buf.Data()),
-                    reinterpret_cast<char*>(buf.Data()) + buf.ByteLength());
+        data.assign(reinterpret_cast<uint8_t*>(buf.Data()),
+                    reinterpret_cast<uint8_t*>(buf.Data()) + buf.ByteLength());
     } else {
         Napi::TypeError::New(env, "Uint8Array or ArrayBuffer expected")
             .ThrowAsJavaScriptException();
         return env.Null();
     }
     
+    int32_t tz_index = 0;
+    if (info.Length() >= 2 && info[1].IsNumber()) {
+        tz_index = info[1].As<Napi::Number>().Int32Value();
+    }
+    
     std::vector<PowermonLogFile::Sample> samples;
-    uint32_t start_time = PowermonLogFile::decode(data, samples);
+    uint32_t start_time = PowermonLogFile::decode(data, samples, tz_index);
     
     Napi::Object result = Napi::Object::New(env);
     // decode() returns the file start timestamp on success, 0 on failure
