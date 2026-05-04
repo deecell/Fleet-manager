@@ -74,7 +74,7 @@ jobs:
           cp package.json package/
           cp package-lock.json package/
           cp binding.gyp package/
-
+ 
           # Copy PowerMon SDK (headers + static library) so node-gyp can rebuild
           # the native addon on the target EC2 instance. Without this, npm rebuild
           # fails with: fatal error: powermon.h: No such file or directory
