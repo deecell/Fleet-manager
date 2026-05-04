@@ -47,8 +47,8 @@ fi
 echo "      Found: $INSTANCE_ID"
 echo ""
 
-# -- 2. Resolve SendGrid secret name locally (EC2 role lacks ListSecrets) ----
-echo "[2/5] Resolving SendGrid secret name..."
+# -- 2. Fetch SendGrid API key locally (EC2 role lacks Secrets Manager access) ----
+echo "[2/5] Fetching SendGrid API key from Secrets Manager..."
 SENDGRID_SECRET_NAME=$(aws secretsmanager list-secrets \
     --region "$REGION" \
     --filters Key=name,Values="$SENDGRID_SECRET_PREFIX" \
@@ -59,7 +59,18 @@ if [ -z "$SENDGRID_SECRET_NAME" ] || [ "$SENDGRID_SECRET_NAME" = "None" ]; then
     echo "Error: SendGrid secret not found with prefix: $SENDGRID_SECRET_PREFIX"
     exit 1
 fi
-echo "      Found: $SENDGRID_SECRET_NAME"
+
+SENDGRID_API_KEY=$(aws secretsmanager get-secret-value \
+    --secret-id "$SENDGRID_SECRET_NAME" \
+    --region "$REGION" \
+    --query SecretString \
+    --output text)
+
+if [ -z "$SENDGRID_API_KEY" ]; then
+    echo "Error: SendGrid API key is empty."
+    exit 1
+fi
+echo "      Resolved (key length: ${#SENDGRID_API_KEY} chars)"
 echo ""
 
 read -p "Send a new invitation email to $ANDY_EMAIL? (y/n) " -n 1 -r
@@ -95,12 +106,7 @@ if [ ${#INVITE_TOKEN} -ne 32 ]; then echo "ERROR: token generation failed"; exit
 "$PSQL" "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "INSERT INTO invitation_tokens (user_id, organization_id, token, expires_at, created_at) VALUES ($ANDY_USER_ID, $ANDY_ORG_ID, '$INVITE_TOKEN', NOW() + INTERVAL '7 days', NOW());"
 echo "[invite] Token minted (expires in 7 days)"
 
-SENDGRID_API_KEY=$(aws secretsmanager get-secret-value --secret-id "__SENDGRID_SECRET_NAME__" --region __REGION__ --query SecretString --output text)
-if [ -z "$SENDGRID_API_KEY" ]; then
-  echo "ERROR: SendGrid API key empty. Token was minted; use /forgot-password as fallback."
-  exit 1
-fi
-
+SENDGRID_API_KEY="__SENDGRID_API_KEY__"
 INVITE_URL="__APP_URL__/accept-invitation?token=$INVITE_TOKEN"
 
 cat > /tmp/send_invite.py <<'PYEOF'
@@ -160,7 +166,7 @@ REMOTE_SCRIPT="${REMOTE_SCRIPT//__ANDY_EMAIL__/$ANDY_EMAIL}"
 REMOTE_SCRIPT="${REMOTE_SCRIPT//__ANDY_FIRST__/$ANDY_FIRST_NAME}"
 REMOTE_SCRIPT="${REMOTE_SCRIPT//__ORG_NAME__/$ORG_NAME}"
 REMOTE_SCRIPT="${REMOTE_SCRIPT//__APP_URL__/$APP_URL}"
-REMOTE_SCRIPT="${REMOTE_SCRIPT//__SENDGRID_SECRET_NAME__/$SENDGRID_SECRET_NAME}"
+REMOTE_SCRIPT="${REMOTE_SCRIPT//__SENDGRID_API_KEY__/$SENDGRID_API_KEY}"
 REMOTE_SCRIPT="${REMOTE_SCRIPT//__SENDER_EMAIL__/$SENDER_EMAIL}"
 REMOTE_SCRIPT="${REMOTE_SCRIPT//__SENDER_NAME__/$SENDER_NAME}"
 
