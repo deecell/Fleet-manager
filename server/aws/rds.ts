@@ -8,15 +8,15 @@ function parseConnectionConfig() {
     // Parse the DATABASE_URL (format: postgres://user:password@host:port/database)
     try {
       const url = new URL(databaseUrl);
+      const isRDS = url.hostname.includes("rds.amazonaws.com");
+      const isProd = process.env.NODE_ENV === "production";
       return {
         host: url.hostname,
         port: parseInt(url.port || "5432"),
         user: url.username,
         password: url.password,
         database: url.pathname.slice(1), // Remove leading '/'
-        ssl: {
-          rejectUnauthorized: false,
-        },
+        ssl: (isRDS || isProd) ? { rejectUnauthorized: false } : undefined,
       };
     } catch (e) {
       console.error("Failed to parse DATABASE_URL:", e);
