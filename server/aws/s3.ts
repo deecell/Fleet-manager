@@ -4,12 +4,24 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 const AWS_REGION = process.env.AWS_REGION || "us-east-2";
 const bucketName = process.env.S3_BUCKET_NAME || "deecell-fleet-files";
 
+// Only pass explicit credentials when both env vars are present (typical for
+// local dev). In production ECS Fargate, leaving `credentials` undefined lets
+// the AWS SDK v3 default provider chain pick up the task IAM role
+// automatically. Passing `accessKeyId: ""` here was causing "non-empty Access
+// Key (AKID) must be provided in the credential" errors in prod.
+const hasExplicitCreds =
+  !!process.env.AWS_ACCESS_KEY_ID && !!process.env.AWS_SECRET_ACCESS_KEY;
+
 const s3Client = new S3Client({
   region: AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
-  },
+  ...(hasExplicitCreds
+    ? {
+        credentials: {
+          accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+        },
+      }
+    : {}),
 });
 
 export async function uploadFile(key: string, body: Buffer, contentType: string): Promise<string> {
