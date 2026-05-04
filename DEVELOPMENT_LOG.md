@@ -4717,11 +4717,11 @@ Completed the full Device Manager recovery after 5 days of polling downtime (EC2
 
 ## Team Notes
 
-### Thornwave SDK Update Pending (May 4, 2026)
-- Razvan (Thornwave Labs) identified a Linux socket reuse bug in the library causing instant disconnects on some devices.
-- He's rearchitecting that part — ETA a few days.
-- New library version available at **Git tag v1.20** with API renames:
-  - `connectWifi` → `connectIp`
-  - `WifiAccessKey` → `RemoteAccessKey`
-- Once the socket fix is ready, we need to: pull v1.20 (or newer), update `powermon_wrapper.cpp` with the new names, rebuild, and deploy.
+### Thornwave SDK Updated to v1.20 (May 4, 2026)
+- Razvan (Thornwave Labs) identified and fixed a Linux socket reuse bug causing instant disconnects.
+- Pulled **Git tag v1.20** from `git.thornwave.com` and updated wrapper files:
+  - `connectWifi` → `connectIp` (in `powermon_wrapper.cpp` and `powermon_bridge.cpp`)
+  - `WifiAccessKey` → `RemoteAccessKey` (in `powermon_wrapper.h`)
+  - Updated `libpowermon_bin/` headers and static libraries
+- Pushed and deployed via GitHub Actions.
 
