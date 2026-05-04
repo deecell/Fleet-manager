@@ -13,19 +13,17 @@
   - `aws ecs describe-tasks` on two stopped tasks (`b08fb97f…`, `d195c19b…`) returned `stopCode: EssentialContainerExited`, `exitCode: 1`. Exit code 1 = Node unhandled error/explicit exit, **not** OOM (137).
   - `aws logs tail /ecs/deecell-fleet-production --since 15m` showed each task booted cleanly, served `/api/health` 200s for ~15 minutes, then died. **No admin requests appear in the logs immediately before the crash** — health checks are the only traffic visible. That points at a background job (exports worker, polling, or unhandled promise rejection) as the killer, not the admin endpoints themselves.
   - The `truck_history_truck_id_fkey` error in startup logs (`Key columns "truck_id" and "id" are of incompatible types: character varying and integer`) is a **pre-existing schema drift** from the legacy `initializeTables()` path. The server logs the error and continues past it (`serving on port 5000` lands on the next line), so it is not the cause of the restart loop.
-- **Resolution (immediate)**: ECS auto-restart eventually placed a healthy task (`45ff5d04…` at 20:32 UTC) and the site came back. Andy verified the admin dashboard loads. No code change was needed to recover — site is up, the underlying recurring-crash bug is open.
-- **Outstanding (open follow-up)**: find the recurring crash. Suggested next step on MacBook: pull the last 30 lines of the two stopped task streams to capture whatever exception/unhandled rejection terminated each one:
-  ```bash
-  for tid in b08fb97f2b3b4597bf06f24900085bb6 d195c19b34314e1bb61e68ff6e9912bb; do
-    echo "=== $tid ==="
-    aws logs get-log-events --region us-east-2 \
-      --log-group-name /ecs/deecell-fleet-production \
-      --log-stream-name "ecs/deecell-fleet/$tid" \
-      --limit 30 --start-from-head false \
-      --query 'events[*].message' --output text
-  done
+- **Resolution (immediate)**: ECS auto-restart placed a healthy task (`45ff5d04…` at 20:32 UTC) and the site came back. Andy verified the admin dashboard loads.
+- **Root cause (recurring crash)**: pulling the tail of the two stopped streams via `aws logs get-log-events --no-start-from-head` showed both tasks died on:
   ```
-  Once the offending stack trace is in hand, fix it at the source (likely `server/exports/worker.ts` or one of the polling jobs) and add a top-level `process.on('unhandledRejection')` handler that logs+exits cleanly so future crashes show up in CloudWatch with a proper trace instead of a bare `exit 1`.
+  /app/node_modules/pg-pool/index.js:45
+        Error.captureStackTrace(err)
+                  ^
+  error: column "kind" does not exist
+  ```
+  That is `export_jobs.kind`, the discriminator column added by Task #5 (Admin Devices Export). The export worker polls `export_jobs` every ~15 min, the SELECT references `kind`, Postgres throws, the rejection bubbles past the worker into the Node process and trips `EssentialContainerExited` / `exit 1`. The pre-existing `2026-05-01_add_export_kind_column.sh` migration script had been written but never executed against prod — Task #5 was deployed on the assumption the column was already there.
+- **Fix**: ran `./scripts/migrations/2026-05-01_add_export_kind_column.sh` from MacBook (SSM → device-manager EC2 → psql against `deecell-fleet-production/database-url`). `ALTER TABLE export_jobs ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT 'snapshot'` succeeded; verification query confirmed `kind text 'snapshot'::text NOT NULL`. `SELECT kind, COUNT(*) FROM export_jobs GROUP BY kind` returned 0 rows (table was empty, no backfill needed). After this the worker poll stops crashing and the ECS task stays alive past the ~15-minute mark.
+- **Hardening follow-up (deferred)**: add a top-level `process.on('unhandledRejection', ...)` handler in `server/index.ts` (or the exports worker boot file) that logs the full stack to stderr and then exits — so future crashes show up in CloudWatch with a real stack trace instead of a bare `exit 1` plus a fragmented chain of pg-pool frames. Also wrap the worker's poll loop in a try/catch so a single failed query does not take down the whole process.
 - **Separately worth fixing (lower priority)**: the `truck_history_truck_id_fkey` startup error. The legacy `initializeTables()` in `server/db/init.ts` (or wherever `initializeTables` lives in `dist/index.js:2887`) is trying to add an FK from `truck_history.truck_id (varchar)` → `trucks.id (integer)`. Either the column type in `truck_history` should be `integer` to match `trucks.id`, or the FK should be dropped from the legacy init path entirely (Drizzle migrations are the source of truth now). Non-blocking — the server starts up despite the error — but it's noise in every boot log.
 
 ---
