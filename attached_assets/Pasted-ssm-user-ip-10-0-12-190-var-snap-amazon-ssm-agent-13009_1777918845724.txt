@@ -1,0 +1,35 @@
+ssm-user@ip-10-0-12-190:/var/snap/amazon-ssm-agent/13009$ sudo systemctl status device-manager --no-pager
+● device-manager.service - Deecell Device Manager
+     Loaded: loaded (/etc/systemd/system/device-manager.service; enabled; preset: enabled)
+     Active: active (running) since Mon 2026-05-04 18:10:40 UTC; 9min ago
+   Main PID: 48542 (node)
+      Tasks: 176 (limit: 1017)
+     Memory: 203.5M (peak: 263.8M)
+        CPU: 20.269s
+     CGroup: /system.slice/device-manager.service
+             ├─48542 node app/index.js
+             ├─48571 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─48572 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─48573 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─48579 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─48592 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─48593 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─48595 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─48605 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─48699 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─48718 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─48946 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─49022 /usr/bin/node /opt/device-manager/app/worker.js
+             └─49023 /usr/bin/node /opt/device-manager/app/worker.js
+
+May 04 18:20:14 ip-10-0-12-190 start.sh[48699]: 2026-05-04 18:20:14.653 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 56.35  v2=  0.0377  today= 1100m  month=  1100m  since=2026-02-16 19:41:58
+May 04 18:20:15 ip-10-0-12-190 start.sh[49023]: 2026-05-04 18:20:15.039 INFO  DCL-Radian-1 (M53)                       parked   v1= 14.35  v2=  0.0000  today= 1100m  month=  1100m  since=2026-03-25 23:01:53
+May 04 18:20:17 ip-10-0-12-190 start.sh[48571]: 2026-05-04 18:20:17.152 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 28.74  v2=  0.0422  today= 1100m  month=  1100m  since=2025-12-29 23:38:19
+May 04 18:20:17 ip-10-0-12-190 start.sh[48571]: 2026-05-04 18:20:17.160 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 28.77  v2=  0.0419  today= 1100m  month=  1100m  since=2025-12-29 23:38:54
+May 04 18:20:17 ip-10-0-12-190 start.sh[48946]: 2026-05-04 18:20:17.320 INFO  DCL-Carter (CTR-69)                      parked   v1= 27.00  v2=  0.0458  today= 1100m  month=  1100m  since=2025-12-03 17:15:48
+May 04 18:20:18 ip-10-0-12-190 start.sh[49023]: 2026-05-04 18:20:18.001 ERROR [probe:A8839FDD47E0D9B9] Unhandled rejection  reason=TypeError: conn.lastConnectedAt.getTime is not a function
+May 04 18:20:18 ip-10-0-12-190 start.sh[49022]: 2026-05-04 18:20:18.001 ERROR [probe:A93B7B8CC0D672FE] Unhandled rejection  reason=TypeError: conn.lastConnectedAt.getTime is not a function
+May 04 18:20:18 ip-10-0-12-190 start.sh[48946]: 2026-05-04 18:20:18.159 ERROR [probe:B051375C222A5334] Unhandled rejection  reason=TypeError: conn.lastConnectedAt.getTime is not a function
+May 04 18:20:18 ip-10-0-12-190 start.sh[48718]: 2026-05-04 18:20:18.588 ERROR [probe:1B1034C2B3399A18] Unhandled rejection  reason=TypeError: conn.lastConnectedAt.getTime is not a function
+May 04 18:20:19 ip-10-0-12-190 start.sh[48592]: 2026-05-04 18:20:19.033 INFO  DCL-Brown (RBR-01)                       parked   v1= 27.71  v2= 12.6919  today= 1100m  month=  1100m  since=2026-04-29 07:59:34
+ssm-user@ip-10-0-12-190:/var/snap/amazon-ssm-agent/13009$
