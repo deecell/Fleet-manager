@@ -1,0 +1,139 @@
+May 04 19:19:40 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:40.029 INFO  Connecting device 1/3  serialNumber=E844BD0A2017EB7A  deviceName=DCL-Kruse  cohort=5
+May 04 19:19:40 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:40.029 INFO  Connecting to device  deviceId=8  serial=E844BD0A2017EB7A  cohort=5
+May 04 19:19:40 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:40.040 INFO  Connected successfully  deviceId=8  serial=E844BD0A2017EB7A  cohort=5  durationMs=11
+May 04 19:19:40 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:40.044 INFO  Device 1/3 connected  serialNumber=E844BD0A2017EB7A  durationMs=11
+May 04 19:19:40 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:40.044 INFO  Connecting device 2/3  serialNumber=2622A846A1BD5441  deviceName=DCL-Epler  cohort=5
+May 04 19:19:40 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:40.044 INFO  Connecting to device  deviceId=17  serial=2622A846A1BD5441  cohort=5
+May 04 19:19:40 ip-10-0-12-190 start.sh[50458]: 2026-05-04 19:19:40.045 INFO  Scheduling reconnect  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3  attempt=1  delayMs=1000
+May 04 19:19:40 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:40.050 INFO  Connected successfully  deviceId=17  serial=2622A846A1BD5441  cohort=5  durationMs=6
+May 04 19:19:40 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:40.053 INFO  onDisconnect fired  deviceId=17  serial=2622A846A1BD5441  cohort=5  reason=2  connDurationMs=3  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=0
+May 04 19:19:40 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:40.054 WARN  Rapid disconnect detected (error)  deviceId=17  serial=2622A846A1BD5441  cohort=5  reason=2  rapidDisconnects=1  connectionDurationMs=3
+May 04 19:19:40 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:40.054 WARN  Weak signal detected - 1st instant disconnect, marking weak_signal  deviceId=17  serial=2622A846A1BD5441  cohort=5  connectionDurationMs=3  deviceName=DCL-Epler
+May 04 19:19:40 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:40.054 WARN  Marking device as weak_signal in database  deviceId=17
+May 04 19:19:40 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:40.059 INFO  Device disconnected (unexpected)  deviceId=17  serial=2622A846A1BD5441  cohort=5  reason=2  isRapidDisconnect=true
+May 04 19:19:40 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:40.062 INFO  Device 2/3 connected  serialNumber=2622A846A1BD5441  durationMs=6
+May 04 19:19:40 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:40.062 INFO  Connecting device 3/3  serialNumber=4E0A83432AEE8967  deviceName=DCL-Kalitta-Hospitality  cohort=5
+May 04 19:19:40 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:40.062 INFO  Connecting to device  deviceId=18  serial=4E0A83432AEE8967  cohort=5
+May 04 19:19:40 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:40.067 INFO  Connected successfully  deviceId=18  serial=4E0A83432AEE8967  cohort=5  durationMs=5
+May 04 19:19:40 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:40.072 INFO  Device 3/3 connected  serialNumber=4E0A83432AEE8967  durationMs=5
+May 04 19:19:40 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:40.072 INFO  === STARTUP COMPLETE: Connection Summary ===  success=3  failed=0  skipped=0  timedOut=0  totalDurationMs=44  averageDurationMs=7
+May 04 19:19:40 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:40.073 INFO  Starting polling scheduler (worker mode)  intervalMs=10000
+May 04 19:19:40 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:40.073 INFO  Backfill service started  gapThresholdMs=30000  maxConcurrent=5
+May 04 19:19:40 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:40.073 INFO  [worker:5] Started successfully  cohortId=5  devices=3
+May 04 19:19:40 ip-10-0-12-190 start.sh[49962]: 2026-05-04 19:19:40.074 INFO  Supervisor: Worker cohort 5 ready  pid=50465  devices=3
+May 04 19:19:40 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:40.094 INFO  Scheduling reconnect  deviceId=17  serial=2622A846A1BD5441  cohort=5  attempt=1  delayMs=1000
+May 04 19:19:40 ip-10-0-12-190 start.sh[50458]: 2026-05-04 19:19:40.163 WARN  WEAK_SIGNAL DIAGNOSTIC  deviceId=19  deviceName=DCL-NHRA-Tech-Trailer  truckId=13  routerReachable=true  gpsLastUpdate=Tue Apr 14 2026 14:55:16 GMT+0000 (Coordinated Universal Time)  gpsAgeMinutes=29064  gpsLocation=null
+May 04 19:19:40 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:40.222 WARN  WEAK_SIGNAL DIAGNOSTIC  deviceId=17  deviceName=DCL-Epler  truckId=14  routerReachable=true  gpsLastUpdate=Wed Apr 29 2026 08:29:47 GMT+0000 (Coordinated Universal Time)  gpsAgeMinutes=7850  gpsLocation=Indio, CA
+May 04 19:19:40 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:40.340 INFO  Fetched device info from PowerMon  deviceId=8  serial=E844BD0A2017EB7A  cohort=5  serialNumber=E844BD0A2017EB7A  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Kruse
+May 04 19:19:40 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:40.342 INFO  Updated device info  deviceId=8  serialNumber=E844BD0A2017EB7A  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Kruse
+May 04 19:19:40 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:40.457 INFO  Fetched device info from PowerMon  deviceId=18  serial=4E0A83432AEE8967  cohort=5  serialNumber=4E0A83432AEE8967  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Kalitta-Hospitality
+May 04 19:19:40 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:40.459 INFO  Updated device info  deviceId=18  serialNumber=4E0A83432AEE8967  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Kalitta-Hospitality
+May 04 19:19:40 ip-10-0-12-190 start.sh[50016]: 2026-05-04 19:19:40.590 INFO  Connecting to device  deviceId=12  serial=A93B7B8CC0D672FE  cohort=8
+May 04 19:19:40 ip-10-0-12-190 start.sh[50016]: 2026-05-04 19:19:40.595 INFO  Connected successfully  deviceId=12  serial=A93B7B8CC0D672FE  cohort=8  durationMs=5
+May 04 19:19:40 ip-10-0-12-190 start.sh[50016]: 2026-05-04 19:19:40.598 INFO  onDisconnect fired  deviceId=12  serial=A93B7B8CC0D672FE  cohort=8  reason=2  connDurationMs=3  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=0
+May 04 19:19:40 ip-10-0-12-190 start.sh[50016]: 2026-05-04 19:19:40.598 WARN  Rapid disconnect detected (error)  deviceId=12  serial=A93B7B8CC0D672FE  cohort=8  reason=2  rapidDisconnects=1  connectionDurationMs=3
+May 04 19:19:40 ip-10-0-12-190 start.sh[50016]: 2026-05-04 19:19:40.599 WARN  Weak signal detected - 1st instant disconnect, marking weak_signal  deviceId=12  serial=A93B7B8CC0D672FE  cohort=8  connectionDurationMs=3  deviceName=DCL-Howard
+May 04 19:19:40 ip-10-0-12-190 start.sh[50016]: 2026-05-04 19:19:40.599 WARN  Marking device as weak_signal in database  deviceId=12
+May 04 19:19:40 ip-10-0-12-190 start.sh[50016]: 2026-05-04 19:19:40.604 INFO  Device disconnected (unexpected)  deviceId=12  serial=A93B7B8CC0D672FE  cohort=8  reason=2  isRapidDisconnect=true
+May 04 19:19:40 ip-10-0-12-190 start.sh[50016]: 2026-05-04 19:19:40.633 INFO  Scheduling reconnect  deviceId=12  serial=A93B7B8CC0D672FE  cohort=8  attempt=1  delayMs=1000
+May 04 19:19:40 ip-10-0-12-190 start.sh[50016]: 2026-05-04 19:19:40.768 WARN  WEAK_SIGNAL DIAGNOSTIC  deviceId=12  deviceName=DCL-Howard  truckId=10  routerReachable=true  gpsLastUpdate=Wed Apr 29 2026 08:29:47 GMT+0000 (Coordinated Universal Time)  gpsAgeMinutes=7850  gpsLocation=null
+May 04 19:19:41 ip-10-0-12-190 start.sh[50458]: 2026-05-04 19:19:41.047 INFO  Connecting to device  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3
+May 04 19:19:41 ip-10-0-12-190 start.sh[50458]: 2026-05-04 19:19:41.053 INFO  Connected successfully  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3  durationMs=6
+May 04 19:19:41 ip-10-0-12-190 start.sh[50458]: 2026-05-04 19:19:41.055 INFO  onDisconnect fired  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3  reason=2  connDurationMs=2  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=1
+May 04 19:19:41 ip-10-0-12-190 start.sh[50458]: 2026-05-04 19:19:41.055 WARN  Rapid disconnect detected (error)  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3  reason=2  rapidDisconnects=2  connectionDurationMs=2
+May 04 19:19:41 ip-10-0-12-190 start.sh[50458]: 2026-05-04 19:19:41.056 ERROR Circuit breaker OPEN - 2 instant disconnects, device appears powered off  deviceId=19  serial=A15102C4CCF4B6B2  cohort=3  rapidDisconnects=2  instantDisconnects=2  connectionDurationMs=2  backoffMinutes=5  resetAt=2026-05-04T19:24:41.056Z
+May 04 19:19:41 ip-10-0-12-190 start.sh[50458]: 2026-05-04 19:19:41.056 WARN  Nulled native references for all pool devices  nulledCount=0  triggerDevice=19
+May 04 19:19:41 ip-10-0-12-190 start.sh[50458]: 2026-05-04 19:19:41.056 ERROR NATIVE LIBRARY COMPROMISED - blocking all native calls, scheduling graceful restart  deviceId=19  deviceName=DCL-NHRA-Tech-Trailer  status=no_power  restartInMs=3000
+May 04 19:19:41 ip-10-0-12-190 start.sh[50458]: 2026-05-04 19:19:41.056 WARN  Marking device as no_power in database  deviceId=19
+May 04 19:19:41 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:41.096 INFO  Connecting to device  deviceId=17  serial=2622A846A1BD5441  cohort=5
+May 04 19:19:41 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:41.103 INFO  Connected successfully  deviceId=17  serial=2622A846A1BD5441  cohort=5  durationMs=7
+May 04 19:19:41 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:41.106 INFO  onDisconnect fired  deviceId=17  serial=2622A846A1BD5441  cohort=5  reason=2  connDurationMs=3  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=1
+May 04 19:19:41 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:41.106 WARN  Rapid disconnect detected (error)  deviceId=17  serial=2622A846A1BD5441  cohort=5  reason=2  rapidDisconnects=2  connectionDurationMs=3
+May 04 19:19:41 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:41.106 ERROR Circuit breaker OPEN - 2 instant disconnects, device appears powered off  deviceId=17  serial=2622A846A1BD5441  cohort=5  rapidDisconnects=2  instantDisconnects=2  connectionDurationMs=3  backoffMinutes=5  resetAt=2026-05-04T19:24:41.106Z
+May 04 19:19:41 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:41.106 WARN  Nulled native references for all pool devices  nulledCount=2  triggerDevice=17
+May 04 19:19:41 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:41.106 ERROR NATIVE LIBRARY COMPROMISED - blocking all native calls, scheduling graceful restart  deviceId=17  deviceName=DCL-Epler  status=no_power  restartInMs=3000
+May 04 19:19:41 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:41.106 WARN  Marking device as no_power in database  deviceId=17
+May 04 19:19:41 ip-10-0-12-190 start.sh[50458]: 2026-05-04 19:19:41.191 WARN  NO_POWER DIAGNOSTIC  deviceId=19  deviceName=DCL-NHRA-Tech-Trailer  truckId=13  routerReachable=true  gpsLastUpdate=Tue Apr 14 2026 14:55:16 GMT+0000 (Coordinated Universal Time)  gpsAgeMinutes=29064  gpsLocation=null  verdict=ROUTER REACHABLE - likely connectivity issue, NOT power loss
+May 04 19:19:41 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:41.250 WARN  NO_POWER DIAGNOSTIC  deviceId=17  deviceName=DCL-Epler  truckId=14  routerReachable=true  gpsLastUpdate=Wed Apr 29 2026 08:29:47 GMT+0000 (Coordinated Universal Time)  gpsAgeMinutes=7850  gpsLocation=Indio, CA  verdict=ROUTER REACHABLE - likely connectivity issue, NOT power loss
+May 04 19:19:41 ip-10-0-12-190 start.sh[50016]: 2026-05-04 19:19:41.635 INFO  Connecting to device  deviceId=12  serial=A93B7B8CC0D672FE  cohort=8
+May 04 19:19:41 ip-10-0-12-190 start.sh[50016]: 2026-05-04 19:19:41.640 INFO  Connected successfully  deviceId=12  serial=A93B7B8CC0D672FE  cohort=8  durationMs=5
+May 04 19:19:41 ip-10-0-12-190 start.sh[50016]: 2026-05-04 19:19:41.643 INFO  onDisconnect fired  deviceId=12  serial=A93B7B8CC0D672FE  cohort=8  reason=2  connDurationMs=3  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=1
+May 04 19:19:41 ip-10-0-12-190 start.sh[50016]: 2026-05-04 19:19:41.643 WARN  Rapid disconnect detected (error)  deviceId=12  serial=A93B7B8CC0D672FE  cohort=8  reason=2  rapidDisconnects=2  connectionDurationMs=3
+May 04 19:19:41 ip-10-0-12-190 start.sh[50016]: 2026-05-04 19:19:41.643 ERROR Circuit breaker OPEN - 2 instant disconnects, device appears powered off  deviceId=12  serial=A93B7B8CC0D672FE  cohort=8  rapidDisconnects=2  instantDisconnects=2  connectionDurationMs=3  backoffMinutes=5  resetAt=2026-05-04T19:24:41.643Z
+May 04 19:19:41 ip-10-0-12-190 start.sh[50016]: 2026-05-04 19:19:41.643 WARN  Nulled native references for all pool devices  nulledCount=0  triggerDevice=12
+May 04 19:19:41 ip-10-0-12-190 start.sh[50016]: 2026-05-04 19:19:41.643 ERROR NATIVE LIBRARY COMPROMISED - blocking all native calls, scheduling graceful restart  deviceId=12  deviceName=DCL-Howard  status=no_power  restartInMs=3000
+May 04 19:19:41 ip-10-0-12-190 start.sh[50016]: 2026-05-04 19:19:41.644 WARN  Marking device as no_power in database  deviceId=12
+May 04 19:19:41 ip-10-0-12-190 start.sh[50016]: 2026-05-04 19:19:41.774 WARN  NO_POWER DIAGNOSTIC  deviceId=12  deviceName=DCL-Howard  truckId=10  routerReachable=true  gpsLastUpdate=Wed Apr 29 2026 08:29:47 GMT+0000 (Coordinated Universal Time)  gpsAgeMinutes=7850  gpsLocation=null  verdict=ROUTER REACHABLE - likely connectivity issue, NOT power loss
+May 04 19:19:42 ip-10-0-12-190 start.sh[49992]: 2026-05-04 19:19:42.291 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 28.72  v2=  0.0414  today= 1160m  month=  1160m  since=2025-12-29 23:38:19
+May 04 19:19:43 ip-10-0-12-190 start.sh[49962]: Skipping 5 offline/unstable devices:
+May 04 19:19:43 ip-10-0-12-190 start.sh[49962]:                   [offline]   DCL-KTR                                  (0 disconnects)
+May 04 19:19:43 ip-10-0-12-190 start.sh[49962]:                   [no_power]  DCL-Howard                               (0 disconnects) (retry in 5m)
+May 04 19:19:43 ip-10-0-12-190 start.sh[49962]:                   [no_power]  DCL-Epler                                (0 disconnects) (retry in 5m)
+May 04 19:19:43 ip-10-0-12-190 start.sh[49962]:                   [offline]   DCL-Moeck-Shop                           (0 disconnects)
+May 04 19:19:43 ip-10-0-12-190 start.sh[49962]:                   [offline]   DCL-Moeck                                (0 disconnects)
+May 04 19:19:44 ip-10-0-12-190 start.sh[50458]: 2026-05-04 19:19:44.060 ERROR Exiting process for clean native library restart
+May 04 19:19:44 ip-10-0-12-190 start.sh[49962]: 2026-05-04 19:19:44.065 ERROR Supervisor: Worker cohort 3 exited (code 1)  pid=50458  cohortId=3
+May 04 19:19:44 ip-10-0-12-190 start.sh[49962]: 2026-05-04 19:19:44.065 INFO  Supervisor: Respawning worker cohort 3 in 60000ms
+May 04 19:19:44 ip-10-0-12-190 start.sh[50465]: 2026-05-04 19:19:44.108 ERROR Exiting process for clean native library restart
+May 04 19:19:44 ip-10-0-12-190 start.sh[49962]: 2026-05-04 19:19:44.113 ERROR Supervisor: Worker cohort 5 exited (code 1)  pid=50465  cohortId=5
+May 04 19:19:44 ip-10-0-12-190 start.sh[49962]: 2026-05-04 19:19:44.113 INFO  Supervisor: Respawning worker cohort 5 in 60000ms
+May 04 19:19:44 ip-10-0-12-190 start.sh[49992]: 2026-05-04 19:19:44.303 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 28.77  v2=  0.0423  today= 1160m  month=  1160m  since=2025-12-29 23:38:54
+May 04 19:19:44 ip-10-0-12-190 start.sh[50016]: 2026-05-04 19:19:44.646 ERROR Exiting process for clean native library restart
+May 04 19:19:44 ip-10-0-12-190 start.sh[49962]: 2026-05-04 19:19:44.651 ERROR Supervisor: Worker cohort 8 exited (code 1)  pid=50016  cohortId=8
+May 04 19:19:44 ip-10-0-12-190 start.sh[49962]: 2026-05-04 19:19:44.651 INFO  Supervisor: Respawning worker cohort 8 in 3000ms
+May 04 19:19:45 ip-10-0-12-190 start.sh[50003]: 2026-05-04 19:19:45.281 INFO  DCL-Brown (RBR-01)                       driving  v1= 27.71  v2= 13.6093  today= 1151m  month=  1151m  since=2026-05-04 19:10:56
+May 04 19:19:47 ip-10-0-12-190 start.sh[49962]: 2026-05-04 19:19:47.656 INFO  Supervisor: Forked worker for cohort 8  pid=50496
+May 04 19:19:47 ip-10-0-12-190 start.sh[50496]: 2026-05-04 19:19:47.750 INFO  PowerMon addon loaded successfully
+May 04 19:19:47 ip-10-0-12-190 start.sh[50496]: 2026-05-04 19:19:47.753 INFO  [worker:8] Starting  cohortId=8  totalCohorts=10
+May 04 19:19:47 ip-10-0-12-190 start.sh[50496]: 2026-05-04 19:19:47.754 INFO  Database connection configured  host=deecell-fleet-production-postgres.cn4qsw8g8yyx.us-east-2.rds.amazonaws.com  database=deecell_fleet
+May 04 19:19:47 ip-10-0-12-190 start.sh[50496]: 2026-05-04 19:19:47.755 INFO  Database pool initialized  poolSize=10
+May 04 19:19:47 ip-10-0-12-190 start.sh[50496]: 2026-05-04 19:19:47.755 INFO  Initializing connection pool for cohort 8/10
+May 04 19:19:47 ip-10-0-12-190 start.sh[50496]: 2026-05-04 19:19:47.842 INFO  Cohort 8: 0 devices (of 13 total)
+May 04 19:19:47 ip-10-0-12-190 start.sh[50496]: 2026-05-04 19:19:47.842 INFO  Connection pool initialized for cohort 8  devices=0
+May 04 19:19:47 ip-10-0-12-190 start.sh[50496]: 2026-05-04 19:19:47.842 INFO  [worker:8] No devices in cohort 8
+May 04 19:19:47 ip-10-0-12-190 start.sh[50496]: 2026-05-04 19:19:47.842 INFO  Batch writer started  flushIntervalMs=2000  maxBatchSize=500
+May 04 19:19:47 ip-10-0-12-190 start.sh[50496]: 2026-05-04 19:19:47.843 INFO  Starting polling scheduler (worker mode)  intervalMs=10000
+May 04 19:19:47 ip-10-0-12-190 start.sh[50496]: 2026-05-04 19:19:47.843 INFO  Backfill service started  gapThresholdMs=30000  maxConcurrent=5
+May 04 19:19:47 ip-10-0-12-190 start.sh[50496]: 2026-05-04 19:19:47.843 INFO  [worker:8] Started successfully  cohortId=8  devices=0
+May 04 19:19:47 ip-10-0-12-190 start.sh[49962]: 2026-05-04 19:19:47.844 INFO  Supervisor: Worker cohort 8 ready  pid=50496  devices=0
+May 04 19:19:54 ip-10-0-12-190 start.sh[49992]: 2026-05-04 19:19:54.323 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 28.79  v2=  0.0424  today= 1160m  month=  1160m  since=2025-12-29 23:38:54
+May 04 19:19:54 ip-10-0-12-190 start.sh[49992]: 2026-05-04 19:19:54.328 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 28.74  v2=  0.0413  today= 1160m  month=  1160m  since=2025-12-29 23:38:19
+May 04 19:19:55 ip-10-0-12-190 start.sh[50003]: 2026-05-04 19:19:55.301 INFO  DCL-Brown (RBR-01)                       driving  v1= 27.71  v2= 13.6135  today= 1151m  month=  1151m  since=2026-05-04 19:10:56
+May 04 19:19:59 ip-10-0-12-190 start.sh[50228]: 2026-05-04 19:19:59.606 INFO  onDisconnect fired  deviceId=7  serial=96FE5E88572C1995  cohort=1  reason=2  connDurationMs=39055  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=0
+May 04 19:19:59 ip-10-0-12-190 start.sh[50228]: 2026-05-04 19:19:59.606 INFO  Device disconnected (unexpected)  deviceId=7  serial=96FE5E88572C1995  cohort=1  reason=2  isRapidDisconnect=false
+May 04 19:19:59 ip-10-0-12-190 start.sh[50228]: 2026-05-04 19:19:59.610 INFO  onDisconnect fired  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  reason=2  connDurationMs=39081  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=0
+May 04 19:19:59 ip-10-0-12-190 start.sh[50229]: 2026-05-04 19:19:59.610 INFO  onDisconnect fired  deviceId=5  serial=B051375C222A5334  cohort=4  reason=2  connDurationMs=39059  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=0
+May 04 19:19:59 ip-10-0-12-190 start.sh[50228]: 2026-05-04 19:19:59.610 INFO  Device disconnected (unexpected)  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  reason=2  isRapidDisconnect=false
+May 04 19:19:59 ip-10-0-12-190 start.sh[50229]: 2026-05-04 19:19:59.610 INFO  Device disconnected (unexpected)  deviceId=5  serial=B051375C222A5334  cohort=4  reason=2  isRapidDisconnect=false
+May 04 19:19:59 ip-10-0-12-190 start.sh[50228]: 2026-05-04 19:19:59.611 INFO  Scheduling reconnect  deviceId=7  serial=96FE5E88572C1995  cohort=1  attempt=1  delayMs=1000
+May 04 19:19:59 ip-10-0-12-190 start.sh[50228]: 2026-05-04 19:19:59.614 INFO  onDisconnect fired  deviceId=13  serial=292240386041C12B  cohort=1  reason=2  connDurationMs=39082  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=0
+May 04 19:19:59 ip-10-0-12-190 start.sh[50229]: 2026-05-04 19:19:59.614 INFO  Scheduling reconnect  deviceId=5  serial=B051375C222A5334  cohort=4  attempt=1  delayMs=1000
+May 04 19:19:59 ip-10-0-12-190 start.sh[50228]: 2026-05-04 19:19:59.614 INFO  Device disconnected (unexpected)  deviceId=13  serial=292240386041C12B  cohort=1  reason=2  isRapidDisconnect=false
+May 04 19:19:59 ip-10-0-12-190 start.sh[50228]: 2026-05-04 19:19:59.619 INFO  Scheduling reconnect  deviceId=13  serial=292240386041C12B  cohort=1  attempt=1  delayMs=1000
+May 04 19:19:59 ip-10-0-12-190 start.sh[50229]: 2026-05-04 19:19:59.628 INFO  onDisconnect fired  deviceId=15  serial=623DECC4E318D957  cohort=4  reason=2  connDurationMs=39100  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=0
+May 04 19:19:59 ip-10-0-12-190 start.sh[50229]: 2026-05-04 19:19:59.628 INFO  Device disconnected (unexpected)  deviceId=15  serial=623DECC4E318D957  cohort=4  reason=2  isRapidDisconnect=false
+May 04 19:19:59 ip-10-0-12-190 start.sh[50229]: 2026-05-04 19:19:59.632 INFO  Scheduling reconnect  deviceId=15  serial=623DECC4E318D957  cohort=4  attempt=1  delayMs=1000
+May 04 19:19:59 ip-10-0-12-190 start.sh[50228]: 2026-05-04 19:19:59.636 INFO  Scheduling reconnect  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  attempt=1  delayMs=1000
+May 04 19:20:00 ip-10-0-12-190 start.sh[50228]: 2026-05-04 19:20:00.612 INFO  Connecting to device  deviceId=7  serial=96FE5E88572C1995  cohort=1
+May 04 19:20:00 ip-10-0-12-190 start.sh[50229]: 2026-05-04 19:20:00.615 INFO  Connecting to device  deviceId=5  serial=B051375C222A5334  cohort=4
+May 04 19:20:00 ip-10-0-12-190 start.sh[50228]: 2026-05-04 19:20:00.617 INFO  Connected successfully  deviceId=7  serial=96FE5E88572C1995  cohort=1  durationMs=5
+May 04 19:20:00 ip-10-0-12-190 start.sh[50228]: 2026-05-04 19:20:00.618 INFO  Connecting to device  deviceId=13  serial=292240386041C12B  cohort=1
+May 04 19:20:00 ip-10-0-12-190 start.sh[50229]: 2026-05-04 19:20:00.620 INFO  Connected successfully  deviceId=5  serial=B051375C222A5334  cohort=4  durationMs=5
+May 04 19:20:00 ip-10-0-12-190 start.sh[50228]: 2026-05-04 19:20:00.624 INFO  Connected successfully  deviceId=13  serial=292240386041C12B  cohort=1  durationMs=6
+May 04 19:20:00 ip-10-0-12-190 start.sh[50229]: 2026-05-04 19:20:00.633 INFO  Connecting to device  deviceId=15  serial=623DECC4E318D957  cohort=4
+May 04 19:20:00 ip-10-0-12-190 start.sh[50228]: 2026-05-04 19:20:00.636 INFO  Connecting to device  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1
+May 04 19:20:00 ip-10-0-12-190 start.sh[50229]: 2026-05-04 19:20:00.638 INFO  Connected successfully  deviceId=15  serial=623DECC4E318D957  cohort=4  durationMs=5
+May 04 19:20:00 ip-10-0-12-190 start.sh[50228]: 2026-05-04 19:20:00.641 INFO  Connected successfully  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  durationMs=5
+May 04 19:20:00 ip-10-0-12-190 start.sh[50228]: 2026-05-04 19:20:00.924 INFO  Fetched device info from PowerMon  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  serialNumber=A8839FDD47E0D9B9  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Radian-1
+May 04 19:20:00 ip-10-0-12-190 start.sh[50228]: 2026-05-04 19:20:00.926 INFO  Updated device info  deviceId=21  serialNumber=A8839FDD47E0D9B9  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Radian-1
+May 04 19:20:01 ip-10-0-12-190 start.sh[50228]: 2026-05-04 19:20:01.131 INFO  Fetched device info from PowerMon  deviceId=7  serial=96FE5E88572C1995  cohort=1  serialNumber=96FE5E88572C1995  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Haynes
+May 04 19:20:01 ip-10-0-12-190 start.sh[50228]: 2026-05-04 19:20:01.134 INFO  Updated device info  deviceId=7  serialNumber=96FE5E88572C1995  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Haynes
+May 04 19:20:01 ip-10-0-12-190 start.sh[50228]: 2026-05-04 19:20:01.252 INFO  Fetched device info from PowerMon  deviceId=13  serial=292240386041C12B  cohort=1  serialNumber=292240386041C12B  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Thibert
+May 04 19:20:01 ip-10-0-12-190 start.sh[50228]: 2026-05-04 19:20:01.256 INFO  Updated device info  deviceId=13  serialNumber=292240386041C12B  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Thibert
+May 04 19:20:01 ip-10-0-12-190 start.sh[50229]: 2026-05-04 19:20:01.259 INFO  Fetched device info from PowerMon  deviceId=15  serial=623DECC4E318D957  cohort=4  serialNumber=623DECC4E318D957  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Elite-Hospitality
+May 04 19:20:01 ip-10-0-12-190 start.sh[50229]: 2026-05-04 19:20:01.262 INFO  Updated device info  deviceId=15  serialNumber=623DECC4E318D957  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Elite-Hospitality
+May 04 19:20:02 ip-10-0-12-190 start.sh[50229]: 2026-05-04 19:20:02.179 INFO  Fetched device info from PowerMon  deviceId=5  serial=B051375C222A5334  cohort=4  serialNumber=B051375C222A5334  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Carter
+May 04 19:20:02 ip-10-0-12-190 start.sh[50229]: 2026-05-04 19:20:02.183 INFO  Updated device info  deviceId=5  serialNumber=B051375C222A5334  firmwareVersion=1.35  hardwareRevision=PowerMon-W  deviceName=DCL-Carter
+May 04 19:20:04 ip-10-0-12-190 start.sh[49992]: 2026-05-04 19:20:04.366 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 28.81  v2=  0.0426  today= 1160m  month=  1160m  since=2025-12-29 23:38:54
+May 04 19:20:04 ip-10-0-12-190 start.sh[49992]: 2026-05-04 19:20:04.373 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 28.76  v2=  0.0414  today= 1160m  month=  1160m  since=2025-12-29 23:38:19
+May 04 19:20:05 ip-10-0-12-190 start.sh[50003]: 2026-05-04 19:20:05.319 INFO  DCL-Brown (RBR-01)                       driving  v1= 27.71  v2= 13.5962  today= 1151m  month=  1151m  since=2026-05-04 19:10:56
