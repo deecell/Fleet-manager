@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Loader2, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -41,6 +42,7 @@ export function AdminExportDialog({
 }: AdminExportDialogProps) {
   const { toast } = useToast();
   const [format, setFormat] = useState<"csv" | "xlsx">("csv");
+  const [notifyByEmail, setNotifyByEmail] = useState(false);
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
   const createExport = useCreateAdminExport();
 
@@ -50,6 +52,7 @@ export function AdminExportDialog({
     if (open) {
       setErrorBanner(null);
       setFormat("csv");
+      setNotifyByEmail(false);
     }
   }, [open]);
 
@@ -67,10 +70,13 @@ export function AdminExportDialog({
         format,
         organizationId: organizationId ?? null,
         searchQuery: trimmedSearch.length > 0 ? trimmedSearch : null,
+        notifyByEmail,
       });
       toast({
         title: "Export started",
-        description: "We'll email you a download link when it's ready.",
+        description: notifyByEmail
+          ? "We'll email you a download link when it's ready."
+          : "Track progress in the exports list on the Export page.",
       });
       onOpenChange(false);
     } catch (e) {
@@ -86,7 +92,7 @@ export function AdminExportDialog({
           <DialogTitle>Export Devices</DialogTitle>
           <DialogDescription>
             Generate a CSV or Excel file of every device matching your current
-            filters. We'll email you a download link when it's ready.
+            filters. Progress shows up in the exports list on the Export page.
           </DialogDescription>
         </DialogHeader>
 
@@ -129,6 +135,18 @@ export function AdminExportDialog({
                 </Label>
               </div>
             </RadioGroup>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="admin-export-notify-email"
+              checked={notifyByEmail}
+              onCheckedChange={(v) => setNotifyByEmail(v === true)}
+              data-testid="checkbox-admin-export-notify-email"
+            />
+            <Label htmlFor="admin-export-notify-email" className="cursor-pointer text-sm font-normal">
+              Email me when ready
+            </Label>
           </div>
 
           {errorBanner && (

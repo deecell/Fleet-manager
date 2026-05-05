@@ -175,7 +175,7 @@ function ExportSubtitle({ job }: { job: BannerExportJob }) {
     const fileLabel = job.filename ?? `${job.bundleLabel}.${job.format}`;
     return (
       <p className="text-xs text-[#717182] truncate">
-        {fileLabel} · We'll email you when it's ready.
+        {fileLabel} · We'll update this banner when it's ready.
       </p>
     );
   }

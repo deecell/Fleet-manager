@@ -767,6 +767,12 @@ export const exportJobs = pgTable("export_jobs", {
   downloadUrlExpiresAt: timestamp("download_url_expires_at"),
 
   // Banner / notification state
+  // notifyByEmail: opt-in flag set at job-creation time. When false (the
+  // default), the worker skips both the "ready" and "failed" SendGrid
+  // emails — the recent-exports table + ExportsBanner are the only
+  // notification surfaces. When true, the user explicitly asked for
+  // email so the worker fires both transactional emails as before.
+  notifyByEmail: boolean("notify_by_email").notNull().default(false),
   notifiedAt: timestamp("notified_at"),
   dismissedAt: timestamp("dismissed_at"),
 

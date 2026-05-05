@@ -274,8 +274,15 @@ class ExportJobWorker {
         completedAt: new Date(),
       });
 
-      // Notify by email — best-effort; do not fail the job if email fails.
+      // Notify by email — opt-in (set at job-creation time via the "Email
+      // me when ready" toggle). When the user did not opt in we silently
+      // skip; the recent-exports table + ExportsBanner are the default
+      // notification surfaces. Best-effort either way: do not fail the
+      // job if email lookup or send fails.
       try {
+        if (!job.notifyByEmail) {
+          console.log(`[exports/worker] job ${job.id} completed; email skipped (notifyByEmail=false)`);
+        } else {
         const user = await storage.getUserById(job.userId);
         if (user?.email) {
           // For historical exports we override the bundle label with a more
@@ -327,6 +334,7 @@ class ExportJobWorker {
             await storage.updateExportJob(job.id, { notifiedAt: new Date() });
           }
         }
+        }
       } catch (err) {
         console.error(`[exports/worker] failed to send ready email for job ${job.id}:`, err);
       }
@@ -346,15 +354,22 @@ class ExportJobWorker {
         console.error(`[exports/worker] failed to mark job ${job.id} as failed:`, updateErr);
       });
 
+      // Failure email is gated by the same opt-in flag as the success
+      // email — the recent-exports table renders the failure inline,
+      // so users who didn't ask for email don't get one here either.
       try {
-        const user = await storage.getUserById(job.userId);
-        if (user?.email) {
-          await sendExportFailedEmail(user.email, {
-            firstName: user.firstName ?? undefined,
-            bundleLabel:
-              EXPORT_BUNDLES[job.bundleKey as keyof typeof EXPORT_BUNDLES]?.label ?? job.bundleKey,
-            errorMessage,
-          });
+        if (!job.notifyByEmail) {
+          console.log(`[exports/worker] job ${job.id} failed; email skipped (notifyByEmail=false)`);
+        } else {
+          const user = await storage.getUserById(job.userId);
+          if (user?.email) {
+            await sendExportFailedEmail(user.email, {
+              firstName: user.firstName ?? undefined,
+              bundleLabel:
+                EXPORT_BUNDLES[job.bundleKey as keyof typeof EXPORT_BUNDLES]?.label ?? job.bundleKey,
+              errorMessage,
+            });
+          }
         }
       } catch (emailErr) {
         console.error(`[exports/worker] failed to send failure email for job ${job.id}:`, emailErr);

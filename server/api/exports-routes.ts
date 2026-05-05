@@ -77,6 +77,11 @@ const createExportJobSchema = z
     // matching `historicalIntervalSeconds` value (60 / 3600 / 86400). We
     // accept the enum here so the client and the column registry agree.
     historicalGranularity: z.enum(HISTORICAL_GRANULARITIES as [HistoricalGranularity, ...HistoricalGranularity[]]).optional(),
+    // Opt-in email flag. Default false — the recent-exports surface +
+    // ExportsBanner are the primary notification channels; users can tick
+    // "Email me when ready" on the export form to additionally receive a
+    // SendGrid email when the job finishes (or fails).
+    notifyByEmail: z.boolean().optional(),
   })
   .strict()
   .refine((v) => v.bundleKey in EXPORT_BUNDLES, {
@@ -220,6 +225,7 @@ router.post("/", tenantMiddleware, async (req: Request, res: Response) => {
       historicalStartTime: input.historicalStartTime ?? null,
       historicalEndTime: input.historicalEndTime ?? null,
       historicalIntervalSeconds,
+      notifyByEmail: input.notifyByEmail ?? false,
     },
     {
       userLimit: EXPORT_USER_CONCURRENCY_LIMIT,

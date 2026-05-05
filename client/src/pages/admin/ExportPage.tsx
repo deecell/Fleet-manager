@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -154,6 +155,7 @@ function HistoricalForm() {
   const [granularity, setGranularity] = useState<HistoricalGranularity>("hour");
   const [granularityTouched, setGranularityTouched] = useState(false);
   const [format, setFormat] = useState<"csv" | "xlsx">("csv");
+  const [notifyByEmail, setNotifyByEmail] = useState(false);
 
   // Apply preset → date inputs.
   useEffect(() => {
@@ -210,10 +212,13 @@ function HistoricalForm() {
         granularity,
         startTime: new Date(startMs).toISOString(),
         endTime: new Date(endMs).toISOString(),
+        notifyByEmail,
       });
       toast({
         title: "Export queued",
-        description: "We'll email you when it's ready and add it to the table below.",
+        description: notifyByEmail
+          ? "We'll email you when it's ready and add it to the table below."
+          : "Track progress in the table below.",
       });
     } catch (e) {
       const err = e as { message?: string };
@@ -403,6 +408,18 @@ function HistoricalForm() {
         </div>
       </div>
 
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="hist-notify-email"
+          checked={notifyByEmail}
+          onCheckedChange={(v) => setNotifyByEmail(v === true)}
+          data-testid="checkbox-historical-notify-email"
+        />
+        <Label htmlFor="hist-notify-email" className="cursor-pointer text-sm font-normal">
+          Email me when ready
+        </Label>
+      </div>
+
       {create.error && (
         <div className="flex items-start gap-2 text-sm text-destructive" data-testid="text-error">
           <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
@@ -443,6 +460,7 @@ function DevicesForm() {
   const [orgId, setOrgId] = useState<number | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [format, setFormat] = useState<"csv" | "xlsx">("csv");
+  const [notifyByEmail, setNotifyByEmail] = useState(false);
 
   const submit = async () => {
     try {
@@ -451,10 +469,13 @@ function DevicesForm() {
         format,
         organizationId: orgId === "all" ? null : orgId,
         searchQuery: searchQuery.trim() ? searchQuery.trim() : null,
+        notifyByEmail,
       });
       toast({
         title: "Export queued",
-        description: "We'll email you when it's ready and add it to the table below.",
+        description: notifyByEmail
+          ? "We'll email you when it's ready and add it to the table below."
+          : "Track progress in the table below.",
       });
     } catch (e) {
       const err = e as { message?: string };
@@ -515,6 +536,18 @@ function DevicesForm() {
             <span className="text-sm">Excel (.xlsx)</span>
           </Label>
         </RadioGroup>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="dev-notify-email"
+          checked={notifyByEmail}
+          onCheckedChange={(v) => setNotifyByEmail(v === true)}
+          data-testid="checkbox-devices-notify-email"
+        />
+        <Label htmlFor="dev-notify-email" className="cursor-pointer text-sm font-normal">
+          Email me when ready
+        </Label>
       </div>
 
       {create.error && (

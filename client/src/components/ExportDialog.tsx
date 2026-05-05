@@ -245,6 +245,10 @@ export function ExportDialog({
   const [granularityTouched, setGranularityTouched] = useState(false);
 
   const [submitError, setSubmitError] = useState<string | null>(null);
+  // Opt-in email: default OFF. The recent-exports surface + ExportsBanner
+  // are the default notification path; ticking this asks the worker to
+  // additionally fire the SendGrid "ready" / "failed" email.
+  const [notifyByEmail, setNotifyByEmail] = useState(false);
 
   // When dialog opens, reset to a clean state. Filters / context can change
   // between opens, so we don't persist the user's last picks across sessions.
@@ -256,6 +260,7 @@ export function ExportDialog({
     setSelectedColumns(new Set(EXPORT_BUNDLES.default.columnKeys as ColumnKey[]));
     setAdvancedOpen(false);
     setSubmitError(null);
+    setNotifyByEmail(false);
     setHistoricalTruckId(initialTruckId);
     setRangePresetId(presetIdForDays(initialRangeDays));
     const today = new Date();
@@ -385,10 +390,13 @@ export function ExportDialog({
           filters: toApiFilters(filters),
           includeColumns: includeColumns.length > 0 ? includeColumns : undefined,
           excludeColumns: excludeColumns.length > 0 ? excludeColumns : undefined,
+          notifyByEmail,
         });
         toast({
           title: "Export queued",
-          description: `We'll email you when ${job.bundleLabel} is ready.`,
+          description: notifyByEmail
+            ? `We'll email you when ${job.bundleLabel} is ready.`
+            : `Track progress in the exports list — ${job.bundleLabel} is on its way.`,
         });
         onOpenChange(false);
       } catch (err) {
@@ -423,10 +431,13 @@ export function ExportDialog({
         historicalStartTime: startTime.toISOString(),
         historicalEndTime: endTime.toISOString(),
         historicalGranularity: granularity,
+        notifyByEmail,
       });
       toast({
         title: "Export queued",
-        description: `We'll email you when ${job.bundleLabel} is ready.`,
+        description: notifyByEmail
+          ? `We'll email you when ${job.bundleLabel} is ready.`
+          : `Track progress in the exports list — ${job.bundleLabel} is on its way.`,
       });
       onOpenChange(false);
     } catch (err) {
@@ -774,6 +785,19 @@ export function ExportDialog({
               </div>
             </RadioGroup>
           </section>
+
+          {/* Opt-in email notification (default OFF) */}
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="export-notify-email"
+              checked={notifyByEmail}
+              onCheckedChange={(v) => setNotifyByEmail(v === true)}
+              data-testid="checkbox-export-notify-email"
+            />
+            <Label htmlFor="export-notify-email" className="cursor-pointer text-sm font-normal text-neutral-950">
+              Email me when ready
+            </Label>
+          </div>
 
           {submitError && (
             <div

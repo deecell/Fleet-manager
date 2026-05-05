@@ -4,7 +4,20 @@
 
 ---
 
-## Latest Updates (May 4, 2026)
+## Latest Updates (May 5, 2026)
+
+### Export pipeline: opt-in email notifications (drop email default everywhere)
+- **What changed**: Email notifications are now opt-in for ALL export types — customer snapshot, customer historical, admin device-registry, admin truck-history. The recent-exports table + `ExportsBanner` are the default notification surfaces; users tick "Email me when ready" on the export form to additionally receive a SendGrid email.
+- **Schema** (`shared/schema.ts`): added `notify_by_email BOOLEAN NOT NULL DEFAULT FALSE` to `export_jobs`. Default false matches the new product behavior — existing rows backfill to "no email".
+- **Production migration** (`scripts/migrations/2026-05-05_add_export_notify_by_email.{sh,sql}`): runnable from MacBook (`cd /Users/amoeck/Development/Fleet-manager && ./scripts/migrations/2026-05-05_add_export_notify_by_email.sh`); idempotent ADD COLUMN IF NOT EXISTS via SSM → EC2 → psql.
+- **Worker** (`server/services/exports/job-worker.ts`): both the success (`sendExportReadyEmail`) and failure (`sendExportFailedEmail`) paths now silently skip when `job.notifyByEmail === false`, logging `email skipped (notifyByEmail=false)`. Same flag gates both — symmetric with the user's choice on the form.
+- **Routes**: customer (`server/api/exports-routes.ts`) and admin (`server/api/admin-exports-routes.ts`) accept `notifyByEmail: z.boolean().optional()` and persist `input.notifyByEmail ?? false`.
+- **Frontend**: opt-in checkbox (default OFF) on every export form — `ExportDialog` (snapshot + historical), `AdminExportDialog` (`/admin/devices`), `ExportPage` `HistoricalForm` and `DevicesForm` (`/admin/export`). Toast copy switches between "We'll email you when ready" (toggle on) and "Track progress in the exports list" (toggle off). `ExportsBanner` pending-job subtitle changed from "We'll email you when it's ready" to "We'll update this banner when it's ready".
+- **Why**: with the new persistent recent-exports table on `/admin/export` (and the always-visible `ExportsBanner`), an unconditional email was a third notification surface for the same event — extra noise + extra SendGrid dependency. Opt-in keeps the long-running "fire and forget" case (close the tab, get pinged hours later) covered without spamming everyone else. Customer + admin behavior stays symmetric.
+
+---
+
+## Previous Updates (May 4, 2026)
 
 ### Task #N: New /admin/export page (admin truck-history + device-registry exports)
 - **What shipped**: New left-nav `/admin/export` page that combines the admin truck-history export and the existing admin device-registry export into one form, plus a recent-exports table that polls every 5s.

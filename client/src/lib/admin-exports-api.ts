@@ -20,6 +20,8 @@ export interface CreateAdminDevicesExportInput {
   format: "csv" | "xlsx";
   organizationId?: number | null;
   searchQuery?: string | null;
+  /** Opt-in email flag — defaults to false server-side. */
+  notifyByEmail?: boolean;
 }
 
 export interface CreateAdminHistoricalExportInput {
@@ -32,6 +34,8 @@ export interface CreateAdminHistoricalExportInput {
   startTime: string;
   /** ISO 8601 string. */
   endTime: string;
+  /** Opt-in email flag — defaults to false server-side. */
+  notifyByEmail?: boolean;
 }
 
 export type CreateAdminExportInput =

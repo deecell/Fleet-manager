@@ -40,6 +40,8 @@ const devicesPayload = z.object({
   format: z.enum(["csv", "xlsx"]),
   organizationId: z.coerce.number().int().positive().nullish(),
   searchQuery: z.string().trim().min(1).max(200).nullish(),
+  // Opt-in email flag (default false). See notes on customer route.
+  notifyByEmail: z.boolean().optional(),
 });
 
 const historicalPayload = z.object({
@@ -50,6 +52,7 @@ const historicalPayload = z.object({
   granularity: z.enum(["minute", "hour", "day"]),
   startTime: z.string().min(1),
   endTime: z.string().min(1),
+  notifyByEmail: z.boolean().optional(),
 });
 
 const createAdminExportSchema = z.discriminatedUnion("kind", [
@@ -226,6 +229,7 @@ router.post("/", adminMiddleware, async (req: Request, res: Response) => {
         historicalStartTime: null,
         historicalEndTime: null,
         historicalIntervalSeconds: 60,
+        notifyByEmail: input.notifyByEmail ?? false,
       },
       {
         userLimit: EXPORT_USER_CONCURRENCY_LIMIT,
@@ -292,6 +296,7 @@ router.post("/", adminMiddleware, async (req: Request, res: Response) => {
       historicalStartTime: startTime,
       historicalEndTime: endTime,
       historicalIntervalSeconds: granularityToIntervalSeconds(input.granularity),
+      notifyByEmail: input.notifyByEmail ?? false,
     },
     {
       userLimit: EXPORT_USER_CONCURRENCY_LIMIT,

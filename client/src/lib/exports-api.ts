@@ -77,6 +77,13 @@ export interface CreateExportJobInput {
   historicalEndTime?: string;
   /** "minute" | "hour" | "day" — server maps to interval seconds. */
   historicalGranularity?: HistoricalGranularity;
+
+  /**
+   * Opt-in: when true the worker also emails a SendGrid "ready" (or
+   * "failed") notification. Default false — the recent-exports surface
+   * + ExportsBanner are the primary notification channels.
+   */
+  notifyByEmail?: boolean;
 }
 
 export interface CreateExportJobError {
