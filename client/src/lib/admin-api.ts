@@ -175,6 +175,37 @@ export function useInvitePlatformAdmin() {
   });
 }
 
+export function useResendPlatformAdminInvitation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) =>
+      adminFetch<{ invitationEmailSent: boolean; expiresAt: string }>(
+        `/api/v1/admin/platform-admins/${id}/resend-invitation`,
+        { method: "POST" },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/platform-admins"] });
+    },
+  });
+}
+
+export function useResendUserInvitation(orgId?: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ orgId: targetOrgId, userId }: { orgId: number; userId: number }) =>
+      adminFetch<{ invitationEmailSent: boolean; expiresAt: string }>(
+        `/api/v1/admin/organizations/${targetOrgId}/users/${userId}/resend-invitation`,
+        { method: "POST" },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["/api/v1/admin/organizations", orgId, "users"],
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/users"] });
+    },
+  });
+}
+
 export function useRevokePlatformAdmin() {
   const queryClient = useQueryClient();
   return useMutation({

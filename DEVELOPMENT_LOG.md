@@ -6,6 +6,23 @@
 
 ## Latest Updates (May 5, 2026)
 
+### Resend invitation: rescue users + admins whose 7-day token expired
+- **What changed**: Added a "resend invitation" action to both the `/admin/users` table and the Manage Platform Admins panel. Previously, if a user (or admin) didn't accept their invitation within 7 days, the only fix was a manual SQL insert into `invitation_tokens`. Now an admin clicks the small Send icon next to "Never" in the Last Login column and a fresh 7-day invitation email goes out.
+- **Backend** (`server/api/admin-routes.ts`):
+  - `POST /api/v1/admin/organizations/:orgId/users/:userId/resend-invitation` — `adminMiddleware`-gated, scoped to one org's users.
+  - `POST /api/v1/admin/platform-admins/:id/resend-invitation` — `platformAdminMiddleware`-gated, mirrors the customer-side endpoint for users in `deecell-internal`.
+  - Both share a single `mintAndSendInvitation()` helper that mints `nanoid(32)`, inserts into `invitation_tokens` with `expires_at = now + 7 days`, then calls `sendInvitationEmail(...)`. Old superseded tokens stay in the table — `accept-invitation` already filters by `expires_at > now AND used_at IS NULL` so they're harmless.
+  - **Eligibility**: 400 if `password_hash IS NOT NULL` ("user has already accepted — use Reset password instead"). Prevents accidentally clobbering a real account into invitation purgatory.
+  - **Email config**: 503 if `!isEmailConfigured()`, 502 if SendGrid returns `false` (and the cooldown is rolled back so the admin can immediately retry).
+  - **Cooldown**: in-memory `Map<userId, lastSentAt>`, 60s per user_id, returns 429 with seconds-remaining message. Process-local — fine for single-Fargate-task; a noisy double-click just gets a 429 instead of two emails.
+- **Frontend** (`client/src/pages/admin/UsersPage.tsx`, `client/src/lib/admin-api.ts`):
+  - New hooks `useResendUserInvitation(orgId)` and `useResendPlatformAdminInvitation()` — both POST to the new endpoints, invalidate the relevant lists on success.
+  - Org users table: `Send` icon button (`h-6 w-6`) shown next to "Never" in Last Login when `!user.passwordHash && user.email`. `e.stopPropagation()` so it doesn't trigger row-level handlers.
+  - Manage Platform Admins panel: same `Send` icon, placed left of the existing Trash button, shown only when `!admin.hasPassword`. Self-row continues to render "You" with no actions.
+  - Toasts: "Invitation resent — New 7-day invitation emailed to <email>" on success; surfaces server error message on failure (cooldown 429, missing email config, etc).
+- **No production migration**: reuses the existing `invitation_tokens` table from `2026-01-20_add_invitation_tokens.sh`. Nothing to run on the prod DB.
+- **Why**: every few weeks a customer admin would email asking why a new driver couldn't log in, and the answer was always "their token expired, I'll re-issue one manually." This closes the loop in the UI and removes the operational drag without changing the underlying invitation contract.
+
 ### Export pipeline: opt-in email notifications (drop email default everywhere)
 - **What changed**: Email notifications are now opt-in for ALL export types — customer snapshot, customer historical, admin device-registry, admin truck-history. The recent-exports table + `ExportsBanner` are the default notification surfaces; users tick "Email me when ready" on the export form to additionally receive a SendGrid email.
 - **Schema** (`shared/schema.ts`): added `notify_by_email BOOLEAN NOT NULL DEFAULT FALSE` to `export_jobs`. Default false matches the new product behavior — existing rows backfill to "no email".

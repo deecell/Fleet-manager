@@ -42,9 +42,11 @@ import {
   usePlatformAdmins,
   useInvitePlatformAdmin,
   useRevokePlatformAdmin,
+  useResendUserInvitation,
+  useResendPlatformAdminInvitation,
   type PlatformAdminDto,
 } from "@/lib/admin-api";
-import { Plus, Pencil, Trash2, Users, Mail, Truck, ShieldCheck } from "lucide-react";
+import { Plus, Pencil, Trash2, Users, Mail, Truck, ShieldCheck, Send } from "lucide-react";
 import type { User, Truck as TruckType } from "@shared/schema";
 
 export default function UsersPage() {
@@ -58,6 +60,7 @@ export default function UsersPage() {
   const updateUser = useUpdateUser();
   const deleteUser = useDeleteUser();
   const assignTruck = useAssignTruckToUser();
+  const resendInvitation = useResendUserInvitation(selectedOrgId);
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -340,7 +343,44 @@ export default function UsersPage() {
                         )}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : "Never"}
+                        {user.lastLoginAt ? (
+                          new Date(user.lastLoginAt).toLocaleString()
+                        ) : (
+                          <span className="inline-flex items-center gap-2">
+                            <span>Never</span>
+                            {!user.passwordHash && user.email && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6"
+                                title="Resend invitation email"
+                                disabled={resendInvitation.isPending}
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  try {
+                                    await resendInvitation.mutateAsync({
+                                      orgId: user.organizationId,
+                                      userId: user.id,
+                                    });
+                                    toast({
+                                      title: "Invitation resent",
+                                      description: `New 7-day invitation emailed to ${user.email}.`,
+                                    });
+                                  } catch (error: any) {
+                                    toast({
+                                      title: "Failed to resend invitation",
+                                      description: error?.message ?? "Unknown error",
+                                      variant: "destructive",
+                                    });
+                                  }
+                                }}
+                                data-testid={`button-resend-invitation-${user.id}`}
+                              >
+                                <Send className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </span>
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button
@@ -642,6 +682,7 @@ function PlatformAdminsCard() {
   const { data, isLoading } = usePlatformAdmins();
   const invite = useInvitePlatformAdmin();
   const revoke = useRevokePlatformAdmin();
+  const resend = useResendPlatformAdminInvitation();
 
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [inviteForm, setInviteForm] = useState({ email: "", firstName: "", lastName: "" });
@@ -783,14 +824,42 @@ function PlatformAdminsCard() {
                         {isSelf ? (
                           <span className="text-xs text-muted-foreground">You</span>
                         ) : (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => setRevokeTarget(admin)}
-                            data-testid={`button-revoke-platform-admin-${admin.id}`}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center justify-end gap-1">
+                            {!admin.hasPassword && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                title="Resend invitation email"
+                                disabled={resend.isPending}
+                                onClick={async () => {
+                                  try {
+                                    await resend.mutateAsync(admin.id);
+                                    toast({
+                                      title: "Invitation resent",
+                                      description: `New 7-day invitation emailed to ${admin.email}.`,
+                                    });
+                                  } catch (error: any) {
+                                    toast({
+                                      title: "Failed to resend invitation",
+                                      description: error?.message ?? "Unknown error",
+                                      variant: "destructive",
+                                    });
+                                  }
+                                }}
+                                data-testid={`button-resend-platform-admin-invite-${admin.id}`}
+                              >
+                                <Send className="h-4 w-4" />
+                              </Button>
+                            )}
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setRevokeTarget(admin)}
+                              data-testid={`button-revoke-platform-admin-${admin.id}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         )}
                       </TableCell>
                     </TableRow>

@@ -989,6 +989,161 @@ router.get("/users", adminMiddleware, async (req: Request, res: Response) => {
   }
 });
 
+// =============================================================================
+// RESEND INVITATION
+// Lets a platform admin re-mint and re-send the 7-day invitation email for
+// any user that was invited but never set a password. Reuses the same
+// invitation_tokens table + sendInvitationEmail() pipeline as the original
+// create-user flow, so no schema migration is required. Old (now superseded)
+// tokens stay in the table — the /accept-invitation route already filters by
+// `expiresAt > now() AND usedAt IS NULL` so they're harmless.
+//
+// A 60-second in-memory cooldown per user_id prevents accidental email
+// flooding when an admin double-clicks. The cooldown is process-local;
+// good enough for a single-Fargate-task deployment, and a noisy second
+// click just gets a 429 (it doesn't actually email twice).
+// =============================================================================
+
+const RESEND_COOLDOWN_MS = 60_000;
+const lastResendByUserId = new Map<number, number>();
+
+function checkResendCooldown(userId: number): number | null {
+  const last = lastResendByUserId.get(userId);
+  if (last === undefined) return null;
+  const elapsed = Date.now() - last;
+  if (elapsed >= RESEND_COOLDOWN_MS) return null;
+  return Math.ceil((RESEND_COOLDOWN_MS - elapsed) / 1000);
+}
+
+async function mintAndSendInvitation(
+  user: { id: number; email: string | null; firstName: string | null; name: string | null; organizationId: number },
+  organizationName: string,
+): Promise<{ invitationEmailSent: boolean; expiresAt: Date }> {
+  const token = nanoid(32);
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 7);
+  await storage.createInvitationToken({
+    userId: user.id,
+    organizationId: user.organizationId,
+    token,
+    expiresAt,
+  });
+  const invitationEmailSent = await sendInvitationEmail(
+    user.email!,
+    user.firstName || user.name || "",
+    organizationName,
+    token,
+  );
+  lastResendByUserId.set(user.id, Date.now());
+  return { invitationEmailSent, expiresAt };
+}
+
+router.post(
+  "/organizations/:orgId/users/:userId/resend-invitation",
+  adminMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      const orgId = parseInt(req.params.orgId, 10);
+      const userId = parseInt(req.params.userId, 10);
+      if (Number.isNaN(orgId) || Number.isNaN(userId)) {
+        return res.status(400).json({ error: "Invalid id" });
+      }
+
+      const user = await storage.getUser(orgId, userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      if (!user.email) {
+        return res.status(400).json({ error: "User has no email address on file" });
+      }
+      if (user.passwordHash) {
+        return res.status(400).json({
+          error:
+            "User has already accepted their invitation. Use 'Reset password' to send a password-reset link instead.",
+        });
+      }
+      if (!isEmailConfigured()) {
+        return res.status(503).json({ error: "Email is not configured on this server" });
+      }
+
+      const cooldownRemaining = checkResendCooldown(user.id);
+      if (cooldownRemaining !== null) {
+        return res.status(429).json({
+          error: `Please wait ${cooldownRemaining}s before resending another invitation to this user.`,
+        });
+      }
+
+      const org = await storage.getOrganization(orgId);
+      const orgName = org?.name || "your organization";
+      const { invitationEmailSent, expiresAt } = await mintAndSendInvitation(user, orgName);
+      if (!invitationEmailSent) {
+        // Roll the cooldown back so the admin can immediately retry.
+        lastResendByUserId.delete(user.id);
+        return res.status(502).json({
+          error:
+            "Email provider rejected the request. Check the server logs and try again.",
+        });
+      }
+      console.log(`Resent invitation email to ${user.email} (user ${user.id}, org ${orgId})`);
+      return res.json({ invitationEmailSent: true, expiresAt: expiresAt.toISOString() });
+    } catch (error) {
+      console.error("Error resending user invitation:", error);
+      res.status(500).json({ error: "Failed to resend invitation" });
+    }
+  },
+);
+
+router.post(
+  "/platform-admins/:id/resend-invitation",
+  platformAdminMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (Number.isNaN(id)) {
+        return res.status(400).json({ error: "Invalid id" });
+      }
+      const target = await storage.getUserById(id);
+      if (!target || !target.isPlatformAdmin) {
+        return res.status(404).json({ error: "Platform admin not found" });
+      }
+      if (!target.email) {
+        return res.status(400).json({ error: "Admin has no email address on file" });
+      }
+      if (target.passwordHash) {
+        return res.status(400).json({
+          error:
+            "Admin has already accepted their invitation. They can use 'Forgot password' on the login page instead.",
+        });
+      }
+      if (!isEmailConfigured()) {
+        return res.status(503).json({ error: "Email is not configured on this server" });
+      }
+      const cooldownRemaining = checkResendCooldown(target.id);
+      if (cooldownRemaining !== null) {
+        return res.status(429).json({
+          error: `Please wait ${cooldownRemaining}s before resending another invitation to this admin.`,
+        });
+      }
+
+      const { invitationEmailSent, expiresAt } = await mintAndSendInvitation(
+        target,
+        "Deecell Internal",
+      );
+      if (!invitationEmailSent) {
+        lastResendByUserId.delete(target.id);
+        return res.status(502).json({
+          error: "Email provider rejected the request. Check the server logs and try again.",
+        });
+      }
+      console.log(`Resent platform-admin invitation email to ${target.email} (user ${target.id})`);
+      return res.json({ invitationEmailSent: true, expiresAt: expiresAt.toISOString() });
+    } catch (error) {
+      console.error("Error resending platform-admin invitation:", error);
+      res.status(500).json({ error: "Failed to resend invitation" });
+    }
+  },
+);
+
 router.post("/organizations/:orgId/users", adminMiddleware, async (req: Request, res: Response) => {
   try {
     const orgId = parseInt(req.params.orgId, 10);
