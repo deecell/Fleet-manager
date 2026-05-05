@@ -62,6 +62,14 @@ resource "aws_ecs_task_definition" "main" {
         { name = "NODE_ENV", value = "production" },
         { name = "PORT", value = tostring(var.container_port) },
         { name = "LOG_LEVEL", value = "info" },
+        # Wire the export pipeline (and any other S3 writer) at the
+        # Terraform-created assets bucket. Without this the app falls back to
+        # the dev default `deecell-fleet-files`, which does not exist in
+        # production, and every export job fails with
+        # `The specified bucket does not exist`. The task role already has
+        # read/write to this bucket via aws_iam_role_policy.ecs_task / iam.tf.
+        { name = "S3_BUCKET_NAME", value = aws_s3_bucket.assets.bucket },
+        { name = "AWS_REGION",     value = var.aws_region },
       ]
 
       secrets = concat(

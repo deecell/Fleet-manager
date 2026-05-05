@@ -6,6 +6,12 @@
 
 ## Latest Updates (May 5, 2026)
 
+### Bug fix: exports failing with "The specified bucket does not exist"
+- **Symptom**: with the SQL fixes in place, the export worker now generated the file successfully but blew up at the S3 upload step with `The specified bucket does not exist`.
+- **Root cause**: production never set `S3_BUCKET_NAME` on the ECS task definition, so `server/aws/s3.ts` fell back to its hardcoded dev default `deecell-fleet-files` — which doesn't exist in the prod account. Terraform actually creates the production bucket as `${name_prefix}-assets-${unique_suffix}` (e.g. `deecell-fleet-production-assets-XXXXXXXX`) and `aws_iam_role_policy.ecs_task` already grants the task role read/write/list to it (`terraform/iam.tf` L120, L129). The wiring just stopped at Terraform — the env var was never added to `terraform/ecs.tf`'s `environment = [...]` block.
+- **Fix**: added `S3_BUCKET_NAME = aws_s3_bucket.assets.bucket` (and `AWS_REGION = var.aws_region` for parity) to the ECS container's `environment` block in `terraform/ecs.tf`. After `terraform apply` the new task revision rolls out and the worker uploads to the right bucket.
+- **No DB migration**. Requires `terraform apply` (then ECS rolls a new task revision).
+
 ### Bug fix: historical exports failing with DISTINCT ON / ORDER BY mismatch
 - **Symptom**: after the prod migration added `sim_location_history.truck_id`, historical exports advanced past aggregation but then died with `SELECT DISTINCT ON expressions must match initial ORDER BY expressions`.
 - **Root cause**: same parameter-vs-literal trap as the earlier GROUP BY fix, but in the per-bucket position query (`server/db-storage.ts` ~L1759). `${truncUnit}` was used three times — DISTINCT ON, SELECT, ORDER BY — and Drizzle emitted a fresh `$N` placeholder for each. Postgres requires the DISTINCT ON expressions to textually match the leading ORDER BY expressions, which `date_trunc($1, …)` and `date_trunc($N, …)` don't.
