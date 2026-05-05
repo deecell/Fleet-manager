@@ -6,6 +6,13 @@
 
 ## Latest Updates (May 5, 2026)
 
+### Bug fix: historical exports failing with `column "truck_id" does not exist`
+- **Symptom**: after the GROUP BY fix shipped, historical exports got further but then died on the per-bucket position lookup with `column "truck_id" does not exist`.
+- **Root cause**: schema drift. `shared/schema.ts` (L491-L512) has had `truck_id` on `sim_location_history` for a long time, but it was never migrated to production — only dev's `db:push` got it. The historical export query filters `WHERE organization_id = … AND truck_id = … AND recorded_at BETWEEN …`, which detonates against the prod table.
+- **Fix**: new migration script `scripts/migrations/2026-05-05_add_sim_location_truck_id.{sh,sql}`. Adds the column with `ON DELETE SET NULL` (matches Drizzle), backfills `truck_id` from the owning SIM's current assignment (`UPDATE sim_location_history slh SET truck_id = s.truck_id FROM sims s WHERE slh.sim_id = s.id AND slh.truck_id IS NULL AND s.truck_id IS NOT NULL`), and adds a composite index `(organization_id, truck_id, recorded_at)` so the export query stays fast. Idempotent via `IF NOT EXISTS`. Run with the standard SSM→EC2→psql flow from MacBook Pro.
+- **No code change required**: the application already references `truck_id` correctly via the schema; this is purely a prod-DB-catch-up.
+- **Index divergence note**: the new `sim_location_truck_time_idx` exists in production but not in `shared/schema.ts`. Filed follow-up to reflect it back in the schema so dev parity is restored.
+
 ### Bug fix: historical exports failing with GROUP BY error
 - **Symptom**: after deploying the snake_case fix, historical exports started actually running but immediately died with `column "device_measurements.recorded_at" must appear in the GROUP BY clause or be used in an aggregate function`.
 - **Root cause**: in `getTruckHistoryAggregated` (`server/db-storage.ts` ~L1689) the `bucketCol` chunk was `sql\`date_trunc(${truncUnit}, ${deviceMeasurements.recordedAt})\``. Drizzle treats `${truncUnit}` as a parameter, and when the same `bucketCol` is reused in both SELECT and GROUP BY it emits a fresh `$N` placeholder for each occurrence. Postgres sees `date_trunc($1, recorded_at)` in SELECT and `date_trunc($N, recorded_at)` in GROUP BY as different expressions, so it can't match them and throws.
