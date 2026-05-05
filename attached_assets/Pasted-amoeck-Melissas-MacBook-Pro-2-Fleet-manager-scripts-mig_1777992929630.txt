@@ -1,0 +1,67 @@
+amoeck@Melissas-MacBook-Pro-2 Fleet-manager % ./scripts/migrations/2026-05-05_add_export_notify_by_email.sh
+=== Deecell Production Database Migration ===
+Migration: Add export_jobs.notify_by_email column (opt-in email flag)
+
+[1/5] Looking up device-manager EC2 instance in us-east-2...
+      Found: i-0a435441556fc5ab1
+
+[2/5] SQL to execute:
+----------------------------------------
+-- =============================================
+-- export_jobs.notify_by_email: opt-in email flag
+-- =============================================
+-- Adds a `notify_by_email` boolean to export_jobs. The worker only fires
+-- the SendGrid "ready" / "failed" emails when this flag is TRUE; the
+-- recent-exports table + ExportsBanner are the default notification
+-- surfaces for everyone (admin + customer).
+--
+-- Idempotent: ADD COLUMN IF NOT EXISTS, DEFAULT FALSE so existing rows
+-- backfill to "no email" — matches the new opt-in product behavior.
+
+ALTER TABLE export_jobs
+    ADD COLUMN IF NOT EXISTS notify_by_email BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- Verification
+SELECT 'export_jobs.notify_by_email added/verified' AS result;
+
+SELECT column_name, data_type, column_default, is_nullable
+FROM information_schema.columns
+WHERE table_name = 'export_jobs'
+  AND column_name = 'notify_by_email';
+
+SELECT notify_by_email, COUNT(*) AS job_count
+FROM export_jobs
+GROUP BY notify_by_email
+ORDER BY notify_by_email;
+----------------------------------------
+
+Run this migration on production? (y/n) y
+
+[3/5] Building SSM command payload...
+[4/5] Sending command to i-0a435441556fc5ab1 via SSM...
+      Command ID: 53419061-813b-4aa3-bbd6-80b2c980e623
+
+[5/5] Waiting for completion...
+.
+
+=== Final Status: Success ===
+
+--- Standard Output ---
+Using: /usr/bin/psql
+ALTER TABLE
+                   result                   
+--------------------------------------------
+ export_jobs.notify_by_email added/verified
+(1 row)
+
+   column_name   | data_type | column_default | is_nullable 
+-----------------+-----------+----------------+-------------
+ notify_by_email | boolean   | false          | NO
+(1 row)
+
+ notify_by_email | job_count 
+-----------------+-----------
+ f               |         5
+(1 row)
+
+
