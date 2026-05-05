@@ -1741,21 +1741,28 @@ export class DbStorage {
     // Per-bucket position from sim_location_history (PowerMon doesn't store
     // position). DISTINCT ON keeps the LAST recorded position per bucket, so
     // daily exports get end-of-day position automatically.
+    // Same parameter-vs-literal trap as the GROUP BY fix above: each
+    // `${truncUnit}` here would be emitted as a fresh $N placeholder, so
+    // Postgres would see DISTINCT ON ($1, …) vs ORDER BY ($N, …) as different
+    // expressions and throw "SELECT DISTINCT ON expressions must match
+    // initial ORDER BY expressions". Inline truncUnit (controlled enum) via
+    // sql.raw so all three occurrences emit identical text.
+    const truncUnitLit = sql.raw(`'${truncUnit}'`);
     const positionRows = await db.execute<{
       bucket: Date | string;
       latitude: number;
       longitude: number;
     }>(sql`
-      SELECT DISTINCT ON (date_trunc(${truncUnit}, recorded_at))
-        date_trunc(${truncUnit}, recorded_at) AS bucket,
-        latitude::float8                       AS latitude,
-        longitude::float8                      AS longitude
+      SELECT DISTINCT ON (date_trunc(${truncUnitLit}, recorded_at))
+        date_trunc(${truncUnitLit}, recorded_at) AS bucket,
+        latitude::float8                          AS latitude,
+        longitude::float8                         AS longitude
       FROM ${simLocationHistory}
       WHERE organization_id = ${organizationId}
         AND truck_id = ${truckId}
         AND recorded_at >= ${startTime}
         AND recorded_at <= ${endTime}
-      ORDER BY date_trunc(${truncUnit}, recorded_at), recorded_at DESC
+      ORDER BY date_trunc(${truncUnitLit}, recorded_at), recorded_at DESC
     `);
     const positionByBucket = new Map<number, { latitude: number; longitude: number }>();
     for (const r of positionRows.rows) {

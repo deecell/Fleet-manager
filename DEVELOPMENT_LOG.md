@@ -6,6 +6,12 @@
 
 ## Latest Updates (May 5, 2026)
 
+### Bug fix: historical exports failing with DISTINCT ON / ORDER BY mismatch
+- **Symptom**: after the prod migration added `sim_location_history.truck_id`, historical exports advanced past aggregation but then died with `SELECT DISTINCT ON expressions must match initial ORDER BY expressions`.
+- **Root cause**: same parameter-vs-literal trap as the earlier GROUP BY fix, but in the per-bucket position query (`server/db-storage.ts` ~L1759). `${truncUnit}` was used three times — DISTINCT ON, SELECT, ORDER BY — and Drizzle emitted a fresh `$N` placeholder for each. Postgres requires the DISTINCT ON expressions to textually match the leading ORDER BY expressions, which `date_trunc($1, …)` and `date_trunc($N, …)` don't.
+- **Fix**: hoisted `const truncUnitLit = sql.raw(\`'${truncUnit}'\`)` once and reused that fragment everywhere in the position query, so all three occurrences emit identical `date_trunc('day', recorded_at)` text. Same safety justification as before — `truncUnit` is a hard-narrowed enum.
+- **No production migration**: code-only fix.
+
 ### Bug fix: historical exports failing with `column "truck_id" does not exist`
 - **Symptom**: after the GROUP BY fix shipped, historical exports got further but then died on the per-bucket position lookup with `column "truck_id" does not exist`.
 - **Root cause**: schema drift. `shared/schema.ts` (L491-L512) has had `truck_id` on `sim_location_history` for a long time, but it was never migrated to production — only dev's `db:push` got it. The historical export query filters `WHERE organization_id = … AND truck_id = … AND recorded_at BETWEEN …`, which detonates against the prod table.
