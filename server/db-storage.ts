@@ -1675,7 +1675,15 @@ export class DbStorage {
     // null — the state machine has only two states.
     const SAMPLE_SECONDS = 10;
     const PARKED_VOLTAGE_THRESHOLD = 13.0;
-    const bucketCol = sql<Date>`date_trunc(${truncUnit}, ${deviceMeasurements.recordedAt})`;
+    // NOTE: inline truncUnit as a SQL literal via sql.raw rather than passing
+    // it as a parameter. When `bucketCol` is reused in both SELECT and
+    // GROUP BY, Drizzle emits a fresh $N placeholder for each occurrence —
+    // so Postgres sees `date_trunc($1, recorded_at)` (SELECT) and
+    // `date_trunc($N, recorded_at)` (GROUP BY) as different expressions and
+    // throws "column device_measurements.recorded_at must appear in the
+    // GROUP BY clause". `truncUnit` is a hard-narrowed enum above, so
+    // inlining is safe (no SQL injection surface).
+    const bucketCol = sql<Date>`date_trunc(${sql.raw(`'${truncUnit}'`)}, ${deviceMeasurements.recordedAt})`;
     const measurementRows = await db
       .select({
         bucket: bucketCol.as("bucket"),

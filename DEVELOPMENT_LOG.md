@@ -6,6 +6,12 @@
 
 ## Latest Updates (May 5, 2026)
 
+### Bug fix: historical exports failing with GROUP BY error
+- **Symptom**: after deploying the snake_case fix, historical exports started actually running but immediately died with `column "device_measurements.recorded_at" must appear in the GROUP BY clause or be used in an aggregate function`.
+- **Root cause**: in `getTruckHistoryAggregated` (`server/db-storage.ts` ~L1689) the `bucketCol` chunk was `sql\`date_trunc(${truncUnit}, ${deviceMeasurements.recordedAt})\``. Drizzle treats `${truncUnit}` as a parameter, and when the same `bucketCol` is reused in both SELECT and GROUP BY it emits a fresh `$N` placeholder for each occurrence. Postgres sees `date_trunc($1, recorded_at)` in SELECT and `date_trunc($N, recorded_at)` in GROUP BY as different expressions, so it can't match them and throws.
+- **Fix**: inline `truncUnit` as a SQL literal via `sql.raw(\`'${truncUnit}'\`)`. `truncUnit` is hard-narrowed to the enum `"minute" | "hour" | "day"` immediately above (zod-validated upstream at the route), so there's no SQL injection surface. Now SELECT and GROUP BY emit identical `date_trunc('day', …)` text and Postgres groups them correctly.
+- **No production migration**: code-only fix.
+
 ### Bug fix: historical exports failing with "missing required fields"
 - **Symptom**: every historical export (customer + admin) failed instantly with `Historical export job is missing required fields (truckId, startTime, endTime, intervalSeconds)` even though the POST handler correctly persisted all four fields. Surfaced today on the new per-device admin export icon, but the bug affected all historical exports.
 - **Root cause**: `claimNextPendingExportJob` in `server/db-storage.ts` was using raw `db.execute(sql\`UPDATE … RETURNING *\`)` with a TypeScript cast to `ExportJob`. The cast was lying — Postgres returned snake_case column names (`historical_interval_seconds`, `historical_truck_id`, `historical_start_time`, `historical_end_time`), not Drizzle's camelCase. The worker then read `job.historicalIntervalSeconds` and got `undefined` on every claim, hitting the validation guard before the generator ran.
