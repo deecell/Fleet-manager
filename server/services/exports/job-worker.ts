@@ -159,7 +159,11 @@ class ExportJobWorker {
           organizationName: adminFilters.organizationName ?? null,
           searchQuery: adminFilters.searchQuery ?? null,
         };
-      } else if (job.historicalMode) {
+      } else if (
+        job.historicalMode
+        || jobKind === EXPORT_JOB_KIND.HISTORICAL
+        || jobKind === EXPORT_JOB_KIND.ADMIN_HISTORICAL
+      ) {
         // Validate the row's historical fields BEFORE invoking the generator.
         // These are persisted by the POST handler so under normal flow they're
         // guaranteed; the explicit checks here exist so a malformed row (e.g.
@@ -220,6 +224,18 @@ class ExportJobWorker {
         const filters = (job.filters as ExportFilters | null) ?? undefined;
         const includeColumns = (job.includeColumns as ColumnKey[] | null) ?? undefined;
         const excludeColumns = (job.excludeColumns as ColumnKey[] | null) ?? undefined;
+
+        // Defensive guard: if a non-snapshot kind ever lands in this branch
+        // (e.g. admin_historical with historical_mode=false because the column
+        // wasn't persisted), fail fast with a recognizable error instead of
+        // throwing the cryptic "Cannot read properties of undefined (reading
+        // 'columnKeys')" inside resolveColumns().
+        const bundle = (EXPORT_BUNDLES as Record<string, unknown>)[job.bundleKey];
+        if (!bundle) {
+          throw new Error(
+            `Worker dispatched job ${job.id} (kind=${jobKind}, historicalMode=${job.historicalMode}) into the snapshot branch, but bundleKey="${job.bundleKey}" is not a registered EXPORT_BUNDLES entry. This usually means the row was inserted without historical_mode=true, or the production DB is missing recent migrations.`,
+          );
+        }
 
         // bundleKey is validated against EXPORT_BUNDLES at /POST time, so the
         // narrowing assertion here is safe.

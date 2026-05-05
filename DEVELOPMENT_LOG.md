@@ -14,6 +14,9 @@
 - **Schema** (`shared/schema.ts`): added `EXPORT_JOB_KIND.ADMIN_HISTORICAL = 'admin_historical'` and extended the `filters` jsonb type to include optional `truckNumber` for table labeling. **No DB column changes — `npm run db:push` not required.**
 - **Backwards compat**: existing `/admin/devices` "Export" dialog now sends `kind: 'devices'` to satisfy the discriminated union; behavior is unchanged.
 - **Code review**: passed — confirmed correct org-targeting semantics, guardrails, S3 segregation, and email labels.
+- **Post-deploy bug + defensive hardening (May 4)**: After deploy, both admin truck-history exports and the device-registry export started failing with `Cannot read properties of undefined (reading 'columnKeys')`. Diagnosis traced to `shared/export-columns.ts:273` — when the worker fell through to the snapshot dispatcher with a `bundleKey` that isn't in `EXPORT_BUNDLES` (e.g. `"admin_historical"`), `bundle.columnKeys` threw the cryptic message above. Two hardening edits to `server/services/exports/job-worker.ts` make this self-diagnosing and prevent the regression:
+  1. **Dispatch by `kind`, not just `historicalMode`** — the historical branch now also matches `jobKind === HISTORICAL || jobKind === ADMIN_HISTORICAL`. So even if the `historical_mode` boolean somehow comes back false (column missing, default fired, etc.), the new admin job kinds still route to the historical generator.
+  2. **Defensive bundle guard in the snapshot fallthrough** — before calling `generateExport`, the worker checks `EXPORT_BUNDLES[job.bundleKey]` and throws a labelled error (`"Worker dispatched job N (kind=…, historicalMode=…) into the snapshot branch, but bundleKey=… is not a registered EXPORT_BUNDLES entry"`) instead of letting `resolveColumns` crash on `undefined`. Future dispatch mismatches surface with the actual job id, kind, and flag values in the error message.
 
 
 ### Incident: ECS task restart loop after first admin login (May 4, 2026)
