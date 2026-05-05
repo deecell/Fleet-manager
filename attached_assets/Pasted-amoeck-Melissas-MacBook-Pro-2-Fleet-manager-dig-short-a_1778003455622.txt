@@ -1,0 +1,81 @@
+amoeck@Melissas-MacBook-Pro-2 Fleet-manager % dig +short app.deecell.com
+echo "---"
+curl -vI https://app.deecell.com 2>&1 | head -40
+echo "---"
+openssl s_client -servername app.deecell.com -connect app.deecell.com:443 -showcerts </dev/null 2>&1 | head -30
+deecell-fleet-production-alb-140384716.us-east-2.elb.amazonaws.com.
+3.20.59.37
+52.15.252.145
+---
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0* Host app.deecell.com:443 was resolved.
+* IPv6: (none)
+* IPv4: 52.15.252.145, 3.20.59.37
+*   Trying 52.15.252.145:443...
+* Connected to app.deecell.com (52.15.252.145) port 443
+* ALPN: curl offers h2,http/1.1
+* (304) (OUT), TLS handshake, Client hello (1):
+} [320 bytes data]
+*  CAfile: /etc/ssl/cert.pem
+*  CApath: none
+* (304) (IN), TLS handshake, Server hello (2):
+{ [122 bytes data]
+* (304) (IN), TLS handshake, Unknown (8):
+{ [19 bytes data]
+* (304) (IN), TLS handshake, Certificate (11):
+{ [3815 bytes data]
+* (304) (IN), TLS handshake, CERT verify (15):
+{ [264 bytes data]
+* (304) (IN), TLS handshake, Finished (20):
+{ [36 bytes data]
+* (304) (OUT), TLS handshake, Finished (20):
+} [36 bytes data]
+* SSL connection using TLSv1.3 / AEAD-AES128-GCM-SHA256 / [blank] / UNDEF
+* ALPN: server accepted h2
+* Server certificate:
+*  subject: CN=app.deecell.com
+*  start date: Dec 27 00:00:00 2025 GMT
+*  expire date: Jan 25 23:59:59 2027 GMT
+*  subjectAltName: host "app.deecell.com" matched cert's "app.deecell.com"
+*  issuer: C=US; O=Amazon; CN=Amazon RSA 2048 M04
+*  SSL certificate verify ok.
+* using HTTP/2
+* [HTTP/2] [1] OPENED stream for https://app.deecell.com/
+* [HTTP/2] [1] [:method: HEAD]
+* [HTTP/2] [1] [:scheme: https]
+* [HTTP/2] [1] [:authority: app.deecell.com]
+* [HTTP/2] [1] [:path: /]
+* [HTTP/2] [1] [user-agent: curl/8.7.1]
+---
+Connecting to 3.20.59.37
+depth=2 C=US, O=Amazon, CN=Amazon Root CA 1
+verify return:1
+depth=1 C=US, O=Amazon, CN=Amazon RSA 2048 M04
+verify return:1
+depth=0 CN=app.deecell.com
+verify return:1
+CONNECTED(00000006)
+---
+Certificate chain
+ 0 s:CN=app.deecell.com
+   i:C=US, O=Amazon, CN=Amazon RSA 2048 M04
+   a:PKEY: RSA, 2048 (bit); sigalg: sha256WithRSAEncryption
+   v:NotBefore: Dec 27 00:00:00 2025 GMT; NotAfter: Jan 25 23:59:59 2027 GMT
+-----BEGIN CERTIFICATE-----
+MIIF1DCCBLygAwIBAgIQDc2q4zd4Xu0Bj/0M80IFuTANBgkqhkiG9w0BAQsFADA8
+MQswCQYDVQQGEwJVUzEPMA0GA1UEChMGQW1hem9uMRwwGgYDVQQDExNBbWF6b24g
+UlNBIDIwNDggTTA0MB4XDTI1MTIyNzAwMDAwMFoXDTI3MDEyNTIzNTk1OVowGjEY
+MBYGA1UEAxMPYXBwLmRlZWNlbGwuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A
+MIIBCgKCAQEAsf1Le/4Mb1QPDANmpKCDRZD+NW7R0nRzTSxhzthWgJu2o+w51vVF
+5md8HwpqWHn+VWW3ysl1OUHhdSOoE6LmHLyHXBfuWMv9O6paeaObK4Z/+WOQdn2k
+5h7ODp6sghGCfxhqjfk+fwf6PV3RKTNr1MC0B8A/eaatXrl43F2pqW/22/tfBsB2
+n33Ux1E6Mgnds7hDYUv7V3gShxwFqxX0+pN0X5iDteudy3YHesPL0VpT2JXrNre0
+qBi9AoDvM5O7eD2lc1jtLMX182ecr7ILBysG8enZZ9840uJ3OrnT/BFqbk9uMwXw
+D0oimgT06LTzKq9vcVwAk8REJHYM3FBSHwIDAQABo4IC8jCCAu4wHwYDVR0jBBgw
+FoAUH1KSYVaCVH+BZtgdPQqqMlyH3QgwHQYDVR0OBBYEFEk7CmWfpEsQ22qGX9Gg
+EWdoJmXIMC0GA1UdEQQmMCSCD2FwcC5kZWVjZWxsLmNvbYIRKi5hcHAuZGVlY2Vs
+bC5jb20wEwYDVR0gBAwwCjAIBgZngQwBAgEwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
+JQQMMAoGCCsGAQUFBwMBMDsGA1UdHwQ0MDIwMKAuoCyGKmh0dHA6Ly9jcmwucjJt
+MDQuYW1hem9udHJ1c3QuY29tL3IybTA0LmNybDB1BggrBgEFBQcBAQRpMGcwLQYI
+amoeck@Melissas-MacBook-Pro-2 Fleet-manager %
