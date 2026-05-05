@@ -1,0 +1,62 @@
+amoeck@Melissas-MacBook-Pro-2 Fleet-manager % aws acm list-certificates --region us-east-2 --query "CertificateSummaryList[?contains(DomainName, 'deecell')]"
+echo "---"
+openssl s_client -servername app.deecell.com -connect app.deecell.com:443 </dev/null 2>/dev/null | openssl x509 -noout -subject -issuer -dates
+[
+    {
+        "CertificateArn": "arn:aws:acm:us-east-2:892213647605:certificate/adc8d8e5-7729-410e-b01c-c1487d2f0b21",
+        "DomainName": "app.deecell.com",
+        "SubjectAlternativeNameSummaries": [
+            "app.deecell.com"
+        ],
+        "HasAdditionalSubjectAlternativeNames": false,
+        "Status": "ISSUED",
+        "Type": "AMAZON_ISSUED",
+        "KeyAlgorithm": "RSA-2048",
+        "KeyUsages": [
+            "DIGITAL_SIGNATURE",
+            "KEY_ENCIPHERMENT"
+        ],
+        "ExtendedKeyUsages": [
+            "TLS_WEB_SERVER_AUTHENTICATION"
+        ],
+        "ExportOption": "DISABLED",
+        "InUse": false,
+        "Exported": false,
+        "RenewalEligibility": "INELIGIBLE",
+        "NotBefore": "2025-12-03T16:00:00-08:00",
+        "NotAfter": "2027-01-02T15:59:59-08:00",
+        "CreatedAt": "2025-12-04T14:16:00.740000-08:00",
+        "IssuedAt": "2025-12-04T14:33:26.751000-08:00"
+    },
+    {
+        "CertificateArn": "arn:aws:acm:us-east-2:892213647605:certificate/2ece931e-8494-44fd-aa59-850a0c620a49",
+        "DomainName": "app.deecell.com",
+        "SubjectAlternativeNameSummaries": [
+            "app.deecell.com",
+            "*.app.deecell.com"
+        ],
+        "HasAdditionalSubjectAlternativeNames": false,
+        "Status": "ISSUED",
+        "Type": "AMAZON_ISSUED",
+        "KeyAlgorithm": "RSA-2048",
+        "KeyUsages": [
+            "DIGITAL_SIGNATURE",
+            "KEY_ENCIPHERMENT"
+        ],
+        "ExtendedKeyUsages": [
+            "TLS_WEB_SERVER_AUTHENTICATION"
+        ],
+        "ExportOption": "DISABLED",
+        "InUse": true,
+        "Exported": false,
+        "RenewalEligibility": "ELIGIBLE",
+        "NotBefore": "2025-12-26T16:00:00-08:00",
+        "NotAfter": "2027-01-25T15:59:59-08:00",
+        "CreatedAt": "2025-12-27T13:42:08.233000-08:00",
+        "IssuedAt": "2025-12-27T13:42:25.224000-08:00"
+    }
+]
+---
+Could not find certificate from <stdin>
+00514350F87F0000:error:1608010C:STORE routines:ossl_store_handle_load_result:unsupported:crypto/store/store_result.c:160:provider=default
+amoeck@Melissas-MacBook-Pro-2 Fleet-manager %
