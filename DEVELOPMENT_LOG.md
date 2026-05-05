@@ -6,6 +6,16 @@
 
 ## Latest Updates (May 5, 2026)
 
+### Per-device truck-history export icon on /admin/devices
+- **What shipped**: Added a per-row Download icon to the actions column on `/admin/devices`. Click it on a device that's assigned to a truck and a compact dialog opens pre-seeded to that truck — admin picks range / granularity / format / opt-in email and the worker enqueues an `admin_historical` export through the existing pipeline. On unassigned devices the button is disabled with a tooltip "Assign a truck to enable history export".
+- **Frontend**:
+  - `client/src/components/AdminTruckHistoryExportDialog.tsx` (new) — small dialog (Range preset Last 24h/7d/30d/90d/1y, granularity radio, format CSV/XLSX, "Email me when ready" default-OFF, live row estimate with 600k cap warning). Submits via the existing `useCreateAdminExport` hook with `kind: "historical"`.
+  - `client/src/pages/admin/DevicesPage.tsx` — new Download icon button (blue) inserted between the connection-status (Reset/Offline) action and the Delete action. Disabled-when-no-truck. Resolves `truckNumber` via the existing `allTrucks` lookup and `organizationName` via `organizations`. Mounts the dialog at the bottom alongside the existing `AdminExportDialog`.
+- **Backend**: nothing new — admin export pipeline already supports `kind: "historical"` (see "Admin Export Soft Launch" in replit.md). Job is owned by the synthetic Deecell admin user (concurrency + email lookup); target customer org rides on `filters.organizationId`.
+- **Notifications**: respects the global opt-in email contract — defaults to OFF, surfaces in the admin `ExportsBanner` immediately, only emails the admin if the box is ticked.
+- **No production migration**: pure UI wiring on top of the already-deployed admin export endpoint and `kind` column.
+- **Why**: admins were having to log into the customer's account just to grab one truck's history file. The icon shaves that to one click on the device row they were already looking at, attributed to the admin who triggered it (audit trail intact).
+
 ### Resend invitation: rescue users + admins whose 7-day token expired
 - **What changed**: Added a "resend invitation" action to both the `/admin/users` table and the Manage Platform Admins panel. Previously, if a user (or admin) didn't accept their invitation within 7 days, the only fix was a manual SQL insert into `invitation_tokens`. Now an admin clicks the small Send icon next to "Never" in the Last Login column and a fresh 7-day invitation email goes out.
 - **Backend** (`server/api/admin-routes.ts`):
