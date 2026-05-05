@@ -2039,22 +2039,32 @@ export class DbStorage {
    * containers never claim the same row.
    */
   async claimNextPendingExportJob(): Promise<ExportJob | undefined> {
-    const result = await db.execute<ExportJob>(sql`
-      UPDATE export_jobs
-      SET status = ${EXPORT_JOB_STATUS.RUNNING},
-          started_at = NOW(),
-          updated_at = NOW()
-      WHERE id = (
-        SELECT id FROM export_jobs
-        WHERE status = ${EXPORT_JOB_STATUS.PENDING}
-        ORDER BY created_at ASC
-        FOR UPDATE SKIP LOCKED
-        LIMIT 1
+    // IMPORTANT: route the UPDATE through Drizzle's query builder (not raw
+    // `db.execute(... RETURNING *)`) so the returned row's columns are
+    // mapped from snake_case to camelCase via the schema. The previous raw
+    // implementation returned `historical_interval_seconds` etc., which the
+    // worker reads as `historicalIntervalSeconds` — always undefined —
+    // causing every historical job to fail with "missing required fields".
+    // The inner SELECT keeps the FOR UPDATE SKIP LOCKED semantics so multiple
+    // worker instances behind the ALB never claim the same row.
+    const [job] = await db
+      .update(exportJobs)
+      .set({
+        status: EXPORT_JOB_STATUS.RUNNING,
+        startedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(
+        sql`${exportJobs.id} = (
+          SELECT id FROM ${exportJobs}
+          WHERE status = ${EXPORT_JOB_STATUS.PENDING}
+          ORDER BY created_at ASC
+          FOR UPDATE SKIP LOCKED
+          LIMIT 1
+        )`,
       )
-      RETURNING *
-    `);
-    const rows = (result as unknown as { rows: ExportJob[] }).rows ?? [];
-    return rows[0];
+      .returning();
+    return job;
   }
 
   async updateExportJob(id: number, data: Partial<ExportJob>): Promise<ExportJob | undefined> {

@@ -6,6 +6,13 @@
 
 ## Latest Updates (May 5, 2026)
 
+### Bug fix: historical exports failing with "missing required fields"
+- **Symptom**: every historical export (customer + admin) failed instantly with `Historical export job is missing required fields (truckId, startTime, endTime, intervalSeconds)` even though the POST handler correctly persisted all four fields. Surfaced today on the new per-device admin export icon, but the bug affected all historical exports.
+- **Root cause**: `claimNextPendingExportJob` in `server/db-storage.ts` was using raw `db.execute(sql\`UPDATE … RETURNING *\`)` with a TypeScript cast to `ExportJob`. The cast was lying — Postgres returned snake_case column names (`historical_interval_seconds`, `historical_truck_id`, `historical_start_time`, `historical_end_time`), not Drizzle's camelCase. The worker then read `job.historicalIntervalSeconds` and got `undefined` on every claim, hitting the validation guard before the generator ran.
+- **Fix**: rewrote the claim to go through Drizzle's typed query builder (`db.update(exportJobs).set(...).where(sql\`id = (SELECT … FOR UPDATE SKIP LOCKED LIMIT 1)\`).returning()`). Drizzle now handles the column-name mapping, so the returned row matches `ExportJob` for real. `FOR UPDATE SKIP LOCKED` semantics preserved via the inner subquery — multiple worker instances behind the ALB still won't double-claim a row.
+- **No production migration**: code-only fix.
+- **Why it slipped through dev**: dev never has multiple historical jobs queued, and the in-process worker often picks rows up via the `nudge()` path which… also calls `claimNextPendingExportJob`, so this should have repro'd. It likely did once or twice (see commit `5b1edfe Fix recurring crashes caused by missing export job data` from May 4) but was misdiagnosed as a missing-column issue. Filed follow-up to add a real integration test for the worker claim → process loop.
+
 ### Per-device truck-history export icon on /admin/devices
 - **What shipped**: Added a per-row Download icon to the actions column on `/admin/devices`. Click it on a device that's assigned to a truck and a compact dialog opens pre-seeded to that truck — admin picks range / granularity / format / opt-in email and the worker enqueues an `admin_historical` export through the existing pipeline. On unassigned devices the button is disabled with a tooltip "Assign a truck to enable history export".
 - **Frontend**:
