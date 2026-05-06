@@ -1,0 +1,49 @@
+amoeck@Melissas-MacBook-Pro-2 Fleet-manager % ./scripts/migrations/2026-05-05_set_ecs_s3_bucket_env.sh
+=== Deecell Production: Wire S3_BUCKET_NAME into ECS task ===
+
+[1/5] Looking up prod assets bucket (prefix: deecell-fleet-production-assets-)...
+      Found: deecell-fleet-production-assets-13647605
+
+[2/5] Fetching current task definition 'deecell-fleet-production'...
+      Current revision: 255
+      Current ARN:      arn:aws:ecs:us-east-2:892213647605:task-definition/deecell-fleet-production:255
+
+[3/5] Building new task definition with S3_BUCKET_NAME + AWS_REGION...
+      Will add to container 'deecell-fleet' env:
+        S3_BUCKET_NAME = deecell-fleet-production-assets-13647605
+        AWS_REGION     = us-east-2
+
+Register new task revision and roll service 'deecell-fleet'? (y/n) y
+
+[4/5] Registering new task definition revision...
+      Registered: arn:aws:ecs:us-east-2:892213647605:task-definition/deecell-fleet-production:256  (revision 256)
+
+[5/5] Updating service 'deecell-fleet' on cluster 'deecell-fleet-production-cluster' to revision 256...
+{
+    "taskDef": "arn:aws:ecs:us-east-2:892213647605:task-definition/deecell-fleet-production:256",
+    "desired": 1,
+    "deployments": [
+        {
+            "status": "PRIMARY",
+            "rollout": "IN_PROGRESS",
+            "taskDef": "arn:aws:ecs:us-east-2:892213647605:task-definition/deecell-fleet-production:256"
+        },
+        {
+            "status": "ACTIVE",
+            "rollout": "COMPLETED",
+            "taskDef": "arn:aws:ecs:us-east-2:892213647605:task-definition/deecell-fleet-production:255"
+        }
+    ]
+}
+
+=== Done. ===
+
+Watch the rollout:
+  aws ecs describe-services --cluster deecell-fleet-production-cluster --services deecell-fleet \
+    --region us-east-2 \
+    --query 'services[0].deployments[*].{status:status,rollout:rolloutState,taskDef:taskDefinition,running:runningCount,desired:desiredCount}'
+
+Roll back if needed:
+  aws ecs update-service --cluster deecell-fleet-production-cluster --service deecell-fleet \
+    --task-definition arn:aws:ecs:us-east-2:892213647605:task-definition/deecell-fleet-production:255 --region us-east-2
+amoeck@Melissas-MacBook-Pro-2 Fleet-manager %
