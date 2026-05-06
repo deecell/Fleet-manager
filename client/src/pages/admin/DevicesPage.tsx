@@ -45,12 +45,9 @@ import {
   useResetDeviceStatus,
   useSetDeviceOffline,
 } from "@/lib/admin-api";
-import { Plus, Pencil, Cpu, Link2, Unlink, Key, Search, Trash2, RotateCcw, WifiOff, Download } from "lucide-react";
+import { Plus, Pencil, Cpu, Link2, Unlink, Key, Search, Trash2, RotateCcw, WifiOff } from "lucide-react";
 import type { PowerMonDevice } from "@shared/schema";
 import type { DeviceWithSnapshot } from "@/lib/admin-api";
-import { AdminExportDialog } from "@/components/AdminExportDialog";
-import { AdminTruckHistoryExportDialog } from "@/components/AdminTruckHistoryExportDialog";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 function SortIcon() {
   return (
@@ -109,8 +106,6 @@ export default function DevicesPage() {
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [searchQuery, setSearchQuery] = useState("");
-  const [isExportOpen, setIsExportOpen] = useState(false);
-  const [historyExportDevice, setHistoryExportDevice] = useState<DeviceWithSnapshot | null>(null);
 
   const handleSort = (field: string) => {
     if (sortField === field) {
@@ -375,14 +370,6 @@ export default function DevicesPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setIsExportOpen(true)}
-              data-testid="button-export-devices"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
             <Button 
               onClick={() => setIsCreateOpen(true)} 
               disabled={!selectedOrgId}
@@ -747,33 +734,6 @@ export default function DevicesPage() {
                                   <WifiOff className="h-4 w-4 text-orange-600" />
                                 </Button>
                               )}
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  {/* span wrapper so the tooltip still fires
-                                      hover/focus when the button is disabled */}
-                                  <span className="inline-flex">
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      onClick={() => setHistoryExportDevice(device)}
-                                      disabled={!device.truckId}
-                                      aria-label={
-                                        device.truckId
-                                          ? "Export truck history"
-                                          : "Assign a truck to enable history export"
-                                      }
-                                      data-testid={`button-export-history-device-${device.id}`}
-                                    >
-                                      <Download className="h-4 w-4 text-blue-600" />
-                                    </Button>
-                                  </span>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  {device.truckId
-                                    ? "Export truck history"
-                                    : "Assign a truck to enable history export"}
-                                </TooltipContent>
-                              </Tooltip>
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -1135,35 +1095,6 @@ export default function DevicesPage() {
           </DialogContent>
         </Dialog>
 
-        <AdminExportDialog
-          open={isExportOpen}
-          onOpenChange={setIsExportOpen}
-          organizationId={selectedOrgId ?? null}
-          organizationName={
-            selectedOrgId
-              ? organizations.find((o) => o.id === selectedOrgId)?.name ?? null
-              : null
-          }
-          searchQuery={searchQuery}
-        />
-
-        {historyExportDevice && historyExportDevice.truckId && (
-          <AdminTruckHistoryExportDialog
-            open={!!historyExportDevice}
-            onOpenChange={(open) => {
-              if (!open) setHistoryExportDevice(null);
-            }}
-            truckId={historyExportDevice.truckId}
-            truckNumber={
-              allTrucks.find((t) => t.id === historyExportDevice.truckId)?.truckNumber ??
-              `Truck #${historyExportDevice.truckId}`
-            }
-            organizationId={historyExportDevice.organizationId}
-            organizationName={
-              organizations.find((o) => o.id === historyExportDevice.organizationId)?.name ?? null
-            }
-          />
-        )}
       </div>
     </AdminLayout>
   );
