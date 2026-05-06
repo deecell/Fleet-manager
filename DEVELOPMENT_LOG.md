@@ -9,8 +9,15 @@
 ### Bug fix: exports failing with "The specified bucket does not exist"
 - **Symptom**: with the SQL fixes in place, the export worker now generated the file successfully but blew up at the S3 upload step with `The specified bucket does not exist`.
 - **Root cause**: production never set `S3_BUCKET_NAME` on the ECS task definition, so `server/aws/s3.ts` fell back to its hardcoded dev default `deecell-fleet-files` — which doesn't exist in the prod account. Terraform actually creates the production bucket as `${name_prefix}-assets-${unique_suffix}` (e.g. `deecell-fleet-production-assets-XXXXXXXX`) and `aws_iam_role_policy.ecs_task` already grants the task role read/write/list to it (`terraform/iam.tf` L120, L129). The wiring just stopped at Terraform — the env var was never added to `terraform/ecs.tf`'s `environment = [...]` block.
-- **Fix**: added `S3_BUCKET_NAME = aws_s3_bucket.assets.bucket` (and `AWS_REGION = var.aws_region` for parity) to the ECS container's `environment` block in `terraform/ecs.tf`. After `terraform apply` the new task revision rolls out and the worker uploads to the right bucket.
-- **No DB migration**. Requires `terraform apply` (then ECS rolls a new task revision).
+- **Fix (Terraform parity)**: added `S3_BUCKET_NAME = aws_s3_bucket.assets.bucket` and `AWS_REGION = var.aws_region` to the ECS container's `environment` block in `terraform/ecs.tf` so future `terraform apply` runs stay aligned.
+- **Fix (applied to prod)**: shipped a targeted ECS-only script `scripts/migrations/2026-05-05_set_ecs_s3_bucket_env.sh` to avoid running a full `terraform apply` (which can surface unrelated drift on a long-lived stack). The script:
+  1. Discovers the actual bucket via `aws s3api list-buckets` (matches `deecell-fleet-production-assets-*`; fails fast on 0 or >1 matches).
+  2. Pulls the current ECS task definition JSON.
+  3. Idempotently injects `S3_BUCKET_NAME` + `AWS_REGION` (no-op if already correct).
+  4. Registers a new task revision and rolls the `deecell-fleet` service.
+  5. Prints both the rollout-watch command and the explicit rollback command (`aws ecs update-service --task-definition <previous-arn>`) so revert is one paste away.
+  Reversible, scoped to ECS only, no other infra touched. Next `terraform apply` will be a no-op for this since both sides match.
+- **No DB migration**.
 
 ### Bug fix: historical exports failing with DISTINCT ON / ORDER BY mismatch
 - **Symptom**: after the prod migration added `sim_location_history.truck_id`, historical exports advanced past aggregation but then died with `SELECT DISTINCT ON expressions must match initial ORDER BY expressions`.
