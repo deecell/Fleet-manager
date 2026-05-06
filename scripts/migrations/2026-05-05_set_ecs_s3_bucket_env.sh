@@ -92,12 +92,20 @@ echo "      Current ARN:      $CURRENT_ARN"
 echo ""
 
 # -- 3. Build the new task-definition payload (idempotent) ------------------
+# IMPORTANT: pass the task-def JSON via a temp file rather than piping it on
+# stdin. `python3 - <<'PYEOF'` consumes stdin as the *script source*, so any
+# upstream pipe (`echo $JSON |`) is silently dropped and json.load(sys.stdin)
+# explodes with "Expecting value: line 1 column 1".
 echo "[3/5] Building new task definition with S3_BUCKET_NAME + AWS_REGION..."
-NEW_TD=$(echo "$CURRENT_TD" | CONTAINER_NAME="$CONTAINER_NAME" \
-    BUCKET_NAME="$BUCKET_NAME" REGION="$REGION" python3 - <<'PYEOF'
+TD_IN=$(mktemp /tmp/td_in.XXXXXX.json)
+echo "$CURRENT_TD" > "$TD_IN"
+NEW_TD=$(CONTAINER_NAME="$CONTAINER_NAME" \
+    BUCKET_NAME="$BUCKET_NAME" REGION="$REGION" \
+    TD_IN="$TD_IN" python3 - <<'PYEOF'
 import json, os, sys
 
-td = json.load(sys.stdin)
+with open(os.environ["TD_IN"]) as f:
+    td = json.load(f)
 container_name = os.environ["CONTAINER_NAME"]
 bucket = os.environ["BUCKET_NAME"]
 region = os.environ["REGION"]
@@ -136,6 +144,7 @@ for f in ("taskDefinitionArn", "revision", "status", "requiresAttributes",
 print(json.dumps(td))
 PYEOF
 )
+rm -f "$TD_IN"
 
 if [ "$NEW_TD" = "__NOOP__" ]; then
     echo "      Already set correctly (S3_BUCKET_NAME=$BUCKET_NAME, AWS_REGION=$REGION)."
