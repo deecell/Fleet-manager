@@ -6,6 +6,11 @@
 
 ## Latest Updates (May 5, 2026)
 
+### Removed: per-device export icon and top "Export" button on /admin/devices
+- **What changed**: removed the per-row Download icon and the top-right "Export" button from `/admin/devices`. Deleted the now-unused `client/src/components/AdminExportDialog.tsx` and `client/src/components/AdminTruckHistoryExportDialog.tsx`.
+- **Why**: after using both surfaces in production the team preferred the consolidated `/admin/export` page (device-registry export + per-truck historical export + recent-exports table in one place). The per-row icon's "Assign a truck to enable history export" disabled state was clunky, and the duplicate top-button was redundant with the dedicated page.
+- **Where to export now**: `/admin/export` (linked from the admin sidebar). Backend route (`POST /api/admin/exports` with discriminated `kind: 'devices' | 'historical'`), worker, S3 layout (`exports/admin/<jobId>/...`), email pipeline, and concurrency accounting are all unchanged — only the two entry-point UIs on `/admin/devices` were removed. Earlier `DEVELOPMENT_LOG.md` entries describing those entry points should be read as historical.
+
 ### Bug fix: exports failing with "The specified bucket does not exist"
 - **Symptom**: with the SQL fixes in place, the export worker now generated the file successfully but blew up at the S3 upload step with `The specified bucket does not exist`.
 - **Root cause**: production never set `S3_BUCKET_NAME` on the ECS task definition, so `server/aws/s3.ts` fell back to its hardcoded dev default `deecell-fleet-files` — which doesn't exist in the prod account. Terraform actually creates the production bucket as `${name_prefix}-assets-${unique_suffix}` (e.g. `deecell-fleet-production-assets-XXXXXXXX`) and `aws_iam_role_policy.ecs_task` already grants the task role read/write/list to it (`terraform/iam.tf` L120, L129). The wiring just stopped at Terraform — the env var was never added to `terraform/ecs.tf`'s `environment = [...]` block.
