@@ -48,6 +48,7 @@ import {
 import { Plus, Pencil, Cpu, Link2, Unlink, Key, Search, Trash2, RotateCcw, WifiOff } from "lucide-react";
 import type { PowerMonDevice } from "@shared/schema";
 import type { DeviceWithSnapshot } from "@/lib/admin-api";
+import { SignalCell, classifySignal } from "@/components/SignalCell";
 
 function SortIcon() {
   return (
@@ -341,6 +342,17 @@ export default function DevicesPage() {
         aVal = a.snapshot?.temperature ?? -999;
         bVal = b.snapshot?.temperature ?? -999;
         break;
+      case "rssi":
+        // Treat null + the -32768 PowerMon "no reading" sentinel as the
+        // worst possible value so they sort to the bottom on ascending,
+        // matching how SignalCell shows them as "—".
+        {
+          const aQuality = classifySignal(a.snapshot?.rssi ?? null);
+          const bQuality = classifySignal(b.snapshot?.rssi ?? null);
+          aVal = aQuality === "unknown" ? -9999 : (a.snapshot?.rssi ?? -9999);
+          bVal = bQuality === "unknown" ? -9999 : (b.snapshot?.rssi ?? -9999);
+        }
+        break;
       default:
         return 0;
     }
@@ -513,6 +525,16 @@ export default function DevicesPage() {
                           <SortIcon />
                         </div>
                       </TableHead>
+                      <TableHead 
+                        className="text-white font-medium text-center cursor-pointer select-none"
+                        onClick={() => handleSort("rssi")}
+                        data-testid="sort-rssi"
+                      >
+                        <div className="flex items-center justify-center gap-1.5">
+                          Signal
+                          <SortIcon />
+                        </div>
+                      </TableHead>
                       <TableHead className="text-white font-medium text-center">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -671,6 +693,12 @@ export default function DevicesPage() {
                           </TableCell>
                           <TableCell className="text-center font-medium">
                             {tempF ?? "-"}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <SignalCell
+                              rssi={snapshot?.rssi}
+                              testId={`signal-${device.id}`}
+                            />
                           </TableCell>
                           <TableCell className="text-center">
                             <div className="flex items-center justify-center gap-0">
