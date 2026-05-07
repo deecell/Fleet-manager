@@ -466,6 +466,12 @@ export const sims = pgTable("sims", {
   carrier: text("carrier"),
   mcc: text("mcc"),
   mnc: text("mnc"),
+  // Router cellular signal strength in dBm. Populated by the InHand poller
+  // from the device's verbose API response (info.rssi/signalStrength when
+  // already in dBm, otherwise converted from CSQ via dBm = -113 + 2*csq).
+  // Null when the router is offline or InHand omits the signal field.
+  routerRssi: integer("router_rssi"),
+  routerSignalUpdatedAt: timestamp("router_signal_updated_at"),
   lastLocationUpdate: timestamp("last_location_update"),
   dataUsedMb: real("data_used_mb").default(0),
   dataLimitMb: real("data_limit_mb"),

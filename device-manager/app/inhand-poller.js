@@ -162,36 +162,41 @@ class InHandPoller {
         return;
       }
 
-      const devicesWithLocation = [];
+      // We collect every device that has at least one identifier — even ones
+      // without GPS — because router signal strength is meaningful on its own
+      // (an offline-with-coords-but-weak-signal router still tells us "the
+      // router is reachable"). Location is treated as optional per device.
+      const devicesWithIds = [];
       for (const device of devices) {
-        const location = this._extractLocation(device);
         const identifiers = this._extractIdentifiers(device);
-
-        if (location && (identifiers.iccid || identifiers.imsi || identifiers.msisdn)) {
-          devicesWithLocation.push({
-            ...identifiers,
-            latitude: location.latitude,
-            longitude: location.longitude,
-            locationTime: location.time,
-            locationSource: location.source,
-            deviceName: device.name || null,
-            deviceSn: device.serialNumber || null,
-            online: device.online !== undefined ? device.online : null,
-          });
+        if (!identifiers.iccid && !identifiers.imsi && !identifiers.msisdn) {
+          continue;
         }
+        const location = this._extractLocation(device);
+        const rssi = this._extractRssi(device);
+        devicesWithIds.push({
+          ...identifiers,
+          latitude: location?.latitude ?? null,
+          longitude: location?.longitude ?? null,
+          locationTime: location?.time ?? null,
+          locationSource: location?.source ?? null,
+          rssi, // dBm, or null if InHand didn't report a signal field
+          deviceName: device.name || null,
+          deviceSn: device.serialNumber || null,
+          online: device.online !== undefined ? device.online : null,
+        });
       }
 
-      if (devicesWithLocation.length === 0) {
-        logger.info('InHand API: No devices with valid identifiers + location', {
+      if (devicesWithIds.length === 0) {
+        logger.info('InHand API: No devices with valid identifiers', {
           totalDevices: devices.length,
-          devicesWithoutLocation: devices.filter(d => !this._extractLocation(d)).length,
         });
         return;
       }
 
-      const iccids = devicesWithLocation.map(d => d.iccid).filter(Boolean);
-      const imsis = devicesWithLocation.map(d => d.imsi).filter(Boolean);
-      const msisdns = devicesWithLocation.map(d => d.msisdn).filter(Boolean);
+      const iccids = devicesWithIds.map(d => d.iccid).filter(Boolean);
+      const imsis = devicesWithIds.map(d => d.imsi).filter(Boolean);
+      const msisdns = devicesWithIds.map(d => d.msisdn).filter(Boolean);
 
       const simsResult = await pool.query(
         `SELECT s.id, s.msisdn, s.iccid, s.imsi, s.truck_id, s.organization_id, t.truck_number
@@ -217,9 +222,10 @@ class InHandPoller {
 
       let trucksUpdated = 0;
       let simsMatched = 0;
+      let simsRssiUpdated = 0;
       let unmatched = [];
 
-      for (const device of devicesWithLocation) {
+      for (const device of devicesWithIds) {
         const sim = (device.iccid && simsByIccid.get(device.iccid))
           || (device.imsi && simsByImsi.get(device.imsi))
           || (device.msisdn && simsByMsisdn.get(device.msisdn));
@@ -236,7 +242,23 @@ class InHandPoller {
 
         simsMatched++;
 
-        if (sim.truck_id) {
+        // Always persist the latest router signal — independent of GPS.
+        // If InHand omitted a signal field, device.rssi is null and we still
+        // bump router_signal_updated_at so the freshness clock matches the
+        // poll cadence (the UI/SignalCell shows "—" for null anyway).
+        await pool.query(
+          `UPDATE sims SET
+            router_rssi = $1,
+            router_signal_updated_at = NOW(),
+            updated_at = NOW()
+          WHERE id = $2`,
+          [device.rssi, sim.id]
+        );
+        if (device.rssi != null) simsRssiUpdated++;
+
+        // Truck-side GPS update — only when this device actually reported
+        // coords AND the SIM is assigned to a truck.
+        if (sim.truck_id && device.latitude != null && device.longitude != null) {
           const truckResult = await pool.query(
             'SELECT latitude, longitude, location_description FROM trucks WHERE id = $1',
             [sim.truck_id]
@@ -267,10 +289,11 @@ class InHandPoller {
       }
 
       const duration = Date.now() - startTime;
-      logger.info('InHand GPS locations updated', {
+      logger.info('InHand poll complete', {
         totalDevices: devices.length,
-        devicesWithLocation: devicesWithLocation.length,
+        devicesWithIds: devicesWithIds.length,
         simsMatched,
+        simsRssiUpdated,
         trucksUpdated,
         unmatchedDevices: unmatched.length > 0 ? unmatched.map(d => `${d.name}(msisdn=${d.msisdn},iccid=${d.iccid})`).join('; ') : undefined,
         durationMs: duration,
@@ -298,7 +321,55 @@ class InHandPoller {
   }
 
   /**
-   * Extract location data from InHand device object
+   * Extract cellular signal strength from an InHand device object, normalized
+   * to dBm (negative integer). Returns null when no recognizable field is
+   * present.
+   *
+   * InHand's verbose=100 response field naming varies by firmware/model. We
+   * try the most common locations in order:
+   *   1. Already-in-dBm fields: device.rssi, info.rssi, info.signalStrength,
+   *      device.signalStrength. Accept negative values in (-200, 0).
+   *   2. CSQ scale (0-31, 99 = "no signal"): info.signalLevel, info.csq,
+   *      device.signalLevel. Convert via dBm = -113 + 2 * csq.
+   * If neither is present, return null and let the SignalCell render as "—".
+   */
+  _extractRssi(device) {
+    const info = device.info || {};
+
+    const dbmCandidates = [
+      device.rssi,
+      info.rssi,
+      info.signalStrength,
+      device.signalStrength,
+    ];
+    for (const v of dbmCandidates) {
+      if (v == null || v === '') continue;
+      const n = parseFloat(v);
+      if (!isNaN(n) && n < 0 && n > -200) {
+        return Math.round(n);
+      }
+    }
+
+    const csqCandidates = [
+      info.signalLevel,
+      info.csq,
+      device.signalLevel,
+      info.signal,
+    ];
+    for (const v of csqCandidates) {
+      if (v == null || v === '') continue;
+      const n = parseInt(v, 10);
+      // Skip 99 — InHand uses it as "no signal / unknown".
+      if (!isNaN(n) && n >= 0 && n <= 31) {
+        return -113 + 2 * n;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Extract location data from an InHand device object.
    * With verbose>=50, location is nested: device.location.{latitude, longitude, time, source}
    */
   _extractLocation(device) {

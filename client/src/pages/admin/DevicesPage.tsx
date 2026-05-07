@@ -342,17 +342,29 @@ export default function DevicesPage() {
         aVal = a.snapshot?.temperature ?? -999;
         bVal = b.snapshot?.temperature ?? -999;
         break;
-      case "rssi":
-        // Treat null + the -32768 PowerMon "no reading" sentinel as the
-        // worst possible value so they sort to the bottom on ascending,
-        // matching how SignalCell shows them as "—".
-        {
-          const aQuality = classifySignal(a.snapshot?.rssi ?? null);
-          const bQuality = classifySignal(b.snapshot?.rssi ?? null);
-          aVal = aQuality === "unknown" ? -9999 : (a.snapshot?.rssi ?? -9999);
-          bVal = bQuality === "unknown" ? -9999 : (b.snapshot?.rssi ?? -9999);
-        }
+      case "rssi": {
+        // Unknowns (null or PowerMon -32768 "no reading" sentinel) always
+        // sort to the bottom regardless of direction — matches how SignalCell
+        // shows them as "—" and keeps "no data" rows out of the way.
+        const aUnknown = classifySignal(a.snapshot?.rssi ?? null) === "unknown";
+        const bUnknown = classifySignal(b.snapshot?.rssi ?? null) === "unknown";
+        if (aUnknown && bUnknown) return 0;
+        if (aUnknown) return 1;
+        if (bUnknown) return -1;
+        aVal = a.snapshot?.rssi as number;
+        bVal = b.snapshot?.rssi as number;
         break;
+      }
+      case "routerRssi": {
+        const aUnknown = classifySignal(a.routerRssi ?? null) === "unknown";
+        const bUnknown = classifySignal(b.routerRssi ?? null) === "unknown";
+        if (aUnknown && bUnknown) return 0;
+        if (aUnknown) return 1;
+        if (bUnknown) return -1;
+        aVal = a.routerRssi as number;
+        bVal = b.routerRssi as number;
+        break;
+      }
       default:
         return 0;
     }
@@ -531,7 +543,17 @@ export default function DevicesPage() {
                         data-testid="sort-rssi"
                       >
                         <div className="flex items-center justify-center gap-1.5">
-                          Signal
+                          PM Sig
+                          <SortIcon />
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="text-white font-medium text-center cursor-pointer select-none"
+                        onClick={() => handleSort("routerRssi")}
+                        data-testid="sort-router-rssi"
+                      >
+                        <div className="flex items-center justify-center gap-1.5">
+                          Router Sig
                           <SortIcon />
                         </div>
                       </TableHead>
@@ -698,6 +720,12 @@ export default function DevicesPage() {
                             <SignalCell
                               rssi={snapshot?.rssi}
                               testId={`signal-${device.id}`}
+                            />
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <SignalCell
+                              rssi={device.routerRssi}
+                              testId={`router-signal-${device.id}`}
                             />
                           </TableCell>
                           <TableCell className="text-center">

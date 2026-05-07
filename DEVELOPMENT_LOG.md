@@ -4,6 +4,24 @@
 
 ---
 
+## Latest Updates (May 7, 2026)
+
+### Added: Router signal column on /admin/devices (InHand cellular RSSI)
+- **What changed**: `/admin/devices` now has a second sortable, color-coded "Router Sig" column next to the existing PowerMon "PM Sig" column. Both cells reuse the shared `<SignalCell>` (-XX dBm, green/amber/red bands, "—" for null/sentinel, hover tooltip with quality label).
+- **Where the data comes from**: the InHand poller (`device-manager/app/inhand-poller.js`) now extracts cellular signal on every poll and persists it to two new columns on `sims`:
+  - `router_rssi` (integer, dBm)
+  - `router_signal_updated_at` (timestamp — bumped on every poll, even when InHand omits a signal field, so freshness is observable)
+- **InHand field handling**: `_extractRssi(device)` tries dBm fields first (`device.rssi`, `info.rssi`, `info.signalStrength`, `device.signalStrength`) accepting any negative value in (-200, 0). Falls back to CSQ scale (0–31, with 99 = "no signal") via `info.signalLevel | info.csq | device.signalLevel | info.signal` and converts using the standard `dBm = -113 + 2 * csq`. Returns null when nothing matches; the UI shows "—".
+- **Poller refactor**: previously the loop only collected devices that had BOTH GPS and identifiers, so signal-only devices were silently dropped. Now we collect every device with at least one identifier (msisdn/iccid/imsi), update `sims.router_rssi` for every match, and only do the truck-side GPS update when coords are present AND a truck is assigned. New log line: `InHand poll complete { totalDevices, devicesWithIds, simsMatched, simsRssiUpdated, trucksUpdated, ... }`.
+- **API**: `storage.listAllDevicesWithSnapshots()` and `storage.listDevicesWithSnapshots(orgId)` now do a parallel `select` from `sims` keyed by `device_id` and return `routerRssi: number | null` on each row. `DeviceWithSnapshot` (in `client/src/lib/admin-api.ts`) is the canonical type and now carries `routerRssi`.
+- **Migration**: production needs the new sims columns before the deploy goes live. Runnable script per the standing convention:
+  - `scripts/migrations/2026-05-07_add_router_rssi_to_sims.sh` (SSM → EC2 → psql via Secrets Manager)
+  - `scripts/migrations/2026-05-07_add_router_rssi_to_sims.sql` (`ADD COLUMN IF NOT EXISTS` for both columns + a verification SELECT). Idempotent, safe to re-run.
+- **Renamed header**: the existing PowerMon RSSI column header on `/admin/devices` changed from "Signal" to "PM Sig" so the two columns are unambiguous side-by-side.
+- **Out of scope (intentional)**: customer-side `FleetTable` is not touched — its 3-sub-table layout needs a width rebalance and that's a follow-up. Admin device-registry CSV/Excel export is also not extended yet (RSSI column there still refers to PowerMon `device_snapshots.rssi`).
+
+---
+
 ## Latest Updates (May 5, 2026)
 
 ### Removed: per-device export icon and top "Export" button on /admin/devices

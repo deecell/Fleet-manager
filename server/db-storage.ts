@@ -1089,46 +1089,71 @@ export class DbStorage {
     return db.select().from(powerMonDevices).orderBy(asc(powerMonDevices.serialNumber));
   }
 
-  async listAllDevicesWithSnapshots(): Promise<(PowerMonDevice & { snapshot?: DeviceSnapshot })[]> {
+  async listAllDevicesWithSnapshots(): Promise<(PowerMonDevice & { snapshot?: DeviceSnapshot; routerRssi?: number | null })[]> {
     const deviceList = await db.select().from(powerMonDevices).orderBy(asc(powerMonDevices.serialNumber));
     const deviceIds = deviceList.map(d => d.id);
     
     let snapshotMap = new Map<number, DeviceSnapshot>();
+    let routerRssiMap = new Map<number, number | null>();
     if (deviceIds.length > 0) {
-      const snapshots = await db.select().from(deviceSnapshots)
-        .where(inArray(deviceSnapshots.deviceId, deviceIds));
+      const [snapshots, simRows] = await Promise.all([
+        db.select().from(deviceSnapshots)
+          .where(inArray(deviceSnapshots.deviceId, deviceIds)),
+        db.select({
+          deviceId: sims.deviceId,
+          routerRssi: sims.routerRssi,
+        }).from(sims).where(inArray(sims.deviceId, deviceIds)),
+      ]);
       for (const s of snapshots) {
         snapshotMap.set(s.deviceId, s);
+      }
+      for (const s of simRows) {
+        if (s.deviceId != null) routerRssiMap.set(s.deviceId, s.routerRssi);
       }
     }
     
     return deviceList.map(device => ({
       ...device,
       snapshot: snapshotMap.get(device.id),
+      routerRssi: routerRssiMap.get(device.id) ?? null,
     }));
   }
 
-  async listDevicesWithSnapshots(organizationId: number): Promise<(PowerMonDevice & { snapshot?: DeviceSnapshot })[]> {
+  async listDevicesWithSnapshots(organizationId: number): Promise<(PowerMonDevice & { snapshot?: DeviceSnapshot; routerRssi?: number | null })[]> {
     const deviceList = await db.select().from(powerMonDevices)
       .where(eq(powerMonDevices.organizationId, organizationId))
       .orderBy(asc(powerMonDevices.serialNumber));
     const deviceIds = deviceList.map(d => d.id);
     
     let snapshotMap = new Map<number, DeviceSnapshot>();
+    let routerRssiMap = new Map<number, number | null>();
     if (deviceIds.length > 0) {
-      const snapshots = await db.select().from(deviceSnapshots)
-        .where(and(
-          eq(deviceSnapshots.organizationId, organizationId),
-          inArray(deviceSnapshots.deviceId, deviceIds)
-        ));
+      const [snapshots, simRows] = await Promise.all([
+        db.select().from(deviceSnapshots)
+          .where(and(
+            eq(deviceSnapshots.organizationId, organizationId),
+            inArray(deviceSnapshots.deviceId, deviceIds)
+          )),
+        db.select({
+          deviceId: sims.deviceId,
+          routerRssi: sims.routerRssi,
+        }).from(sims).where(and(
+          eq(sims.organizationId, organizationId),
+          inArray(sims.deviceId, deviceIds),
+        )),
+      ]);
       for (const s of snapshots) {
         snapshotMap.set(s.deviceId, s);
+      }
+      for (const s of simRows) {
+        if (s.deviceId != null) routerRssiMap.set(s.deviceId, s.routerRssi);
       }
     }
     
     return deviceList.map(device => ({
       ...device,
       snapshot: snapshotMap.get(device.id),
+      routerRssi: routerRssiMap.get(device.id) ?? null,
     }));
   }
 

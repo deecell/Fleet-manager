@@ -9,7 +9,13 @@ import type {
   DeviceSnapshot,
 } from "@shared/schema";
 
-export type DeviceWithSnapshot = PowerMonDevice & { snapshot?: DeviceSnapshot };
+export type DeviceWithSnapshot = PowerMonDevice & {
+  snapshot?: DeviceSnapshot;
+  // Router cellular signal in dBm, from the linked SIM (sims.router_rssi).
+  // Null when no SIM is linked to the device or the InHand poller hasn't
+  // reported a signal yet.
+  routerRssi?: number | null;
+};
 
 // Auto-refresh interval for admin dashboard (10 seconds, matching Fleet dashboard)
 const ADMIN_POLL_INTERVAL = 10000;
