@@ -22,6 +22,10 @@
 # Zero side effects: does not write to disk, does not touch the database,
 # does not touch AWS. Pure local probe.
 #
+# Required tools (all default on macOS): bash, curl, jq, plus standard
+# POSIX utilities (awk, sed, head). Password hashing uses any one of
+# md5 / md5sum / python3.
+#
 
 set -u
 set -o pipefail
@@ -307,7 +311,7 @@ jq -r '
   | [
       ($d.name // "—"),
       ($d.serialNumber // "—"),
-      ($d.online | tostring),
+      (if $d.online == null then "—" else ($d.online | tostring) end),
       ($d.mobileNumber // "—"),
       ($info.iccid // "—"),
       ($loc.latitude  // "—" | tostring),
