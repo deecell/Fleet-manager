@@ -227,7 +227,7 @@ echo "" >&2
 # Header line on stdout, tab-separated.
 echo "[3/3] Extracting signal data ..." >&2
 echo "" >&2
-printf "name\tserialNumber\tonline\tmsisdn\ticcid\tlat\tlng\trawSignalField\trawSignalValue\tnormalizedDbm\n"
+printf "name\tserialNumber\tonline\tmsisdn\ticcid\tlat\tlng\trawSignal\tnormalizedDbm\n"
 
 # jq program:
 #  - emit one row per device, tab-separated.
@@ -287,7 +287,7 @@ jq -r '
     ) as $dbm
   | (
       if $dbm != null then
-        { field: $dbm.name, raw: ($dbm.value|tostring), dbm: ($dbm.value | round) }
+        { raw: "\($dbm.name)=\($dbm.value)", dbm: ($dbm.value | round) }
       else
         ( first_csq([
             {name: "info.signalLevel",   value: $info.signalLevel},
@@ -297,9 +297,9 @@ jq -r '
           ])
         ) as $csq
         | if $csq != null then
-            { field: $csq.name, raw: ($csq.value|tostring), dbm: (-113 + 2 * $csq.value) }
+            { raw: "\($csq.name)=\($csq.value)", dbm: (-113 + 2 * $csq.value) }
           else
-            { field: "—", raw: "—", dbm: null }
+            { raw: "—", dbm: null }
           end
       end
     ) as $sig
@@ -312,7 +312,6 @@ jq -r '
       ($info.iccid // "—"),
       ($loc.latitude  // "—" | tostring),
       ($loc.longitude // "—" | tostring),
-      $sig.field,
       $sig.raw,
       ($sig.dbm // "—" | tostring)
     ]
@@ -340,27 +339,34 @@ SUMMARY="$(jq -r '
   def is_dbm($n): ($n != null) and ($n < 0) and ($n > -200);
   def is_csq($n): ($n != null) and ($n >= 0) and ($n <= 31);
 
-  def first_match($pairs):
-    ( $pairs | map(select(.value != null and .value != "")) ) as $raw
-    | (
-        ( $raw | map(.value |= parse_float) | map(select(is_dbm(.value))) | first )
-        // ( $raw | map(.value |= parse_int)   | map(select(is_csq(.value))) | first )
-        // null
-      );
+  # Mirror the per-row two-phase extraction EXACTLY: try the dBm-only fields
+  # first (rejecting positive values via is_dbm), then the CSQ-only fields
+  # (rejecting out-of-range values via is_csq). Mixing them in a single pass
+  # would let a positive `device.signalStrength` value get falsely counted
+  # as CSQ, diverging from inhand-poller.js::_extractRssi.
+  def first_dbm($pairs):
+    ($pairs | map(select(.value != null and .value != "") | .value |= parse_float)
+            | map(select(is_dbm(.value))) | first) // null;
+  def first_csq($pairs):
+    ($pairs | map(select(.value != null and .value != "") | .value |= parse_int)
+            | map(select(is_csq(.value))) | first) // null;
 
   map(
     . as $d
     | ($d.info // {}) as $info
-    | first_match([
-        {name: "device.rssi",            value: $d.rssi},
-        {name: "info.rssi",              value: $info.rssi},
-        {name: "info.signalStrength",    value: $info.signalStrength},
-        {name: "device.signalStrength",  value: $d.signalStrength},
-        {name: "info.signalLevel",       value: $info.signalLevel},
-        {name: "info.csq",               value: $info.csq},
-        {name: "device.signalLevel",     value: $d.signalLevel},
-        {name: "info.signal",            value: $info.signal}
-      ])
+    | ( first_dbm([
+          {name: "device.rssi",            value: $d.rssi},
+          {name: "info.rssi",              value: $info.rssi},
+          {name: "info.signalStrength",    value: $info.signalStrength},
+          {name: "device.signalStrength",  value: $d.signalStrength}
+        ])
+        // first_csq([
+          {name: "info.signalLevel",       value: $info.signalLevel},
+          {name: "info.csq",               value: $info.csq},
+          {name: "device.signalLevel",     value: $d.signalLevel},
+          {name: "info.signal",            value: $info.signal}
+        ])
+      )
   )
   | { total: length,
       withSignal: (map(select(. != null)) | length),
