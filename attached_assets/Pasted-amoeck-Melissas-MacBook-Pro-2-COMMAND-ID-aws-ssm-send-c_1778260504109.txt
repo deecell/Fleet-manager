@@ -1,0 +1,42 @@
+amoeck@Melissas-MacBook-Pro-2 ~ % COMMAND_ID=$(aws ssm send-command \
+  --region us-east-2 \
+  --instance-ids "$INSTANCE_ID" \
+  --document-name "AWS-RunShellScript" \
+  --comment "Verify new code on disk and restart device-manager" \
+  --parameters 'commands=["echo === FILE ON DISK ===","ls -la /opt/device-manager/app/inhand-poller.js","echo === HAS NEW _extractRssi FUNCTION? ===","grep -c _extractRssi /opt/device-manager/app/inhand-poller.js","echo === RESTARTING SERVICE ===","sudo systemctl restart device-manager","sleep 3","sudo systemctl status device-manager --no-pager -l | head -15","echo === WAITING 2 MIN FOR FIRST POLL ===","sleep 130","echo === RECENT InHand LOGS ===","sudo journalctl -u device-manager --since \"3 minutes ago\" --no-pager | grep -i -E \"inhand|rssi\" | tail -30"]' \
+  --query 'Command.CommandId' \
+  --output text)
+echo "Command: $COMMAND_ID"
+sleep 150
+aws ssm get-command-invocation \
+  --region us-east-2 \
+  --instance-id "$INSTANCE_ID" \
+  --command-id "$COMMAND_ID" \
+  --query 'StandardOutputContent' \
+  --output text
+Command: c734ae50-b8fc-49ff-8706-6568953633d8
+=== FILE ON DISK ===
+-rw-r--r-- 1 root root 13663 May  7 17:02 /opt/device-manager/app/inhand-poller.js
+=== HAS NEW _extractRssi FUNCTION? ===
+2
+=== RESTARTING SERVICE ===
+● device-manager.service - Deecell Device Manager
+     Loaded: loaded (/etc/systemd/system/device-manager.service; enabled; preset: enabled)
+     Active: active (running) since Fri 2026-05-08 17:12:15 UTC; 3s ago
+   Main PID: 130329 (node)
+      Tasks: 141 (limit: 1017)
+     Memory: 174.5M (peak: 175.0M)
+        CPU: 4.143s
+     CGroup: /system.slice/device-manager.service
+             ├─130329 node app/index.js
+             ├─130360 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─130361 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─130362 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─130368 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─130369 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─130371 /usr/bin/node /opt/device-manager/app/worker.js
+=== WAITING 2 MIN FOR FIRST POLL ===
+=== RECENT InHand LOGS ===
+May 08 17:12:16 ip-10-0-12-190 start.sh[130329]: 2026-05-08 17:12:16.695 WARN  InHand API credentials not configured, GPS polling disabled
+
+amoeck@Melissas-MacBook-Pro-2 ~ %
