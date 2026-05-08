@@ -192,10 +192,15 @@ while : ; do
         exit 1
     fi
 
-    PAGE_META="$(printf '%s' "${DEV_BODY}" | jq -r '"\(.total // 0)\t\(.limit // 100)"' 2>/dev/null || echo "0  100")"
-    TOTAL_REPORTED="${PAGE_META%        *}"
-    PAGE_LIMIT="${PAGE_META#*   }"
+    TOTAL_REPORTED="$(printf '%s' "${DEV_BODY}" | jq -r '.total // 0' 2>/dev/null || echo 0)"
+    PAGE_LIMIT="$(printf '%s' "${DEV_BODY}" | jq -r '.limit // 100' 2>/dev/null || echo 100)"
     PAGE_COUNT="$(printf '%s' "${PAGE_RESULT_JSON}" | jq 'length')"
+    # Validate each is a non-negative integer; default if not (defensive — if
+    # the API returns garbage here, fall back to safe values rather than
+    # blowing up the arithmetic below).
+    case "${TOTAL_REPORTED}" in ''|*[!0-9]*) TOTAL_REPORTED=0 ;; esac
+    case "${PAGE_LIMIT}"      in ''|*[!0-9]*) PAGE_LIMIT=100 ;; esac
+    case "${PAGE_COUNT}"      in ''|*[!0-9]*) PAGE_COUNT=0 ;; esac
 
     # Concatenate the running array with this page in-memory.
     ALL_DEVICES_JSON="$(jq -cn --argjson a "${ALL_DEVICES_JSON}" --argjson b "${PAGE_RESULT_JSON}" '$a + $b')"
