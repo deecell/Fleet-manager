@@ -1,0 +1,57 @@
+amoeck@Melissas-MacBook-Pro-2 ~ % COMMAND_ID=$(aws ssm send-command \
+  --region us-east-2 \
+  --instance-ids "$INSTANCE_ID" \
+  --document-name "AWS-RunShellScript" \
+  --comment "Find where InHand creds actually live" \
+  --parameters 'commands=["echo === SYSTEMD UNIT ===","sudo cat /etc/systemd/system/device-manager.service","echo === START.SH ===","sudo cat /opt/device-manager/start.sh 2>/dev/null || sudo find /opt -name start.sh 2>/dev/null | head -3","echo === CANDIDATE ENV FILES ===","sudo find /etc/default /etc/sysconfig /opt/device-manager /opt/deecell -maxdepth 3 -name \".env*\" -o -name \"environment\" -o -name \"device-manager\" 2>/dev/null","echo === ALL SECRETS IN SECRETS MANAGER ===","aws secretsmanager list-secrets --region us-east-2 --query \"SecretList[].Name\" --output text | tr \"\\t\" \"\\n\"","echo === ACTUAL ENV OF RUNNING POLLER PROCESS ===","sudo cat /proc/$(pgrep -f \"node app/index.js\" | head -1)/environ 2>/dev/null | tr \"\\0\" \"\\n\" | grep -i inhand"]' \
+  --query 'Command.CommandId' \
+  --output text)
+sleep 6
+aws ssm get-command-invocation --region us-east-2 --instance-id "$INSTANCE_ID" --command-id "$COMMAND_ID" --query 'StandardOutputContent' --output text
+=== SYSTEMD UNIT ===
+[Unit]
+Description=Deecell Device Manager
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/device-manager
+Environment=RDS_CA_BUNDLE=/opt/device-manager/certs/rds-ca-bundle.pem
+ExecStart=/opt/device-manager/start.sh
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+=== START.SH ===
+#!/bin/bash
+set -e
+    
+# Fetch DATABASE_URL from Secrets Manager using IAM role
+export DATABASE_URL=$(aws secretsmanager get-secret-value \
+  --secret-id "arn:aws:secretsmanager:us-east-2:892213647605:secret:deecell-fleet-production/database-url-pDVG5g" \
+  --query 'SecretString' \
+  --output text \
+  --region us-east-2)
+    
+# Fetch SIMPro credentials if enabled
+    
+# Set other environment variables
+export NODE_ENV=production
+export LOG_LEVEL=info
+export DM_PORT=3001
+export POLL_INTERVAL_MS=10000
+export COHORT_COUNT=10
+export MAX_BATCH_SIZE=500
+    
+# Start the application
+exec node app/index.js
+=== CANDIDATE ENV FILES ===
+/opt/device-manager
+=== ALL SECRETS IN SECRETS MANAGER ===
+=== ACTUAL ENV OF RUNNING POLLER PROCESS ===
+
+amoeck@Melissas-MacBook-Pro-2 ~ %
