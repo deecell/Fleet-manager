@@ -79,49 +79,91 @@ BASE_URL="${BASE_URL_INPUT:-$DEFAULT_BASE_URL}"
 BASE_URL="${BASE_URL%/}"
 echo "" >&2
 
-# ---- Authenticate ---------------------------------------------------------
+# ---- Helper: print a standardized failure (status + body snippet) ---------
+fail_with_response() {
+    local context="$1" status="$2" body="$3"
+    echo "ERROR: ${context} (HTTP ${status:-unknown})" >&2
+    echo "Response (first 500 chars):" >&2
+    printf '%s' "${body}" | head -c 500 >&2
+    echo "" >&2
+}
+
+# ---- Authenticate (returns 0 + sets ACCESS_TOKEN, or non-zero on failure) -
+# Tries one base URL; caller decides whether to retry against a fallback.
+ACCESS_TOKEN=""
+try_authenticate() {
+    local base_url="$1"
+    local md5_pw
+    md5_pw="$(md5_hex "${PASSWORD}")"
+
+    local body="grant_type=password"
+    body+="&username=$(jq -rn --arg v "${USERNAME}" '$v|@uri')"
+    body+="&password=${md5_pw}"
+    body+="&password_type=2"
+    body+="&client_id=${INHAND_CLIENT_ID}"
+    body+="&client_secret=${INHAND_CLIENT_SECRET}"
+
+    local raw
+    if ! raw="$(curl -sS -w '\n__HTTP_STATUS__:%{http_code}' \
+        -X POST "${base_url%/}/oauth2/access_token" \
+        -H 'Accept: application/json' \
+        -H 'Content-Type: application/x-www-form-urlencoded; charset=utf-8' \
+        --data "${body}")"; then
+        fail_with_response "curl failed talking to ${base_url}" "n/a" ""
+        return 1
+    fi
+
+    local status resp
+    status="$(printf '%s' "${raw}" | awk -F: '/^__HTTP_STATUS__:/ {print $2}')"
+    resp="$(printf '%s' "${raw}" | sed '$d')"
+
+    if [ "${status}" != "200" ]; then
+        fail_with_response "authentication failed against ${base_url}" "${status}" "${resp}"
+        return 1
+    fi
+
+    local token
+    if ! token="$(printf '%s' "${resp}" | jq -r '.access_token // empty' 2>/dev/null)" || [ -z "${token}" ]; then
+        fail_with_response "no access_token in response from ${base_url}" "${status}" "${resp}"
+        return 1
+    fi
+
+    ACCESS_TOKEN="${token}"
+    echo "    authenticated against ${base_url}, token length: ${#ACCESS_TOKEN}" >&2
+    return 0
+}
+
 echo "[1/3] Authenticating against ${BASE_URL} ..." >&2
-MD5_PW="$(md5_hex "${PASSWORD}")"
-
-AUTH_BODY="grant_type=password"
-AUTH_BODY+="&username=$(jq -rn --arg v "${USERNAME}" '$v|@uri')"
-AUTH_BODY+="&password=${MD5_PW}"
-AUTH_BODY+="&password_type=2"
-AUTH_BODY+="&client_id=${INHAND_CLIENT_ID}"
-AUTH_BODY+="&client_secret=${INHAND_CLIENT_SECRET}"
-
-AUTH_RAW="$(curl -sS -w '\n__HTTP_STATUS__:%{http_code}' \
-    -X POST "${BASE_URL}/oauth2/access_token" \
-    -H 'Accept: application/json' \
-    -H 'Content-Type: application/x-www-form-urlencoded; charset=utf-8' \
-    --data "${AUTH_BODY}")" || { echo "ERROR: curl failed talking to ${BASE_URL}" >&2; exit 1; }
-
-AUTH_STATUS="$(printf '%s' "${AUTH_RAW}" | awk -F: '/^__HTTP_STATUS__:/ {print $2}')"
-AUTH_BODY_RESP="$(printf '%s' "${AUTH_RAW}" | sed '$d')"
-
-if [ "${AUTH_STATUS}" != "200" ]; then
-    echo "ERROR: authentication failed (HTTP ${AUTH_STATUS})" >&2
-    echo "Response (first 500 chars):" >&2
-    echo "${AUTH_BODY_RESP}" | head -c 500 >&2
-    echo "" >&2
-    exit 1
+if ! try_authenticate "${BASE_URL}"; then
+    # Per the task spec, offer the alternate region (https://iot.inhandnetworks.com)
+    # as a one-shot fallback when the NA endpoint rejects the credentials.
+    FALLBACK_URL="https://iot.inhandnetworks.com"
+    if [ "${BASE_URL}" != "${FALLBACK_URL}" ]; then
+        echo "" >&2
+        printf "Retry against fallback %s ? [y/N]: " "${FALLBACK_URL}" >&2
+        read -r RETRY_REPLY
+        case "${RETRY_REPLY}" in
+            y|Y|yes|YES)
+                BASE_URL="${FALLBACK_URL}"
+                echo "    retrying against ${BASE_URL} ..." >&2
+                if ! try_authenticate "${BASE_URL}"; then
+                    exit 1
+                fi
+                ;;
+            *)
+                exit 1
+                ;;
+        esac
+    else
+        exit 1
+    fi
 fi
 
-ACCESS_TOKEN="$(printf '%s' "${AUTH_BODY_RESP}" | jq -r '.access_token // empty')"
-if [ -z "${ACCESS_TOKEN}" ]; then
-    echo "ERROR: no access_token in response" >&2
-    echo "Response (first 500 chars):" >&2
-    echo "${AUTH_BODY_RESP}" | head -c 500 >&2
-    echo "" >&2
-    exit 1
-fi
-echo "    authenticated, token length: ${#ACCESS_TOKEN}" >&2
-
-# ---- Paginated fetch of /api/devices?verbose=100 --------------------------
+# ---- Paginated fetch of /api/devices?verbose=100 (in-memory) --------------
+# Aggregate every page's `.result` array into one bash variable holding a
+# JSON array string. Avoids any disk writes.
 echo "[2/3] Fetching devices (verbose=100) ..." >&2
-ALL_DEVICES_FILE="$(mktemp -t inhand_devices.XXXXXX)"
-trap 'rm -f "${ALL_DEVICES_FILE}"' EXIT
-echo "[]" > "${ALL_DEVICES_FILE}"
+ALL_DEVICES_JSON="[]"
 
 CURSOR=0
 LIMIT=100
@@ -129,42 +171,34 @@ TOTAL_REPORTED=0
 PAGES=0
 
 while : ; do
-    DEV_RAW="$(curl -sS -w '\n__HTTP_STATUS__:%{http_code}' \
+    if ! DEV_RAW="$(curl -sS -w '\n__HTTP_STATUS__:%{http_code}' \
         -H "Authorization: Bearer ${ACCESS_TOKEN}" \
         -H 'Accept: application/json' \
-        "${BASE_URL}/api/devices?verbose=100&cursor=${CURSOR}&limit=${LIMIT}")" \
-        || { echo "ERROR: curl failed fetching devices (cursor=${CURSOR})" >&2; exit 1; }
+        "${BASE_URL}/api/devices?verbose=100&cursor=${CURSOR}&limit=${LIMIT}")"; then
+        fail_with_response "curl failed fetching devices (cursor=${CURSOR})" "n/a" ""
+        exit 1
+    fi
 
     DEV_STATUS="$(printf '%s' "${DEV_RAW}" | awk -F: '/^__HTTP_STATUS__:/ {print $2}')"
     DEV_BODY="$(printf '%s' "${DEV_RAW}" | sed '$d')"
 
     if [ "${DEV_STATUS}" != "200" ]; then
-        echo "ERROR: /api/devices returned HTTP ${DEV_STATUS}" >&2
-        echo "Response (first 500 chars):" >&2
-        echo "${DEV_BODY}" | head -c 500 >&2
-        echo "" >&2
+        fail_with_response "/api/devices request failed (cursor=${CURSOR})" "${DEV_STATUS}" "${DEV_BODY}"
         exit 1
     fi
 
-    PAGE_DEVICES_FILE="$(mktemp -t inhand_page.XXXXXX)"
-    if ! printf '%s' "${DEV_BODY}" | jq '.result // []' > "${PAGE_DEVICES_FILE}" 2>/dev/null; then
-        echo "ERROR: failed to parse devices response as JSON" >&2
-        echo "Response (first 500 chars):" >&2
-        echo "${DEV_BODY}" | head -c 500 >&2
-        echo "" >&2
-        rm -f "${PAGE_DEVICES_FILE}"
+    if ! PAGE_RESULT_JSON="$(printf '%s' "${DEV_BODY}" | jq -c '.result // []' 2>/dev/null)"; then
+        fail_with_response "failed to parse devices response as JSON (cursor=${CURSOR})" "${DEV_STATUS}" "${DEV_BODY}"
         exit 1
     fi
 
-    PAGE_COUNT="$(jq 'length' < "${PAGE_DEVICES_FILE}")"
-    TOTAL_REPORTED="$(printf '%s' "${DEV_BODY}" | jq -r '.total // 0')"
-    PAGE_LIMIT="$(printf '%s' "${DEV_BODY}" | jq -r '.limit // 100')"
+    PAGE_META="$(printf '%s' "${DEV_BODY}" | jq -r '"\(.total // 0)\t\(.limit // 100)"' 2>/dev/null || echo "0  100")"
+    TOTAL_REPORTED="${PAGE_META%        *}"
+    PAGE_LIMIT="${PAGE_META#*   }"
+    PAGE_COUNT="$(printf '%s' "${PAGE_RESULT_JSON}" | jq 'length')"
 
-    # Append this page's devices to the running list.
-    NEXT_FILE="$(mktemp -t inhand_combined.XXXXXX)"
-    jq -s 'add' "${ALL_DEVICES_FILE}" "${PAGE_DEVICES_FILE}" > "${NEXT_FILE}"
-    mv "${NEXT_FILE}" "${ALL_DEVICES_FILE}"
-    rm -f "${PAGE_DEVICES_FILE}"
+    # Concatenate the running array with this page in-memory.
+    ALL_DEVICES_JSON="$(jq -cn --argjson a "${ALL_DEVICES_JSON}" --argjson b "${PAGE_RESULT_JSON}" '$a + $b')"
 
     PAGES=$((PAGES + 1))
     CURSOR=$((CURSOR + PAGE_LIMIT))
@@ -180,7 +214,7 @@ while : ; do
     fi
 done
 
-DEVICE_COUNT="$(jq 'length' < "${ALL_DEVICES_FILE}")"
+DEVICE_COUNT="$(printf '%s' "${ALL_DEVICES_JSON}" | jq 'length')"
 echo "    fetched ${DEVICE_COUNT} devices in ${PAGES} page(s) (API total=${TOTAL_REPORTED})" >&2
 echo "" >&2
 
@@ -278,7 +312,7 @@ jq -r '
       ($sig.dbm // "—" | tostring)
     ]
   | @tsv
-' "${ALL_DEVICES_FILE}"
+' <<<"${ALL_DEVICES_JSON}"
 
 # ---- Summary --------------------------------------------------------------
 SUMMARY="$(jq -r '
@@ -328,7 +362,7 @@ SUMMARY="$(jq -r '
       fields: (map(select(. != null) | .name) | unique)
     }
   | "\(.total) devices total, \(.withSignal) with signal data, signal data found in field(s): \(.fields | join(", "))"
-' < "${ALL_DEVICES_FILE}")"
+' <<<"${ALL_DEVICES_JSON}")"
 
 echo "" >&2
 echo "=== Summary ===" >&2
