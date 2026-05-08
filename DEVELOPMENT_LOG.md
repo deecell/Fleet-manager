@@ -4,6 +4,25 @@
 
 ---
 
+## Latest Updates (May 8, 2026)
+
+### Added: Standalone InHand signal-strength probe script (laptop diagnostic)
+- **What changed**: new `scripts/probe/inhand_signal_probe.sh` — a zero-side-effect bash script that authenticates against InHand from a laptop and prints per-device cellular signal data. Created because the production credential wiring (yesterday's `2026-05-08_wire_inhand_creds_into_device_manager.sh`) ran clean but the in-script DB verification step came back empty, and we want to prove the API actually returns signal before chasing more infra.
+- **What it does**:
+  1. Prompts for `INHAND_API_USERNAME` (visible) and `INHAND_API_PASSWORD` (hidden, no echo) plus an optional base-URL override (defaults to `https://na.inhandcloud.com`).
+  2. Authenticates via `POST /oauth2/access_token` using the same OAuth2 password-grant flow as `device-manager/app/inhand-client.js` — MD5-hashed password, `password_type=2`, hardcoded `client_id`/`client_secret` lifted verbatim from the client.
+  3. Paginates through `GET /api/devices?verbose=100` (cursor + limit, 50-page safety cap).
+  4. For every device, prints a tab-separated row: name, serialNumber, online, msisdn, iccid, lat, lng, **the raw signal field name + value that matched** (e.g. `info.signalLevel=24` or `device.rssi=-83`), and the **normalized dBm**. Tries dBm fields first (`device.rssi`, `info.rssi`, `info.signalStrength`, `device.signalStrength`), then CSQ candidates (`info.signalLevel`, `info.csq`, `device.signalLevel`, `info.signal`) via `dBm = -113 + 2*csq`, skipping CSQ=99 — exactly mirroring `inhand-poller.js::_extractRssi`.
+  5. Ends with a summary: `N devices total, M with signal data, signal data found in field(s): <list>`.
+- **Why print the raw field name**: the open question is which field these specific InHand router models actually populate (dBm vs CSQ), which is the same ambiguity the `_extractRssi` fallback chain absorbs. Surfacing the matched field tells us at a glance.
+- **Failure mode**: any non-2xx HTTP response or non-JSON body prints the status code + first 500 chars of the body and exits non-zero. No stack traces, no infinite spinners.
+- **Dependencies**: macOS-only stack — `bash`, `curl`, `jq`, plus any of `md5`/`md5sum`/`python3` for password hashing. No npm, no AWS CLI, no SSM, no DB. Does not write to disk (other than a temp file under `$TMPDIR` for paginated JSON, cleaned up on exit).
+- **Out of scope (intentional)**: does not modify the production poller, EC2, or Secrets Manager. Does not persist results, generate CSV, or reconcile devices to truck records — `_extractIdentifiers`/MSISDN matching already lives in the poller. Does not handle refresh tokens (one auth call → done). Does not get added to the device-manager bundle, CI, or any cron.
+- **How to run**: `cd /Users/amoeck/Development/Fleet-manager && ./scripts/probe/inhand_signal_probe.sh`. Pipe through `column -t -s$'\t'` for a pretty table.
+- **Why `https://na.inhandcloud.com` is the default** (not the `inhand-client.js`/`config.js` default `https://iot.inhandnetworks.com`): the production migration scripts (`2026-02-10_add_inhand_gps_poller.sh`, `2026-05-08_wire_inhand_creds_into_device_manager.sh`) both pin the NA region — the dev default is a known mismatch we explicitly do not want to chase.
+
+---
+
 ## Latest Updates (May 7, 2026)
 
 ### Added: Router signal column on /admin/devices (InHand cellular RSSI)
