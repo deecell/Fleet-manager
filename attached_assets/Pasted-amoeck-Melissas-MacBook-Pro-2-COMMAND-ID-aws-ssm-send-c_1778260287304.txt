@@ -1,0 +1,40 @@
+amoeck@Melissas-MacBook-Pro-2 ~ % COMMAND_ID=$(aws ssm send-command \
+  --region us-east-2 \
+  --instance-ids "$INSTANCE_ID" \
+  --document-name "AWS-RunShellScript" \
+  --comment "Check device-manager status and logs" \
+  --parameters 'commands=["echo === SERVICE STATUS ===","sudo systemctl status device-manager --no-pager -l | head -20 || pm2 list","echo === GIT REVISION (if app dir is a repo) ===","sudo find /opt /home/ec2-user /home/ubuntu -maxdepth 4 -name inhand-poller.js 2>/dev/null","echo === RECENT LOGS - look for InHand ===","sudo journalctl -u device-manager --since \"15 minutes ago\" --no-pager 2>/dev/null | grep -i -E \"inhand|rssi|router_signal\" | tail -40 || echo no journalctl unit","echo === PM2 LOGS (fallback) ===","pm2 logs --nostream --lines 200 2>/dev/null | grep -i -E \"inhand|rssi|router_signal\" | tail -40 || echo no pm2 logs","echo === CHECK FOR _extractRssi IN DEPLOYED FILE ===","sudo grep -l _extractRssi /opt/*/inhand-poller.js /home/*/*/inhand-poller.js 2>/dev/null || echo function not found in any deployed inhand-poller.js"]' \
+  --query 'Command.CommandId' \
+  --output text)
+echo "Command: $COMMAND_ID"
+sleep 8
+aws ssm get-command-invocation \
+  --region us-east-2 \
+  --instance-id "$INSTANCE_ID" \
+  --command-id "$COMMAND_ID" \
+  --query 'StandardOutputContent' \
+  --output text
+Command: f63b951a-c4db-4625-9b9a-0c25eb295997
+=== SERVICE STATUS ===
+● device-manager.service - Deecell Device Manager
+     Loaded: loaded (/etc/systemd/system/device-manager.service; enabled; preset: enabled)
+     Active: active (running) since Thu 2026-05-07 17:03:14 UTC; 24h ago
+   Main PID: 111861 (node)
+      Tasks: 141 (limit: 1017)
+     Memory: 274.9M (peak: 329.4M)
+        CPU: 22min 35.794s
+     CGroup: /system.slice/device-manager.service
+             ├─111861 node app/index.js
+             ├─111913 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─111925 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─127516 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─128032 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─128527 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─128584 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─129787 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─130096 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─130233 /usr/bin/node /opt/device-manager/app/worker.js
+             └─130254 /usr/bin/node /opt/device-manager/app/worker.js
+
+
+amoeck@Melissas-MacBook-Pro-2 ~ %
