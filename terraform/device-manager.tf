@@ -6,6 +6,20 @@
 locals {
   simpro_client_arn = try(aws_secretsmanager_secret.simpro_api_client[0].arn, "")
   simpro_key_arn    = try(aws_secretsmanager_secret.simpro_api_key[0].arn, "")
+  inhand_username_arn = try(data.aws_secretsmanager_secret.inhand_api_username.arn, "")
+  inhand_password_arn = try(data.aws_secretsmanager_secret.inhand_api_password.arn, "")
+}
+
+# InHand Networks API credentials — created out-of-band via AWS Console/CLI
+# (see scripts/migrations/2026-05-08_wire_inhand_creds_into_device_manager.sh).
+# Referenced via data sources so Terraform doesn't try to manage their lifecycle
+# but can still grant the device-manager role access by ARN.
+data "aws_secretsmanager_secret" "inhand_api_username" {
+  name = "deecell-fleet-production/inhand-api-username"
+}
+
+data "aws_secretsmanager_secret" "inhand_api_password" {
+  name = "deecell-fleet-production/inhand-api-password"
 }
 
 # Ubuntu 24.04 LTS AMI (has glibc 2.38+ required for PowerMon native addon)
@@ -124,7 +138,20 @@ locals {
       --output text \
       --region ${var.aws_region})
     %{endif~}
-    
+
+    # Fetch InHand Networks API credentials (for GPS + router signal polling)
+    export INHAND_API_USERNAME=$(aws secretsmanager get-secret-value \
+      --secret-id "${local.inhand_username_arn}" \
+      --query 'SecretString' \
+      --output text \
+      --region ${var.aws_region})
+    export INHAND_API_PASSWORD=$(aws secretsmanager get-secret-value \
+      --secret-id "${local.inhand_password_arn}" \
+      --query 'SecretString' \
+      --output text \
+      --region ${var.aws_region})
+    export INHAND_API_BASE_URL=https://na.inhandcloud.com
+
     # Set other environment variables
     export NODE_ENV=production
     export LOG_LEVEL=info

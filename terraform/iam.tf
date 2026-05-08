@@ -174,7 +174,11 @@ resource "aws_iam_role_policy" "device_manager" {
         Resource = concat(
           [aws_secretsmanager_secret.database_url.arn],
           aws_secretsmanager_secret.simpro_api_client[*].arn,
-          aws_secretsmanager_secret.simpro_api_key[*].arn
+          aws_secretsmanager_secret.simpro_api_key[*].arn,
+          [
+            data.aws_secretsmanager_secret.inhand_api_username.arn,
+            data.aws_secretsmanager_secret.inhand_api_password.arn,
+          ]
         )
       },
       {
