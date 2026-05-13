@@ -181,6 +181,40 @@ class InHandClient {
   }
 
   /**
+   * Fetch the cellular signal time-series for a single device.
+   * GET /api/devices/{deviceId}/signal?begin=<unix>&end=<unix>
+   *
+   * Per the InHand Device Manager API doc, the response shape is:
+   *   { result: { columns: ["time", "rssi"], values: [[ts, asu], ...] } }
+   * where the "rssi" column is actually ASU (0-31, 99 = "no signal").
+   *
+   * Returns the most recent { time, asu } pair, or null if the endpoint
+   * returns no points / fails. Pass deviceId as the Mongo `_id` string from
+   * the bulk /api/devices response — the per-device endpoint does NOT accept
+   * the serial number.
+   */
+  async getDeviceSignal(deviceId, beginSec, endSec) {
+    await this.ensureAuthenticated();
+
+    const path = `/api/devices/${encodeURIComponent(deviceId)}/signal?begin=${beginSec}&end=${endSec}`;
+    const response = await this._request('GET', path, null, {
+      'Authorization': `Bearer ${this.accessToken}`,
+    });
+
+    if (!response || !response.result) return null;
+    const values = response.result.values;
+    if (!Array.isArray(values) || values.length === 0) return null;
+
+    const last = values[values.length - 1];
+    if (!Array.isArray(last) || last.length < 2) return null;
+
+    const asu = parseInt(last[1], 10);
+    if (isNaN(asu)) return null;
+
+    return { time: last[0], asu };
+  }
+
+  /**
    * Make an HTTP/HTTPS request to the InHand API
    */
   _request(method, path, body = null, headers = {}, skipAuth = false) {

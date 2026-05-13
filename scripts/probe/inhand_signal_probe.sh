@@ -34,12 +34,11 @@ set -o pipefail
 INHAND_CLIENT_ID="000017953450251798098136"
 INHAND_CLIENT_SECRET="08E9EC6793345759456CB8BAE52615F3"
 
-# Canonical North America base URL — matches the production migration
-# scripts (2026-02-10_add_inhand_gps_poller.sh and
-# 2026-05-08_wire_inhand_creds_into_device_manager.sh). The dev default
-# in config.js (https://iot.inhandnetworks.com) is intentionally NOT
-# offered here as the primary; we already know prod uses NA.
-DEFAULT_BASE_URL="https://na.inhandcloud.com"
+# Canonical global base URL per the InHand API doc. The legacy
+# https://na.inhandcloud.com hostname turned out to be DNS-dead from
+# both EC2 and laptops, and the 2026-05-13 migration flips production
+# over to https://iot.inhandnetworks.com — so the probe default matches.
+DEFAULT_BASE_URL="https://iot.inhandnetworks.com"
 
 # ---- Dependency check -----------------------------------------------------
 need() {
@@ -284,7 +283,6 @@ jq -r '
   | (
       first_dbm([
         {name: "device.rssi",            value: $d.rssi},
-        {name: "info.rssi",              value: $info.rssi},
         {name: "info.signalStrength",    value: $info.signalStrength},
         {name: "device.signalStrength",  value: $d.signalStrength}
       ])
@@ -294,6 +292,7 @@ jq -r '
         { raw: "\($dbm.name)=\($dbm.value)", dbm: ($dbm.value | round) }
       else
         ( first_csq([
+            {name: "info.rssi",          value: $info.rssi},
             {name: "info.signalLevel",   value: $info.signalLevel},
             {name: "info.csq",           value: $info.csq},
             {name: "device.signalLevel", value: $d.signalLevel},
@@ -360,11 +359,11 @@ SUMMARY="$(jq -r '
     | ($d.info // {}) as $info
     | ( first_dbm([
           {name: "device.rssi",            value: $d.rssi},
-          {name: "info.rssi",              value: $info.rssi},
           {name: "info.signalStrength",    value: $info.signalStrength},
           {name: "device.signalStrength",  value: $d.signalStrength}
         ])
         // first_csq([
+          {name: "info.rssi",              value: $info.rssi},
           {name: "info.signalLevel",       value: $info.signalLevel},
           {name: "info.csq",               value: $info.csq},
           {name: "device.signalLevel",     value: $d.signalLevel},

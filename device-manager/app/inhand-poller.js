@@ -176,6 +176,7 @@ class InHandPoller {
         const rssi = this._extractRssi(device);
         devicesWithIds.push({
           ...identifiers,
+          inhandId: device._id || null,
           latitude: location?.latitude ?? null,
           longitude: location?.longitude ?? null,
           locationTime: location?.time ?? null,
@@ -186,6 +187,16 @@ class InHandPoller {
           online: device.online !== undefined ? device.online : null,
         });
       }
+
+      // Bulk /api/devices?verbose=100 does not carry signal for IR302 routers
+      // (and is intermittently empty for other models), so for every online
+      // device with a Mongo `_id` we hit the per-device signal endpoint —
+      // GET /api/devices/{_id}/signal?begin=&end= — which returns ASU
+      // (0–31, 99 = no signal). Convert to dBm via -113 + 2*asu and override
+      // whatever the bulk extraction produced. ≤10 in-flight at a time so we
+      // don't hammer InHand's API. Failures are logged at debug and leave
+      // device.rssi as-is (typically null).
+      await this._enrichSignalFromPerDevice(devicesWithIds);
 
       if (devicesWithIds.length === 0) {
         logger.info('InHand API: No devices with valid identifiers', {
@@ -327,10 +338,12 @@ class InHandPoller {
    *
    * InHand's verbose=100 response field naming varies by firmware/model. We
    * try the most common locations in order:
-   *   1. Already-in-dBm fields: device.rssi, info.rssi, info.signalStrength,
+   *   1. Already-in-dBm fields: device.rssi, info.signalStrength,
    *      device.signalStrength. Accept negative values in (-200, 0).
-   *   2. CSQ scale (0-31, 99 = "no signal"): info.signalLevel, info.csq,
-   *      device.signalLevel. Convert via dBm = -113 + 2 * csq.
+   *   2. ASU/CSQ scale (0-31, 99 = "no signal"): info.rssi (per the InHand
+   *      API doc, this field is in ASU not dBm — line 306 of
+   *      Device_Manager_API_-en.pdf), info.signalLevel, info.csq,
+   *      device.signalLevel, info.signal. Convert via dBm = -113 + 2 * asu.
    * If neither is present, return null and let the SignalCell render as "—".
    */
   _extractRssi(device) {
@@ -338,7 +351,6 @@ class InHandPoller {
 
     const dbmCandidates = [
       device.rssi,
-      info.rssi,
       info.signalStrength,
       device.signalStrength,
     ];
@@ -351,6 +363,7 @@ class InHandPoller {
     }
 
     const csqCandidates = [
+      info.rssi,
       info.signalLevel,
       info.csq,
       device.signalLevel,
@@ -366,6 +379,51 @@ class InHandPoller {
     }
 
     return null;
+  }
+
+  /**
+   * For every device that's online and has an InHand `_id`, hit the
+   * per-device signal endpoint and override `device.rssi` with the freshest
+   * value. Caps in-flight requests at 10 by processing in chunks. Failures
+   * are tolerated — a single device's missing signal doesn't sink the batch.
+   */
+  async _enrichSignalFromPerDevice(devicesWithIds) {
+    const targets = devicesWithIds.filter(d => d.inhandId && d.online === 1);
+    if (targets.length === 0) return;
+
+    const nowSec = Math.floor(Date.now() / 1000);
+    const beginSec = nowSec - 5 * 60;
+    const CONCURRENCY = 10;
+    let enriched = 0;
+    let failed = 0;
+
+    for (let i = 0; i < targets.length; i += CONCURRENCY) {
+      const chunk = targets.slice(i, i + CONCURRENCY);
+      await Promise.all(chunk.map(async (device) => {
+        try {
+          const point = await inhandClient.getDeviceSignal(device.inhandId, beginSec, nowSec);
+          if (!point) return;
+          const asu = point.asu;
+          // Skip 99 (InHand "no signal") and out-of-range values.
+          if (asu === 99 || asu < 0 || asu > 31) return;
+          device.rssi = -113 + 2 * asu;
+          enriched++;
+        } catch (err) {
+          failed++;
+          logger.debug('InHand per-device signal fetch failed', {
+            inhandId: device.inhandId,
+            deviceName: device.deviceName,
+            error: err.message,
+          });
+        }
+      }));
+    }
+
+    logger.debug('InHand per-device signal enrichment complete', {
+      eligible: targets.length,
+      enriched,
+      failed,
+    });
   }
 
   /**

@@ -4,6 +4,20 @@
 
 ---
 
+## Latest Updates (May 13, 2026)
+
+### Fixed: InHand router signal pipeline (URL flip + per-device endpoint + ASU classification)
+- **What changed**: production InHand router signal data now actually populates `sims.router_rssi`. Three coordinated fixes:
+  1. **Migration `scripts/migrations/2026-05-13_fix_inhand_baseurl.sh`** flips the EC2 env var `INHAND_API_BASE_URL` from `https://na.inhandcloud.com` (DNS-dead globally — `getaddrinfo ENOTFOUND` in journalctl) to `https://iot.inhandnetworks.com` (the global URL listed in the InHand Device Manager API doc, confirmed reachable by the laptop probe). Sed-replaces the one line inside the existing sentinel-bracketed managed block in `/opt/device-manager/start.sh`, restarts the service via SSM, then waits 140 s and checks journalctl + `SELECT COUNT(*) FILTER (WHERE router_rssi IS NOT NULL) FROM sims`. Idempotent.
+  2. **`device-manager/app/inhand-poller.js` now hits the per-device signal endpoint.** Bulk `/api/devices?verbose=100` does not carry signal for IR302 (probe confirmed 52/52 devices online but 0 with signal in the bulk payload). After the bulk fetch we call `GET /api/devices/{_id}/signal?begin=<5min ago>&end=<now>` for every online device with a Mongo `_id`, take the last `[time, asu]` value, skip 99, convert via `dBm = -113 + 2*asu`, and override the bulk-extracted rssi. Concurrency capped at 10 in-flight via chunked `Promise.all`. Per-device failures log at debug and don't sink the batch. New `inhandClient.getDeviceSignal(deviceId, beginSec, endSec)` wraps the endpoint and returns `{ time, asu } | null`.
+  3. **`info.rssi` reclassified as ASU, not dBm.** Per the InHand API doc (line 306 of `Device_Manager_API_-en.pdf`): *"info.rssi — Equipment signal strength value in asu"*. Previously `_extractRssi` tried `info.rssi` first as a dBm candidate, which silently produced garbage like `+10 dBm` for the example payload `info.rssi: 10`. Moved `info.rssi` from the dBm-first list to the ASU/CSQ list in both `inhand-poller.js::_extractRssi` AND `scripts/probe/inhand_signal_probe.sh` (both the per-row jq and the summary jq). The probe's `DEFAULT_BASE_URL` also flipped to `https://iot.inhandnetworks.com` to match production.
+- **Why per-device, not just-fix-the-bulk**: the bulk endpoint genuinely doesn't carry the signal field for IR302 firmware — the API doc shows `info.rssi` as the bulk field but in practice it's null/missing for our routers. The per-device `/signal` endpoint is the only path that returns signal for our fleet. The bulk extraction stays as a fallback for any router model where `info.rssi` does come back populated.
+- **Concurrency**: 52 routers / 10 in-flight = 6 chunks per poll cycle. At ~200 ms each that's ~1.2 s of extra latency per 2-minute poll — well within budget.
+- **Out of scope**: schema unchanged (`sims.router_rssi` + `sims.router_signal_updated_at` already exist from the May 7 migration); no DB migration needed. UI unchanged — `/admin/devices` "Router Sig" column reads the same column. The Mongo `_id` is opaque to us; we just pass it through from the bulk response.
+- **Verification path**: probe (`scripts/probe/inhand_signal_probe.sh`) now defaults to `iot.inhandnetworks.com` so re-running it confirms the auth flow without needing a fallback. After the migration, `journalctl -u device-manager` should stop emitting `ENOTFOUND` and start emitting `InHand poll complete { simsRssiUpdated: ~52, ... }`. The DB spot-check inside the migration prints the live count.
+
+---
+
 ## Latest Updates (May 8, 2026)
 
 ### Added: Standalone InHand signal-strength probe script (laptop diagnostic)
