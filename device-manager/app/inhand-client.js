@@ -182,21 +182,27 @@ class InHandClient {
 
   /**
    * Fetch the cellular signal time-series for a single device.
-   * GET /api/devices/{deviceId}/signal?begin=<unix>&end=<unix>
+   * GET /api/devices/{deviceId}/signal?begin=<ISO-8601>&end=<ISO-8601>
    *
-   * Per the InHand Device Manager API doc, the response shape is:
+   * Per the InHand Device Manager API doc
+   * (attached_assets/Device_Manager_API_-en_1778694184895.pdf, page on
+   * "General agreement"), the time parameter may be either a unix timestamp
+   * or an ISO 8601 string; we send ISO 8601 (`new Date().toISOString()`)
+   * for log-readability and parity with the task spec. The response shape
+   * is:
    *   { result: { columns: ["time", "rssi"], values: [[ts, asu], ...] } }
-   * where the "rssi" column is actually ASU (0-31, 99 = "no signal").
+   * where the "rssi" column is actually ASU (0-31, 99 = "no signal" — see
+   * doc line 306: "info.rssi — Equipment signal strength value in asu").
    *
    * Returns the most recent { time, asu } pair, or null if the endpoint
    * returns no points / fails. Pass deviceId as the Mongo `_id` string from
    * the bulk /api/devices response — the per-device endpoint does NOT accept
    * the serial number.
    */
-  async getDeviceSignal(deviceId, beginSec, endSec) {
+  async getDeviceSignal(deviceId, beginIso, endIso) {
     await this.ensureAuthenticated();
 
-    const path = `/api/devices/${encodeURIComponent(deviceId)}/signal?begin=${beginSec}&end=${endSec}`;
+    const path = `/api/devices/${encodeURIComponent(deviceId)}/signal?begin=${encodeURIComponent(beginIso)}&end=${encodeURIComponent(endIso)}`;
     const response = await this._request('GET', path, null, {
       'Authorization': `Bearer ${this.accessToken}`,
     });

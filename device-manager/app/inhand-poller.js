@@ -391,8 +391,13 @@ class InHandPoller {
     const targets = devicesWithIds.filter(d => d.inhandId && d.online === 1);
     if (targets.length === 0) return;
 
-    const nowSec = Math.floor(Date.now() / 1000);
-    const beginSec = nowSec - 5 * 60;
+    // ISO 8601 timestamps per the task spec and the InHand API doc
+    // ("General agreement" — time params accept ISO 8601 strings like
+    // 2019-09-19T14:07:06Z). 5-minute window per the spec.
+    const now = new Date();
+    const begin = new Date(now.getTime() - 5 * 60 * 1000);
+    const endIso = now.toISOString();
+    const beginIso = begin.toISOString();
     const CONCURRENCY = 10;
     let enriched = 0;
     let failed = 0;
@@ -401,7 +406,7 @@ class InHandPoller {
       const chunk = targets.slice(i, i + CONCURRENCY);
       await Promise.all(chunk.map(async (device) => {
         try {
-          const point = await inhandClient.getDeviceSignal(device.inhandId, beginSec, nowSec);
+          const point = await inhandClient.getDeviceSignal(device.inhandId, beginIso, endIso);
           if (!point) return;
           const asu = point.asu;
           // Skip 99 (InHand "no signal") and out-of-range values.
