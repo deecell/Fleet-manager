@@ -539,16 +539,6 @@ export default function DevicesPage() {
                       </TableHead>
                       <TableHead 
                         className="text-white font-medium text-center cursor-pointer select-none"
-                        onClick={() => handleSort("rssi")}
-                        data-testid="sort-rssi"
-                      >
-                        <div className="flex items-center justify-center gap-1.5">
-                          PM Sig
-                          <SortIcon />
-                        </div>
-                      </TableHead>
-                      <TableHead 
-                        className="text-white font-medium text-center cursor-pointer select-none"
                         onClick={() => handleSort("routerRssi")}
                         data-testid="sort-router-rssi"
                       >
@@ -715,12 +705,6 @@ export default function DevicesPage() {
                           </TableCell>
                           <TableCell className="text-center font-medium">
                             {tempF ?? "-"}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <SignalCell
-                              rssi={snapshot?.rssi}
-                              testId={`signal-${device.id}`}
-                            />
                           </TableCell>
                           <TableCell className="text-center">
                             <SignalCell
