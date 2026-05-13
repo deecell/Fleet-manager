@@ -1,0 +1,38 @@
+$ sudo journalctl -u device-manager --since "10 minutes ago" --no-pager \
+  | grep -i -E "inhand|auth|21302|rssi" | tail -50> 
+May 13 17:11:04 ip-10-0-12-190 start.sh[131580]: 2026-05-13 17:11:04.991 INFO  InHand API: Authenticating  username=andy@deecell.com  baseUrl=https://na.inhandcloud.com
+May 13 17:11:05 ip-10-0-12-190 start.sh[131580]: 2026-05-13 17:11:05.000 ERROR InHand API request failed  error=getaddrinfo ENOTFOUND na.inhandcloud.com  path=/oauth2/access_token
+May 13 17:11:05 ip-10-0-12-190 start.sh[131580]: 2026-05-13 17:11:05.000 ERROR InHand poll failed  error=InHand API authentication failed: no access token received. Response: null response  stack=Error: InHand API authentication failed: no access token received. Response: null response
+May 13 17:11:05 ip-10-0-12-190 start.sh[131580]:     at InHandClient.authenticate (/opt/device-manager/app/inhand-client.js:69:13)
+May 13 17:11:05 ip-10-0-12-190 start.sh[131580]:     at async InHandClient.ensureAuthenticated (/opt/device-manager/app/inhand-client.js:137:9)
+May 13 17:11:05 ip-10-0-12-190 start.sh[131580]:     at async InHandClient.getDevicesWithLocation (/opt/device-manager/app/inhand-client.js:152:5)
+May 13 17:11:05 ip-10-0-12-190 start.sh[131580]:     at async InHandPoller.pollLocations (/opt/device-manager/app/inhand-poller.js:159:23)
+May 13 17:13:04 ip-10-0-12-190 start.sh[131580]: 2026-05-13 17:13:04.993 INFO  InHand API: Authenticating  username=andy@deecell.com  baseUrl=https://na.inhandcloud.com
+May 13 17:13:05 ip-10-0-12-190 start.sh[131580]: 2026-05-13 17:13:05.002 ERROR InHand API request failed  error=getaddrinfo ENOTFOUND na.inhandcloud.com  path=/oauth2/access_token
+May 13 17:13:05 ip-10-0-12-190 start.sh[131580]: 2026-05-13 17:13:05.002 ERROR InHand poll failed  error=InHand API authentication failed: no access token received. Response: null response  stack=Error: InHand API authentication failed: no access token received. Response: null response
+May 13 17:13:05 ip-10-0-12-190 start.sh[131580]:     at InHandClient.authenticate (/opt/device-manager/app/inhand-client.js:69:13)
+May 13 17:13:05 ip-10-0-12-190 start.sh[131580]:     at async InHandClient.ensureAuthenticated (/opt/device-manager/app/inhand-client.js:137:9)
+May 13 17:13:05 ip-10-0-12-190 start.sh[131580]:     at async InHandClient.getDevicesWithLocation (/opt/device-manager/app/inhand-client.js:152:5)
+May 13 17:13:05 ip-10-0-12-190 start.sh[131580]:     at async InHandPoller.pollLocations (/opt/device-manager/app/inhand-poller.js:159:23)
+May 13 17:15:04 ip-10-0-12-190 start.sh[131580]: 2026-05-13 17:15:04.997 INFO  InHand API: Authenticating  username=andy@deecell.com  baseUrl=https://na.inhandcloud.com
+May 13 17:15:05 ip-10-0-12-190 start.sh[131580]: 2026-05-13 17:15:05.015 ERROR InHand API request failed  error=getaddrinfo ENOTFOUND na.inhandcloud.com  path=/oauth2/access_token
+May 13 17:15:05 ip-10-0-12-190 start.sh[131580]: 2026-05-13 17:15:05.015 ERROR InHand poll failed  error=InHand API authentication failed: no access token received. Response: null response  stack=Error: InHand API authentication failed: no access token received. Response: null response
+May 13 17:15:05 ip-10-0-12-190 start.sh[131580]:     at InHandClient.authenticate (/opt/device-manager/app/inhand-client.js:69:13)
+May 13 17:15:05 ip-10-0-12-190 start.sh[131580]:     at async InHandClient.ensureAuthenticated (/opt/device-manager/app/inhand-client.js:137:9)
+May 13 17:15:05 ip-10-0-12-190 start.sh[131580]:     at async InHandClient.getDevicesWithLocation (/opt/device-manager/app/inhand-client.js:152:5)
+May 13 17:15:05 ip-10-0-12-190 start.sh[131580]:     at async InHandPoller.pollLocations (/opt/device-manager/app/inhand-poller.js:159:23)
+May 13 17:17:05 ip-10-0-12-190 start.sh[131580]: 2026-05-13 17:17:05.005 INFO  InHand API: Authenticating  username=andy@deecell.com  baseUrl=https://na.inhandcloud.com
+May 13 17:17:05 ip-10-0-12-190 start.sh[131580]: 2026-05-13 17:17:05.017 ERROR InHand API request failed  error=getaddrinfo ENOTFOUND na.inhandcloud.com  path=/oauth2/access_token
+May 13 17:17:05 ip-10-0-12-190 start.sh[131580]: 2026-05-13 17:17:05.018 ERROR InHand poll failed  error=InHand API authentication failed: no access token received. Response: null response  stack=Error: InHand API authentication failed: no access token received. Response: null response
+May 13 17:17:05 ip-10-0-12-190 start.sh[131580]:     at InHandClient.authenticate (/opt/device-manager/app/inhand-client.js:69:13)
+May 13 17:17:05 ip-10-0-12-190 start.sh[131580]:     at async InHandClient.ensureAuthenticated (/opt/device-manager/app/inhand-client.js:137:9)
+May 13 17:17:05 ip-10-0-12-190 start.sh[131580]:     at async InHandClient.getDevicesWithLocation (/opt/device-manager/app/inhand-client.js:152:5)
+May 13 17:17:05 ip-10-0-12-190 start.sh[131580]:     at async InHandPoller.pollLocations (/opt/device-manager/app/inhand-poller.js:159:23)
+May 13 17:19:05 ip-10-0-12-190 start.sh[131580]: 2026-05-13 17:19:05.014 INFO  InHand API: Authenticating  username=andy@deecell.com  baseUrl=https://na.inhandcloud.com
+May 13 17:19:05 ip-10-0-12-190 start.sh[131580]: 2026-05-13 17:19:05.021 ERROR InHand API request failed  error=getaddrinfo ENOTFOUND na.inhandcloud.com  path=/oauth2/access_token
+May 13 17:19:05 ip-10-0-12-190 start.sh[131580]: 2026-05-13 17:19:05.021 ERROR InHand poll failed  error=InHand API authentication failed: no access token received. Response: null response  stack=Error: InHand API authentication failed: no access token received. Response: null response
+May 13 17:19:05 ip-10-0-12-190 start.sh[131580]:     at InHandClient.authenticate (/opt/device-manager/app/inhand-client.js:69:13)
+May 13 17:19:05 ip-10-0-12-190 start.sh[131580]:     at async InHandClient.ensureAuthenticated (/opt/device-manager/app/inhand-client.js:137:9)
+May 13 17:19:05 ip-10-0-12-190 start.sh[131580]:     at async InHandClient.getDevicesWithLocation (/opt/device-manager/app/inhand-client.js:152:5)
+May 13 17:19:05 ip-10-0-12-190 start.sh[131580]:     at async InHandPoller.pollLocations (/opt/device-manager/app/inhand-poller.js:159:23)
+$
