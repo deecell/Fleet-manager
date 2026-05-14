@@ -74,6 +74,21 @@ interface UserResponse {
   user: User;
 }
 
+// Error subclass that preserves the structured `code` from the server so
+// callers (e.g. the Register Device form) can branch on machine-readable
+// codes like `SIM_NOT_FOUND` / `SIM_MULTIPLE_MATCH` instead of brittle
+// string-matching the human message.
+export class AdminApiError extends Error {
+  code?: string;
+  status: number;
+  constructor(message: string, status: number, code?: string) {
+    super(message);
+    this.name = "AdminApiError";
+    this.status = status;
+    this.code = code;
+  }
+}
+
 async function adminFetch<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, {
     ...options,
@@ -89,7 +104,11 @@ async function adminFetch<T>(url: string, options?: RequestInit): Promise<T> {
       window.location.href = "/admin/login";
       throw new Error("Session expired. Redirecting to login...");
     }
-    throw new Error(error.error || error.message || "Request failed");
+    throw new AdminApiError(
+      error.error || error.message || "Request failed",
+      res.status,
+      error.code,
+    );
   }
   return res.json();
 }
@@ -440,6 +459,28 @@ export function useCreateDevice() {
       queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/devices"] });
       queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/organizations", orgId, "devices"] });
       queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/stats"] });
+    },
+  });
+}
+
+export interface SimBackfillSummary {
+  scanned: number;
+  linked: number;
+  skipped_no_name: string[];
+  failed_no_match: string[];
+  failed_multiple_match: string[];
+  failed_api_error: { name: string; error: string }[];
+}
+
+export function useBackfillSimLinks() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () =>
+      adminFetch<SimBackfillSummary>(`/api/v1/admin/devices/backfill-sim-links`, {
+        method: "POST",
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/devices"] });
     },
   });
 }

@@ -4,6 +4,28 @@
 
 ---
 
+## Latest Updates (May 14, 2026)
+
+### Task #21 — Link SIM at device registration (synchronous, fail-loud)
+- **What changed**: SIM linkage no longer relies on the periodic SIMPro sync + InHand poller match-by-iccid race. The admin "Register Device" flow now performs a strict, synchronous Wireless Logic lookup before creating the device row, and a one-time "Backfill SIM Links" button repairs any existing fleet members that are unlinked.
+  1. **`server/services/simpro-client.ts`** — added `getSimByDeviceName(deviceName)` strict-single helper returning a discriminated `{ kind: 'none' | 'one' | 'multiple' }` result. The loose `getSimsByDeviceName` is kept as-is so the periodic sync (`sim-sync-service.ts`) continues to behave the same.
+  2. **`server/api/admin-routes.ts` — `POST /api/v1/admin/organizations/:orgId/devices`** now: (a) requires `deviceName` (returns `code: DEVICE_NAME_REQUIRED` with 400 otherwise), (b) creates the SIMPro client (503 `SIMPRO_NOT_CONFIGURED` if missing creds), (c) calls `getSimByDeviceName`, (d) returns 400 `SIM_NOT_FOUND` (with the searched name in the message) or 400 `SIM_MULTIPLE_MATCH` (with count), (e) on the single-match happy path runs `db.transaction` containing the device insert + a `sims` upsert keyed on `iccid` (`onConflictDoUpdate`) so the device row and its SIM are committed atomically. SIMPro API errors surface as 502 `SIMPRO_LOOKUP_FAILED`.
+  3. **`server/api/admin-routes.ts` — new `POST /api/v1/admin/devices/backfill-sim-links`** — `adminMiddleware`-gated, idempotent. Selects every `power_mon_devices` row that has no `sims` row pointing at it (left-join + `IS NULL`), runs the same strict-single lookup sequentially per device (so we don't hammer Wireless Logic), upserts the matching SIM, and returns a per-bucket summary `{ scanned, linked, skipped_no_name[], failed_no_match[], failed_multiple_match[], failed_api_error[] }`. Never overwrites an existing SIM link.
+  4. **`device-manager/app/inhand-poller.js`** — added `device_name` as a 4th match key after `iccid`/`imsi`/`msisdn`. The SQL pre-filter now also includes `LOWER(s.device_name) = ANY($4)` and the in-process map `simsByDeviceName` falls through to a case-insensitive lookup on `device.deviceName`. Pure belt-and-suspenders — once registration enforces linkage at create time this rarely fires, but it cleanly catches existing legacy devices.
+  5. **`client/src/lib/admin-api.ts`** — introduced `AdminApiError` subclass that preserves the server's structured `code` (so the form can branch on `SIM_NOT_FOUND` / `SIM_MULTIPLE_MATCH` instead of brittle string-matching). Added `useBackfillSimLinks` hook returning the typed summary.
+  6. **`client/src/pages/admin/DevicesPage.tsx`** — Device Name field is now visually required (`*` + helper text "Must match Custom Field 1 of an existing SIM in Wireless Logic"). Failed registration with one of the three structured codes keeps the dialog open and renders an inline destructive alert near the top with code-aware heading + the server's message — operator can fix the name and retry without re-entering battery specs. New "Backfill SIM Links" outline button in the page header (next to Register Device) triggers the backfill mutation; the result lands in a summary dialog showing scanned/linked counts plus the per-bucket failure lists so the operator knows exactly which devices to fix in Wireless Logic.
+- **Why this approach**: silent failure was the real problem (GFR-69 / TRK-02 went days without router-sig before anyone noticed). Synchronous, structured-error-coded validation at create time means misalignment surfaces immediately to the operator who has the context to fix it. The transaction guarantees we never end up with a device row that has no SIM mate. The poller fallback + backfill button give us a clean migration path without needing a manual SQL session.
+- **Out of scope (intentionally)**: editing/replacing a SIM on an existing device (still a manual DB fix), provisioning SIMs in Wireless Logic from our app (Wireless Logic remains source of truth), and the periodic SIMPro sync stays unchanged as the freshener for `data_used_mb`/`last_location_update`.
+- **Schema migration**: none required — `sims.device_name` already exists. No new tables, no new columns.
+- **Deploy + post-deploy steps for prod**:
+  1. Push to `main` → GitHub Actions deploys ECS web app.
+  2. Open `/admin/devices` as a platform admin, click **Backfill SIM Links**.
+  3. Read the summary dialog: `linked` should cover GFR-69 / TRK-02; anything in `failed_no_match` or `failed_multiple_match` is an actual data hygiene problem in Wireless Logic to fix.
+  4. Within one InHand poll cycle (~2 min) confirm Router Sig populates on the affected rows.
+- **Files**: `server/services/simpro-client.ts`, `server/api/admin-routes.ts`, `device-manager/app/inhand-poller.js`, `client/src/lib/admin-api.ts`, `client/src/pages/admin/DevicesPage.tsx`, `replit.md`.
+
+---
+
 ## Latest Updates (May 13, 2026)
 
 ### Fixed: InHand router signal pipeline (URL flip + per-device endpoint + ASU classification)

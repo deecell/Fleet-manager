@@ -208,9 +208,18 @@ class InHandPoller {
       const iccids = devicesWithIds.map(d => d.iccid).filter(Boolean);
       const imsis = devicesWithIds.map(d => d.imsi).filter(Boolean);
       const msisdns = devicesWithIds.map(d => d.msisdn).filter(Boolean);
+      // Belt-and-suspenders fallback (Task #21): also pull SIMs whose
+      // device_name (= Wireless Logic custom_field1) matches an InHand
+      // device's name. Once registration enforces SIM linkage at creation
+      // time this rarely fires, but it cleanly catches any legacy device
+      // that's named consistently across all three systems but missing
+      // ICCID/IMSI/MSISDN.
+      const deviceNamesLower = devicesWithIds
+        .map(d => (d.deviceName ? d.deviceName.toLowerCase() : null))
+        .filter(Boolean);
 
       const simsResult = await pool.query(
-        `SELECT s.id, s.msisdn, s.iccid, s.imsi, s.truck_id, s.organization_id, t.truck_number
+        `SELECT s.id, s.msisdn, s.iccid, s.imsi, s.device_name, s.truck_id, s.organization_id, t.truck_number
          FROM sims s
          LEFT JOIN trucks t ON t.id = s.truck_id
          WHERE s.is_active = true
@@ -218,17 +227,20 @@ class InHandPoller {
              (s.iccid = ANY($1) AND s.iccid IS NOT NULL)
              OR (s.imsi = ANY($2) AND s.imsi IS NOT NULL)
              OR (s.msisdn = ANY($3) AND s.msisdn IS NOT NULL)
+             OR (LOWER(s.device_name) = ANY($4) AND s.device_name IS NOT NULL)
            )`,
-        [iccids, imsis, msisdns]
+        [iccids, imsis, msisdns, deviceNamesLower]
       );
 
       const simsByIccid = new Map();
       const simsByImsi = new Map();
       const simsByMsisdn = new Map();
+      const simsByDeviceName = new Map();
       for (const sim of simsResult.rows) {
         if (sim.iccid) simsByIccid.set(sim.iccid, sim);
         if (sim.imsi) simsByImsi.set(sim.imsi, sim);
         if (sim.msisdn) simsByMsisdn.set(sim.msisdn, sim);
+        if (sim.device_name) simsByDeviceName.set(sim.device_name.toLowerCase(), sim);
       }
 
       let trucksUpdated = 0;
@@ -239,7 +251,8 @@ class InHandPoller {
       for (const device of devicesWithIds) {
         const sim = (device.iccid && simsByIccid.get(device.iccid))
           || (device.imsi && simsByImsi.get(device.imsi))
-          || (device.msisdn && simsByMsisdn.get(device.msisdn));
+          || (device.msisdn && simsByMsisdn.get(device.msisdn))
+          || (device.deviceName && simsByDeviceName.get(device.deviceName.toLowerCase()));
 
         if (!sim) {
           unmatched.push({

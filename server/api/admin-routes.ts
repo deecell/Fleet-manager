@@ -11,6 +11,10 @@ import {
 import { z } from "zod";
 import bcrypt from "bcrypt";
 import { getSimSyncService } from "../services/sim-sync-service";
+import { createSimProClient, SimProApiError } from "../services/simpro-client";
+import { db } from "../db";
+import { sims, powerMonDevices, type InsertSim } from "@shared/schema";
+import { eq, isNull, and as drizzleAnd } from "drizzle-orm";
 import { createGitHubIssue, listGitHubIssues, getGitHubLabels } from "../services/github-issues";
 import { processAdminChat, ChatMessage } from "../services/admin-assistant";
 import { sendWelcomeEmail, sendInvitationEmail, isEmailConfigured } from "../services/email-service";
@@ -535,20 +539,236 @@ router.post("/organizations/:orgId/devices", adminMiddleware, async (req: Reques
   try {
     const orgId = parseInt(req.params.orgId, 10);
     const data = insertPowerMonDeviceSchema.omit({ organizationId: true }).parse(req.body);
-    
+
     // Only check for duplicate serial if one is provided
     if (data.serialNumber && await storage.checkSerialExists(data.serialNumber)) {
       return res.status(409).json({ error: "Device with this serial number already exists" });
     }
-    
-    const device = await storage.createDevice({ ...data, organizationId: orgId });
-    res.status(201).json({ device });
+
+    // Hard rule (Task #21): every PowerMon device must already be present in
+    // Wireless Logic (SIMPro) keyed on `custom_field1 = deviceName` BEFORE
+    // we'll create the device row. Reject 0/multi matches with structured
+    // codes so the form can render an inline, fixable error. The device row
+    // and the sims upsert are committed atomically — no half-linked state.
+    if (!data.deviceName || !data.deviceName.trim()) {
+      return res.status(400).json({
+        code: "DEVICE_NAME_REQUIRED",
+        error: "Device name is required to look up the SIM in Wireless Logic.",
+      });
+    }
+    const deviceName = data.deviceName.trim();
+
+    const simProClient = createSimProClient();
+    if (!simProClient) {
+      return res.status(503).json({
+        code: "SIMPRO_NOT_CONFIGURED",
+        error: "SIMPro API credentials are not configured on the server.",
+      });
+    }
+
+    let lookup;
+    try {
+      lookup = await simProClient.getSimByDeviceName(deviceName);
+    } catch (err) {
+      const message = err instanceof SimProApiError
+        ? `Wireless Logic API error (${err.statusCode}): ${err.message}`
+        : `Wireless Logic API call failed: ${err instanceof Error ? err.message : "unknown"}`;
+      console.error("[admin] SIMPro lookup failed during device registration:", err);
+      return res.status(502).json({ code: "SIMPRO_LOOKUP_FAILED", error: message });
+    }
+
+    if (lookup.kind === "none") {
+      return res.status(400).json({
+        code: "SIM_NOT_FOUND",
+        error: `No SIM found in Wireless Logic with Custom Field 1 = "${deviceName}". Add it there first, then try again.`,
+      });
+    }
+    if (lookup.kind === "multiple") {
+      return res.status(400).json({
+        code: "SIM_MULTIPLE_MATCH",
+        error: `Multiple SIMs (${lookup.count}) match "${deviceName}" in Wireless Logic — clean up duplicates first.`,
+      });
+    }
+
+    const simProSim = lookup.sim;
+
+    // Atomic device + sim upsert. If anything inside fails the device row
+    // rolls back so the operator can re-try cleanly.
+    const result = await db.transaction(async (tx) => {
+      const [device] = await tx
+        .insert(powerMonDevices)
+        .values({ ...data, organizationId: orgId })
+        .returning();
+
+      const simData: InsertSim = {
+        organizationId: orgId,
+        deviceId: device.id,
+        truckId: device.truckId ?? null,
+        simproId: simProSim.id,
+        iccid: simProSim.iccid,
+        msisdn: simProSim.msisdn,
+        imsi: simProSim.imsi || null,
+        eid: simProSim.eid || null,
+        deviceName,
+        status: simProSim.status || "unknown",
+        workflowStatus: simProSim.workflow_status || null,
+        ipAddress: simProSim.ip_address || null,
+        isActive: true,
+      };
+
+      await tx
+        .insert(sims)
+        .values(simData)
+        .onConflictDoUpdate({
+          target: sims.iccid,
+          set: {
+            organizationId: orgId,
+            deviceId: device.id,
+            truckId: device.truckId ?? null,
+            simproId: simProSim.id,
+            msisdn: simProSim.msisdn,
+            imsi: simProSim.imsi || null,
+            eid: simProSim.eid || null,
+            deviceName,
+            status: simProSim.status || "unknown",
+            workflowStatus: simProSim.workflow_status || null,
+            ipAddress: simProSim.ip_address || null,
+            isActive: true,
+            updatedAt: new Date(),
+          },
+        });
+
+      return device;
+    });
+
+    res.status(201).json({
+      device: result,
+      sim: { iccid: simProSim.iccid, msisdn: simProSim.msisdn, deviceName },
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: "Validation failed", details: error.errors });
     }
     console.error("Error creating device:", error);
     res.status(500).json({ error: "Failed to create device" });
+  }
+});
+
+/**
+ * Backfill SIM links for existing PowerMon devices that have no linked SIM.
+ * Runs the same strict-single Wireless Logic lookup as registration.
+ * Idempotent: only operates on devices with no row in `sims` referencing
+ * them, never overwrites an existing link.
+ */
+router.post("/devices/backfill-sim-links", adminMiddleware, async (_req: Request, res: Response) => {
+  try {
+    const simProClient = createSimProClient();
+    if (!simProClient) {
+      return res.status(503).json({
+        code: "SIMPRO_NOT_CONFIGURED",
+        error: "SIMPro API credentials are not configured on the server.",
+      });
+    }
+
+    // Devices with no `sims` row pointing at them.
+    const candidates = await db
+      .select({
+        id: powerMonDevices.id,
+        organizationId: powerMonDevices.organizationId,
+        deviceName: powerMonDevices.deviceName,
+        serialNumber: powerMonDevices.serialNumber,
+        truckId: powerMonDevices.truckId,
+      })
+      .from(powerMonDevices)
+      .leftJoin(sims, eq(sims.deviceId, powerMonDevices.id))
+      .where(isNull(sims.id));
+
+    const summary = {
+      scanned: candidates.length,
+      linked: 0,
+      skipped_no_name: [] as string[],
+      failed_no_match: [] as string[],
+      failed_multiple_match: [] as string[],
+      failed_api_error: [] as { name: string; error: string }[],
+    };
+
+    // Sequential lookups so we don't hammer Wireless Logic.
+    for (const dev of candidates) {
+      const label = dev.deviceName || dev.serialNumber || `device-${dev.id}`;
+      if (!dev.deviceName || !dev.deviceName.trim()) {
+        summary.skipped_no_name.push(label);
+        continue;
+      }
+      const name = dev.deviceName.trim();
+      let lookup;
+      try {
+        lookup = await simProClient.getSimByDeviceName(name);
+      } catch (err) {
+        summary.failed_api_error.push({
+          name: label,
+          error: err instanceof Error ? err.message : "unknown",
+        });
+        continue;
+      }
+      if (lookup.kind === "none") {
+        summary.failed_no_match.push(label);
+        continue;
+      }
+      if (lookup.kind === "multiple") {
+        summary.failed_multiple_match.push(`${label} (${lookup.count} matches)`);
+        continue;
+      }
+
+      const sp = lookup.sim;
+      try {
+        await db
+          .insert(sims)
+          .values({
+            organizationId: dev.organizationId,
+            deviceId: dev.id,
+            truckId: dev.truckId ?? null,
+            simproId: sp.id,
+            iccid: sp.iccid,
+            msisdn: sp.msisdn,
+            imsi: sp.imsi || null,
+            eid: sp.eid || null,
+            deviceName: name,
+            status: sp.status || "unknown",
+            workflowStatus: sp.workflow_status || null,
+            ipAddress: sp.ip_address || null,
+            isActive: true,
+          } satisfies InsertSim)
+          .onConflictDoUpdate({
+            target: sims.iccid,
+            set: {
+              organizationId: dev.organizationId,
+              deviceId: dev.id,
+              truckId: dev.truckId ?? null,
+              simproId: sp.id,
+              msisdn: sp.msisdn,
+              imsi: sp.imsi || null,
+              eid: sp.eid || null,
+              deviceName: name,
+              status: sp.status || "unknown",
+              workflowStatus: sp.workflow_status || null,
+              ipAddress: sp.ip_address || null,
+              isActive: true,
+              updatedAt: new Date(),
+            },
+          });
+        summary.linked++;
+      } catch (err) {
+        summary.failed_api_error.push({
+          name: label,
+          error: `DB upsert failed: ${err instanceof Error ? err.message : "unknown"}`,
+        });
+      }
+    }
+
+    res.json(summary);
+  } catch (error) {
+    console.error("Error in SIM backfill:", error);
+    res.status(500).json({ error: "Backfill failed" });
   }
 });
 

@@ -264,6 +264,26 @@ export class SimProClient {
     const result = await this.getSims({ custom_field1: deviceName });
     return result.sims;
   }
+
+  /**
+   * Strict-single lookup for device registration.
+   * Returns a discriminated result so the caller can fail loudly on 0 or
+   * multiple matches instead of silently picking one. Used by the admin
+   * "Register Device" route and the backfill endpoint — the periodic
+   * SIMPro sync continues to use the loose `getSimsByDeviceName` helper.
+   */
+  async getSimByDeviceName(
+    deviceName: string,
+  ): Promise<
+    | { kind: 'none' }
+    | { kind: 'one'; sim: SimProSim }
+    | { kind: 'multiple'; count: number; sims: SimProSim[] }
+  > {
+    const sims = await this.getSimsByDeviceName(deviceName);
+    if (sims.length === 0) return { kind: 'none' };
+    if (sims.length === 1) return { kind: 'one', sim: sims[0] };
+    return { kind: 'multiple', count: sims.length, sims };
+  }
 }
 
 /**

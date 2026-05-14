@@ -44,8 +44,11 @@ import {
   useUpdateDeviceCredential,
   useResetDeviceStatus,
   useSetDeviceOffline,
+  useBackfillSimLinks,
+  AdminApiError,
+  type SimBackfillSummary,
 } from "@/lib/admin-api";
-import { Plus, Pencil, Cpu, Link2, Unlink, Key, Search, Trash2, RotateCcw, WifiOff } from "lucide-react";
+import { Plus, Pencil, Cpu, Link2, Unlink, Key, Search, Trash2, RotateCcw, WifiOff, RefreshCw, AlertCircle } from "lucide-react";
 import type { PowerMonDevice } from "@shared/schema";
 import type { DeviceWithSnapshot } from "@/lib/admin-api";
 import { SignalCell, classifySignal } from "@/components/SignalCell";
@@ -79,6 +82,11 @@ export default function DevicesPage() {
   const setDeviceOffline = useSetDeviceOffline();
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  // Inline error shown inside the Register Device dialog so the operator
+  // can fix the device name (or duplicate cleanup) without losing the form.
+  const [createError, setCreateError] = useState<{ code?: string; message: string } | null>(null);
+  const backfillSimLinks = useBackfillSimLinks();
+  const [backfillSummary, setBackfillSummary] = useState<SimBackfillSummary | null>(null);
   const [editingDevice, setEditingDevice] = useState<PowerMonDevice | null>(null);
   const [deletingDevice, setDeletingDevice] = useState<PowerMonDevice | null>(null);
   const [assigningDevice, setAssigningDevice] = useState<PowerMonDevice | null>(null);
@@ -133,6 +141,7 @@ export default function DevicesPage() {
 
   const handleCreate = async () => {
     if (!selectedOrgId) return;
+    setCreateError(null);
     try {
       const data = {
         ...formData,
@@ -145,7 +154,24 @@ export default function DevicesPage() {
       setIsCreateOpen(false);
       resetForm();
     } catch (error: any) {
-      toast({ title: error?.message || "Failed to register device", variant: "destructive" });
+      const code = error instanceof AdminApiError ? error.code : undefined;
+      const message = error?.message || "Failed to register device";
+      // Keep the dialog open for fixable lookup errors so the operator can
+      // correct the device name and retry without re-entering everything.
+      if (code === "SIM_NOT_FOUND" || code === "SIM_MULTIPLE_MATCH" || code === "DEVICE_NAME_REQUIRED") {
+        setCreateError({ code, message });
+        return;
+      }
+      toast({ title: message, variant: "destructive" });
+    }
+  };
+
+  const handleBackfill = async () => {
+    try {
+      const summary = await backfillSimLinks.mutateAsync();
+      setBackfillSummary(summary);
+    } catch (error: any) {
+      toast({ title: error?.message || "Backfill failed", variant: "destructive" });
     }
   };
 
@@ -394,8 +420,18 @@ export default function DevicesPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button 
-              onClick={() => setIsCreateOpen(true)} 
+            <Button
+              variant="outline"
+              onClick={handleBackfill}
+              disabled={backfillSimLinks.isPending}
+              data-testid="button-backfill-sim-links"
+              title="Look up SIMs in Wireless Logic for any devices that don't yet have one linked."
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${backfillSimLinks.isPending ? "animate-spin" : ""}`} />
+              {backfillSimLinks.isPending ? "Backfilling..." : "Backfill SIM Links"}
+            </Button>
+            <Button
+              onClick={() => { setCreateError(null); setIsCreateOpen(true); }}
               disabled={!selectedOrgId}
               data-testid="button-create-device"
             >
@@ -795,17 +831,33 @@ export default function DevicesPage() {
           </CardContent>
         </Card>
 
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <Dialog open={isCreateOpen} onOpenChange={(open) => { setIsCreateOpen(open); if (!open) setCreateError(null); }}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Register Device</DialogTitle>
               <DialogDescription>
-                Add a new PowerMon device. Serial number, firmware version, and hardware revision will be auto-populated when the device connects.
+                Add a new PowerMon device. The device name must already exist in Wireless Logic (Custom Field 1) — its SIM is looked up and linked at registration. Serial number, firmware, and hardware revision auto-populate when the device connects.
               </DialogDescription>
             </DialogHeader>
+            {createError && (
+              <div
+                className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive"
+                data-testid="alert-create-error"
+              >
+                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                <div>
+                  <div className="font-medium">
+                    {createError.code === "SIM_NOT_FOUND" && "SIM not found in Wireless Logic"}
+                    {createError.code === "SIM_MULTIPLE_MATCH" && "Multiple SIMs match this name"}
+                    {createError.code === "DEVICE_NAME_REQUIRED" && "Device name required"}
+                  </div>
+                  <div className="text-xs mt-0.5 opacity-90">{createError.message}</div>
+                </div>
+              </div>
+            )}
             <div className="space-y-4">
               <div>
-                <Label htmlFor="deviceName">Device Name (optional)</Label>
+                <Label htmlFor="deviceName">Device Name <span className="text-destructive">*</span></Label>
                 <Input
                   id="deviceName"
                   value={formData.deviceName}
@@ -813,6 +865,9 @@ export default function DevicesPage() {
                   placeholder="PowerMon Unit 1"
                   data-testid="input-device-name"
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Must match Custom Field 1 of an existing SIM in Wireless Logic.
+                </p>
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
@@ -1130,6 +1185,70 @@ export default function DevicesPage() {
                 data-testid="button-confirm-delete"
               >
                 {deleteDevice.isPending ? "Deleting..." : "Delete"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={!!backfillSummary} onOpenChange={() => setBackfillSummary(null)}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>SIM Backfill Complete</DialogTitle>
+              <DialogDescription>
+                Looked up unmatched devices in Wireless Logic and linked the SIMs that have a unique Custom Field 1 match.
+              </DialogDescription>
+            </DialogHeader>
+            {backfillSummary && (
+              <div className="space-y-3 text-sm" data-testid="backfill-summary">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="rounded-md border p-2">
+                    <div className="text-xs text-muted-foreground">Devices scanned</div>
+                    <div className="text-lg font-semibold">{backfillSummary.scanned}</div>
+                  </div>
+                  <div className="rounded-md border p-2">
+                    <div className="text-xs text-muted-foreground">SIMs linked</div>
+                    <div className="text-lg font-semibold text-primary">{backfillSummary.linked}</div>
+                  </div>
+                </div>
+                {backfillSummary.failed_no_match.length > 0 && (
+                  <div>
+                    <div className="text-xs font-medium mb-1">No SIM found ({backfillSummary.failed_no_match.length})</div>
+                    <div className="rounded-md border p-2 max-h-32 overflow-auto text-xs font-mono">
+                      {backfillSummary.failed_no_match.join(", ")}
+                    </div>
+                  </div>
+                )}
+                {backfillSummary.failed_multiple_match.length > 0 && (
+                  <div>
+                    <div className="text-xs font-medium mb-1">Multiple matches — clean up duplicates ({backfillSummary.failed_multiple_match.length})</div>
+                    <div className="rounded-md border p-2 max-h-32 overflow-auto text-xs font-mono">
+                      {backfillSummary.failed_multiple_match.join(", ")}
+                    </div>
+                  </div>
+                )}
+                {backfillSummary.skipped_no_name.length > 0 && (
+                  <div>
+                    <div className="text-xs font-medium mb-1">Skipped (no device name) ({backfillSummary.skipped_no_name.length})</div>
+                    <div className="rounded-md border p-2 max-h-24 overflow-auto text-xs font-mono">
+                      {backfillSummary.skipped_no_name.join(", ")}
+                    </div>
+                  </div>
+                )}
+                {backfillSummary.failed_api_error.length > 0 && (
+                  <div>
+                    <div className="text-xs font-medium mb-1 text-destructive">API/DB errors ({backfillSummary.failed_api_error.length})</div>
+                    <div className="rounded-md border border-destructive/40 bg-destructive/10 p-2 max-h-32 overflow-auto text-xs font-mono">
+                      {backfillSummary.failed_api_error.map((e, i) => (
+                        <div key={i}>{e.name}: {e.error}</div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            <DialogFooter>
+              <Button onClick={() => setBackfillSummary(null)} data-testid="button-close-backfill-summary">
+                Close
               </Button>
             </DialogFooter>
           </DialogContent>
