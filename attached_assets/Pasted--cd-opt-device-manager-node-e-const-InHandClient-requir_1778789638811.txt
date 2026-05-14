@@ -1,0 +1,109 @@
+$ cd /opt/device-manager
+node -e "
+const { InHandClient } = require('./app/inhand-client');
+(async () => {
+  const c = new InHandClient();
+  await c.authenticate();
+  const devs = await c.getDevicesWithLocation();
+  const target = devs.find(d$ > > > > > >  => d.name === 'IR302_3');
+  console.log(JSON.stringify(target, null, 2));
+})();
+"> > > 
+2026-05-14 20:13:45.392 INFO  InHand API: Authenticating  username=andy@deecell.com  baseUrl=https://iot.inhandnetworks.com
+2026-05-14 20:13:45.741 INFO  InHand API: Authenticated successfully  expiresIn=3599  hasRefreshToken=true
+{
+  "oid": "69734c1222cbc90001ce4303",
+  "name": "IR302_3",
+  "serialNumber": "RF3022532644346",
+  "model": "IR300",
+  "modelId": "5eb503292a8aa55f706411c3",
+  "mobileNumber": "883190603571832",
+  "deviceGroups": [
+    "69734f1166dea1000193bc56"
+  ],
+  "groupId": "69734ed022cbc90001ce4bdb",
+  "online": 1,
+  "logtime": "2026-05-14T00:02:20Z",
+  "protocol": "mqtt",
+  "config": {
+    "sync": 2,
+    "timeout": 300000,
+    "ackTimeout": 120000,
+    "ackRetries": 3
+  },
+  "pubIp": "95.129.20.28",
+  "pubPort": 39165,
+  "signalStrength": {
+    "radio": "4G",
+    "level": 2,
+    "asu": 28,
+    "rssi": -81,
+    "rsrp": -112,
+    "rsrq": -10,
+    "sinr": 8,
+    "band": "4",
+    "pci": 442,
+    "cid": 30180610,
+    "ts": "2026-05-14T20:00:00Z"
+  },
+  "info": {
+    "deviceConfig": "9C33E0754AE359266944BA2CE8C7F94C",
+    "bootVersion": "1.1.3.r4956",
+    "hwVersion": "V1.0",
+    "swVersion": "V3.5.99",
+    "imsi": "901311535465015",
+    "cid": 30180610,
+    "lac": 41613,
+    "mnc": 260,
+    "mcc": 310,
+    "rssi": 8,
+    "sn": "RF3022532644346",
+    "reconnectReason": "",
+    "wan": {
+      "net": "4G",
+      "mac": "96:CF:E0:4E:A8:CB",
+      "ip": "100.85.94.149",
+      "interface": "wwan0"
+    },
+    "lan": {
+      "ip": [
+        "192.168.1.1"
+      ],
+      "netmask": [
+        "255.255.255.0"
+      ],
+      "mac": "EC:6E:79:17:40:48",
+      "interface": "lan0"
+    },
+    "imei": "863890057565574",
+    "iccid": "89444611503504517911",
+    "ngrokcVersion": "1.8",
+    "pn": "302FQ38-WLAN",
+    "accessMode": 3,
+    "activeLink": "cellular",
+    "inAgent": "1.0",
+    "updatedAt": 1778789069,
+    "wifi": [
+      {
+        "ssid": "DCL Hauler",
+        "password": "5092409636",
+        "type": "AP"
+      }
+    ]
+  },
+  "address": "Dollar Tree Lane, Joliet, Will County, Illinois, 60436, USA",
+  "location": {
+    "longitude": -88.08379,
+    "latitude": 41.473315,
+    "source": "cellTower",
+    "time": "2026-05-13T02:35:09Z"
+  },
+  "vendorId": 3,
+  "businessState": 0,
+  "owner": "69734c2022cbc90001ce4335",
+  "createTime": 1769166522,
+  "updateTime": 1778716936,
+  "signVersion": 2,
+  "_id": "697356ba66dea1000193d713"
+}
+$
