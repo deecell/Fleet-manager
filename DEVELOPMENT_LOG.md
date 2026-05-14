@@ -4913,6 +4913,27 @@ Completed the full Device Manager recovery after 5 days of polling downtime (EC2
 
 ## Team Notes
 
+### InHand Signal Strength — Object-Form Extraction Fix (May 14, 2026)
+
+**Symptom**: After Task #21 deployed, ~10 of 19 PowerMon rows showed "—" in the new Router Sig column.
+
+**Diagnosis** (via SSM into EC2 + direct InHand API dumps):
+1. Confirmed all 19 SIMs were correctly linked to devices (`min_old=2` on every row → poller IS reaching them).
+2. Dumped raw InHand JSON for one of the missing-signal devices (DCL-Thibert / msisdn 883190603571831 → IR302_38). Result: `online: 0` with **no `signalStrength`, no `info`, no `location`** at all. InHand simply doesn't return signal data for offline routers.
+3. Dumped JSON for an online device (IR302_3): `signalStrength` is now an **object** `{radio, level, asu:28, rssi:-81, rsrp, rsrq, sinr, band, ts}` instead of the flat scalar older firmware returned.
+
+**Bug**: `_extractRssi` in `device-manager/app/inhand-poller.js` did `parseFloat(device.signalStrength)` against the object → NaN, then fell through to the CSQ fallback. Online devices got an approximation (`-113 + 2*info.rssi`) instead of the real dBm. Worse, the writer at line 284 always wrote `device.rssi` (null included), so devices without an extractable signal had their previously-good values overwritten with NULL on every poll.
+
+**Fix**: Updated `_extractRssi` to handle both shapes — if `signalStrength` is an object, prefer `.rssi` (already-dBm); otherwise accept the scalar. Also added `.asu` fallback within the nested object. Deployed via GitHub Actions (path-filtered `device-manager/**` workflow).
+
+**Result after deploy**:
+- 9 online routers now show accurate RSSI (-75 to -91 dBm) sourced from `signalStrength.rssi` instead of CSQ approximation.
+- 10 offline routers correctly show "—" (InHand returns no signal payload for them; not a bug).
+
+**Files changed**: `device-manager/app/inhand-poller.js` (L370-405).
+
+---
+
 ### Thornwave SDK Updated to v1.20 (May 4, 2026)
 - Razvan (Thornwave Labs) identified and fixed a Linux socket reuse bug causing instant disconnects.
 - Pulled **Git tag v1.20** from `git.thornwave.com` and updated wrapper files:
