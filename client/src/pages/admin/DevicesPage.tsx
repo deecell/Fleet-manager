@@ -646,10 +646,13 @@ export default function DevicesPage() {
                           </TableCell>
                           <TableCell>
                             {(() => {
-                              if (device.connectionStatus === "no_power") {
+                              if (device.connectionStatus === "flapping") {
                                 return (
-                                  <div className="inline-flex items-center justify-center px-3 py-1.5 rounded-md border text-xs font-normal bg-[rgba(255,0,0,0.08)] border-[#ff4444] text-[#cc0000]">
-                                    No Power
+                                  <div
+                                    className="inline-flex items-center justify-center px-3 py-1.5 rounded-md border text-xs font-normal bg-[rgba(255,0,0,0.08)] border-[#ff4444] text-[#cc0000]"
+                                    title="Repeated near-instant disconnects — device isolated to a solo probe"
+                                  >
+                                    Flapping
                                   </div>
                                 );
                               }
@@ -658,14 +661,6 @@ export default function DevicesPage() {
                                 return (
                                   <div className="inline-flex items-center justify-center px-3 py-1.5 rounded-md border text-xs font-normal bg-[rgba(59,130,246,0.08)] border-[#3b82f6] text-[#2563eb] dark:text-[#60a5fa]">
                                     Probing
-                                  </div>
-                                );
-                              }
-                              
-                              if (device.connectionStatus === "weak_signal") {
-                                return (
-                                  <div className="inline-flex items-center justify-center px-3 py-1.5 rounded-md border text-xs font-normal bg-[rgba(255,200,0,0.14)] border-[#e6b800] text-[#b38f00]">
-                                    Weak Signal
                                   </div>
                                 );
                               }
@@ -798,7 +793,7 @@ export default function DevicesPage() {
                                   <Link2 className="h-4 w-4 text-blue-600" />
                                 </Button>
                               )}
-                              {(device.connectionStatus === "unstable" || device.connectionStatus === "offline" || device.connectionStatus === "no_power" || device.connectionStatus === "probing") ? (
+                              {(device.connectionStatus === "unstable" || device.connectionStatus === "offline" || device.connectionStatus === "flapping" || device.connectionStatus === "probing") ? (
                                 <Button
                                   variant="ghost"
                                   size="icon"

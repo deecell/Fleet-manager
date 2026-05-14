@@ -6,6 +6,40 @@
 
 ## Latest Updates (May 14, 2026)
 
+### Phase 1 — Honest connection-state taxonomy + drop process.exit defense
+- **What changed**: rewrote the rapid-disconnect circuit-breaker so it (a) uses causally-honest state names that reflect what we actually observed and (b) no longer kills the worker process. The old design used `no_power` and `weak_signal` as if we knew the root cause was power loss or cellular RF — we never did. We only ever observed "the connection won't stay up". The whole "global C++ corruption → SIGABRT → must exit(1)" defense was investigated against 30+ days of production journal logs (us-east-2 device-manager EC2): **zero SIGABRT, zero SIGSEGV, zero core dumps**. Every "crash" in that window was our own `process.exit(1)` firing inside the circuit breaker. The defense was solving a problem that doesn't exist; meanwhile it was nuking healthy cohort-mates whenever any one device flapped.
+- **State machine**:
+  | New state | Trigger | Persisted? |
+  |---|---|---|
+  | `flapping` | ≥2 instant disconnects (<200 ms) | yes — until probe recovers |
+  | `unstable` | ≥3 rapid (<5 s, none instant) disconnects | yes — same TTL/recovery as flapping |
+  | `probing` | solo probe worker is currently testing the device | yes (transient) |
+  | `offline` | admin-initiated only | yes |
+  | `online` / `connected` / `disconnected` / `connecting` | normal poll lifecycle | yes |
+  
+  **Removed**: `no_power` (renamed → `flapping`), `weak_signal` (collapsed; we still log the 1st instant-disconnect as an early-warning, but no longer write any DB state for it — it auto-clears the moment the next poll succeeds, with zero schema noise).
+- **Files (device-manager)**:
+  - `connection-pool.js` — constants `NO_POWER_*` → `FLAPPING_*`. Circuit breaker block: dropped `nativeLibraryShutdown=true` set, dropped the loop that nulled `device` on every other pool member, dropped the `setTimeout(process.exit(1), 3000)`. Kept `nativeLibraryShutdown` flag declaration + the read-side guards as cheap defense-in-depth (if a real abort ever fires, the guards still bail before touching native state). Renamed `recoverNoPowerDevices()` → `recoverFlappingDevices()`. `WEAK_SIGNAL` / `NO_POWER` log-prefixes → `FLAPPING DIAGNOSTIC`. The 1st instant-disconnect early-warning is now log-only (no DB write, no `markDeviceWeakSignal` call).
+  - `database.js` — dropped `markDeviceWeakSignal()` entirely. `markDeviceUnstable(id, status)` accepts `'unstable' | 'flapping'` (was `'unstable' | 'no_power'`). Renamed `getNoPowerDevicesReadyForRecovery()` → `getFlappingDevicesReadyForRecovery()`. SQL `IN (…)` lists, the `markDeviceDisconnected` `CASE` block (also dropped the `weak_signal` branch — anything that wasn't `unstable`/`offline`/`flapping` becomes `disconnected`), startupRecoverySweep doc comment, and module exports all updated.
+  - `supervisor.js` — `_probeNoPowerDevices()` → `_probeFlappingDevices()`. `NO_POWER_QUARANTINE_MS` → `FLAPPING_QUARANTINE_MS`. Probe-failure SQL writes `connection_status='flapping'`. `_logSkippedDevices` SELECTs the new state name and the per-row TTL hint reads from the same column.
+  - `worker.js` — solo-probe doc comment + the timeout-path `markDeviceUnstable(…, 'flapping')` call.
+  - `index.js` — periodic `recoverFlappingDevices()` invocation.
+- **Files (web app)**:
+  - `client/src/pages/admin/DevicesPage.tsx` — `/admin/devices` Connection column now renders a single red "Flapping" badge (with hover-title explaining "repeated near-instant disconnects — device isolated to a solo probe") instead of separate "No Power" + "Weak Signal" badges. The "Reset Status" button condition matches the new state.
+  - `client/src/components/FleetTable.tsx` — fleet truck list shows a single red `WifiOff` icon with tooltip "Flapping (repeated instant disconnects)" instead of separate weak-signal/no-power icons.
+  - `server/services/exports/admin-devices-cell-builder.ts` — `circuit_breaker_state` derivation maps `flapping` → `flapping_quarantine` (was `no_power_quarantine`). Comment updated.
+  - `shared/export-admin-devices.ts` + `server/services/exports/admin-types.ts` — comments now reference the new taxonomy.
+- **Database migration**: `scripts/migrations/2026-05-14_rename_connection_states.{sh,sql}` — single `UPDATE power_mon_devices SET connection_status='flapping' WHERE connection_status IN ('no_power','weak_signal')`. Idempotent (re-run is a no-op). Uses the standard SSM `send-command` pattern from the 2026-05-07 router-rssi script. Run from MacBook Pro (`/Users/amoeck/Development/Fleet-manager/scripts/migrations/2026-05-14_rename_connection_states.sh`).
+- **Why no `process.exit(1)`**: even *if* native corruption were real, killing the entire cohort worker (5–10 healthy devices) because one device flaps is the wrong blast radius. The supervisor already has solo-probe machinery — that's the right unit of isolation. The bad device gets its native ref nulled, its DB state set to `flapping`, and 5 minutes later a one-process-one-device probe attempts recovery. Zero impact on healthy devices in the same cohort.
+- **Out of scope (intentionally)**: rewriting the alerting layer (no DB state for `flapping` already covers the "alert fires" case identically to old `no_power`); changing the 200 ms instant-disconnect threshold; tweaking the 5-minute quarantine. Phase 2 will add operator-facing observability (e.g. surfacing the `FLAPPING DIAGNOSTIC` verdict in the admin UI) once we have a few weeks of real flapping data with the new taxonomy.
+- **Deploy + post-deploy steps for prod**:
+  1. Push to `main` → GitHub Actions deploys ECS web app + device-manager EC2.
+  2. From MacBook Pro, run the migration script. Confirm the printed row counts show zero `no_power` / `weak_signal` rows after.
+  3. Watch the device-manager journal for `FLAPPING DIAGNOSTIC` log lines on the next flap event — the `verdict` field replaces what used to be the `NO_POWER DIAGNOSTIC` line. Worker should NOT exit/respawn anymore.
+- **Files**: `device-manager/app/{connection-pool.js,database.js,supervisor.js,worker.js,index.js}`, `client/src/pages/admin/DevicesPage.tsx`, `client/src/components/FleetTable.tsx`, `server/services/exports/admin-devices-cell-builder.ts`, `server/services/exports/admin-types.ts`, `shared/export-admin-devices.ts`, `scripts/migrations/2026-05-14_rename_connection_states.{sh,sql}`, `replit.md`.
+
+---
+
 ### Task #21 — Link SIM at device registration (synchronous, fail-loud)
 - **What changed**: SIM linkage no longer relies on the periodic SIMPro sync + InHand poller match-by-iccid race. The admin "Register Device" flow now performs a strict, synchronous Wireless Logic lookup before creating the device row, and a one-time "Backfill SIM Links" button repairs any existing fleet members that are unlinked.
   1. **`server/services/simpro-client.ts`** — added `getSimByDeviceName(deviceName)` strict-single helper returning a discriminated `{ kind: 'none' | 'one' | 'multiple' }` result. The loose `getSimsByDeviceName` is kept as-is so the periodic sync (`sim-sync-service.ts`) continues to behave the same.

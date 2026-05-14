@@ -47,22 +47,26 @@ if (process.env.SIMULATION_MODE === 'true' || process.env.SIMULATION_MODE === '1
 /**
  * Connection state for a single device
  */
-// Global shutdown flag - set when any device triggers a circuit breaker crash.
-// Prevents ALL devices from making native library calls during the graceful exit window,
-// since the native C++ library's global state is corrupted and any call can SIGABRT.
+// Defensive flag — historically set to true to block all native calls during a
+// "graceful exit" window after a circuit breaker fired. The exit-on-circuit-break
+// behaviour was removed in 2026-05 (30+ days of prod logs showed ZERO SIGABRT /
+// SIGSEGV / core dumps; every "crash" was our own process.exit(1)). The flag is
+// kept as cheap defense-in-depth: if a real native abort ever materializes,
+// existing `if (nativeLibraryShutdown)` guards still bail out before touching
+// native state. Nothing currently sets it.
 let nativeLibraryShutdown = false;
 
-// Module-level pool reference for circuit breaker to null out ALL native device refs
+// Module-level pool reference (used by the singleton at the bottom of this file).
 let poolInstance = null;
 
 // Circuit breaker configuration
 const RAPID_DISCONNECT_THRESHOLD_MS = 5000; // Disconnect within 5s of connect = rapid
-const MAX_RAPID_DISCONNECTS = 3; // After 3 rapid disconnects, mark as unstable/no_power
+const MAX_RAPID_DISCONNECTS = 3; // After 3 rapid disconnects, mark as unstable/flapping
 const UNSTABLE_BACKOFF_MS = 300000; // 5 minutes backoff for unstable devices
-const NO_POWER_QUARANTINE_MS = 5 * 60 * 1000; // 5 minutes quarantine for no_power devices
-const NO_POWER_RETRY_INTERVAL_MS = 5 * 60 * 1000; // Check every 5 minutes
+const FLAPPING_QUARANTINE_MS = 5 * 60 * 1000; // 5 minutes quarantine for flapping devices
+const FLAPPING_RETRY_INTERVAL_MS = 5 * 60 * 1000; // Check every 5 minutes
 const OFFLINE_BACKOFF_MS = 600000; // 10 minutes backoff for offline devices
-const NO_POWER_INSTANT_THRESHOLD_MS = 200; // Connection shorter than this = "instant" (was 100ms)
+const FLAPPING_INSTANT_THRESHOLD_MS = 200; // Connection shorter than this = "instant" disconnect
 const POST_ERROR_RECONNECT_DELAY_MS = 5000; // Longer delay after a poll failure before reconnecting
 const RAPID_DISCONNECT_GRACE_RECONNECTS = 2; // Don't count rapid disconnects for the first N reconnects after a poll failure
 
@@ -327,42 +331,21 @@ class DeviceConnection {
                 connectionDurationMs: connDurationMs
               });
               
-              // Instant disconnect (< 200ms) = likely connectivity/power issue.
-              // 1st instant disconnect → weak_signal (yellow warning, device stays in pool)
-              // 2nd instant disconnect → no_power (circuit breaker, process restart)
-              const isInstantDisconnect = connDurationMs < NO_POWER_INSTANT_THRESHOLD_MS;
-              const instantDisconnectCount = (this.rapidDisconnectDurations || []).filter(d => d < NO_POWER_INSTANT_THRESHOLD_MS).length;
+              // Instant disconnect (< 200ms) = device's session dies the moment it's
+              // established. We treat ≥2 instant disconnects as "flapping" (was previously
+              // split into weak_signal/no_power); ≥3 rapid-but-not-instant as "unstable".
+              // The state is causally honest about what we OBSERVED — we don't claim it's
+              // a power issue, signal issue, or anything else without evidence.
+              const isInstantDisconnect = connDurationMs < FLAPPING_INSTANT_THRESHOLD_MS;
+              const instantDisconnectCount = (this.rapidDisconnectDurations || []).filter(d => d < FLAPPING_INSTANT_THRESHOLD_MS).length;
               
-              // Mark as weak_signal on first instant disconnect (early warning)
+              // Log first instant disconnect as an early warning, no DB write.
+              // The state only changes when the circuit breaker opens.
               if (isInstantDisconnect && instantDisconnectCount === 1) {
-                this.log.warn('Weak signal detected - 1st instant disconnect, marking weak_signal', {
+                this.log.warn('Instant disconnect detected (1st) — early warning, device stays in pool', {
                   connectionDurationMs: connDurationMs,
                   deviceName: this.deviceName,
                 });
-                db.markDeviceWeakSignal(this.deviceId)
-                  .catch(err => this.log.error('Failed to mark device weak_signal', { error: err.message }));
-                
-                // Run diagnostic but don't open circuit breaker — device stays in pool
-                (async () => {
-                  try {
-                    const routerReachable = this.applinkUrl ? await pingApplinkUrl(this.applinkUrl, 3000) : null;
-                    const gpsData = await db.getTruckLastGpsUpdate(this.truckId);
-                    const gpsAge = gpsData?.last_location_update 
-                      ? Math.round((Date.now() - new Date(gpsData.last_location_update).getTime()) / 60000)
-                      : null;
-                    logger.warn('WEAK_SIGNAL DIAGNOSTIC', {
-                      deviceId: this.deviceId,
-                      deviceName: this.deviceName,
-                      truckId: this.truckId,
-                      routerReachable,
-                      gpsLastUpdate: gpsData?.last_location_update || null,
-                      gpsAgeMinutes: gpsAge,
-                      gpsLocation: gpsData?.location_description || null,
-                    });
-                  } catch (err) {
-                    logger.warn('WEAK_SIGNAL DIAGNOSTIC failed', { error: err.message });
-                  }
-                })();
               }
               
               const shouldOpenCircuit = (isInstantDisconnect && instantDisconnectCount >= 2) || 
@@ -372,10 +355,12 @@ class DeviceConnection {
                 this.isCircuitOpen = true;
                 this.circuitResetAt = Date.now() + UNSTABLE_BACKOFF_MS;
                 
-                const status = (isInstantDisconnect && instantDisconnectCount >= 2) ? 'no_power' : 'unstable';
+                // ≥2 instant disconnects → 'flapping' (causally honest: connection won't stay up).
+                // ≥3 rapid-but-not-instant → 'unstable' (slightly less severe).
+                const status = (isInstantDisconnect && instantDisconnectCount >= 2) ? 'flapping' : 'unstable';
                 
-                if (isInstantDisconnect && instantDisconnectCount >= 2) {
-                  this.log.error('Circuit breaker OPEN - 2 instant disconnects, device appears powered off', {
+                if (status === 'flapping') {
+                  this.log.error('Circuit breaker OPEN - flapping (≥2 instant disconnects)', {
                     rapidDisconnects: this.rapidDisconnectCount,
                     instantDisconnects: instantDisconnectCount,
                     connectionDurationMs: connDurationMs,
@@ -392,61 +377,28 @@ class DeviceConnection {
                 
                 this.rapidDisconnectDurations = [];
                 
-                // CRITICAL: Immediately null out native device references for ALL
-                // devices in the pool, not just the one that triggered the circuit breaker.
-                // The native C++ library corruption is GLOBAL — any pending callback
-                // from any device can trigger SIGABRT. Nulling the device reference
-                // causes pending callbacks to find `this.device === null` and bail out
-                // before touching the corrupted native state.
+                // Null out THIS device's native ref so any pending callback finds
+                // `this.device === null` and bails out before touching native state.
+                // We do NOT null other pool members anymore: 30+ days of prod logs
+                // showed zero SIGABRT/SIGSEGV/core-dumps caused by "global C++ corruption",
+                // so the cohort-wide blast radius isn't justified. The bad device is
+                // isolated locally; the supervisor will spawn a solo probe worker
+                // (one process, one device) to attempt recovery after FLAPPING_QUARANTINE_MS.
                 this.device = null;
                 this.status = 'disconnected';
                 
-                if (poolInstance) {
-                  let nulledCount = 0;
-                  for (const conn of poolInstance.connections.values()) {
-                    if (conn.deviceId !== this.deviceId && conn.device) {
-                      conn.device = null;
-                      conn.status = 'disconnected';
-                      if (conn.reconnectTimer) {
-                        clearTimeout(conn.reconnectTimer);
-                        conn.reconnectTimer = null;
-                      }
-                      nulledCount++;
-                    }
-                  }
-                  logger.warn('Nulled native references for all pool devices', { 
-                    nulledCount, 
-                    triggerDevice: this.deviceId 
-                  });
-                }
-                
-                // Clear any pending reconnect timer for the trigger device
+                // Clear any pending reconnect timer for this device
                 if (this.reconnectTimer) {
                   clearTimeout(this.reconnectTimer);
                   this.reconnectTimer = null;
                 }
                 
-                // Persist status to database immediately
-                // This ensures the device is skipped on process restart
-                // CRITICAL: Schedule graceful process exit after circuit breaker.
-                // Any rapid connect/disconnect cycle corrupts the native C++ library's
-                // global state. The corruption is cumulative and manifests asynchronously
-                // on later native callbacks (SIGABRT crash). The ONLY safe action is to
-                // exit the process so systemd restarts it with a clean native library.
-                // We delay 3 seconds to allow the DB write and any in-flight writes to complete.
-                nativeLibraryShutdown = true;
-                logger.error('NATIVE LIBRARY COMPROMISED - blocking all native calls, scheduling graceful restart', {
-                  deviceId: this.deviceId,
-                  deviceName: this.deviceName,
-                  status,
-                  restartInMs: 3000
-                });
-                
+                // Persist status to database
                 db.markDeviceUnstable(this.deviceId, status)
                   .catch(err => this.log.error('Failed to mark device status in database', { error: err.message }));
                 
-                // Diagnostic: check if router is reachable and if GPS is still reporting
-                // This helps determine if no_power is truly a power issue or a connectivity issue
+                // Diagnostic: check router reachability + GPS freshness so the
+                // operator has evidence to triage WHY this device is flapping.
                 (async () => {
                   try {
                     const routerReachable = this.applinkUrl ? await pingApplinkUrl(this.applinkUrl, 3000) : null;
@@ -454,32 +406,29 @@ class DeviceConnection {
                     const gpsAge = gpsData?.last_location_update 
                       ? Math.round((Date.now() - new Date(gpsData.last_location_update).getTime()) / 60000)
                       : null;
-                    logger.warn('NO_POWER DIAGNOSTIC', {
+                    logger.warn('FLAPPING DIAGNOSTIC', {
                       deviceId: this.deviceId,
                       deviceName: this.deviceName,
                       truckId: this.truckId,
+                      status,
                       routerReachable,
                       gpsLastUpdate: gpsData?.last_location_update || null,
                       gpsAgeMinutes: gpsAge,
                       gpsLocation: gpsData?.location_description || null,
                       verdict: routerReachable 
-                        ? 'ROUTER REACHABLE - likely connectivity issue, NOT power loss'
+                        ? 'router REACHABLE — PowerMon-side issue (firmware/RF/USB)'
                         : gpsAge != null && gpsAge < 5
-                          ? 'GPS recent (<5m) but router unreachable - likely transient network issue'
-                          : 'Router unreachable, no recent GPS - could be actual power loss'
+                          ? 'router unreachable but GPS recent (<5m) — transient network'
+                          : 'router unreachable, no recent GPS — could be power loss or full outage'
                     });
                   } catch (err) {
-                    logger.warn('NO_POWER DIAGNOSTIC failed', { error: err.message });
+                    logger.warn('FLAPPING DIAGNOSTIC failed', { error: err.message });
                   }
                 })();
                 
-                // Exit regardless of DB write success — corrupted native state MUST be discarded
-                setTimeout(() => {
-                  logger.error('Exiting process for clean native library restart');
-                  process.exit(1);
-                }, 3000);
-                
-                // Return early — do NOT fall through to reconnect/disconnect handling
+                // No process.exit — the worker stays alive. The supervisor's
+                // _probeFlappingDevices loop will pick this device up after the
+                // FLAPPING_QUARANTINE_MS window and spawn a solo probe.
                 return;
               }
             } else if (wasIntentional) {
@@ -850,8 +799,8 @@ class ConnectionPool {
       return 0;
     }
 
-    if (device.device_connection_status !== 'no_power') {
-      logger.warn(`Solo device status is ${device.device_connection_status}, not no_power — aborting probe`, { serial });
+    if (device.device_connection_status !== 'flapping') {
+      logger.warn(`Solo device status is ${device.device_connection_status}, not flapping — aborting probe`, { serial });
       return 0;
     }
 
@@ -1401,20 +1350,20 @@ class ConnectionPool {
   }
 
   /**
-   * Periodically retry no_power devices whose 4-hour quarantine has expired.
+   * Periodically retry flapping devices whose quarantine has expired.
    * Tries them one at a time with a 5-second gap between attempts to avoid
    * overwhelming the native library. If the device connects and gets a good
    * first poll, it stays in the pool. If it fails, the quarantine timer resets.
    */
-  async recoverNoPowerDevices() {
+  async recoverFlappingDevices() {
     try {
-      const allNoPower = await db.getNoPowerDevicesReadyForRecovery(NO_POWER_QUARANTINE_MS);
+      const allFlapping = await db.getFlappingDevicesReadyForRecovery(FLAPPING_QUARANTINE_MS);
 
       const workerCohort = process.env.WORKER_COHORT_ID != null ? parseInt(process.env.WORKER_COHORT_ID, 10) : null;
       const totalCohorts = config.polling.cohortCount;
       const devices = workerCohort != null
-        ? allNoPower.filter(d => this.hashToCohort(d.serial_number, totalCohorts) === workerCohort)
-        : allNoPower;
+        ? allFlapping.filter(d => this.hashToCohort(d.serial_number, totalCohorts) === workerCohort)
+        : allFlapping;
       
       if (devices.length === 0) {
         return { attempted: 0, recovered: 0 };
@@ -1428,7 +1377,7 @@ class ConnectionPool {
       const ts = new Date().toISOString().slice(11, 19);
       
       console.log('');
-      console.log(`${dim}${ts}${rst} ${green}AUTO ${rst} ${bold}Retrying ${devices.length} no_power device(s) (quarantine expired after 5m):${rst}`);
+      console.log(`${dim}${ts}${rst} ${green}AUTO ${rst} ${bold}Retrying ${devices.length} flapping device(s) (quarantine expired after 5m):${rst}`);
       for (const d of devices) {
         const tag = '[retry]'.padEnd(12);
         const name = (d.device_name || d.serial_number).padEnd(41);
@@ -1442,7 +1391,7 @@ class ConnectionPool {
       
       for (const device of devices) {
         if (this.connections.has(device.device_id)) {
-          logger.warn('no_power device already in pool, skipping', { deviceId: device.device_id });
+          logger.warn('flapping device already in pool, skipping', { deviceId: device.device_id });
           continue;
         }
         
@@ -1487,7 +1436,7 @@ class ConnectionPool {
             this.connections.delete(device.device_id);
             this.cohorts.get(cohortId)?.delete(device.device_id);
             
-            await db.markDeviceUnstable(device.device_id, 'no_power');
+            await db.markDeviceUnstable(device.device_id, 'flapping');
             
             const tag = '[still off]'.padEnd(12);
             const name = (device.device_name || device.serial_number).padEnd(41);
@@ -1501,7 +1450,7 @@ class ConnectionPool {
         } catch (err) {
           this.connections.delete(device.device_id);
           this.cohorts.get(cohortId)?.delete(device.device_id);
-          logger.error('no_power recovery failed for device', { deviceId: device.device_id, error: err.message });
+          logger.error('flapping recovery failed for device', { deviceId: device.device_id, error: err.message });
         }
         
         if (devices.indexOf(device) < devices.length - 1) {
@@ -1515,12 +1464,12 @@ class ConnectionPool {
         ? `${green}${recovered} recovered${rst}` 
         : `${yellow}0 recovered${rst}`;
       const failedText = failed > 0 ? `, ${dim}${failed} still offline${rst}` : '';
-      console.log(`${dim}${sts}${rst} ${green}AUTO ${rst} ${bold}No-power retry complete:${rst} ${summary}${failedText}`);
+      console.log(`${dim}${sts}${rst} ${green}AUTO ${rst} ${bold}Flapping retry complete:${rst} ${summary}${failedText}`);
       console.log('');
       
       return { attempted: devices.length, recovered };
     } catch (err) {
-      logger.error('Error recovering no_power devices', { error: err.message });
+      logger.error('Error recovering flapping devices', { error: err.message });
       return { attempted: 0, recovered: 0, error: err.message };
     }
   }

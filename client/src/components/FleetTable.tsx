@@ -124,20 +124,12 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                     {alertTruckIds.includes(truck.id) && (
                       <AlertTriangle className="w-4 h-4 text-[#f55200] shrink-0" data-testid={`alert-icon-${truck.id}`} />
                     )}
-                    {truck.deviceConnectionStatus === "weak_signal" && (
+                    {truck.deviceConnectionStatus === "flapping" && (
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <WifiOff className="w-3.5 h-3.5 text-[#e6b800] shrink-0" data-testid={`weak-signal-icon-${truck.id}`} />
+                          <WifiOff className="w-3.5 h-3.5 text-[#cc0000] shrink-0" data-testid={`flapping-icon-${truck.id}`} />
                         </TooltipTrigger>
-                        <TooltipContent>Weak Signal</TooltipContent>
-                      </Tooltip>
-                    )}
-                    {truck.deviceConnectionStatus === "no_power" && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <WifiOff className="w-3.5 h-3.5 text-[#cc0000] shrink-0" data-testid={`no-power-icon-${truck.id}`} />
-                        </TooltipTrigger>
-                        <TooltipContent>No Power</TooltipContent>
+                        <TooltipContent>Flapping (repeated instant disconnects)</TooltipContent>
                       </Tooltip>
                     )}
                   </div>

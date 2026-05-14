@@ -108,7 +108,7 @@ async function getActiveDevicesWithCredentials() {
     FROM power_mon_devices d
     INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = true
     LEFT JOIN device_sync_status s ON s.device_id = d.id
-    WHERE (d.connection_status IS NULL OR d.connection_status NOT IN ('unstable', 'offline', 'no_power', 'probing'))
+    WHERE (d.connection_status IS NULL OR d.connection_status NOT IN ('unstable', 'offline', 'flapping', 'probing'))
     ORDER BY d.id
   `);
   
@@ -119,7 +119,7 @@ async function getActiveDevicesWithCredentials() {
         EXTRACT(EPOCH FROM (NOW() - d.marked_unstable_at)) / 60 as minutes_quarantined
       FROM power_mon_devices d
       INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = true
-      WHERE d.connection_status IN ('unstable', 'offline', 'no_power', 'probing')
+      WHERE d.connection_status IN ('unstable', 'offline', 'flapping', 'probing')
     `);
     if (skippedResult.rows.length > 0) {
       const red = '\x1b[31m';
@@ -130,7 +130,7 @@ async function getActiveDevicesWithCredentials() {
         const status = `[${d.connection_status}]`.padEnd(12);
         const name = (d.device_name || d.serial_number).padEnd(41);
         let ttlInfo = '';
-        if (d.connection_status === 'no_power' && d.minutes_quarantined != null) {
+        if (d.connection_status === 'flapping' && d.minutes_quarantined != null) {
           ttlInfo = ' (supervisor will probe)';
         } else if (d.connection_status === 'probing') {
           ttlInfo = ' (probe in progress)';
@@ -311,8 +311,7 @@ async function markDeviceDisconnected(deviceId, lastSuccessfulPoll, disconnectRe
       connection_status = CASE 
         WHEN connection_status = 'unstable' THEN 'unstable'
         WHEN connection_status = 'offline' THEN 'offline'
-        WHEN connection_status = 'no_power' THEN 'no_power'
-        WHEN connection_status = 'weak_signal' THEN 'weak_signal'
+        WHEN connection_status = 'flapping' THEN 'flapping'
         ELSE 'disconnected' 
       END,
       data_status = CASE 
@@ -359,32 +358,17 @@ async function markDeviceStale(deviceId) {
 }
 
 /**
- * Mark device as weak_signal (1st instant disconnect detected)
- * This is an early warning state — device stays in pool, keeps retrying.
- * Auto-clears back to 'online' on next successful poll (via markDeviceReporting).
- * @param {number} deviceId
- */
-async function markDeviceWeakSignal(deviceId) {
-  logger.warn('Marking device as weak_signal in database', { deviceId });
-  await query(`
-    UPDATE power_mon_devices 
-    SET 
-      connection_status = 'weak_signal',
-      updated_at = NOW()
-    WHERE id = $1
-      AND connection_status NOT IN ('unstable', 'no_power', 'offline')
-  `, [deviceId]);
-}
-
-/**
- * Mark device as unstable or no_power (circuit breaker triggered)
+ * Mark device as unstable or flapping (circuit breaker triggered)
  * Called when the in-memory circuit breaker opens to persist the status
  * This ensures the device is skipped on process restart
  * @param {number} deviceId
- * @param {string} status - 'unstable' or 'no_power'
+ * @param {string} status - 'unstable' or 'flapping'
+ *   - 'unstable':  ≥3 rapid disconnects, none instant
+ *   - 'flapping':  ≥2 instant (<200ms) disconnects — connection won't stay up
+ *                  (replaces legacy 'no_power' / 'weak_signal' states)
  */
 async function markDeviceUnstable(deviceId, status = 'unstable') {
-  const validStatuses = ['unstable', 'no_power'];
+  const validStatuses = ['unstable', 'flapping'];
   if (!validStatuses.includes(status)) status = 'unstable';
   logger.warn(`Marking device as ${status} in database`, { deviceId });
   await query(`
@@ -455,10 +439,10 @@ async function updateMarkedOfflineAt(deviceId) {
 }
 
 /**
- * Get no_power devices whose quarantine TTL has expired
- * Returns devices marked no_power for longer than the quarantine period
+ * Get flapping devices whose quarantine TTL has expired
+ * Returns devices marked flapping for longer than the quarantine period
  */
-async function getNoPowerDevicesReadyForRecovery(quarantineMs = 5 * 60 * 1000) {
+async function getFlappingDevicesReadyForRecovery(quarantineMs = 5 * 60 * 1000) {
   const result = await query(`
     SELECT 
       d.id as device_id,
@@ -481,7 +465,7 @@ async function getNoPowerDevicesReadyForRecovery(quarantineMs = 5 * 60 * 1000) {
     FROM power_mon_devices d
     INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = true
     LEFT JOIN device_sync_status s ON s.device_id = d.id
-    WHERE d.connection_status = 'no_power'
+    WHERE d.connection_status = 'flapping'
       AND d.marked_unstable_at IS NOT NULL
       AND d.marked_unstable_at < NOW() - INTERVAL '1 millisecond' * $1
     ORDER BY d.marked_unstable_at ASC
@@ -889,12 +873,13 @@ async function upsertDeviceSnapshot(snapshot) {
  * 'unstable' status. This sweep resets them so they get a fresh 
  * connection attempt.
  * 
- * 'no_power' devices are NOT reset on startup. Any rapid connect/disconnect
- * cycle corrupts the native C++ library's global state. The corruption is
- * cumulative across devices and manifests asynchronously (later, when 
- * another device triggers a native callback → SIGABRT crash). Instead,
- * no_power has a TTL-based quarantine — devices auto-expire after 4 hours
- * and become eligible for retry without manual intervention.
+ * 'flapping' devices are NOT reset on startup. Instead they have a TTL-based
+ * quarantine — devices auto-expire after 5 minutes and the supervisor's
+ * solo-probe loop tries them one-at-a-time without disturbing healthy devices.
+ * (Historical note: the original justification was "global C++ library
+ * corruption causes asynchronous SIGABRT". 30+ days of prod logs 2026-04 →
+ * 2026-05 showed zero such crashes, so the worker-killing defense was dropped
+ * in favour of in-place isolation; quarantine semantics are unchanged.)
  * 
  * 'offline' devices are NOT auto-reset — admin must click "Set Online".
  * 
@@ -1068,10 +1053,9 @@ module.exports = {
   markDeviceDisconnected,
   markDeviceReporting,
   markDeviceStale,
-  markDeviceWeakSignal,
   markDeviceUnstable,
   getUnstableDevicesReadyForRecovery,
-  getNoPowerDevicesReadyForRecovery,
+  getFlappingDevicesReadyForRecovery,
   getOfflineDevicesForRecovery,
   updateMarkedOfflineAt,
   resetDeviceStability,

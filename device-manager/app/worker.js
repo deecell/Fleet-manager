@@ -7,7 +7,7 @@
  * 
  * Modes:
  *   Cohort mode (WORKER_COHORT_ID): Manages all devices in a hash-based cohort.
- *   Solo probe mode (WORKER_SOLO_SERIAL): Tests one no_power device in isolation.
+ *   Solo probe mode (WORKER_SOLO_SERIAL): Tests one flapping device in isolation.
  *     Connects, polls for 30 seconds, exits 0 on success. If circuit breaker fires,
  *     only this process dies — no other devices affected.
  * 
@@ -43,7 +43,7 @@ async function runProbe() {
 
     const deviceCount = await connectionPool.initializeForSoloDevice(soloSerial);
     if (deviceCount === 0) {
-      logger.error(`${probePrefix} Device not found or not in no_power state`);
+      logger.error(`${probePrefix} Device not found or not in flapping state`);
       process.exit(1);
     }
 
@@ -83,7 +83,7 @@ async function runProbe() {
         try {
           await db.markDeviceUnstable(
             Array.from(connectionPool.connections.keys())[0],
-            'no_power'
+            'flapping'
           );
           pollingScheduler.stop();
           await batchWriter.stop();

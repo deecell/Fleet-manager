@@ -110,9 +110,9 @@ function startSingleProcess() {
 
       setInterval(async () => {
         try {
-          await connectionPool.recoverNoPowerDevices();
+          await connectionPool.recoverFlappingDevices();
         } catch (err) {
-          logger.error('Failed to recover no_power devices', { error: err.message });
+          logger.error('Failed to recover flapping devices', { error: err.message });
         }
       }, 5 * 60 * 1000);
 

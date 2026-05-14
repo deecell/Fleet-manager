@@ -5,9 +5,9 @@
  * native C++ library, so a crash in one worker only affects that cohort's devices.
  * The supervisor monitors workers and respawns them on crash.
  * 
- * No_power recovery is handled by solo "probe" workers — one process per device.
- * If the probe crashes, only that one device is affected. Healthy devices in
- * shared cohort workers are never impacted by a bad device's recovery attempt.
+ * Flapping-device recovery is handled by solo "probe" workers — one process per
+ * device. If the probe crashes, only that one device is affected. Healthy devices
+ * in shared cohort workers are never impacted by a bad device's recovery attempt.
  * 
  * Shared services (SIM polling, InHand GPS, metrics) run in the supervisor process.
  */
@@ -22,7 +22,7 @@ const { simPoller } = require('./sim-poller');
 const { inhandPoller } = require('./inhand-poller');
 const { simSync } = require('./sim-sync');
 
-const NO_POWER_QUARANTINE_MS = 5 * 60 * 1000;
+const FLAPPING_QUARANTINE_MS = 5 * 60 * 1000;
 const PROBE_BACKOFF_MINUTES = [5, 15, 60, 240];
 
 class Supervisor {
@@ -73,7 +73,7 @@ class Supervisor {
 
     setInterval(() => this._checkForNewCohorts(), 5 * 60 * 1000);
     setInterval(() => this._logSkippedDevices(), 60 * 1000);
-    setInterval(() => this._probeNoPowerDevices(), 60 * 1000);
+    setInterval(() => this._probeFlappingDevices(), 60 * 1000);
 
     logger.info('Supervisor: All services started', {
       workers: this.workers.size,
@@ -199,7 +199,7 @@ class Supervisor {
       } else {
         try {
           await db.query(
-            `UPDATE power_mon_devices SET connection_status = 'no_power', updated_at = NOW() WHERE serial_number = $1 AND connection_status = 'probing'`,
+            `UPDATE power_mon_devices SET connection_status = 'flapping', updated_at = NOW() WHERE serial_number = $1 AND connection_status = 'probing'`,
             [serial]
           );
         } catch (e) {
@@ -224,11 +224,11 @@ class Supervisor {
     });
   }
 
-  async _probeNoPowerDevices() {
+  async _probeFlappingDevices() {
     if (this.isShuttingDown) return;
 
     try {
-      const devices = await db.getNoPowerDevicesReadyForRecovery(NO_POWER_QUARANTINE_MS);
+      const devices = await db.getFlappingDevicesReadyForRecovery(FLAPPING_QUARANTINE_MS);
       if (devices.length === 0) return;
 
       for (const device of devices) {
@@ -242,7 +242,7 @@ class Supervisor {
         this.forkProbeWorker(serial, device.device_name);
       }
     } catch (err) {
-      logger.error('Supervisor: Failed to probe no_power devices', { error: err.message });
+      logger.error('Supervisor: Failed to probe flapping devices', { error: err.message });
     }
   }
 
@@ -273,7 +273,7 @@ class Supervisor {
   }
 
   async _logSkippedDevices() {
-    const NO_POWER_QUARANTINE_MINUTES = 5;
+    const FLAPPING_QUARANTINE_MINUTES = 5;
     try {
       const result = await db.query(`
         SELECT d.serial_number, d.device_name, d.connection_status, d.consecutive_disconnects,
@@ -281,7 +281,7 @@ class Supervisor {
           EXTRACT(EPOCH FROM (NOW() - d.marked_unstable_at)) / 60 as minutes_quarantined
         FROM power_mon_devices d
         INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = true
-        WHERE d.connection_status IN ('unstable', 'offline', 'no_power')
+        WHERE d.connection_status IN ('unstable', 'offline', 'flapping')
       `);
 
       if (result.rows.length === 0) return;
@@ -294,13 +294,13 @@ class Supervisor {
         const status = `[${d.connection_status}]`.padEnd(12);
         const name = (d.device_name || d.serial_number).padEnd(41);
         let ttlInfo = '';
-        if (d.connection_status === 'no_power' && d.minutes_quarantined != null) {
+        if (d.connection_status === 'flapping' && d.minutes_quarantined != null) {
           const backoff = this.probeBackoff.get(d.serial_number);
           if (backoff && Date.now() < backoff.nextProbeAfter) {
             const minutesRemaining = Math.round((backoff.nextProbeAfter - Date.now()) / 60000);
             ttlInfo = ` (probe #${backoff.failures} failed, retry in ${minutesRemaining}m)`;
           } else {
-            const minutesRemaining = Math.max(0, Math.round(NO_POWER_QUARANTINE_MINUTES - d.minutes_quarantined));
+            const minutesRemaining = Math.max(0, Math.round(FLAPPING_QUARANTINE_MINUTES - d.minutes_quarantined));
             ttlInfo = minutesRemaining > 0
               ? ` (retry in ${minutesRemaining}m)`
               : this.probeWorkers.has(d.serial_number)

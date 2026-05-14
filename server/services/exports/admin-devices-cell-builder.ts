@@ -15,7 +15,7 @@ import type { AdminDeviceExportRow } from "./admin-types";
 
 function connectionStatusLabel(value: string | null | undefined): string | null {
   if (!value) return null;
-  // Values from the device manager: online / offline / unstable / no_power / connecting / disconnected
+  // Values from the device manager: online / offline / unstable / flapping / connecting / disconnected
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
@@ -23,19 +23,19 @@ function connectionStatusLabel(value: string | null | undefined): string | null 
  * Derive the admin-facing "Circuit Breaker State" by mapping the device
  * manager's `connection_status` into the operator-facing taxonomy agreed
  * for the soft launch. Source state comes from `device-manager/app/database.js`
- * (`markDeviceUnstable` writes `unstable` or `no_power`; supervisor sets
+ * (`markDeviceUnstable` writes `unstable` or `flapping`; supervisor sets
  * `offline` + `markedOfflineAt`).
  *
  *   connection_status     →  exported circuit_breaker_state
  *   ─────────────────────    ────────────────────────────────
- *   no_power              →  no_power_quarantine
+ *   flapping              →  flapping_quarantine
  *   unstable              →  unstable_pending
  *   offline (or markedOfflineAt set) → offline
  *   online (or anything else) → healthy
  */
 function deriveCircuitBreakerState(row: AdminDeviceExportRow): string {
   const status = (row.connectionStatus ?? "").toLowerCase();
-  if (status === "no_power") return "no_power_quarantine";
+  if (status === "flapping") return "flapping_quarantine";
   if (status === "unstable") return "unstable_pending";
   if (status === "offline" || row.markedOfflineAt) return "offline";
   return "healthy";

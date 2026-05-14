@@ -30,9 +30,9 @@ export interface AdminDeviceColumn extends Omit<ExportColumn, "source"> {
  *   • build_date — not stored anywhere; emitted as null today, scaffolded so
  *     a later schema migration can populate it without UI changes.
  *   • circuit_breaker_state — derived from the device manager's
- *     `connection_status` (online | no_power | unstable | offline). The
+ *     `connection_status` (online | flapping | unstable | offline). The
  *     enum we emit is the operator-facing taxonomy agreed for the soft
- *     launch: `healthy | no_power_quarantine | unstable_pending | offline`.
+ *     launch: `healthy | flapping_quarantine | unstable_pending | offline`.
  *
  * `is_active` is sourced from `device_credentials.is_active` (whether the
  * stored WiFi access key is currently in use), not `power_mon_devices.is_active`,
@@ -65,7 +65,7 @@ export const ADMIN_DEVICE_COLUMNS = {
   last_reported:        { key: "last_reported",        label: "Last Reported",       source: "device",       format: "datetime", width: 22, group: "Operations" },
   last_seen:            { key: "last_seen",            label: "Last Seen",           source: "device",       format: "datetime", width: 22, group: "Operations" },
   circuit_breaker_state:{ key: "circuit_breaker_state",label: "Circuit Breaker",     source: "derived",      format: "text",     width: 22, group: "Operations",
-    description: "Derived from connection_status: healthy | no_power_quarantine | unstable_pending | offline." },
+    description: "Derived from connection_status: healthy | flapping_quarantine | unstable_pending | offline." },
 
   // Worker / live (4)
   worker_cohort:        { key: "worker_cohort",        label: "Worker Cohort",       source: "syncStatus",   format: "text",     width: 14, group: "Worker / live" },

@@ -33,7 +33,7 @@ export interface AdminDeviceExportRow {
   iccid: string | null;
   imsi: string | null;
   msisdn: string | null;
-  connectionStatus: string | null; // online / offline / unstable / no_power / connecting
+  connectionStatus: string | null; // online / offline / unstable / flapping / connecting
 
   // Operations
   lastReportedAt: Date | null;
