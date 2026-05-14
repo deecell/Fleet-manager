@@ -64,6 +64,10 @@ interface DevicesResponse {
 
 interface DeviceResponse {
   device: PowerMonDevice;
+  // Optional fields populated by POST /organizations/:orgId/devices when
+  // the synchronous SIM lookup succeeded (Task #21).
+  sim?: { iccid: string; msisdn: string; deviceName: string };
+  message?: string;
 }
 
 interface UsersResponse {
@@ -469,6 +473,7 @@ export interface SimBackfillSummary {
   skipped_no_name: string[];
   failed_no_match: string[];
   failed_multiple_match: string[];
+  failed_already_linked: string[];
   failed_api_error: { name: string; error: string }[];
 }
 

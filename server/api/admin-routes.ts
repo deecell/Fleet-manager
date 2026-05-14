@@ -592,20 +592,39 @@ router.post("/organizations/:orgId/devices", adminMiddleware, async (req: Reques
 
     const simProSim = lookup.sim;
 
-    // Atomic device + sim upsert. If anything inside fails the device row
-    // rolls back so the operator can re-try cleanly.
+    // Pre-check: refuse to silently steal a SIM that's already linked to a
+    // different PowerMon device. This protects against the "operator typed
+    // the wrong name and it happened to collide with another truck's ICCID"
+    // case AND keeps swap-SIM behaviour out-of-scope per Task #21.
+    const existingSimRows = await db
+      .select({ id: sims.id, deviceId: sims.deviceId })
+      .from(sims)
+      .where(eq(sims.iccid, simProSim.iccid))
+      .limit(1);
+    const existingSim = existingSimRows[0];
+    if (existingSim && existingSim.deviceId !== null) {
+      // ICCID is already pointing at a real device → block. (deviceId === null
+      // means the row exists from the periodic SIMPro sync but isn't yet
+      // tied to a PowerMon, so it's safe to claim.)
+      return res.status(409).json({
+        code: "SIM_ALREADY_LINKED",
+        error: `That SIM (ICCID ${simProSim.iccid}) is already linked to another device. Use the Wireless Logic console to detach it first, or pick a different device name.`,
+      });
+    }
+
+    // Atomic device + sim insert/update. If anything inside fails the
+    // device row rolls back so the operator can re-try cleanly.
     const result = await db.transaction(async (tx) => {
       const [device] = await tx
         .insert(powerMonDevices)
         .values({ ...data, organizationId: orgId })
         .returning();
 
-      const simData: InsertSim = {
+      const simBase = {
         organizationId: orgId,
         deviceId: device.id,
         truckId: device.truckId ?? null,
         simproId: simProSim.id,
-        iccid: simProSim.iccid,
         msisdn: simProSim.msisdn,
         imsi: simProSim.imsi || null,
         eid: simProSim.eid || null,
@@ -616,27 +635,17 @@ router.post("/organizations/:orgId/devices", adminMiddleware, async (req: Reques
         isActive: true,
       };
 
-      await tx
-        .insert(sims)
-        .values(simData)
-        .onConflictDoUpdate({
-          target: sims.iccid,
-          set: {
-            organizationId: orgId,
-            deviceId: device.id,
-            truckId: device.truckId ?? null,
-            simproId: simProSim.id,
-            msisdn: simProSim.msisdn,
-            imsi: simProSim.imsi || null,
-            eid: simProSim.eid || null,
-            deviceName,
-            status: simProSim.status || "unknown",
-            workflowStatus: simProSim.workflow_status || null,
-            ipAddress: simProSim.ip_address || null,
-            isActive: true,
-            updatedAt: new Date(),
-          },
-        });
+      if (existingSim) {
+        // Existing unlinked sims row from the periodic sync — claim it in
+        // place. We only get here when existingSim.deviceId IS NULL (the
+        // pre-check above guards the linked case).
+        await tx
+          .update(sims)
+          .set({ ...simBase, updatedAt: new Date() })
+          .where(eq(sims.id, existingSim.id));
+      } else {
+        await tx.insert(sims).values({ ...simBase, iccid: simProSim.iccid } satisfies InsertSim);
+      }
 
       return device;
     });
@@ -644,6 +653,7 @@ router.post("/organizations/:orgId/devices", adminMiddleware, async (req: Reques
     res.status(201).json({
       device: result,
       sim: { iccid: simProSim.iccid, msisdn: simProSim.msisdn, deviceName },
+      message: `Device registered and linked to SIM (ICCID ${simProSim.iccid}, MSISDN ${simProSim.msisdn}).`,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -689,6 +699,7 @@ router.post("/devices/backfill-sim-links", adminMiddleware, async (_req: Request
       skipped_no_name: [] as string[],
       failed_no_match: [] as string[],
       failed_multiple_match: [] as string[],
+      failed_already_linked: [] as string[],
       failed_api_error: [] as { name: string; error: string }[],
     };
 
@@ -721,41 +732,44 @@ router.post("/devices/backfill-sim-links", adminMiddleware, async (_req: Request
 
       const sp = lookup.sim;
       try {
-        await db
-          .insert(sims)
-          .values({
-            organizationId: dev.organizationId,
-            deviceId: dev.id,
-            truckId: dev.truckId ?? null,
-            simproId: sp.id,
-            iccid: sp.iccid,
-            msisdn: sp.msisdn,
-            imsi: sp.imsi || null,
-            eid: sp.eid || null,
-            deviceName: name,
-            status: sp.status || "unknown",
-            workflowStatus: sp.workflow_status || null,
-            ipAddress: sp.ip_address || null,
-            isActive: true,
-          } satisfies InsertSim)
-          .onConflictDoUpdate({
-            target: sims.iccid,
-            set: {
-              organizationId: dev.organizationId,
-              deviceId: dev.id,
-              truckId: dev.truckId ?? null,
-              simproId: sp.id,
-              msisdn: sp.msisdn,
-              imsi: sp.imsi || null,
-              eid: sp.eid || null,
-              deviceName: name,
-              status: sp.status || "unknown",
-              workflowStatus: sp.workflow_status || null,
-              ipAddress: sp.ip_address || null,
-              isActive: true,
-              updatedAt: new Date(),
-            },
-          });
+        // Pre-check: never overwrite a SIM that's already linked to a
+        // different device. The backfill must remain idempotent and safe
+        // to re-run, per the task's architectural rule.
+        const existingRows = await db
+          .select({ id: sims.id, deviceId: sims.deviceId })
+          .from(sims)
+          .where(eq(sims.iccid, sp.iccid))
+          .limit(1);
+        const existing = existingRows[0];
+        if (existing && existing.deviceId !== null && existing.deviceId !== dev.id) {
+          summary.failed_already_linked.push(`${label} → ICCID ${sp.iccid} (linked to device #${existing.deviceId})`);
+          continue;
+        }
+
+        const simBase = {
+          organizationId: dev.organizationId,
+          deviceId: dev.id,
+          truckId: dev.truckId ?? null,
+          simproId: sp.id,
+          msisdn: sp.msisdn,
+          imsi: sp.imsi || null,
+          eid: sp.eid || null,
+          deviceName: name,
+          status: sp.status || "unknown",
+          workflowStatus: sp.workflow_status || null,
+          ipAddress: sp.ip_address || null,
+          isActive: true,
+        };
+
+        if (existing) {
+          // existing.deviceId is either null or already === dev.id (idempotent re-run)
+          await db
+            .update(sims)
+            .set({ ...simBase, updatedAt: new Date() })
+            .where(eq(sims.id, existing.id));
+        } else {
+          await db.insert(sims).values({ ...simBase, iccid: sp.iccid } satisfies InsertSim);
+        }
         summary.linked++;
       } catch (err) {
         summary.failed_api_error.push({

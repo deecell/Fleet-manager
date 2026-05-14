@@ -149,8 +149,14 @@ export default function DevicesPage() {
         batteryAh: formData.batteryAh ? parseFloat(formData.batteryAh) : null,
         numberOfBatteries: formData.numberOfBatteries ? parseInt(formData.numberOfBatteries) : null,
       };
-      await createDevice.mutateAsync({ orgId: selectedOrgId, data });
-      toast({ title: "Device registered successfully" });
+      const response = await createDevice.mutateAsync({ orgId: selectedOrgId, data });
+      toast({
+        title: "Device registered",
+        description: response.message
+          || (response.sim
+            ? `Linked to SIM ICCID ${response.sim.iccid} (${response.sim.msisdn}).`
+            : undefined),
+      });
       setIsCreateOpen(false);
       resetForm();
     } catch (error: any) {
@@ -158,7 +164,12 @@ export default function DevicesPage() {
       const message = error?.message || "Failed to register device";
       // Keep the dialog open for fixable lookup errors so the operator can
       // correct the device name and retry without re-entering everything.
-      if (code === "SIM_NOT_FOUND" || code === "SIM_MULTIPLE_MATCH" || code === "DEVICE_NAME_REQUIRED") {
+      if (
+        code === "SIM_NOT_FOUND"
+        || code === "SIM_MULTIPLE_MATCH"
+        || code === "SIM_ALREADY_LINKED"
+        || code === "DEVICE_NAME_REQUIRED"
+      ) {
         setCreateError({ code, message });
         return;
       }
@@ -849,6 +860,7 @@ export default function DevicesPage() {
                   <div className="font-medium">
                     {createError.code === "SIM_NOT_FOUND" && "SIM not found in Wireless Logic"}
                     {createError.code === "SIM_MULTIPLE_MATCH" && "Multiple SIMs match this name"}
+                    {createError.code === "SIM_ALREADY_LINKED" && "SIM already linked to another device"}
                     {createError.code === "DEVICE_NAME_REQUIRED" && "Device name required"}
                   </div>
                   <div className="text-xs mt-0.5 opacity-90">{createError.message}</div>
@@ -1223,6 +1235,14 @@ export default function DevicesPage() {
                     <div className="text-xs font-medium mb-1">Multiple matches — clean up duplicates ({backfillSummary.failed_multiple_match.length})</div>
                     <div className="rounded-md border p-2 max-h-32 overflow-auto text-xs font-mono">
                       {backfillSummary.failed_multiple_match.join(", ")}
+                    </div>
+                  </div>
+                )}
+                {backfillSummary.failed_already_linked.length > 0 && (
+                  <div>
+                    <div className="text-xs font-medium mb-1">SIM already linked to another device ({backfillSummary.failed_already_linked.length})</div>
+                    <div className="rounded-md border p-2 max-h-32 overflow-auto text-xs font-mono">
+                      {backfillSummary.failed_already_linked.map((e, i) => (<div key={i}>{e}</div>))}
                     </div>
                   </div>
                 )}
