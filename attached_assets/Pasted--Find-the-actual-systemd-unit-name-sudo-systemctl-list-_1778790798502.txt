@@ -1,0 +1,49 @@
+$ # Find the actual systemd unit name
+sudo systemctl list-units --type=service --no-pager | grep -i device
+
+# Also check pm2 (some EC2 setups use pm2 instead)
+which pm2 && pm2 list
+
+# And the start.sh log location
+ls -la /var/log/ | grep -i device
+cat /opt/device-manager/start.sh | head -30$   blk-availability.service                       loaded active exited  Availability of block devices
+  device-manager.service                         loaded active running Deecell Device Manager
+  kmod-static-nodes.service                      loaded active exited  Create List of Static Device Nodes
+  multipathd.service                             loaded active running Device-Mapper Multipath Device Controller
+  systemd-fsck-root.service                      loaded active exited  File System Check on Root Device
+  systemd-tmpfiles-setup-dev-early.service       loaded active exited  Create Static Device Nodes in /dev gracefully
+  systemd-tmpfiles-setup-dev.service             loaded active exited  Create Static Device Nodes in /dev
+  systemd-udev-trigger.service                   loaded active exited  Coldplug All udev Devices
+  systemd-udevd.service                          loaded active running Rule-based Manager for Device Events and Files
+$ $ $ $ $ $ $ 
+#!/bin/bash
+set -e
+    
+# Fetch DATABASE_URL from Secrets Manager using IAM role
+export DATABASE_URL=$(aws secretsmanager get-secret-value \
+  --secret-id "arn:aws:secretsmanager:us-east-2:892213647605:secret:deecell-fleet-production/database-url-pDVG5g" \
+  --query 'SecretString' \
+  --output text \
+  --region us-east-2)
+    
+# Fetch SIMPro credentials if enabled
+    
+# Set other environment variables
+export NODE_ENV=production
+export LOG_LEVEL=info
+export DM_PORT=3001
+export POLL_INTERVAL_MS=10000
+export COHORT_COUNT=10
+export MAX_BATCH_SIZE=500
+    
+# Start the application
+# >>> INHAND CREDS BEGIN (managed by 2026-05-08_wire_inhand_creds_into_device_manager.sh)
+export INHAND_API_USERNAME=$(aws secretsmanager get-secret-value \
+  --secret-id "deecell-fleet-production/inhand-api-username" \
+  --query SecretString --output text --region us-east-2)
+export INHAND_API_PASSWORD=$(aws secretsmanager get-secret-value \
+  --secret-id "deecell-fleet-production/inhand-api-password" \
+  --query SecretString --output text --region us-east-2)
+export INHAND_API_BASE_URL=https://iot.inhandnetworks.com
+# <<< INHAND CREDS END
+$
