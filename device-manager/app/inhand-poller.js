@@ -169,7 +169,12 @@ class InHandPoller {
       const devicesWithIds = [];
       for (const device of devices) {
         const identifiers = this._extractIdentifiers(device);
-        if (!identifiers.iccid && !identifiers.imsi && !identifiers.msisdn) {
+        const deviceName = device.name || null;
+        // Keep a device if it has any identifier OR a name we can match on.
+        // The DB-side fallback uses LOWER(s.device_name) = ANY($4) so a
+        // device with no SIM identifiers but a known name can still be
+        // linked + receive Router Sig updates.
+        if (!identifiers.iccid && !identifiers.imsi && !identifiers.msisdn && !deviceName) {
           continue;
         }
         const location = this._extractLocation(device);
