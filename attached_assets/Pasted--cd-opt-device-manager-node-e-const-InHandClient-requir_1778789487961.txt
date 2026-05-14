@@ -1,0 +1,104 @@
+$ cd /opt/device-manager
+node -e "
+const { InHandClient } = require('./app/inhand-client');
+(async () => {
+  const c = new InHandClient();
+  await c.authenticate();
+  const devs = await c.getDevicesWithLocation();
+  const target = devs.find(d$ > > > > > >  => /NHRA|Curtis-2|Penske/i.test(d.name)) || devs[0];
+  console.log(JSON.stringify(target, null, 2));
+})();
+"> > > 
+2026-05-14 20:11:12.821 INFO  InHand API: Authenticating  username=andy@deecell.com  baseUrl=https://iot.inhandnetworks.com
+2026-05-14 20:11:13.138 INFO  InHand API: Authenticated successfully  expiresIn=3599  hasRefreshToken=true
+{
+  "oid": "69734c1222cbc90001ce4303",
+  "name": "RF3022529634066",
+  "serialNumber": "RF3022529634066",
+  "model": "IR300",
+  "modelId": "5eb503292a8aa55f706411c3",
+  "online": 0,
+  "logtime": "2026-05-01T08:03:27Z",
+  "protocol": "mqtt",
+  "config": {
+    "sync": 2,
+    "timeout": 300000,
+    "ackTimeout": 120000,
+    "ackRetries": 3
+  },
+  "pubIp": "95.129.20.25",
+  "pubPort": 5419,
+  "signalStrength": {
+    "radio": "4G",
+    "level": 2,
+    "asu": 26,
+    "rssi": -77,
+    "rsrp": -114,
+    "rsrq": -19,
+    "sinr": -7,
+    "band": "1",
+    "pci": 469,
+    "cid": 3056664,
+    "ts": "2026-05-01T08:00:00Z"
+  },
+  "info": {
+    "deviceConfig": "773BD6028E9FC1FCA959186429407CEC",
+    "bootVersion": "1.1.3.r4956",
+    "hwVersion": "V1.0",
+    "swVersion": "V3.5.99",
+    "imsi": "204080843524351",
+    "cid": 3056664,
+    "lac": 24706,
+    "mnc": 15,
+    "mcc": 234,
+    "rssi": 8,
+    "sn": "RF3022529634066",
+    "reconnectReason": "",
+    "wan": {
+      "net": "4G",
+      "mac": "D6:7C:1B:3B:CA:8F",
+      "ip": "10.117.64.173",
+      "interface": "wwan0"
+    },
+    "lan": {
+      "ip": [
+        "192.168.137.1"
+      ],
+      "netmask": [
+        "255.255.255.0"
+      ],
+      "mac": "EC:6E:79:16:36:99",
+      "interface": "lan0"
+    },
+    "imei": "865828068540028",
+    "iccid": "8931086125129524229F",
+    "ngrokcVersion": "1.8",
+    "pn": "302FQ58-WLAN",
+    "accessMode": 3,
+    "activeLink": "cellular",
+    "inAgent": "1.0",
+    "updatedAt": 1777621862.994,
+    "wifi": [
+      {
+        "ssid": "ADF_PLC_3156",
+        "password": "oDgN9z3EU6",
+        "type": "AP"
+      }
+    ]
+  },
+  "address": "Shurgard Self Storage, Victoria Road, London Borough of Hillingdon, Greater London, England, HA4 0JE, United Kingdom",
+  "location": {
+    "longitude": -0.3919967,
+    "latitude": 51.5558577,
+    "source": "cellTower",
+    "time": "2026-05-01T07:10:15Z"
+  },
+  "vendorId": 3,
+  "businessState": 0,
+  "owner": "69734c2022cbc90001ce4335",
+  "createTime": 1777619394,
+  "updateTime": 1777620905,
+  "signVersion": 2,
+  "_id": "69f451c248f8a600017675f5"
+}
+$
