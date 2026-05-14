@@ -1,0 +1,55 @@
+$ sudo journalctl -u device-manager.service --since "24 hours ago" --no-pager \
+  | grep -iE "segfault|sigabrt|sigsegv|core dump|fatal|uncaught|unhandled|crashed|exit code|worker.*restart|forked worker" \
+  | tail -50> > 
+
+May 14 20:28:48 ip-10-0-12-190 start.sh[256994]: 2026-05-14 20:28:48.942 INFO  Supervisor: Forked worker for cohort 2  pid=257432
+May 14 20:30:39 ip-10-0-12-190 start.sh[256994]: 2026-05-14 20:30:39.062 INFO  Supervisor: Forked worker for cohort 6  pid=257454
+May 14 20:31:03 ip-10-0-12-190 start.sh[256994]: 2026-05-14 20:31:03.955 INFO  Supervisor: Forked worker for cohort 4  pid=257476
+May 14 20:33:22 ip-10-0-12-190 start.sh[256994]: 2026-05-14 20:33:22.015 INFO  Supervisor: Forked worker for cohort 1  pid=257599
+May 14 20:35:50 ip-10-0-12-190 start.sh[256994]: 2026-05-14 20:35:49.999 INFO  Supervisor: Forked worker for cohort 5  pid=257634
+May 14 20:41:11 ip-10-0-12-190 start.sh[256994]: 2026-05-14 20:41:11.255 INFO  Supervisor: Forked worker for cohort 4  pid=257738
+May 14 20:44:20 ip-10-0-12-190 start.sh[256994]: 2026-05-14 20:44:20.888 INFO  Supervisor: Forked worker for cohort 1  pid=257780
+May 14 20:46:21 ip-10-0-12-190 start.sh[256994]: 2026-05-14 20:46:21.545 INFO  Supervisor: Forked worker for cohort 4  pid=257822
+May 14 20:50:57 ip-10-0-12-190 start.sh[256994]: 2026-05-14 20:50:57.411 INFO  Supervisor: Forked worker for cohort 5  pid=257882
+May 14 20:53:14 ip-10-0-12-190 start.sh[256994]: 2026-05-14 20:53:14.933 INFO  Supervisor: Forked worker for cohort 5  pid=257920
+May 14 20:53:15 ip-10-0-12-190 start.sh[256994]: 2026-05-14 20:53:15.956 INFO  Supervisor: Forked worker for cohort 4  pid=257937
+May 14 20:53:31 ip-10-0-12-190 start.sh[256994]: 2026-05-14 20:53:31.245 INFO  Supervisor: Forked worker for cohort 5  pid=257954
+May 14 20:53:51 ip-10-0-12-190 start.sh[256994]: 2026-05-14 20:53:51.995 INFO  Supervisor: Forked worker for cohort 2  pid=257975
+May 14 20:55:52 ip-10-0-12-190 start.sh[256994]: 2026-05-14 20:55:52.410 INFO  Supervisor: Forked worker for cohort 1  pid=258033
+May 14 20:55:52 ip-10-0-12-190 start.sh[256994]: 2026-05-14 20:55:52.415 INFO  Supervisor: Forked worker for cohort 0  pid=258034
+May 14 20:55:52 ip-10-0-12-190 start.sh[256994]: 2026-05-14 20:55:52.431 INFO  Supervisor: Forked worker for cohort 6  pid=258045
+May 14 20:56:02 ip-10-0-12-190 start.sh[256994]: 2026-05-14 20:56:02.845 INFO  Supervisor: Forked worker for cohort 0  pid=258086
+May 14 20:56:02 ip-10-0-12-190 start.sh[256994]: 2026-05-14 20:56:02.940 INFO  Supervisor: Forked worker for cohort 1  pid=258093
+May 14 20:56:05 ip-10-0-12-190 start.sh[256994]: 2026-05-14 20:56:05.444 INFO  Supervisor: Forked worker for cohort 2  pid=258122
+May 14 20:56:13 ip-10-0-12-190 start.sh[256994]: 2026-05-14 20:56:13.393 INFO  Supervisor: Forked worker for cohort 4  pid=258133
+May 14 20:56:13 ip-10-0-12-190 start.sh[256994]: 2026-05-14 20:56:13.434 INFO  Supervisor: Forked worker for cohort 5  pid=258140
+May 14 20:56:19 ip-10-0-12-190 start.sh[256994]: 2026-05-14 20:56:19.178 INFO  Supervisor: Forked worker for cohort 0  pid=258170
+May 14 20:56:19 ip-10-0-12-190 start.sh[256994]: 2026-05-14 20:56:19.288 INFO  Supervisor: Forked worker for cohort 1  pid=258181
+May 14 20:57:05 ip-10-0-12-190 start.sh[256994]: 2026-05-14 20:57:05.758 INFO  Supervisor: Forked worker for cohort 4  pid=258203
+May 14 20:57:05 ip-10-0-12-190 start.sh[256994]: 2026-05-14 20:57:05.820 INFO  Supervisor: Forked worker for cohort 5  pid=258210
+May 14 20:58:25 ip-10-0-12-190 start.sh[256994]: 2026-05-14 20:58:25.660 INFO  Supervisor: Forked worker for cohort 1  pid=258250
+May 14 20:59:17 ip-10-0-12-190 start.sh[256994]: 2026-05-14 20:59:17.943 INFO  Supervisor: Forked worker for cohort 1  pid=258327
+May 14 21:00:46 ip-10-0-12-190 start.sh[256994]: 2026-05-14 21:00:46.210 INFO  Supervisor: Forked worker for cohort 6  pid=258370
+May 14 21:01:39 ip-10-0-12-190 start.sh[256994]: 2026-05-14 21:01:39.800 INFO  Supervisor: Forked worker for cohort 8  pid=258483
+May 14 21:02:46 ip-10-0-12-190 start.sh[256994]: 2026-05-14 21:02:46.933 INFO  Supervisor: Forked worker for cohort 1  pid=258507
+May 14 21:08:51 ip-10-0-12-190 start.sh[256994]: 2026-05-14 21:08:51.293 INFO  Supervisor: Forked worker for cohort 1  pid=258610
+May 14 21:13:44 ip-10-0-12-190 start.sh[256994]: 2026-05-14 21:13:44.660 INFO  Supervisor: Forked worker for cohort 6  pid=258713
+May 14 21:13:54 ip-10-0-12-190 start.sh[256994]: 2026-05-14 21:13:54.922 INFO  Supervisor: Forked worker for cohort 6  pid=258734
+May 14 21:14:55 ip-10-0-12-190 start.sh[256994]: 2026-05-14 21:14:55.607 INFO  Supervisor: Forked worker for cohort 1  pid=258761
+May 14 21:17:02 ip-10-0-12-190 start.sh[256994]: 2026-05-14 21:17:02.340 INFO  Supervisor: Forked worker for cohort 1  pid=258796
+May 14 21:23:06 ip-10-0-12-190 start.sh[256994]: 2026-05-14 21:23:06.657 INFO  Supervisor: Forked worker for cohort 1  pid=258846
+May 14 21:25:23 ip-10-0-12-190 start.sh[256994]: 2026-05-14 21:25:23.093 INFO  Supervisor: Forked worker for cohort 1  pid=258875
+May 14 21:27:26 ip-10-0-12-190 start.sh[256994]: 2026-05-14 21:27:26.262 INFO  Supervisor: Forked worker for cohort 5  pid=258901
+May 14 21:37:38 ip-10-0-12-190 start.sh[256994]: 2026-05-14 21:37:38.122 INFO  Supervisor: Forked worker for cohort 5  pid=258990
+May 14 21:40:58 ip-10-0-12-190 start.sh[256994]: 2026-05-14 21:40:58.762 INFO  Supervisor: Forked worker for cohort 1  pid=259021
+May 14 21:52:09 ip-10-0-12-190 start.sh[256994]: 2026-05-14 21:52:09.884 INFO  Supervisor: Forked worker for cohort 1  pid=259165
+May 14 21:52:45 ip-10-0-12-190 start.sh[256994]: 2026-05-14 21:52:45.421 INFO  Supervisor: Forked worker for cohort 5  pid=259189
+May 14 21:52:55 ip-10-0-12-190 start.sh[256994]: 2026-05-14 21:52:55.736 INFO  Supervisor: Forked worker for cohort 5  pid=259210
+May 14 21:53:12 ip-10-0-12-190 start.sh[256994]: 2026-05-14 21:53:12.058 INFO  Supervisor: Forked worker for cohort 5  pid=259232
+May 14 21:58:50 ip-10-0-12-190 start.sh[256994]: 2026-05-14 21:58:50.943 INFO  Supervisor: Forked worker for cohort 6  pid=259296
+May 14 22:03:32 ip-10-0-12-190 start.sh[256994]: 2026-05-14 22:03:32.400 INFO  Supervisor: Forked worker for cohort 1  pid=259341
+May 14 22:13:39 ip-10-0-12-190 start.sh[256994]: 2026-05-14 22:13:39.700 INFO  Supervisor: Forked worker for cohort 1  pid=259446
+May 14 22:23:47 ip-10-0-12-190 start.sh[256994]: 2026-05-14 22:23:47.018 INFO  Supervisor: Forked worker for cohort 1  pid=259536
+May 14 22:23:57 ip-10-0-12-190 start.sh[256994]: 2026-05-14 22:23:57.316 INFO  Supervisor: Forked worker for cohort 1  pid=259557
+May 14 22:25:45 ip-10-0-12-190 start.sh[256994]: 2026-05-14 22:25:45.803 INFO  Supervisor: Forked worker for cohort 1  pid=259592
+$ $
