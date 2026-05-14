@@ -1,0 +1,32 @@
+$ psql "$DATABASE_URL" -c "
+> SELECT d.device_name, d.serial_number, s.iccid, s.msisdn, s.router_rssi,
+       ROUND(EXTRACT(EPOCH FROM (NOW() - s.router_signal_updated_at))/60) AS min_old
+FROM power_mon_devices d
+LEFT JOIN sims s ON s.device_id = d.id
+WHERE d.is_active = true
+ORDER BY (s.id IS NULL), s.router_rssi DESC NULLS LAST;
+"> > > > > > 
+       device_name       |  serial_number   |        iccid         |     msisdn      | router_rssi | min_old 
+-------------------------+------------------+----------------------+-----------------+-------------+---------
+ DCL-Radian-2            | 555F07DA68E55AAA | 89444611503507318135 | 883190603657502 |         -75 |       2
+ DCL-Kalitta-Hospitality | 4E0A83432AEE8967 | 89444611503504517861 | 883190603571828 |         -77 |       2
+ DCL-KTR                 | E747AAFD3EEB003C | 89444611503504616275 | 883190603400852 |         -77 |       2
+ DCL-Epler               | 2622A846A1BD5441 | 89444611503507318085 | 883190603657503 |         -77 |       2
+ DCL-Radian-1            | A8839FDD47E0D9B9 | 89444611503507317822 | 883190603659407 |         -77 |       2
+ DCL-Elite-Hospitality   | 623DECC4E318D957 | 89444611503504517911 | 883190603571832 |         -81 |       2
+ DCL-CDOT-1              | 93A06F1D0939561B | 89444611503508862677 | 883190603748137 |         -83 |       2
+ DCL-Moeck-Shop          | E18590457A387E04 | 89444611503507317871 | 883190603659432 |         -83 |       2
+ DCL-Moeck               | A998463C2C69ABFD | 89444611503504517903 | 883190603571827 |         -91 |       2
+ DCL-Thibert             | 292240386041C12B | 89444611503504517838 | 883190603571831 |             |       2
+ DCL-Howard              | A93B7B8CC0D672FE | 89444611503504616309 | 883190603400854 |             |       2
+ DCL-Brown               | E6D8F89877415815 | 89444611503504616259 | 883190603400849 |             |       2
+ DCL-Carter              | B051375C222A5334 | 89444611503504616283 | 883190603400853 |             |       2
+ DCL-Kruse               | E844BD0A2017EB7A | 89444611503507317863 | 883190603659411 |             |       2
+ DCL-Haynes              | 96FE5E88572C1995 | 89444611503504517879 | 883190603571830 |             |       2
+ DCL-Curtis-1            | 1B1034C2B3399A18 | 89444611503504517895 | 883190603571825 |             |       2
+ DCL-NHRA-Tech-Trailer   | A15102C4CCF4B6B2 | 89444611503507318127 | 883190603657507 |             |       2
+ DCL-Curtis-2            | 1A81067CFA117B5B | 89444611503504517887 | 883190603571824 |             |       2
+ DCL-Penske01            | FE0B7F3AFF982430 |                      |                 |             |        
+(19 rows)
+
+$
