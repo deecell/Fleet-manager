@@ -367,16 +367,37 @@ class InHandPoller {
   _extractRssi(device) {
     const info = device.info || {};
 
+    // Newer firmware returns signalStrength as a nested object on the bulk
+    // /api/devices?verbose=100 response, e.g.:
+    //   "signalStrength": { "radio":"4G", "rssi":-77, "asu":26, ... }
+    // Older firmware returned it as a flat negative dBm number. We handle
+    // both: if it's an object, prefer .rssi (already in dBm), otherwise
+    // accept the scalar.
+    const sigObj = (device.signalStrength && typeof device.signalStrength === 'object')
+      ? device.signalStrength : null;
+    const sigObjInfo = (info.signalStrength && typeof info.signalStrength === 'object')
+      ? info.signalStrength : null;
+
     const dbmCandidates = [
       device.rssi,
-      info.signalStrength,
-      device.signalStrength,
+      sigObj && sigObj.rssi,
+      sigObjInfo && sigObjInfo.rssi,
+      typeof device.signalStrength === 'number' || typeof device.signalStrength === 'string' ? device.signalStrength : null,
+      typeof info.signalStrength === 'number' || typeof info.signalStrength === 'string' ? info.signalStrength : null,
     ];
     for (const v of dbmCandidates) {
       if (v == null || v === '') continue;
       const n = parseFloat(v);
       if (!isNaN(n) && n < 0 && n > -200) {
         return Math.round(n);
+      }
+    }
+
+    // Some firmware reports ASU inside the nested signalStrength object too.
+    if (sigObj && sigObj.asu != null) {
+      const asu = parseInt(sigObj.asu, 10);
+      if (!isNaN(asu) && asu >= 0 && asu <= 31) {
+        return -113 + 2 * asu;
       }
     }
 
