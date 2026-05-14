@@ -1,0 +1,67 @@
+$ cd /opt/device-manager
+$ node -e "
+const { InHandClient } = require('./app/inhand-client');
+(async () => {
+  const c = new InHandClient();
+  await c.authenticate();
+  const devs = await c.getDevicesWithLocation();
+  console.log('Total:', devs.length);
+  devs.forEach(d => console.log(d.online === 1 ? 'ONLINE ' : 'offline', d.name, '|', d.address || '(no addr)'));
+})();
+"> > > > > > > > > 
+2026-05-14 20:12:04.217 INFO  InHand API: Authenticating  username=andy@deecell.com  baseUrl=https://iot.inhandnetworks.com
+2026-05-14 20:12:04.581 INFO  InHand API: Authenticated successfully  expiresIn=3599  hasRefreshToken=true
+Total: 52
+offline RF3022529634066 | Shurgard Self Storage, Victoria Road, London Borough of Hillingdon, Greater London, England, HA4 0JE, United Kingdom
+offline RF3022529634067 | Shurgard Self Storage, Victoria Road, London Borough of Hillingdon, Greater London, England, HA4 0JE, United Kingdom
+offline RF3022529634053 | Shurgard Self Storage, Victoria Road, London Borough of Hillingdon, Greater London, England, HA4 0JE, United Kingdom
+ONLINE  RF3022529634058 | Am Jostenhof, Hülsdonk, Moers, Kreis Wesel, North Rhine-Westphalia, 47441, Germany
+offline RF3022529634077 | (no addr)
+offline RF3022529634063 | (no addr)
+offline RF3022529634050 | (no addr)
+ONLINE  RF3022512551396 | Scuffle Road, Thomson, McDuffie County, Georgia, 30824, USA
+ONLINE  RF3022529634065 | Altarnun, Cornwall, England, PL15 7PR, United Kingdom
+offline IR302_1 | (no addr)
+offline IR302_2 | (no addr)
+ONLINE  IR302_3 | Dollar Tree Lane, Joliet, Will County, Illinois, 60436, USA
+offline IR302_4 | (no addr)
+offline IR302_5 | (no addr)
+offline IR302_6 | (no addr)
+offline IR302_7 | (no addr)
+offline IR302_9 | (no addr)
+offline IR302_10 | 2231, East Del Amo Boulevard, Compton, Los Angeles County, California, 90220, USA
+offline IR302_11 | (no addr)
+offline IR302_12 | (no addr)
+ONLINE  IR302_13 | 19300, East Colfax Avenue, Aurora District, Arapahoe County, Colorado, 80011, USA
+offline IR302_14 | (no addr)
+offline IR302_15 | 2410, East Dominguez Street, Long Beach, Los Angeles County, California, 90810, USA
+offline IR302_16 | (no addr)
+offline IR302_17 | (no addr)
+offline IR302_18 | (no addr)
+offline IR302_19 | (no addr)
+offline IR302_20 | (no addr)
+offline IR302_21 | Avenue 48, La Quinta, Riverside County, California, 92253, USA
+offline IR302_22 | (no addr)
+offline IR302_23 | (no addr)
+offline IR302_24 | (no addr)
+ONLINE  IR302_25 | 136, June Road, North Salem, Westchester County, New York, 10560, USA
+offline IR302_26 | (no addr)
+offline IR302_27 | (no addr)
+offline IR302_28 | (no addr)
+offline IR302_29 | (no addr)
+offline IR302_30 | (no addr)
+offline IR302_31 | (no addr)
+ONLINE  IR302_32 | West Westbow Boulevard, Spokane, Spokane County, Washington, 99224, USA
+offline IR302_33 | (no addr)
+offline IR302_34 | (no addr)
+offline IR302_35 | (no addr)
+offline IR302_36 | (no addr)
+ONLINE  IR302_37 | 2560, Interstate 684 Northbound, Brewster, Putnam County, New York, 10509, USA
+offline IR302_38 | (no addr)
+offline IR302_39 | (no addr)
+ONLINE  IR302_40 | IL 53, Joliet, Will County, Illinois, 60421, USA
+offline IR302_41 | (no addr)
+offline IR302_42 | (no addr)
+offline IR302_43 | (no addr)
+ONLINE  IR302_44 | 5769, South Soda Road, Spokane, Spokane County, Washington, 99224, USA
+$
