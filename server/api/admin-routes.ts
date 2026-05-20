@@ -786,6 +786,184 @@ router.post("/devices/backfill-sim-links", adminMiddleware, async (_req: Request
   }
 });
 
+/**
+ * Refresh a single device's SIM linkage from Wireless Logic.
+ * Use case: the physical router was replaced, so the device's deviceName
+ * still maps to a Wireless Logic SIM but the iccid/msisdn/imsi we have on
+ * file are stale and the InHand poller can no longer match the new router.
+ * Calls the same strict-single lookup as registration; on success updates
+ * the existing sims row in place (even if the ICCID changed). If the new
+ * ICCID is already linked to a different device the call is rejected 409
+ * (operator must detach in Wireless Logic first).
+ */
+router.post("/devices/:id/refresh-sim", adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isFinite(id)) {
+      return res.status(400).json({ error: "Invalid device id" });
+    }
+
+    const deviceRows = await db
+      .select()
+      .from(powerMonDevices)
+      .where(eq(powerMonDevices.id, id))
+      .limit(1);
+    const device = deviceRows[0];
+    if (!device) {
+      return res.status(404).json({ error: "Device not found" });
+    }
+    if (!device.deviceName || !device.deviceName.trim()) {
+      return res.status(400).json({
+        code: "DEVICE_NAME_REQUIRED",
+        error: "Device has no deviceName — cannot look it up in Wireless Logic.",
+      });
+    }
+    const deviceName = device.deviceName.trim();
+
+    const simProClient = createSimProClient();
+    if (!simProClient) {
+      return res.status(503).json({
+        code: "SIMPRO_NOT_CONFIGURED",
+        error: "SIMPro API credentials are not configured on the server.",
+      });
+    }
+
+    let lookup;
+    try {
+      lookup = await simProClient.getSimByDeviceName(deviceName);
+    } catch (err) {
+      const message = err instanceof SimProApiError
+        ? `Wireless Logic API error (${err.statusCode}): ${err.message}`
+        : `Wireless Logic API call failed: ${err instanceof Error ? err.message : "unknown"}`;
+      console.error("[admin] SIMPro lookup failed during SIM refresh:", err);
+      return res.status(502).json({ code: "SIMPRO_LOOKUP_FAILED", error: message });
+    }
+
+    if (lookup.kind === "none") {
+      return res.status(400).json({
+        code: "SIM_NOT_FOUND",
+        error: `No SIM found in Wireless Logic with Custom Field 1 = "${deviceName}". Set Custom Field 1 on the new SIM in Wireless Logic, then retry.`,
+      });
+    }
+    if (lookup.kind === "multiple") {
+      return res.status(400).json({
+        code: "SIM_MULTIPLE_MATCH",
+        error: `Multiple SIMs (${lookup.count}) match "${deviceName}" in Wireless Logic — clean up duplicates first.`,
+      });
+    }
+
+    const sp = lookup.sim;
+
+    // Current sims row for THIS device (the one we're about to refresh).
+    const currentRows = await db
+      .select()
+      .from(sims)
+      .where(eq(sims.deviceId, id))
+      .limit(1);
+    const currentSim = currentRows[0] ?? null;
+
+    // Is there ALREADY a sims row carrying the new ICCID?
+    const iccidRows = await db
+      .select({ id: sims.id, deviceId: sims.deviceId })
+      .from(sims)
+      .where(eq(sims.iccid, sp.iccid))
+      .limit(1);
+    const iccidOwner = iccidRows[0] ?? null;
+
+    // Refuse to silently steal an ICCID linked to a different device.
+    if (iccidOwner && iccidOwner.deviceId !== null && iccidOwner.deviceId !== id) {
+      return res.status(409).json({
+        code: "SIM_ALREADY_LINKED",
+        error: `That SIM (ICCID ${sp.iccid}) is already linked to another device (#${iccidOwner.deviceId}). Detach it in the Wireless Logic console first.`,
+      });
+    }
+
+    const iccidChanged = !currentSim || currentSim.iccid !== sp.iccid;
+
+    const simBase = {
+      organizationId: device.organizationId,
+      deviceId: id,
+      truckId: device.truckId ?? null,
+      simproId: sp.id,
+      msisdn: sp.msisdn,
+      imsi: sp.imsi || null,
+      eid: sp.eid || null,
+      deviceName,
+      status: sp.status || "unknown",
+      workflowStatus: sp.workflow_status || null,
+      ipAddress: sp.ip_address || null,
+      isActive: true,
+    };
+
+    await db.transaction(async (tx) => {
+      // Decide which row ends up as the "active" sims row for this device.
+      if (iccidOwner) {
+        // A row with the new ICCID already exists (either it IS currentSim
+        // already, or it's an unlinked row from the periodic SIMPro sync we
+        // can safely claim — the guard above proved deviceId is null or id).
+        // Clear stale router signal so the UI shows -- until the next
+        // InHand poll repopulates it against the new router.
+        await tx
+          .update(sims)
+          .set({
+            ...simBase,
+            routerRssi: iccidChanged ? null : undefined,
+            routerSignalUpdatedAt: iccidChanged ? null : undefined,
+            updatedAt: new Date(),
+          })
+          .where(eq(sims.id, iccidOwner.id));
+
+        // If the currentSim row is a DIFFERENT row (ICCID actually drifted),
+        // unlink the old row so we don't have two rows pointing at one
+        // device. We keep the row itself for historical data_used_mb
+        // continuity — null its deviceId/truckId so nothing dangles.
+        if (currentSim && currentSim.id !== iccidOwner.id) {
+          await tx
+            .update(sims)
+            .set({
+              deviceId: null,
+              truckId: null,
+              updatedAt: new Date(),
+            })
+            .where(eq(sims.id, currentSim.id));
+        }
+      } else if (currentSim) {
+        // No row exists with the new ICCID yet — overwrite the current row
+        // in place with the new identifiers. This preserves the row id and
+        // any router_rssi history (which we clear below since ICCID drifted).
+        await tx
+          .update(sims)
+          .set({
+            ...simBase,
+            iccid: sp.iccid,
+            routerRssi: null,
+            routerSignalUpdatedAt: null,
+            updatedAt: new Date(),
+          })
+          .where(eq(sims.id, currentSim.id));
+      } else {
+        // No current sims row, no row with new ICCID — fresh insert.
+        await tx.insert(sims).values({ ...simBase, iccid: sp.iccid } satisfies InsertSim);
+      }
+    });
+
+    res.json({
+      device: { id, deviceName },
+      before: currentSim
+        ? { iccid: currentSim.iccid, msisdn: currentSim.msisdn, imsi: currentSim.imsi }
+        : null,
+      after: { iccid: sp.iccid, msisdn: sp.msisdn, imsi: sp.imsi || null },
+      iccidChanged,
+      message: iccidChanged
+        ? `SIM refreshed. ICCID changed from ${currentSim?.iccid ?? "(none)"} → ${sp.iccid}. Router signal will repopulate within ~2 min.`
+        : `SIM refreshed. Identifiers unchanged.`,
+    });
+  } catch (error) {
+    console.error("Error refreshing device SIM:", error);
+    res.status(500).json({ error: "Failed to refresh SIM" });
+  }
+});
+
 router.patch("/devices/:id", adminMiddleware, async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id, 10);

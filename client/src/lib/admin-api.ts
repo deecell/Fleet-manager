@@ -490,6 +490,27 @@ export function useBackfillSimLinks() {
   });
 }
 
+export interface RefreshSimResult {
+  device: { id: number; deviceName: string };
+  before: { iccid: string; msisdn: string | null; imsi: string | null } | null;
+  after: { iccid: string; msisdn: string | null; imsi: string | null };
+  iccidChanged: boolean;
+  message: string;
+}
+
+export function useRefreshDeviceSim() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (deviceId: number) =>
+      adminFetch<RefreshSimResult>(`/api/v1/admin/devices/${deviceId}/refresh-sim`, {
+        method: "POST",
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/admin/devices"] });
+    },
+  });
+}
+
 export function useUpdateDevice() {
   const queryClient = useQueryClient();
   return useMutation({

@@ -45,10 +45,12 @@ import {
   useResetDeviceStatus,
   useSetDeviceOffline,
   useBackfillSimLinks,
+  useRefreshDeviceSim,
   AdminApiError,
   type SimBackfillSummary,
+  type RefreshSimResult,
 } from "@/lib/admin-api";
-import { Plus, Pencil, Cpu, Link2, Unlink, Key, Search, Trash2, RotateCcw, WifiOff, RefreshCw, AlertCircle } from "lucide-react";
+import { Plus, Pencil, Cpu, Link2, Unlink, Key, Search, Trash2, RotateCcw, WifiOff, RefreshCw, AlertCircle, RotateCw } from "lucide-react";
 import type { PowerMonDevice } from "@shared/schema";
 import type { DeviceWithSnapshot } from "@/lib/admin-api";
 import { SignalCell, classifySignal } from "@/components/SignalCell";
@@ -87,6 +89,9 @@ export default function DevicesPage() {
   const [createError, setCreateError] = useState<{ code?: string; message: string } | null>(null);
   const backfillSimLinks = useBackfillSimLinks();
   const [backfillSummary, setBackfillSummary] = useState<SimBackfillSummary | null>(null);
+  const refreshDeviceSim = useRefreshDeviceSim();
+  const [refreshingDeviceId, setRefreshingDeviceId] = useState<number | null>(null);
+  const [refreshResult, setRefreshResult] = useState<RefreshSimResult | null>(null);
   const [editingDevice, setEditingDevice] = useState<PowerMonDevice | null>(null);
   const [deletingDevice, setDeletingDevice] = useState<PowerMonDevice | null>(null);
   const [assigningDevice, setAssigningDevice] = useState<PowerMonDevice | null>(null);
@@ -183,6 +188,21 @@ export default function DevicesPage() {
       setBackfillSummary(summary);
     } catch (error: any) {
       toast({ title: error?.message || "Backfill failed", variant: "destructive" });
+    }
+  };
+
+  const handleRefreshSim = async (device: PowerMonDevice) => {
+    setRefreshingDeviceId(device.id);
+    try {
+      const result = await refreshDeviceSim.mutateAsync(device.id);
+      setRefreshResult(result);
+    } catch (error: any) {
+      toast({
+        title: error?.message || "Failed to refresh SIM",
+        variant: "destructive",
+      });
+    } finally {
+      setRefreshingDeviceId(null);
     }
   };
 
@@ -819,6 +839,16 @@ export default function DevicesPage() {
                               <Button
                                 variant="ghost"
                                 size="icon"
+                                onClick={() => handleRefreshSim(device)}
+                                disabled={refreshingDeviceId === device.id}
+                                data-testid={`button-refresh-sim-${device.id}`}
+                                title="Refresh SIM from Wireless Logic (use after replacing the router)"
+                              >
+                                <RotateCw className={`h-4 w-4 text-blue-600 ${refreshingDeviceId === device.id ? "animate-spin" : ""}`} />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 onClick={() => setDeletingDevice(device)}
                                 data-testid={`button-delete-device-${device.id}`}
                                 title="Delete device"
@@ -1192,6 +1222,57 @@ export default function DevicesPage() {
                 data-testid="button-confirm-delete"
               >
                 {deleteDevice.isPending ? "Deleting..." : "Delete"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={!!refreshResult} onOpenChange={() => setRefreshResult(null)}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>SIM Refreshed</DialogTitle>
+              <DialogDescription>
+                {refreshResult?.message}
+              </DialogDescription>
+            </DialogHeader>
+            {refreshResult && (
+              <div className="space-y-3 text-sm" data-testid="refresh-sim-summary">
+                <div className="rounded-md border p-3">
+                  <div className="text-xs text-muted-foreground mb-1">Device</div>
+                  <div className="font-mono text-sm">{refreshResult.device.deviceName}</div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="rounded-md border p-2">
+                    <div className="text-xs text-muted-foreground mb-1">Before</div>
+                    {refreshResult.before ? (
+                      <div className="font-mono text-xs leading-relaxed break-all">
+                        <div><span className="text-muted-foreground">ICCID:</span> {refreshResult.before.iccid}</div>
+                        <div><span className="text-muted-foreground">MSISDN:</span> {refreshResult.before.msisdn ?? "-"}</div>
+                        <div><span className="text-muted-foreground">IMSI:</span> {refreshResult.before.imsi ?? "-"}</div>
+                      </div>
+                    ) : (
+                      <div className="text-xs text-muted-foreground italic">(no SIM linked)</div>
+                    )}
+                  </div>
+                  <div className={`rounded-md border p-2 ${refreshResult.iccidChanged ? "border-primary/50 bg-primary/5" : ""}`}>
+                    <div className="text-xs text-muted-foreground mb-1">After</div>
+                    <div className="font-mono text-xs leading-relaxed break-all">
+                      <div><span className="text-muted-foreground">ICCID:</span> {refreshResult.after.iccid}</div>
+                      <div><span className="text-muted-foreground">MSISDN:</span> {refreshResult.after.msisdn ?? "-"}</div>
+                      <div><span className="text-muted-foreground">IMSI:</span> {refreshResult.after.imsi ?? "-"}</div>
+                    </div>
+                  </div>
+                </div>
+                {refreshResult.iccidChanged && (
+                  <div className="text-xs text-muted-foreground">
+                    Router signal will start populating within ~2 min once the InHand poller matches the new identifiers.
+                  </div>
+                )}
+              </div>
+            )}
+            <DialogFooter>
+              <Button onClick={() => setRefreshResult(null)} data-testid="button-close-refresh-result">
+                Close
               </Button>
             </DialogFooter>
           </DialogContent>

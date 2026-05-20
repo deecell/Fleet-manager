@@ -6,6 +6,33 @@
 
 ## Latest Updates (May 20, 2026)
 
+### Per-device "Refresh SIM from Wireless Logic" admin action
+- **Symptom**: DCL-Carter's physical InHand router was replaced in the field. The new router shows up in InHand fine, but `/admin/devices` "Router Sig" column stayed at `--` for the truck. Diagnostic SQL on prod showed the `sims` row for DCL-Carter still carried the **old** SIM identifiers (ICCID `894446...4616283`, MSISDN `883190603400853`); the new router carries MSISDN `883190603657509`. The InHand poller matches by `iccid`/`imsi`/`msisdn`/`device_name`, none of which lined up, so the new router landed in the unmatched-devices warning every poll cycle.
+- **Root cause**: there was no operator-facing path to re-pull the new SIM identifiers from Wireless Logic into our `sims` row after a router swap. The periodic SIMPro sync only refreshes `data_used_mb` / `last_location_update` on existing rows (loose helper) — it never replaces `iccid`/`msisdn`/`imsi`. The original Task #21 strict registration path bound a SIM at create time, but didn't cover the "swap the physical SIM under an existing device" lifecycle.
+- **Fix**: new admin endpoint `POST /api/v1/admin/devices/:id/refresh-sim` and a small Refresh icon on each row of `/admin/devices` (rotating arrow between the offline/online toggle and the trash icon). The endpoint reuses the existing `simProClient.getSimByDeviceName()` strict-single helper and the same structured error codes as registration:
+  - `SIM_NOT_FOUND` → "set Custom Field 1 on the new SIM in Wireless Logic, then retry"
+  - `SIM_MULTIPLE_MATCH` → "clean up duplicates in Wireless Logic first"
+  - `SIM_ALREADY_LINKED` (409) → "this ICCID is already linked to device #N; detach in Wireless Logic console first" — same no-silent-steal rule as registration
+- **ICCID-drift handling** (the whole point of this endpoint): runs in a single transaction with three cases:
+  1. A `sims` row already exists with the **new** ICCID (typical when the periodic sync already saw the new SIM) → update that row in place with `deviceId` + all identifiers; if a *different* row was the current `sims` row for this device, null its `deviceId`/`truckId` so we don't dangle two rows per device. The old row is kept (not deleted) for historical `data_used_mb` continuity.
+  2. No row exists with the new ICCID, but there IS a current `sims` row for this device → overwrite that row in place with the new ICCID + identifiers.
+  3. No current row and no new-ICCID row → fresh insert.
+  When the ICCID actually drifted, the endpoint clears `routerRssi` + `routerSignalUpdatedAt` on the active row so the UI shows `--` until the next InHand poll (~2 min) repopulates from the new router.
+- **UI**: result dialog shows a before/after diff (ICCID/MSISDN/IMSI) with the "after" panel highlighted when the ICCID changed, plus a hint that signal will populate within ~2 min. Toast on structured errors (no need to keep a dialog open — there's no form to preserve).
+- **Operator playbook for DCL-Carter (once deployed)**:
+  1. Confirm in Wireless Logic that the new SIM has `Custom Field 1 = DCL-Carter`.
+  2. Open `/admin/devices`, find the DCL-Carter row, click the rotating-arrow icon.
+  3. Expect the dialog to show the ICCID changed from `894446...4616283` → new value, MSISDN changes to `883190603657509`.
+  4. Wait ~2 min, refresh `/admin/devices`, "Router Sig" populates.
+- **Files**:
+  - `server/api/admin-routes.ts` — new `POST /devices/:id/refresh-sim` route (~190 lines).
+  - `client/src/lib/admin-api.ts` — `RefreshSimResult` type + `useRefreshDeviceSim` hook.
+  - `client/src/pages/admin/DevicesPage.tsx` — refresh icon per row + result dialog.
+  - `replit.md` — Device Registration section updated with the swap-SIM lifecycle.
+  - `DEVELOPMENT_LOG.md` — this entry.
+- **Sync hardening (caught in code review)**: the periodic SIMPro sync used to reassign `deviceId`/`truckId` on every existing-row UPDATE from a `custom_field1` name match. That would have silently re-linked the row we intentionally detached during a refresh (the old SIM is typically still active in Wireless Logic with the same Custom Field 1 for a while), reverting the swap on the next sync tick. Patched `server/services/sim-sync-service.ts` to preserve `existingSim.deviceId`/`truckId` in the UPDATE branch — sync now only freshens SIMPro-side fields on existing rows. The fresh-insert branch still auto-links by name so first-time SIMs continue to wire themselves up; registration / refresh-sim / backfill remain the authoritative re-link paths once a row exists.
+- **Out of scope**: bulk "refresh all SIMs" button (the existing Backfill SIM Links button already covers devices that have no `sims` row at all — refresh is for devices that DO have a row but it's stale).
+
 ### Phase 1 hotfix — per-poll hard timeout in the scheduler
 - **Symptom**: 2 hrs after Phase 1 deploy, prod logs (us-east-2) showed most cohort workers (PIDs 382654 / 382668 / 382669 = cohorts 1, 5, 6) connect to their devices, fetch device info, then sit for ~39 s with `hadSuccessfulPoll=false` before reason=2 disconnect — over and over. Cohort 4 (KTR-01, Elite-Hospitality) polled cleanly every 10 s. UI showed most devices as "No Data".
 - **Root cause**: `polling-scheduler.js` `pollDevice()` awaited `conn.poll()` with no timeout. PowerMon's native lib uses a callback-based API (`device.getMonitorData(cb)`); on PowerMon-W firmware 1.35 the callback can silently never fire after a successful TCP connect, so the Promise wrapping it never resolves. `Promise.allSettled` in `processTick` blocked forever, and the `finally { scheduleTick() }` never ran — freezing that cohort's scheduler. Every stuck device in the log was PowerMon-W 1.35; the working cohort was PowerMon-E 1.4. Pre-Phase-1 the worker's `process.exit(1)` defense was incidentally acting as a watchdog (worker died → supervisor respawned → poll loop restarted). Removing exit removed the watchdog.

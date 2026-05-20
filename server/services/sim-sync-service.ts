@@ -209,16 +209,32 @@ export class SimSyncService {
           };
 
           if (existingSim) {
+            // Preserve the existing device/truck linkage. The link is
+            // authoritatively established by registration / refresh-sim /
+            // backfill — never by this periodic sync. Without this guard, a
+            // SIM that the refresh-sim endpoint intentionally detached
+            // (because the physical router was swapped and a different SIM
+            // ICCID now belongs to the device) would get silently re-linked
+            // on the next sync from `custom_field1` name match, recreating
+            // dual SIM→device rows and reverting the swap. We still freshen
+            // every SIMPro-side field (iccid will never actually change for
+            // a stable ICCID, msisdn/status/imsi/etc do refresh).
             await db
               .update(sims)
               .set({
                 ...simData,
+                deviceId: existingSim.deviceId,
+                truckId: existingSim.truckId,
                 lastSyncAt: new Date(),
                 updatedAt: new Date(),
               })
               .where(eq(sims.id, existingSim.id));
             result.simsUpdated++;
           } else {
+            // Fresh insert — safe to auto-link by name match. This is the
+            // path for SIMs that show up in Wireless Logic for the first
+            // time; registration/refresh/backfill remain the authoritative
+            // re-link paths once the row exists.
             await db.insert(sims).values(simData);
             result.simsCreated++;
           }
