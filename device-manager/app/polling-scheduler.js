@@ -213,27 +213,70 @@ class PollingScheduler {
    * Records the active device before polling so that if the native library
    * crashes (calls terminate()), the next startup can attribute the crash
    * to this specific device instead of marking all devices as offline.
+   *
+   * Hard timeout: the native PowerMon library uses a callback-based API. On
+   * certain firmware revisions (notably PowerMon-W 1.35) the getMonitorData
+   * callback can silently never fire after a successful TCP connect, which
+   * would freeze this cohort's scheduler forever inside Promise.allSettled.
+   * We race the poll against POLL_TIMEOUT_MS and force-disconnect on timeout
+   * so the next tick reconnects cleanly. Pre-Phase-1, the worker's
+   * process.exit(1) defense incidentally recovered from this; now that
+   * workers stay alive, we need an explicit per-poll watchdog.
    */
   async pollDevice(conn) {
+    const POLL_TIMEOUT_MS = 8000;
     try {
       db.recordActiveDevice(conn.deviceId, conn.deviceName);
-      
-      const measurement = await conn.poll();
-      
+
+      let timeoutHandle;
+      const timeoutPromise = new Promise((_, reject) => {
+        timeoutHandle = setTimeout(
+          () => reject(new Error('poll_timeout')),
+          POLL_TIMEOUT_MS
+        );
+      });
+
+      let measurement;
+      try {
+        measurement = await Promise.race([conn.poll(), timeoutPromise]);
+      } finally {
+        clearTimeout(timeoutHandle);
+      }
+
       db.recordActiveDevice(null);
-      
+
       if (measurement) {
         batchWriter.enqueue(measurement);
         batchWriter.enqueueSnapshot(measurement);
         return measurement;
       }
-      
+
       return null;
     } catch (err) {
       db.recordActiveDevice(null);
-      logger.error('Poll failed', { 
-        deviceId: conn.deviceId, 
-        error: err.message 
+      if (err && err.message === 'poll_timeout') {
+        logger.error('Poll timed out — forcing disconnect so next tick reconnects', {
+          deviceId: conn.deviceId,
+          deviceName: conn.deviceName,
+          timeoutMs: POLL_TIMEOUT_MS,
+        });
+        try {
+          // intentional=true so the native onDisconnect callback (if it ever
+          // fires) takes the "intentional" branch and does NOT independently
+          // schedule a second reconnect. We own the reconnect schedule here.
+          conn.disconnect(true);
+          conn.scheduleReconnect();
+        } catch (e) {
+          logger.warn('Force-disconnect after poll timeout failed', {
+            deviceId: conn.deviceId,
+            error: e.message,
+          });
+        }
+        return null;
+      }
+      logger.error('Poll failed', {
+        deviceId: conn.deviceId,
+        error: err.message,
       });
       return null;
     }

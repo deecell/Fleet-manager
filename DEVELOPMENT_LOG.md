@@ -4,6 +4,17 @@
 
 ---
 
+## Latest Updates (May 20, 2026)
+
+### Phase 1 hotfix — per-poll hard timeout in the scheduler
+- **Symptom**: 2 hrs after Phase 1 deploy, prod logs (us-east-2) showed most cohort workers (PIDs 382654 / 382668 / 382669 = cohorts 1, 5, 6) connect to their devices, fetch device info, then sit for ~39 s with `hadSuccessfulPoll=false` before reason=2 disconnect — over and over. Cohort 4 (KTR-01, Elite-Hospitality) polled cleanly every 10 s. UI showed most devices as "No Data".
+- **Root cause**: `polling-scheduler.js` `pollDevice()` awaited `conn.poll()` with no timeout. PowerMon's native lib uses a callback-based API (`device.getMonitorData(cb)`); on PowerMon-W firmware 1.35 the callback can silently never fire after a successful TCP connect, so the Promise wrapping it never resolves. `Promise.allSettled` in `processTick` blocked forever, and the `finally { scheduleTick() }` never ran — freezing that cohort's scheduler. Every stuck device in the log was PowerMon-W 1.35; the working cohort was PowerMon-E 1.4. Pre-Phase-1 the worker's `process.exit(1)` defense was incidentally acting as a watchdog (worker died → supervisor respawned → poll loop restarted). Removing exit removed the watchdog.
+- **Fix** (`device-manager/app/polling-scheduler.js`, `pollDevice`): `Promise.race` against an 8 s timeout (<10 s tick). On timeout: log, call `conn.disconnect(false)` to tear down the native session, call `conn.scheduleReconnect()` so the next tick picks it back up, return null. Scheduler tick completes normally, other cohort siblings keep polling, and the timed-out device reconnects fresh.
+- **Files**: `device-manager/app/polling-scheduler.js` only. No DB migration, no web-app change, no schema change.
+- **Verification plan**: deploy → `sudo systemctl restart device-manager` → tail journalctl for ~5 min → expect `Poll timed out` warnings for any PowerMon-W 1.35 device that hits the firmware bug, followed by clean reconnect + successful poll on the next tick. /admin/devices "Reporting"/"No Data" badges should normalize within 1–2 minutes.
+
+---
+
 ## Latest Updates (May 14, 2026)
 
 ### Phase 1 — Honest connection-state taxonomy + drop process.exit defense
