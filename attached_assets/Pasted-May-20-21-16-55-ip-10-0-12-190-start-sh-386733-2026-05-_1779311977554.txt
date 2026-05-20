@@ -1,0 +1,32 @@
+May 20 21:16:55 ip-10-0-12-190 start.sh[386733]: 2026-05-20 21:16:55.787 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 28.84  v2=  0.0436  today= 1277m  month= 22399m  since=2025-12-29 23:38:54
+May 20 21:16:55 ip-10-0-12-190 start.sh[386733]: 2026-05-20 21:16:55.794 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 28.75  v2=  0.0418  today= 1277m  month= 23030m  since=2025-12-29 23:38:19
+May 20 21:16:55 ip-10-0-12-190 start.sh[386734]: 2026-05-20 21:16:55.806 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.83  v2=  0.0389  today= 1277m  month= 22295m  since=2026-01-09 21:34:37
+May 20 21:16:55 ip-10-0-12-190 start.sh[386734]: 2026-05-20 21:16:55.812 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.59  v2=  0.0390  today= 1277m  month= 23117m  since=2025-12-29 23:22:12
+May 20 21:16:55 ip-10-0-12-190 start.sh[386754]: 2026-05-20 21:16:55.864 INFO  Found newly activated device in cohort  serialNumber=A998463C2C69ABFD  deviceName=DCL-Moeck  cohortId=6
+May 20 21:16:55 ip-10-0-12-190 start.sh[386754]: 2026-05-20 21:16:55.869 INFO  Connecting to device  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+May 20 21:16:55 ip-10-0-12-190 start.sh[386754]: 2026-05-20 21:16:55.876 INFO  Connected successfully  deviceId=3  serial=A998463C2C69ABFD  cohort=6  durationMs=7
+May 20 21:16:55 ip-10-0-12-190 start.sh[386754]: 2026-05-20 21:16:55.882 INFO  New device connected  serialNumber=A998463C2C69ABFD  deviceName=DCL-Moeck  durationMs=7
+May 20 21:16:55 ip-10-0-12-190 start.sh[386754]: 2026-05-20 21:16:55.883 INFO  Added 1 new device(s) to cohort 6
+May 20 21:16:56 ip-10-0-12-190 start.sh[386754]: 2026-05-20 21:16:56.511 INFO  Fetched device info from PowerMon  deviceId=3  serial=A998463C2C69ABFD  cohort=6  serialNumber=A998463C2C69ABFD  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Moeck
+May 20 21:16:56 ip-10-0-12-190 start.sh[386754]: 2026-05-20 21:16:56.514 INFO  Updated device info  deviceId=3  serialNumber=A998463C2C69ABFD  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Moeck
+May 20 21:16:56 ip-10-0-12-190 start.sh[386742]: 2026-05-20 21:16:56.836 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.46  v2= 14.6165  today= 1055m  month=  1350m  since=2026-05-20 17:34:51
+May 20 21:16:56 ip-10-0-12-190 start.sh[386742]: 2026-05-20 21:16:56.843 INFO  DCL-Carter (CTR-69)                      parked   v1= 26.08  v2=  0.0422  today= 1277m  month= 21364m  since=2025-12-03 17:15:48
+May 20 21:16:56 ip-10-0-12-190 start.sh[386742]: 2026-05-20 21:16:56.849 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 26.83  v2= 13.2832  today=    0m  month=    17m  since=2026-05-18 00:38:13
+May 20 21:16:58 ip-10-0-12-190 start.sh[386748]: 2026-05-20 21:16:58.927 INFO  DCL-Kruse (WKR-01)                       parked   v1= 28.72  v2=  0.0374  today= 1277m  month= 23424m  since=2025-12-29 23:27:57
+May 20 21:16:58 ip-10-0-12-190 start.sh[386748]: 2026-05-20 21:16:58.934 INFO  DCL-Epler (TRL-01)                       parked   v1= 28.86  v2=  0.0383  today= 1277m  month= 13558m  since=2026-01-31 18:59:00
+May 20 21:16:58 ip-10-0-12-190 start.sh[386748]: 2026-05-20 21:16:58.940 INFO  DCL-CDOT-1 (SIM-001)                     driving  v1= 27.14  v2= 14.1535  today=    0m  month=  3628m  since=2026-05-11 19:30:29
+May 20 21:16:59 ip-10-0-12-190 start.sh[386754]: 2026-05-20 21:16:59.048 INFO  DCL-Brown (RBR-01)                       parked   v1= 27.69  v2= 12.8919  today=   35m  month=  3044m  since=2026-05-20 20:41:50
+May 20 21:17:01 ip-10-0-12-190 start.sh[386754]: 2026-05-20 21:17:01.063 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.50  v2= 12.1335  today= 1277m  month= 17264m  since=2026-05-15 19:15:48
+May 20 21:17:05 ip-10-0-12-190 start.sh[386733]: 2026-05-20 21:17:05.812 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 28.85  v2=  0.0432  today= 1277m  month= 22399m  since=2025-12-29 23:38:54
+May 20 21:17:05 ip-10-0-12-190 start.sh[386733]: 2026-05-20 21:17:05.818 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 28.73  v2=  0.0420  today= 1277m  month= 23030m  since=2025-12-29 23:38:19
+May 20 21:17:05 ip-10-0-12-190 start.sh[386734]: 2026-05-20 21:17:05.830 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.59  v2=  0.0389  today= 1277m  month= 23117m  since=2025-12-29 23:22:12
+May 20 21:17:05 ip-10-0-12-190 start.sh[386734]: 2026-05-20 21:17:05.836 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.83  v2=  0.0388  today= 1277m  month= 22295m  since=2026-01-09 21:34:37
+May 20 21:17:06 ip-10-0-12-190 start.sh[386742]: 2026-05-20 21:17:06.868 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.46  v2= 14.6007  today= 1055m  month=  1350m  since=2026-05-20 17:34:51
+May 20 21:17:06 ip-10-0-12-190 start.sh[386742]: 2026-05-20 21:17:06.875 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 26.83  v2= 13.2825  today=    0m  month=    17m  since=2026-05-18 00:38:13
+May 20 21:17:06 ip-10-0-12-190 start.sh[386742]: 2026-05-20 21:17:06.881 INFO  DCL-Carter (CTR-69)                      parked   v1= 26.08  v2=  0.0416  today= 1277m  month= 21364m  since=2025-12-03 17:15:48
+May 20 21:17:08 ip-10-0-12-190 start.sh[386748]: 2026-05-20 21:17:08.958 INFO  DCL-Kruse (WKR-01)                       parked   v1= 28.72  v2=  0.0366  today= 1277m  month= 23424m  since=2025-12-29 23:27:57
+May 20 21:17:08 ip-10-0-12-190 start.sh[386748]: 2026-05-20 21:17:08.964 INFO  DCL-CDOT-1 (SIM-001)                     driving  v1= 27.14  v2= 14.1527  today=    0m  month=  3628m  since=2026-05-11 19:30:29
+May 20 21:17:08 ip-10-0-12-190 start.sh[386748]: 2026-05-20 21:17:08.971 INFO  DCL-Epler (TRL-01)                       parked   v1= 28.85  v2=  0.0385  today= 1277m  month= 13558m  since=2026-01-31 18:59:00
+May 20 21:17:11 ip-10-0-12-190 start.sh[386754]: 2026-05-20 21:17:11.080 INFO  DCL-Brown (RBR-01)                       parked   v1= 27.69  v2= 12.8913  today=   35m  month=  3044m  since=2026-05-20 20:41:50
+May 20 21:17:11 ip-10-0-12-190 start.sh[386754]: 2026-05-20 21:17:11.087 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.50  v2= 12.1375  today= 1277m  month= 17264m  since=2026-05-15 19:15:48
+May 20 21:17:15 i
