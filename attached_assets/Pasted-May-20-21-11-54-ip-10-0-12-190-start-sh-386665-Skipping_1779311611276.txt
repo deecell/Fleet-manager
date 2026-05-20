@@ -1,0 +1,13 @@
+May 20 21:11:54 ip-10-0-12-190 start.sh[386665]: Skipping 2 offline/unstable devices:
+May 20 21:11:54 ip-10-0-12-190 start.sh[386665]:                   [flapping]  DCL-NHRA-Tech-Trailer                    (0 disconnects) (supervisor will probe)
+May 20 21:11:54 ip-10-0-12-190 start.sh[386665]:                   [flapping]  DCL-Moeck                                (0 disconnects) (supervisor will probe)
+May 20 21:11:54 ip-10-0-12-190 start.sh[386734]: 2026-05-20 21:11:54.925 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.60  v2=  0.0378  today= 1272m  month= 23112m  since=2025-12-29 23:22:12
+May 20 21:11:54 ip-10-0-12-190 start.sh[386734]: 2026-05-20 21:11:54.931 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.83  v2=  0.0393  today= 1272m  month= 22290m  since=2026-01-09 21:34:37
+May 20 21:11:54 ip-10-0-12-190 start.sh[386733]: 2026-05-20 21:11:54.975 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 28.79  v2=  0.0425  today= 1272m  month= 22394m  since=2025-12-29 23:38:54
+May 20 21:11:54 ip-10-0-12-190 start.sh[386733]: 2026-05-20 21:11:54.982 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 28.73  v2=  0.0419  today= 1272m  month= 23025m  since=2025-12-29 23:38:19
+May 20 21:11:55 ip-10-0-12-190 start.sh[386665]: Skipping 2 offline/unstable devices:
+May 20 21:11:55 ip-10-0-12-190 start.sh[386665]:                   [flapping]  DCL-NHRA-Tech-Trailer                    (0 disconnects) (probe #3 failed, retry in 8m)
+May 20 21:11:55 ip-10-0-12-190 start.sh[386665]:                   [flapping]  DCL-Moeck                                (0 disconnects) (retry in 3m)
+May 20 21:11:55 ip-10-0-12-190 start.sh[386742]: 2026-05-20 21:11:55.771 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.46  v2= 14.5576  today= 1055m  month=  1350m  since=2026-05-20 17:34:51
+May 20 21:11:55 ip-10-0-12-190 start.sh[386754]: 2026-05-20 21:11:55.864 INFO  Device removed from cohort, disconnecting  deviceId=3  deviceName=DCL-Moeck
+May 20 21:11:55 ip-10-0-12-190 start.sh[386754]: 2026-05-20 21:11:55.864 INFO  Disconnected  deviceId=3  serial=A998463C2C69ABFD  cohort=6
