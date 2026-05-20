@@ -161,6 +161,17 @@ async function main() {
       }
     }, 5 * 60 * 1000);
 
+    // Re-arm devices that exhausted their reconnect budget (e.g. router was
+    // unplugged for >30 s and burned through all 5 backoff attempts). Without
+    // this loop those devices sit dead until the worker process is restarted.
+    setInterval(async () => {
+      try {
+        await connectionPool.recoverDisconnectedDevices();
+      } catch (err) {
+        logger.error(`${workerPrefix} Failed to recover disconnected devices`, { error: err.message });
+      }
+    }, 5 * 60 * 1000);
+
   } catch (err) {
     logger.error(`${workerPrefix} Failed to start`, { error: err.message, stack: err.stack });
     process.exit(1);

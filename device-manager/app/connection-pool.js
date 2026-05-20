@@ -1350,6 +1350,94 @@ class ConnectionPool {
   }
 
   /**
+   * Re-arm devices in this worker's pool that exhausted their reconnect budget.
+   *
+   * `scheduleReconnect` gives up after `maxReconnectAttempts` (5) consecutive
+   * failures — for a router that lost power for more than ~30 s, the connection
+   * is then permanently dead until the worker process is restarted. Nothing
+   * else in the supervisor re-arms a plain `disconnected` device (the
+   * supervisor's solo-probe loop only handles `flapping`/`unstable`).
+   *
+   * This method scans the pool for connections that are in `reconnecting`
+   * status with `reconnectAttempts >= maxReconnectAttempts` (i.e. gave up),
+   * clears the timer/counter, and calls `connect()` once. On success the
+   * device returns to `online`. On failure `scheduleReconnect` runs the full
+   * backoff ladder again from attempt 0 and we'll re-arm 5 min later.
+   *
+   * This is in-process — the DeviceConnection object is already in
+   * `this.connections`, we just kick it. Cheap and safe to run every 5 min.
+   */
+  async recoverDisconnectedDevices() {
+    if (nativeLibraryShutdown) return { attempted: 0, recovered: 0 };
+
+    const maxAttempts = config.connection.maxReconnectAttempts;
+    const stuck = [];
+
+    for (const [deviceId, conn] of this.connections.entries()) {
+      // Only re-arm devices that:
+      //   - are NOT currently connected
+      //   - are NOT being intentionally taken down (intentionalDisconnect)
+      //   - have actually exhausted their reconnect budget
+      //   - are NOT in a circuit-breaker open state (flapping/unstable —
+      //     those have their own recovery loops)
+      if (conn.status === 'connected' || conn.status === 'connecting') continue;
+      if (conn.intentionalDisconnect) continue;
+      if (conn.isCircuitOpen) continue;
+      if (conn.reconnectAttempts < maxAttempts) continue;
+      stuck.push({ deviceId, conn });
+    }
+
+    if (stuck.length === 0) return { attempted: 0, recovered: 0 };
+
+    logger.info('Re-arming devices that exhausted reconnect budget', {
+      count: stuck.length,
+      devices: stuck.map(s => s.conn.deviceName || s.conn.serialNumber),
+    });
+
+    let recovered = 0;
+    for (const { conn } of stuck) {
+      try {
+        if (conn.reconnectTimer) {
+          clearTimeout(conn.reconnectTimer);
+          conn.reconnectTimer = null;
+        }
+        conn.reconnectAttempts = 0;
+        conn.hadRecentPollFailure = false;
+
+        const result = await conn.connect();
+        if (result.success) {
+          recovered++;
+          logger.info('Disconnected device recovered via re-arm', {
+            deviceId: conn.deviceId,
+            serial: conn.serialNumber,
+            durationMs: result.durationMs,
+          });
+        } else if (!result.skipped) {
+          // connect() failure path inside connect() already calls
+          // scheduleReconnect for us via the timeout/error handlers, but in
+          // the case where it returned cleanly without scheduling (e.g. it
+          // resolved early), make sure something is queued.
+          if (conn.status !== 'reconnecting' && !conn.reconnectTimer) {
+            conn.scheduleReconnect();
+          }
+        }
+      } catch (err) {
+        logger.error('Error re-arming disconnected device', {
+          deviceId: conn.deviceId,
+          serial: conn.serialNumber,
+          error: err.message,
+        });
+      }
+    }
+
+    logger.info('Disconnected-device re-arm complete', {
+      attempted: stuck.length,
+      recovered,
+    });
+    return { attempted: stuck.length, recovered };
+  }
+
+  /**
    * Periodically retry flapping devices whose quarantine has expired.
    * Tries them one at a time with a 5-second gap between attempts to avoid
    * overwhelming the native library. If the device connects and gets a good
