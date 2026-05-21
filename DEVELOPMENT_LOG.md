@@ -4,9 +4,22 @@
 
 ---
 
+## Latest Updates (May 21, 2026)
+
+### `recoverDisconnectedDevices` v2 — liveness-based, not budget-based
+- **Why v2**: v1 (May 20) only re-armed devices that had `reconnectAttempts >= maxReconnectAttempts`. The 19h of production logs after deploy proved that filter was too narrow:
+  - **GFR-69 (DCL-Moeck)**: hit poll-timeout at 22:15:30 UTC May 20, then went totally silent for 19h. The per-poll 8s watchdog calls `disconnect(false) + scheduleReconnect()` — next tick reconnects successfully and the `onConnect` handler resets `reconnectAttempts` to 0. Poll times out again. Loop never accumulates budget exhaustion, so v1's filter never triggered. Dashboard showed "Stale" since 3:14 PM the previous day.
+  - **GFR-70 (DCL-Moeck-Shop)**: instant-disconnected at 21:52:58 (connectionDurationMs=2), got flagged `flapping`, supervisor took over via solo-probe, then disappeared from logs entirely. Stranded in a half-handoff state — not in the cohort's active polling, not in the skip list, not recovered.
+  - Both routers were online (Router Sig -81 dBm in InHand) the entire time. Pure PowerMon-side stall.
+- **Fix** (`device-manager/app/connection-pool.js`): rewrote `recoverDisconnectedDevices` to check `lastSuccessfulPollAt` instead of `reconnectAttempts`. New criterion: if `max(lastSuccessfulPollAt, lastConnectedAt)` is older than 5 min, force a hard reset — `disconnect(true)` to cleanly null out the native device, clear `intentionalDisconnect` / `reconnectTimer` / `reconnectAttempts` / `consecutiveFailures` / `hadRecentPollFailure`, then call `connect()` fresh. Still preserves the budget-exhausted branch as a secondary trigger (defense-in-depth for the clean-prolonged-outage case).
+- **Why 5 min staleness threshold**: healthy devices poll every ~10 s, so `lastSuccessfulPollAt` updates near-continuously. 5 min without a successful poll is unambiguous "this is broken". Brand-new connections that haven't yet taken their first poll are protected by the `referenceTime > 0` guard.
+- **Still skipped**: `intentionalDisconnect` (admin-disabled) and `isCircuitOpen` (flapping/unstable — supervisor solo-probe owns those; stealing them back would race the probe worker).
+- **Loop cadence unchanged**: 5 min in `worker.js`. Worst-case recovery time = ~10 min (5 min to become stale + 5 min until next loop tick).
+- **Verification plan**: deploy → `sudo systemctl restart device-manager` → expect any device currently in "Stale" with router online to come back to "Reporting" within 10 min, and see `Re-arming stalled devices` log lines with `reason=silent_stall`.
+
 ## Latest Updates (May 20, 2026)
 
-### Auto-recover devices stuck in `disconnected` after extended power loss
+### Auto-recover devices stuck in `disconnected` after extended power loss (v1 — superseded by May 21 entry)
 - **Symptom**: Andy powered off the DCL-Moeck-Shop (GFR-70) router to test offline behavior. The dashboard correctly showed "No data" within a couple of minutes. When he plugged the router back in ~5 min later, the dashboard never returned to "Reporting" without intervention.
 - **Root cause**: `connection-pool.js` `scheduleReconnect()` uses exponential backoff (1s → 2s → 4s → 8s → 16s, capped at 60s) and gives up after `maxReconnectAttempts` (5). A router off for more than ~30 s burns through all 5 attempts in the first half-minute and logs `Max reconnect attempts reached`. Nothing in the supervisor re-arms a plain `disconnected` device — the solo-probe loop only handles `flapping`/`unstable`. Result: a single brief power loss left the device dead until `sudo systemctl restart device-manager`.
 - **Fix** (`device-manager/app/connection-pool.js`, `device-manager/app/worker.js`):

@@ -1350,87 +1350,138 @@ class ConnectionPool {
   }
 
   /**
-   * Re-arm devices in this worker's pool that exhausted their reconnect budget.
+   * Re-arm devices in this worker's pool that are silently not working.
    *
-   * `scheduleReconnect` gives up after `maxReconnectAttempts` (5) consecutive
-   * failures — for a router that lost power for more than ~30 s, the connection
-   * is then permanently dead until the worker process is restarted. Nothing
-   * else in the supervisor re-arms a plain `disconnected` device (the
-   * supervisor's solo-probe loop only handles `flapping`/`unstable`).
+   * Liveness-based, not budget-based — the budget-based version we shipped
+   * first only caught one of three real failure modes. Logs from the
+   * 2026-05-20 GFR-70 / GFR-69 outage showed two cases the budget filter
+   * misses entirely:
    *
-   * This method scans the pool for connections that are in `reconnecting`
-   * status with `reconnectAttempts >= maxReconnectAttempts` (i.e. gave up),
-   * clears the timer/counter, and calls `connect()` once. On success the
-   * device returns to `online`. On failure `scheduleReconnect` runs the full
-   * backoff ladder again from attempt 0 and we'll re-arm 5 min later.
+   *   1. Poll-timeout flip-flop: the per-poll watchdog calls
+   *      `disconnect(false) + scheduleReconnect()`. Next tick reconnects
+   *      successfully and the `onConnect` handler resets `reconnectAttempts`
+   *      to 0 (line 269). Poll times out again. Loop repeats forever and
+   *      `reconnectAttempts` never reaches the budget — but no poll ever
+   *      lands either, so the device looks "Stale" on the dashboard for
+   *      hours. (GFR-69 stopped polling at 22:15 and sat dead 19+ hours.)
+   *   2. Cohort↔supervisor handoff stranding: a device gets flagged
+   *      `flapping`, the supervisor moves it to a solo-probe worker, then
+   *      something goes wrong and it's no longer being actively polled by
+   *      either side — but the stale `DeviceConnection` object stays in
+   *      our pool. (GFR-70's path.)
+   *   3. Classic exhausted budget: clean prolonged outage (>30 s router
+   *      power-off) burns through all 5 reconnect attempts and stops.
    *
-   * This is in-process — the DeviceConnection object is already in
-   * `this.connections`, we just kick it. Cheap and safe to run every 5 min.
+   * The fix: ignore `reconnectAttempts` and look at `lastSuccessfulPollAt`
+   * instead. If a device hasn't produced a successful poll in
+   * `STALE_POLL_THRESHOLD_MS` (5 min), force a hard reset:
+   * `disconnect(true)` to cleanly null out the native device, clear every
+   * counter, then call `connect()`. Healthy devices poll every ~10 s so
+   * 5 min staleness is unambiguous.
+   *
+   * We still skip `isCircuitOpen` devices — those are the supervisor's
+   * solo-probe responsibility and stealing them back would race the probe
+   * worker.
+   *
+   * In-process; the DeviceConnection is already in `this.connections`,
+   * we just kick it. Runs every 5 min from worker.js.
    */
   async recoverDisconnectedDevices() {
     if (nativeLibraryShutdown) return { attempted: 0, recovered: 0 };
 
+    const STALE_POLL_THRESHOLD_MS = 5 * 60 * 1000;
     const maxAttempts = config.connection.maxReconnectAttempts;
+    const now = Date.now();
     const stuck = [];
 
     for (const [deviceId, conn] of this.connections.entries()) {
-      // Only re-arm devices that:
-      //   - are NOT currently connected
-      //   - are NOT being intentionally taken down (intentionalDisconnect)
-      //   - have actually exhausted their reconnect budget
-      //   - are NOT in a circuit-breaker open state (flapping/unstable —
-      //     those have their own recovery loops)
-      if (conn.status === 'connected' || conn.status === 'connecting') continue;
       if (conn.intentionalDisconnect) continue;
+      // Supervisor solo-probe owns flapping/unstable devices — don't steal.
       if (conn.isCircuitOpen) continue;
-      if (conn.reconnectAttempts < maxAttempts) continue;
-      stuck.push({ deviceId, conn });
+
+      // Case A: classic budget-exhausted (clean prolonged outage).
+      const exhaustedBudget =
+        conn.status !== 'connected' &&
+        conn.status !== 'connecting' &&
+        conn.reconnectAttempts >= maxAttempts;
+
+      // Case B: silent stall — no successful poll in N minutes regardless
+      // of what `status` claims. Use max(lastSuccessfulPollAt, lastConnectedAt)
+      // as the reference so we don't false-positive on a brand-new
+      // connection that's just about to take its first poll.
+      const lastGoodPoll = conn.lastSuccessfulPollAt
+        ? conn.lastSuccessfulPollAt.getTime()
+        : 0;
+      const lastConnect = conn.lastConnectedAt || 0;
+      const referenceTime = Math.max(lastGoodPoll, lastConnect);
+      const silentlyStalled =
+        referenceTime > 0 && now - referenceTime > STALE_POLL_THRESHOLD_MS;
+
+      if (!exhaustedBudget && !silentlyStalled) continue;
+      stuck.push({
+        deviceId,
+        conn,
+        reason: exhaustedBudget ? 'budget_exhausted' : 'silent_stall',
+        stalledForMs: referenceTime > 0 ? now - referenceTime : null,
+      });
     }
 
     if (stuck.length === 0) return { attempted: 0, recovered: 0 };
 
-    logger.info('Re-arming devices that exhausted reconnect budget', {
+    logger.info('Re-arming stalled devices', {
       count: stuck.length,
-      devices: stuck.map(s => s.conn.deviceName || s.conn.serialNumber),
+      devices: stuck.map(s => ({
+        name: s.conn.deviceName || s.conn.serialNumber,
+        reason: s.reason,
+        stalledForMs: s.stalledForMs,
+      })),
     });
 
     let recovered = 0;
-    for (const { conn } of stuck) {
+    for (const { conn, reason } of stuck) {
       try {
+        // Hard reset. disconnect(true) = intentional so the disconnect
+        // handler doesn't fire scheduleReconnect / circuit-breaker logic
+        // on the way out. Then clear intentionalDisconnect immediately so
+        // the subsequent connect()'s own handlers behave normally.
+        conn.disconnect(true);
+        conn.intentionalDisconnect = false;
         if (conn.reconnectTimer) {
           clearTimeout(conn.reconnectTimer);
           conn.reconnectTimer = null;
         }
         conn.reconnectAttempts = 0;
+        conn.consecutiveFailures = 0;
         conn.hadRecentPollFailure = false;
 
         const result = await conn.connect();
         if (result.success) {
           recovered++;
-          logger.info('Disconnected device recovered via re-arm', {
+          logger.info('Stalled device recovered via re-arm', {
             deviceId: conn.deviceId,
             serial: conn.serialNumber,
+            name: conn.deviceName,
+            reason,
             durationMs: result.durationMs,
           });
         } else if (!result.skipped) {
-          // connect() failure path inside connect() already calls
-          // scheduleReconnect for us via the timeout/error handlers, but in
-          // the case where it returned cleanly without scheduling (e.g. it
-          // resolved early), make sure something is queued.
-          if (conn.status !== 'reconnecting' && !conn.reconnectTimer) {
-            conn.scheduleReconnect();
-          }
+          logger.warn('Re-arm connect failed, scheduleReconnect will retry', {
+            deviceId: conn.deviceId,
+            serial: conn.serialNumber,
+            name: conn.deviceName,
+          });
         }
       } catch (err) {
-        logger.error('Error re-arming disconnected device', {
+        logger.error('Error re-arming stalled device', {
           deviceId: conn.deviceId,
           serial: conn.serialNumber,
+          name: conn.deviceName,
           error: err.message,
         });
       }
     }
 
-    logger.info('Disconnected-device re-arm complete', {
+    logger.info('Stalled-device re-arm complete', {
       attempted: stuck.length,
       recovered,
     });
