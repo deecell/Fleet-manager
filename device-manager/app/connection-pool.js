@@ -1430,11 +1430,13 @@ class ConnectionPool {
 
     logger.info('Re-arming stalled devices', {
       count: stuck.length,
-      devices: stuck.map(s => ({
+      // JSON-stringify because our logger flattens objects with toString(),
+      // which turns an array-of-objects into useless "[object Object]".
+      devices: JSON.stringify(stuck.map(s => ({
         name: s.conn.deviceName || s.conn.serialNumber,
         reason: s.reason,
         stalledForMs: s.stalledForMs,
-      })),
+      }))),
     });
 
     let recovered = 0;
