@@ -1,0 +1,32 @@
+$ sudo systemctl status device-manager
+● device-manager.service - Deecell Device Manager
+     Loaded: loaded (/etc/systemd/system/device-manager.service; enabled; preset: enabled)
+     Active: active (running) since Wed 2026-05-20 21:21:35 UTC; 19h ago
+   Main PID: 387558 (node)
+      Tasks: 123 (limit: 1017)
+     Memory: 387.9M (peak: 423.1M)
+        CPU: 8min 57.100s
+     CGroup: /system.slice/device-manager.service
+             ├─387558 node app/index.js
+             ├─387624 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─387625 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─387626 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─387632 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─387633 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─387634 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─387640 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─387646 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─387652 /usr/bin/node /opt/device-manager/app/worker.js
+             └─387654 /usr/bin/node /opt/device-manager/app/worker.js
+
+May 21 16:59:25 ip-10-0-12-190 start.sh[387633]: 2026-05-21 16:59:25.206 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.15  v2= 13.1299  today=    0m  month=  1350m  since=2026-05-20 17:34:51
+May 21 16:59:35 ip-10-0-12-190 start.sh[387633]: 2026-05-21 16:59:35.225 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.15  v2= 13.1268  today=    0m  month=  1350m  since=2026-05-20 17:34:51
+May 21 16:59:45 ip-10-0-12-190 start.sh[387633]: 2026-05-21 16:59:45.242 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.15  v2= 13.1235  today=    0m  month=  1350m  since=2026-05-20 17:34:51
+May 21 16:59:51 ip-10-0-12-190 start.sh[387558]: Skipping 3 offline/unstable devices:
+May 21 16:59:51 ip-10-0-12-190 start.sh[387558]:                   [flapping]  DCL-Kalitta-Hospitality                  (0 disconnects) (probe #8 failed, retry in 115m)
+May 21 16:59:51 ip-10-0-12-190 start.sh[387558]:                   [flapping]  DCL-NHRA-Tech-Trailer                    (0 disconnects) (probe #8 failed, retry in 114m)
+May 21 16:59:51 ip-10-0-12-190 start.sh[387558]:                   [flapping]  DCL-Radian-1                             (0 disconnects) (probe #2 failed, retry in 14m)
+May 21 16:59:51 ip-10-0-12-190 start.sh[387558]: 2026-05-21 16:59:51.424 INFO  InHand poll complete  totalDevices=43  devicesWithIds=43  simsMatched=17  simsRssiUpdated=9  trucksUpdated=9  unmatchedDevices=IR302_1(msisd>
+May 21 16:59:55 ip-10-0-12-190 start.sh[387633]: 2026-05-21 16:59:55.258 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.15  v2= 13.1249  today=    0m  month=  1350m  since=2026-05-20 17:34:51
+May 21 17:00:05 ip-10-0-12-190 start.sh[387633]: 2026-05-21 17:00:05.279 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.15  v2= 13.1191  today=    0m  month=  1350m  since=2026-05-20 17:34:51
+$
