@@ -1440,12 +1440,22 @@ class ConnectionPool {
     let recovered = 0;
     for (const { conn, reason } of stuck) {
       try {
-        // Hard reset. disconnect(true) = intentional so the disconnect
-        // handler doesn't fire scheduleReconnect / circuit-breaker logic
-        // on the way out. Then clear intentionalDisconnect immediately so
-        // the subsequent connect()'s own handlers behave normally.
+        // Hard reset. disconnect(true) = intentional so the *old* onDisconnect
+        // closure (which fires async from the native lib) sees
+        // `wasIntentional=true` and takes the safe path at line 446 —
+        // no rapidDisconnectCount++, no scheduleReconnect, no status
+        // clobber-back-to-disconnected after our new connect() lands.
+        //
+        // CRITICAL: do NOT clear `intentionalDisconnect` ourselves here.
+        // onDisconnect at line 303 clears it on its own. If we cleared it
+        // synchronously, the late callback would race and take the error
+        // path, double-firing scheduleReconnect alongside our own connect().
+        //
+        // The 250 ms settle gives the native callback time to drain before
+        // we kick off a fresh connect() on the new generation — empirically
+        // these callbacks fire within a few ms after disconnect().
         conn.disconnect(true);
-        conn.intentionalDisconnect = false;
+        await new Promise(r => setTimeout(r, 250));
         if (conn.reconnectTimer) {
           clearTimeout(conn.reconnectTimer);
           conn.reconnectTimer = null;
