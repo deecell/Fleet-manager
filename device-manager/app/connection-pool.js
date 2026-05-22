@@ -1406,16 +1406,37 @@ class ConnectionPool {
         conn.reconnectAttempts >= maxAttempts;
 
       // Case B: silent stall — no successful poll in N minutes regardless
-      // of what `status` claims. Use max(lastSuccessfulPollAt, lastConnectedAt)
-      // as the reference so we don't false-positive on a brand-new
-      // connection that's just about to take its first poll.
+      // of what `status` claims.
+      //
+      // Reference time selection is critical: an earlier iteration used
+      // `max(lastSuccessfulPollAt, lastConnectedAt)` to avoid false-positives
+      // on a brand-new connection. That was wrong and caused an infinite
+      // re-arm loop in prod overnight: when the silent-stall failure mode
+      // re-occurs, `conn.connect()` succeeds at the TCP/native layer
+      // (bumping lastConnectedAt to now) but the device never actually
+      // produces a poll. The max() reset the staleness clock to 0 every
+      // re-arm, so we'd "recover" the device every 5 min forever without
+      // ever getting a real poll back, and the dashboard sat on "No data"
+      // all night.
+      //
+      // Correct rule: if the device has ever polled successfully, ONLY
+      // `lastSuccessfulPollAt` matters — a fresh connect that doesn't
+      // produce polls is exactly the failure we're trying to detect, not a
+      // reason to extend grace. For devices that have never polled
+      // (genuinely new connections), grace 60 s after `lastConnectedAt` to
+      // let the first poll land, then treat as stalled.
       const lastGoodPoll = conn.lastSuccessfulPollAt
         ? conn.lastSuccessfulPollAt.getTime()
         : 0;
       const lastConnect = conn.lastConnectedAt || 0;
-      const referenceTime = Math.max(lastGoodPoll, lastConnect);
-      const silentlyStalled =
-        referenceTime > 0 && now - referenceTime > STALE_POLL_THRESHOLD_MS;
+      const NEW_CONNECTION_GRACE_MS = 60 * 1000;
+      let silentlyStalled = false;
+      if (lastGoodPoll > 0) {
+        silentlyStalled = now - lastGoodPoll > STALE_POLL_THRESHOLD_MS;
+      } else if (lastConnect > 0) {
+        silentlyStalled = now - lastConnect > NEW_CONNECTION_GRACE_MS;
+      }
+      const referenceTime = lastGoodPoll > 0 ? lastGoodPoll : lastConnect;
 
       if (!exhaustedBudget && !silentlyStalled) continue;
       stuck.push({

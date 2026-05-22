@@ -4,9 +4,21 @@
 
 ---
 
+## Latest Updates (May 22, 2026)
+
+### `recoverDisconnectedDevices` v2.1 — drop the lastConnectedAt floor
+- **Symptom**: Andy left v2 running overnight without restarting. By 8 AM only 4 of ~16 active devices were "Reporting" (Curtis-2, Thibert, KTR, Kruse). Roughly 12 devices clustered around `Last Reported = 4:59–5:12 PM` the previous day and never came back. Re-arm fired hundreds of times overnight, yet none of those devices recovered. GFR-70 (Moeck-Shop) — the very device v2 had recovered at 22:25:37 — was back to "No data" with last report 9:44 PM.
+- **Root cause**: line 1416 of `recoverDisconnectedDevices` used `referenceTime = max(lastSuccessfulPollAt, lastConnectedAt)` as the staleness anchor. The original intent was "don't false-positive on a brand-new connection that hasn't taken its first poll yet". The actual effect was an **infinite re-arm loop with no real recovery**: when a device hits the silent-stall failure mode, `conn.connect()` typically succeeds at the TCP/native layer — the native lib reports "connected" and `onConnect` (line 270) sets `lastConnectedAt = Date.now()` — but the device then produces zero polls (which is exactly the failure we're trying to detect). The `max()` reset the staleness clock to 0 on every re-arm, so we'd "successfully recover" the device every 5 minutes forever while the dashboard sat on "No data" all night.
+- **Fix** (`device-manager/app/connection-pool.js` ~line 1411): split the cases:
+  - If the device has **ever** polled successfully (`lastSuccessfulPollAt > 0`): only that timestamp counts. A fresh connect that doesn't produce polls is the failure mode, not a reason to extend grace. Threshold stays at 5 min.
+  - If the device has **never** polled (genuinely new connection): grace 60 s after `lastConnectedAt`, then treat as stalled. 60 s is generous — healthy devices poll within ~10 s of connect.
+- **Why the previous "verification" passed**: the 22:25:37 re-arm of GFR-70 *did* recover it for real (we saw 8 ms recovery in the log). That was the lucky case where the new connect actually produced polls. The failure mode I missed is when connect succeeds but polls don't follow — then the max() bug masks the perpetual failure as "fixed every 5 min" forever.
+- **Verification plan**: push → `sudo systemctl restart device-manager` → within 10 min every device with a live router should return to "Reporting"; re-arm log lines should show `reason=silent_stall stalledForMs=<large>` followed by a real poll log line within seconds (not just another re-arm 5 min later for the same device).
+- **Cosmetic fix bundled in**: the `Re-arming stalled devices` log line previously printed `devices=[object Object]` because our pretty-print logger calls `toString()` on object values. Wrapped the device list in `JSON.stringify(...)` so the diagnostic is actually readable.
+
 ## Latest Updates (May 21, 2026)
 
-### `recoverDisconnectedDevices` v2 — liveness-based, not budget-based
+### `recoverDisconnectedDevices` v2 — liveness-based, not budget-based (SUPERSEDED by v2.1 on May 22)
 - **Why v2**: v1 (May 20) only re-armed devices that had `reconnectAttempts >= maxReconnectAttempts`. The 19h of production logs after deploy proved that filter was too narrow:
   - **GFR-69 (DCL-Moeck)**: hit poll-timeout at 22:15:30 UTC May 20, then went totally silent for 19h. The per-poll 8s watchdog calls `disconnect(false) + scheduleReconnect()` — next tick reconnects successfully and the `onConnect` handler resets `reconnectAttempts` to 0. Poll times out again. Loop never accumulates budget exhaustion, so v1's filter never triggered. Dashboard showed "Stale" since 3:14 PM the previous day.
   - **GFR-70 (DCL-Moeck-Shop)**: instant-disconnected at 21:52:58 (connectionDurationMs=2), got flagged `flapping`, supervisor took over via solo-probe, then disappeared from logs entirely. Stranded in a half-handoff state — not in the cohort's active polling, not in the skip list, not recovered.
