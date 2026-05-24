@@ -89,15 +89,21 @@ void PowermonWrapper::CleanupCallbacks() {
     }
 }
 
+static inline int bcdByteToInt(uint8_t b) {
+    return ((b >> 4) & 0x0F) * 10 + (b & 0x0F);
+}
+
 Napi::Value PowermonWrapper::GetLibraryVersion(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env();
     uint16_t version = Powermon::getVersion();
+    int major = bcdByteToInt(static_cast<uint8_t>(version >> 8));
+    int minor = bcdByteToInt(static_cast<uint8_t>(version & 0xFF));
     
     Napi::Object result = Napi::Object::New(env);
-    result.Set("major", Napi::Number::New(env, version >> 8));
-    result.Set("minor", Napi::Number::New(env, version & 0xFF));
+    result.Set("major", Napi::Number::New(env, major));
+    result.Set("minor", Napi::Number::New(env, minor));
     result.Set("string", Napi::String::New(env, 
-        std::to_string(version >> 8) + "." + std::to_string(version & 0xFF)));
+        std::to_string(major) + "." + std::to_string(minor)));
     
     return result;
 }
@@ -257,8 +263,8 @@ Napi::Object PowermonWrapper::DeviceInfoToObject(Napi::Env env, const Powermon::
     Napi::Object obj = Napi::Object::New(env);
     obj.Set("name", Napi::String::New(env, info.name));
     obj.Set("firmwareVersion", Napi::String::New(env,
-        std::to_string(info.firmware_version_bcd >> 8) + "." + 
-        std::to_string(info.firmware_version_bcd & 0xFF)));
+        std::to_string(bcdByteToInt(static_cast<uint8_t>(info.firmware_version_bcd >> 8))) + "." + 
+        std::to_string(bcdByteToInt(static_cast<uint8_t>(info.firmware_version_bcd & 0xFF)))));
     obj.Set("firmwareVersionBcd", Napi::Number::New(env, info.firmware_version_bcd));
     obj.Set("hardwareRevision", Napi::Number::New(env, info.hardware_revision_bcd));
     obj.Set("hardwareString", Napi::String::New(env, 

@@ -23,7 +23,7 @@ The Device Manager provides a JavaScript interface to Thornwave's `libpowermon` 
 │           powermon_wrapper.cpp (C++ Wrapper)                 │
 │                    ↓ C++ calls ↓                             │
 ├─────────────────────────────────────────────────────────────┤
-│              libpowermon v1.17 (Thornwave)                   │
+│              libpowermon v1.20 (Thornwave)                   │
 │                    ↓ WebSocket ↓                             │
 ├─────────────────────────────────────────────────────────────┤
 │              Thornwave Relay Service                         │
@@ -467,6 +467,7 @@ device-manager/
 
 ## Version History
 
+- **v1.20** (May 2026): Current version. Wrapper now BCD-decodes the version/firmware bytes so reported strings match Thornwave's tags (previously printed "1.32" for raw `0x0120`).
 - **v1.17** (Nov 30, 2025): BLE separated from createInstance(), WiFi works on servers
 - **v1.16**: Initial integration, required BLE for createInstance()
 

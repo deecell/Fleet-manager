@@ -16,6 +16,10 @@
 #include <mutex>
 #include <condition_variable>
 
+static inline int bcdByteToInt(uint8_t b) {
+    return ((b >> 4) & 0x0F) * 10 + (b & 0x0F);
+}
+
 static Powermon* powermon = nullptr;
 static std::atomic<bool> connected(false);
 static std::atomic<bool> connecting(false);
@@ -80,7 +84,7 @@ static std::string device_info_to_json(const Powermon::DeviceInfo& info) {
     std::ostringstream ss;
     ss << "{";
     ss << "\"name\":\"" << escape_json_string(info.name) << "\",";
-    ss << "\"firmwareVersion\":\"" << (info.firmware_version_bcd >> 8) << "." << (info.firmware_version_bcd & 0xFF) << "\",";
+    ss << "\"firmwareVersion\":\"" << bcdByteToInt(static_cast<uint8_t>(info.firmware_version_bcd >> 8)) << "." << bcdByteToInt(static_cast<uint8_t>(info.firmware_version_bcd & 0xFF)) << "\",";
     ss << "\"firmwareVersionBcd\":" << info.firmware_version_bcd << ",";
     ss << "\"hardwareRevision\":" << (int)info.hardware_revision_bcd << ",";
     ss << "\"hardwareString\":\"" << escape_json_string(Powermon::getHardwareString(info.hardware_revision_bcd)) << "\",";
@@ -172,9 +176,11 @@ static std::string log_files_to_json(const std::vector<Powermon::LogFileDescript
 
 static void cmd_version(const std::string& cmd_id) {
     uint16_t version = Powermon::getVersion();
+    int major = bcdByteToInt(static_cast<uint8_t>(version >> 8));
+    int minor = bcdByteToInt(static_cast<uint8_t>(version & 0xFF));
     std::ostringstream ss;
-    ss << "{\"major\":" << (version >> 8) << ",\"minor\":" << (version & 0xFF) 
-       << ",\"string\":\"" << (version >> 8) << "." << (version & 0xFF) << "\"}";
+    ss << "{\"major\":" << major << ",\"minor\":" << minor
+       << ",\"string\":\"" << major << "." << minor << "\"}";
     output_result(cmd_id, true, 0, ss.str().c_str());
 }
 

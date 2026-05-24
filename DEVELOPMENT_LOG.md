@@ -4,7 +4,14 @@
 
 ---
 
-## Latest Updates (May 22, 2026)
+## Latest Updates (May 24, 2026)
+
+### libpowermon version-string BCD decode fix
+- **Symptom**: `getLibraryVersion().string` reported `"1.32"` in prod even though the deployed Thornwave tag is `v1.20`. Same quirk silently affected firmware strings whose minor byte happens to encode a nibble ≥ 0xA (none observed yet, but PowerMon-E firmware `1.10` would have shown as `1.16`).
+- **Root cause**: Thornwave packs the version as `(major_bcd << 8) | minor_bcd`. The wrapper printed the low byte as plain decimal, so `0x20` came out as `32` instead of BCD-decoding to `20`.
+- **Fix**: Added `bcdByteToInt()` helper in both `src/powermon_wrapper.cpp` and `src/powermon_bridge.cpp`. Applied to `GetLibraryVersion`, `DeviceInfoToObject` firmware string, `cmd_version`, and `device_info_to_json` firmware string. `firmwareVersionBcd` (raw uint16) is unchanged for callers that decode themselves.
+- **Verification on deploy**: `node -e "console.log(require('./build/Release/powermon_addon.node').PowermonDevice.getLibraryVersion().string)"` should print `1.20` (was `1.32`). PowerMon-E firmware logs should continue to show `1.4` (0x04 BCD → 4 decimal, unchanged for low values).
+- **Scope**: Cosmetic — no behavioral change to polling or reconnection. README + version history updated.
 
 ### `recoverDisconnectedDevices` v2.1 — drop the lastConnectedAt floor
 - **Symptom**: Andy left v2 running overnight without restarting. By 8 AM only 4 of ~16 active devices were "Reporting" (Curtis-2, Thibert, KTR, Kruse). Roughly 12 devices clustered around `Last Reported = 4:59–5:12 PM` the previous day and never came back. Re-arm fired hundreds of times overnight, yet none of those devices recovered. GFR-70 (Moeck-Shop) — the very device v2 had recovered at 22:25:37 — was back to "No data" with last report 9:44 PM.
