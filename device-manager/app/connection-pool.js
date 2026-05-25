@@ -67,7 +67,19 @@ const FLAPPING_QUARANTINE_MS = 5 * 60 * 1000; // 5 minutes quarantine for flappi
 const FLAPPING_RETRY_INTERVAL_MS = 5 * 60 * 1000; // Check every 5 minutes
 const OFFLINE_BACKOFF_MS = 600000; // 10 minutes backoff for offline devices
 const FLAPPING_INSTANT_THRESHOLD_MS = 200; // Connection shorter than this = "instant" disconnect
+const INSTANT_DISCONNECTS_TO_OPEN_CIRCUIT = 3; // Open breaker after this many instant disconnects in a row.
+                                               // Raised from 2 to 3 on 2026-05-25: PowerMon-E fw 1.4 reliably
+                                               // produces a "close → 1-2 instant rejects → recover" dance after
+                                               // a long stable session. 23h of prod logs on GFR-69 showed every
+                                               // cascade had exactly 2 instants then recovered, so a threshold of
+                                               // 2 was eating self-healing devices. A genuinely dead device still
+                                               // trips on the 3rd instant within milliseconds.
 const POST_ERROR_RECONNECT_DELAY_MS = 5000; // Longer delay after a poll failure before reconnecting
+const POST_FIRMWARE_CLOSE_DELAY_MS = 2000; // Delay before reconnecting after the firmware closes a real session
+                                           // (reason=2 with connDurationMs >= 200ms). Without this, we knock
+                                           // on the door within ~1s and the firmware's session state hasn't
+                                           // cleared yet — it accepts the TCP socket then closes it in 2-3ms.
+                                           // 2s is enough to let the session state on the device clear.
 const RAPID_DISCONNECT_GRACE_RECONNECTS = 2; // Don't count rapid disconnects for the first N reconnects after a poll failure
 
 /**
@@ -149,6 +161,9 @@ class DeviceConnection {
     this.intentionalDisconnect = false; // Flag to track intentional vs error disconnects
     this.graceReconnectsRemaining = 0; // Grace period after poll failure — don't count rapid disconnects
     this.hadRecentPollFailure = false; // Track if last disconnect was preceded by a poll failure
+    this.firmwareClosedAfterSession = false; // Set when firmware closes a non-instant session (reason=2, >=200ms).
+                                              // scheduleReconnect consumes this once to apply POST_FIRMWARE_CLOSE_DELAY_MS,
+                                              // giving the device time to clear its session state before we reconnect.
     
     this.log = logger.child({ 
       deviceId: this.deviceId, 
@@ -301,6 +316,19 @@ class DeviceConnection {
             // If intentional, don't count toward rapid disconnect threshold
             const wasIntentional = this.intentionalDisconnect;
             this.intentionalDisconnect = false; // Reset flag
+
+            // If the firmware closed a real (non-instant) session with reason=2, flag the
+            // next reconnect for a longer cooldown so the device's session state can clear.
+            // We skip this for intentional disconnects (our own poll-completion teardown)
+            // and for instant rejects (those are handled by the rapid/breaker logic below).
+            if (
+              !wasIntentional &&
+              reason === 2 &&
+              connDurationMs !== null &&
+              connDurationMs >= FLAPPING_INSTANT_THRESHOLD_MS
+            ) {
+              this.firmwareClosedAfterSession = true;
+            }
             
             // Check for rapid disconnect (disconnect within threshold of connect)
             // Only count as rapid if NOT intentional (error/unexpected disconnects)
@@ -339,28 +367,28 @@ class DeviceConnection {
               const isInstantDisconnect = connDurationMs < FLAPPING_INSTANT_THRESHOLD_MS;
               const instantDisconnectCount = (this.rapidDisconnectDurations || []).filter(d => d < FLAPPING_INSTANT_THRESHOLD_MS).length;
               
-              // Log first instant disconnect as an early warning, no DB write.
+              // Log every pre-trip instant disconnect as an early warning, no DB write.
               // The state only changes when the circuit breaker opens.
-              if (isInstantDisconnect && instantDisconnectCount === 1) {
-                this.log.warn('Instant disconnect detected (1st) — early warning, device stays in pool', {
+              if (isInstantDisconnect && instantDisconnectCount < INSTANT_DISCONNECTS_TO_OPEN_CIRCUIT) {
+                this.log.warn(`Instant disconnect detected (${instantDisconnectCount}/${INSTANT_DISCONNECTS_TO_OPEN_CIRCUIT}) — early warning, device stays in pool`, {
                   connectionDurationMs: connDurationMs,
                   deviceName: this.deviceName,
                 });
               }
               
-              const shouldOpenCircuit = (isInstantDisconnect && instantDisconnectCount >= 2) || 
+              const shouldOpenCircuit = (isInstantDisconnect && instantDisconnectCount >= INSTANT_DISCONNECTS_TO_OPEN_CIRCUIT) || 
                 this.rapidDisconnectCount >= MAX_RAPID_DISCONNECTS;
               
               if (shouldOpenCircuit) {
                 this.isCircuitOpen = true;
                 this.circuitResetAt = Date.now() + UNSTABLE_BACKOFF_MS;
                 
-                // ≥2 instant disconnects → 'flapping' (causally honest: connection won't stay up).
-                // ≥3 rapid-but-not-instant → 'unstable' (slightly less severe).
-                const status = (isInstantDisconnect && instantDisconnectCount >= 2) ? 'flapping' : 'unstable';
+                // ≥N instant disconnects → 'flapping' (causally honest: connection won't stay up).
+                // ≥MAX_RAPID rapid-but-not-instant → 'unstable' (slightly less severe).
+                const status = (isInstantDisconnect && instantDisconnectCount >= INSTANT_DISCONNECTS_TO_OPEN_CIRCUIT) ? 'flapping' : 'unstable';
                 
                 if (status === 'flapping') {
-                  this.log.error('Circuit breaker OPEN - flapping (≥2 instant disconnects)', {
+                  this.log.error(`Circuit breaker OPEN - flapping (≥${INSTANT_DISCONNECTS_TO_OPEN_CIRCUIT} instant disconnects)`, {
                     rapidDisconnects: this.rapidDisconnectCount,
                     instantDisconnects: instantDisconnectCount,
                     connectionDurationMs: connDurationMs,
@@ -598,6 +626,7 @@ class DeviceConnection {
           this.lastSuccessfulPollAt = this.lastPollAt;
           this.consecutiveFailures = 0;
           this.hadRecentPollFailure = false;
+          this.firmwareClosedAfterSession = false;
           this.graceReconnectsRemaining = 0;
           
           // Reset rapid disconnect counter and durations on successful poll
@@ -676,6 +705,17 @@ class DeviceConnection {
     if (this.hadRecentPollFailure && this.reconnectAttempts === 0) {
       delay = Math.max(delay, POST_ERROR_RECONNECT_DELAY_MS);
       this.log.info('Using longer reconnect delay after poll failure', { delayMs: delay });
+    }
+
+    // After a real (non-instant) firmware-initiated close, give the device's
+    // session state time to clear before we knock again. Without this, the next
+    // TCP socket gets accepted then closed in 2-3ms, repeatedly, until the
+    // circuit breaker trips. One-shot: consume the flag here so subsequent
+    // reconnects in this cascade fall back to normal backoff.
+    if (this.firmwareClosedAfterSession && this.reconnectAttempts === 0) {
+      delay = Math.max(delay, POST_FIRMWARE_CLOSE_DELAY_MS);
+      this.log.info('Using firmware-close cooldown delay', { delayMs: delay });
+      this.firmwareClosedAfterSession = false;
     }
 
     this.status = 'reconnecting';

@@ -4,6 +4,16 @@
 
 ---
 
+## Latest Updates (May 25, 2026)
+
+### PowerMon-E fw 1.4 flap-cascade fix — instant threshold + firmware-close cooldown
+- **Symptom**: GFR-69 (DCL-Moeck, deviceId=3) and GFR-70 (DCL-Moeck-Shop, deviceId=20), both PowerMon-E fw 1.4, both bench units 25' apart in Spokane on constant power, repeatedly tripped the circuit breaker. GFR-69 tripped 3× in 23h; GFR-70 tripped 2× and got stuck in the supervisor's `[5,15,60,240]` solo-probe ladder, showing "No data" on the dashboard for hours.
+- **Diagnosis**: 23h of journalctl on GFR-69 revealed an extremely consistent pattern — a long stable session (200-1700 seconds, `hadSuccessfulPoll=true`) ends with `reason=2`, then the next 1-2 reconnect attempts within ~1 second each get `reason=2 connDurationMs=2-3ms` (firmware accepts the TCP socket then immediately closes it), then the device successfully reconnects on the 3rd-4th attempt. Out of 28 reason=2 events on GFR-69 in the window, only 3 escalated to breaker trips — 25 self-recovered. The 2-instants-trips-breaker rule was eating self-healing devices. **This is normal PowerMon-E fw 1.4 behavior, not a fault** — the firmware's session state needs ~1-3 seconds to clear after a close.
+- **Patch A (raise instant threshold)** — `connection-pool.js`: added `INSTANT_DISCONNECTS_TO_OPEN_CIRCUIT = 3` constant and changed the breaker condition from `>= 2` to `>= INSTANT_DISCONNECTS_TO_OPEN_CIRCUIT`. Every cascade observed in the 23h dataset had exactly 2 instants then recovered, so this retroactively predicts 0 breaker trips on GFR-69. A genuinely dead device (the field unit DCL-Radian-1 gets *continuous* 2-5ms instants forever) still trips on the 3rd instant within milliseconds. Pre-trip early-warning logs now fire for each instant 1..N-1 instead of only #1, so visibility is unchanged.
+- **Patch B (firmware-close cooldown)** — `connection-pool.js`: added `POST_FIRMWARE_CLOSE_DELAY_MS = 2000` constant and a `firmwareClosedAfterSession` flag, set in `onDisconnect` when `reason === 2 && connDurationMs >= FLAPPING_INSTANT_THRESHOLD_MS` (i.e., the firmware closed a real session, not an instant reject). `scheduleReconnect` consumes the flag one-shot to apply a 2s delay before the next attempt — long enough for the device's session state to clear. Cleared on successful poll alongside `hadRecentPollFailure`. This is the *prevention* (stop the cascade from starting); Patch A is the *safety net* (don't trip the breaker if it does).
+- **Scope**: Pure JS change in `device-manager/app/connection-pool.js`. No native rebuild needed — just `sudo systemctl restart device-manager` after deploy.
+- **Verification after deploy**: Within an hour or two, `journalctl -u device-manager | grep "Using firmware-close cooldown delay"` should show occurrences on PowerMon-E devices. Breaker trips for GFR-69/GFR-70 should drop to ~0. DCL-Radian-1 should still trip the breaker normally (its 100% instant-reject pattern is unaffected — we just give it one extra instant before tripping).
+
 ## Latest Updates (May 24, 2026)
 
 ### libpowermon version-string BCD decode fix
