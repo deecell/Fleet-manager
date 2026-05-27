@@ -1,0 +1,40 @@
+$ psql "$DATABASE_URL" -c "\dt" | head -40
+
+psql "$DATABASE_URL" -c "SELECT 'devices' AS t, count(*) FROM devices
+                         UNION ALL SELECT 'snapshots', count(*) FROM snapshots
+                         UNION ALL SELECT 'trucks', count(*) FROM trucks;"                   List of relations
+ Schema |         Name          | Type  |     Owner     
+--------+-----------------------+-------+---------------
+ public | alerts                | table | deecell_admin
+ public | audit_logs            | table | deecell_admin
+ public | data_migrations       | table | deecell_admin
+ public | device_credentials    | table | deecell_admin
+ public | device_measurements   | table | deecell_admin
+ public | device_snapshots      | table | deecell_admin
+ public | device_statistics     | table | deecell_admin
+ public | device_sync_status    | table | deecell_admin
+ public | devices               | table | deecell_admin
+ public | export_jobs           | table | deecell_admin
+ public | fleets                | table | deecell_admin
+ public | fuel_prices           | table | deecell_admin
+ public | invitation_tokens     | table | deecell_admin
+ public | organizations         | table | deecell_admin
+ public | password_reset_tokens | table | deecell_admin
+ public | polling_settings      | table | deecell_admin
+ public | power_mon_devices     | table | deecell_admin
+ public | savings_config        | table | deecell_admin
+ public | schema_version        | table | deecell_admin
+ public | sessions              | table | deecell_admin
+ public | shelly_devices        | table | deecell_admin
+ public | shelly_readings       | table | deecell_admin
+ public | shelly_snapshots      | table | deecell_admin
+ public | sim_location_history  | table | deecell_admin
+ public | sim_sync_settings     | table | deecell_admin
+ public | sim_usage_history     | table | deecell_admin
+ public | sims                  | table | deecell_admin
+ public | snapshots             | table | deecell_admin
+ public | trucks                | table | deecell_admin
+ public | users                 | table | deecell_admin
+(30 rows)
+
+$ $ > >
