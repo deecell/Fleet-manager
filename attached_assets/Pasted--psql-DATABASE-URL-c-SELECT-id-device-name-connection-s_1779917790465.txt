@@ -1,0 +1,30 @@
+$ psql "$DATABASE_URL" -c "
+  SELECT id, device_name, connection_status, data_status,
+         EXTRACT(EPOCH FROM (now() - last_reported_at))::int AS age_sec,
+         EXTRACT(EPOCH FROM (now() - last_seen_at))::int  AS seen_sec
+  FROM power_mon_devices
+  ORDER BY age_sec NULLS LAST;"> > > > > 
+ id |       device_name       | connection_status | data_status | age_sec | seen_sec 
+----+-------------------------+-------------------+-------------+---------+----------
+  3 | DCL-Moeck               | online            | reporting   |       1 |      367
+  9 | DCL-Brown               | online            | reporting   |       3 |     7975
+  7 | DCL-Haynes              | online            | reporting   |       4 |     2748
+ 11 | DCL-Curtis-2            | online            | reporting   |       4 |     6063
+ 10 | DCL-Curtis-1            | online            | reporting   |       4 |     5441
+  8 | DCL-Kruse               | online            | reporting   |       6 |     2602
+ 27 | DCL-CDOT-1              | online            | reporting   |       6 |     1346
+ 18 | DCL-Kalitta-Hospitality | online            | reporting   |       6 |     2428
+ 15 | DCL-Elite-Hospitality   | online            | reporting   |       9 |     2410
+  6 | DCL-KTR                 | online            | reporting   |       9 |    10600
+ 25 | DCL-Radian-2            | online            | no_data     |   10229 |     9997
+ 20 | DCL-Moeck-Shop          | online            | no_data     |   10558 |    10516
+ 13 | DCL-Thibert             | flapping          | no_data     |   18626 |     5557
+  5 | DCL-Carter              | flapping          | no_data     |  448448 |     5557
+ 17 | DCL-Epler               | flapping          | no_data     |  509777 |     5557
+ 21 | DCL-Radian-1            | online            | no_data     |  522859 |    10598
+ 12 | DCL-Howard              | flapping          | no_data     |  826842 |     5557
+ 19 | DCL-NHRA-Tech-Trailer   | flapping          | no_data     |  890710 |     5557
+ 26 | DCL-Penske01            | flapping          | no_data     | 2954068 |     5557
+(19 rows)
+
+$
