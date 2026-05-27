@@ -1,0 +1,23 @@
+$ sudo journalctl -u device-manager --since "today" --no-pager \
+  | grep "deviceId=20" | tail -20> 
+May 27 18:40:57 ip-10-0-12-190 start.sh[435555]: 2026-05-27 18:40:57.382 INFO  onDisconnect fired  deviceId=20  serial=E18590457A387E04  cohort=2  reason=2  connDurationMs=2021  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=0
+May 27 18:40:57 ip-10-0-12-190 start.sh[435555]: 2026-05-27 18:40:57.382 WARN  Rapid disconnect detected (error)  deviceId=20  serial=E18590457A387E04  cohort=2  reason=2  rapidDisconnects=1  connectionDurationMs=2021
+May 27 18:40:57 ip-10-0-12-190 start.sh[435555]: 2026-05-27 18:40:57.383 INFO  Device disconnected (unexpected)  deviceId=20  serial=E18590457A387E04  cohort=2  reason=2  isRapidDisconnect=true
+May 27 18:40:57 ip-10-0-12-190 start.sh[435555]: 2026-05-27 18:40:57.427 INFO  Using firmware-close cooldown delay  deviceId=20  serial=E18590457A387E04  cohort=2  delayMs=2000
+May 27 18:40:57 ip-10-0-12-190 start.sh[435555]: 2026-05-27 18:40:57.427 INFO  Scheduling reconnect  deviceId=20  serial=E18590457A387E04  cohort=2  attempt=1  delayMs=2000
+May 27 18:40:59 ip-10-0-12-190 start.sh[435555]: 2026-05-27 18:40:59.428 INFO  Connecting to device  deviceId=20  serial=E18590457A387E04  cohort=2
+May 27 18:40:59 ip-10-0-12-190 start.sh[435555]: 2026-05-27 18:40:59.433 INFO  Connected successfully  deviceId=20  serial=E18590457A387E04  cohort=2  durationMs=5
+May 27 18:40:59 ip-10-0-12-190 start.sh[435555]: 2026-05-27 18:40:59.436 INFO  onDisconnect fired  deviceId=20  serial=E18590457A387E04  cohort=2  reason=2  connDurationMs=3  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=1
+May 27 18:40:59 ip-10-0-12-190 start.sh[435555]: 2026-05-27 18:40:59.436 WARN  Rapid disconnect detected (error)  deviceId=20  serial=E18590457A387E04  cohort=2  reason=2  rapidDisconnects=2  connectionDurationMs=3
+May 27 18:40:59 ip-10-0-12-190 start.sh[435555]: 2026-05-27 18:40:59.437 WARN  Instant disconnect detected (1/3) — early warning, device stays in pool  deviceId=20  serial=E18590457A387E04  cohort=2  connectionDurationMs=3  deviceName=DCL-Moeck-Shop
+May 27 18:40:59 ip-10-0-12-190 start.sh[435555]: 2026-05-27 18:40:59.437 INFO  Device disconnected (unexpected)  deviceId=20  serial=E18590457A387E04  cohort=2  reason=2  isRapidDisconnect=true
+May 27 18:40:59 ip-10-0-12-190 start.sh[435555]: 2026-05-27 18:40:59.495 INFO  Scheduling reconnect  deviceId=20  serial=E18590457A387E04  cohort=2  attempt=1  delayMs=1000
+May 27 18:41:00 ip-10-0-12-190 start.sh[435555]: 2026-05-27 18:41:00.497 INFO  Connecting to device  deviceId=20  serial=E18590457A387E04  cohort=2
+May 27 18:41:00 ip-10-0-12-190 start.sh[435555]: 2026-05-27 18:41:00.503 INFO  Connected successfully  deviceId=20  serial=E18590457A387E04  cohort=2  durationMs=5
+May 27 18:41:00 ip-10-0-12-190 start.sh[435555]: 2026-05-27 18:41:00.505 INFO  onDisconnect fired  deviceId=20  serial=E18590457A387E04  cohort=2  reason=2  connDurationMs=3  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=2
+May 27 18:41:00 ip-10-0-12-190 start.sh[435555]: 2026-05-27 18:41:00.506 WARN  Rapid disconnect detected (error)  deviceId=20  serial=E18590457A387E04  cohort=2  reason=2  rapidDisconnects=3  connectionDurationMs=3
+May 27 18:41:00 ip-10-0-12-190 start.sh[435555]: 2026-05-27 18:41:00.506 WARN  Instant disconnect detected (2/3) — early warning, device stays in pool  deviceId=20  serial=E18590457A387E04  cohort=2  connectionDurationMs=3  deviceName=DCL-Moeck-Shop
+May 27 18:41:00 ip-10-0-12-190 start.sh[435555]: 2026-05-27 18:41:00.506 ERROR Circuit breaker OPEN - too many rapid disconnects  deviceId=20  serial=E18590457A387E04  cohort=2  rapidDisconnects=3  backoffMinutes=5  resetAt=2026-05-27T18:46:00.506Z
+May 27 18:41:00 ip-10-0-12-190 start.sh[435555]: 2026-05-27 18:41:00.506 WARN  Marking device as unstable in database  deviceId=20
+May 27 18:41:00 ip-10-0-12-190 start.sh[435555]: 2026-05-27 18:41:00.657 WARN  FLAPPING DIAGNOSTIC  deviceId=20  deviceName=DCL-Moeck-Shop  truckId=2  status=unstable  routerReachable=true  gpsLastUpdate=Wed May 27 2026 18:39:36 GMT+0000 (Coordinated Universal Time)  gpsAgeMinutes=1  gpsLocation=Spokane County, WA  verdict=router REACHABLE — PowerMon-side issue (firmware/RF/USB)
+$
