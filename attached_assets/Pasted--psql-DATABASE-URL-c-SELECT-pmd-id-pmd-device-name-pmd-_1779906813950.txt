@@ -1,0 +1,32 @@
+$ psql "$DATABASE_URL" -c "
+SELECT pmd.id, pmd.device_name,
+       pmd.status, pmd.connection_status, pmd.data_status,
+       (now() - max(dm.created_at))::interval(0) AS measurement_age
+FROM power_mon_devices pmd
+LEFT JOIN device_measurements dm ON dm.device_id = pmd.id
+GROUP BY pmd.id, pmd.device_name, pmd.status, pmd.connection_status, pmd.data_status
+ORDER BY measurement_age NULLS LAST;"> > > > > > > 
+ id |       device_name       | status | connection_status | data_status | measurement_age  
+----+-------------------------+--------+-------------------+-------------+------------------
+  8 | DCL-Kruse               | online | online            | reporting   | 00:00:01
+ 11 | DCL-Curtis-2            | online | online            | reporting   | 00:00:06
+  6 | DCL-KTR                 | online | online            | reporting   | 00:00:07
+ 13 | DCL-Thibert             | online | flapping          | no_data     | 02:07:22
+ 25 | DCL-Radian-2            | online | online            | no_data     | 08:42:44
+ 27 | DCL-CDOT-1              | online | online            | no_data     | 14:54:46
+ 10 | DCL-Curtis-1            | online | online            | no_data     | 18:33:10
+  3 | DCL-Moeck               | online | online            | no_data     | 18:33:14
+  7 | DCL-Haynes              | online | online            | no_data     | 18:33:16
+ 15 | DCL-Elite-Hospitality   | online | online            | no_data     | 21:28:48
+ 20 | DCL-Moeck-Shop          | online | online            | no_data     | 22:18:04
+  9 | DCL-Brown               | online | online            | no_data     | 1 day 00:40:09
+  5 | DCL-Carter              | online | flapping          | no_data     | 5 days 01:31:04
+ 17 | DCL-Epler               | online | flapping          | no_data     | 5 days 18:33:13
+ 21 | DCL-Radian-1            | online | online            | no_data     | 5 days 22:11:16
+ 18 | DCL-Kalitta-Hospitality | online | flapping          | no_data     | 9 days 06:33:18
+ 12 | DCL-Howard              | online | flapping          | no_data     | 9 days 10:37:39
+ 19 | DCL-NHRA-Tech-Trailer   | online | flapping          | no_data     | 10 days 04:22:06
+ 26 | DCL-Penske01            | online | flapping          | no_data     | 34 days 01:31:25
+(19 rows)
+
+$
