@@ -1,0 +1,103 @@
+$ sudo journalctl -u device-manager --since "24 hours ago" --no-pager \
+  | grep -E "deviceId=3\b" | tail -100> 
+May 26 21:37:25 ip-10-0-12-190 start.sh[429541]: 2026-05-26 21:37:25.829 INFO  Disconnected  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+May 26 21:40:09 ip-10-0-12-190 start.sh[427846]: 2026-05-26 21:40:09.740 INFO  Connecting to device  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+May 26 21:40:09 ip-10-0-12-190 start.sh[427846]: 2026-05-26 21:40:09.774 INFO  Connected successfully  deviceId=3  serial=A998463C2C69ABFD  cohort=6  durationMs=34
+May 26 21:40:10 ip-10-0-12-190 start.sh[427846]: 2026-05-26 21:40:10.721 INFO  Fetched device info from PowerMon  deviceId=3  serial=A998463C2C69ABFD  cohort=6  serialNumber=A998463C2C69ABFD  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Moeck
+May 26 21:40:10 ip-10-0-12-190 start.sh[427846]: 2026-05-26 21:40:10.724 INFO  Updated device info  deviceId=3  serialNumber=A998463C2C69ABFD  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Moeck
+May 26 21:44:03 ip-10-0-12-190 start.sh[427846]: 2026-05-26 21:44:03.875 WARN  Poll failed  deviceId=3  serial=A998463C2C69ABFD  cohort=6  code=8  failures=1
+May 26 21:44:20 ip-10-0-12-190 start.sh[427846]: 2026-05-26 21:44:20.341 INFO  onDisconnect fired  deviceId=3  serial=A998463C2C69ABFD  cohort=6  reason=2  connDurationMs=250566  hadSuccessfulPoll=true  wasConnected=true  consecutiveFailures=1  rapidDisconnects=0
+May 26 21:44:20 ip-10-0-12-190 start.sh[427846]: 2026-05-26 21:44:20.341 INFO  Device disconnected (unexpected)  deviceId=3  serial=A998463C2C69ABFD  cohort=6  reason=2  isRapidDisconnect=false
+May 26 21:44:20 ip-10-0-12-190 start.sh[427846]: 2026-05-26 21:44:20.347 INFO  Using firmware-close cooldown delay  deviceId=3  serial=A998463C2C69ABFD  cohort=6  delayMs=2000
+May 26 21:44:20 ip-10-0-12-190 start.sh[427846]: 2026-05-26 21:44:20.347 INFO  Scheduling reconnect  deviceId=3  serial=A998463C2C69ABFD  cohort=6  attempt=1  delayMs=2000
+May 26 21:44:22 ip-10-0-12-190 start.sh[427846]: 2026-05-26 21:44:22.082 ERROR Poll timed out — forcing disconnect so next tick reconnects  deviceId=3  deviceName=DCL-Moeck  timeoutMs=8000
+May 26 21:44:22 ip-10-0-12-190 start.sh[427846]: 2026-05-26 21:44:22.082 INFO  Disconnected  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+May 26 21:44:22 ip-10-0-12-190 start.sh[427846]: 2026-05-26 21:44:22.082 INFO  Scheduling reconnect  deviceId=3  serial=A998463C2C69ABFD  cohort=6  attempt=2  delayMs=2000
+May 26 21:44:24 ip-10-0-12-190 start.sh[427846]: 2026-05-26 21:44:24.082 INFO  Connecting to device  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+May 26 21:44:24 ip-10-0-12-190 start.sh[427846]: 2026-05-26 21:44:24.134 INFO  Connected successfully  deviceId=3  serial=A998463C2C69ABFD  cohort=6  durationMs=52
+May 26 21:44:24 ip-10-0-12-190 start.sh[427846]: 2026-05-26 21:44:24.136 INFO  onDisconnect fired  deviceId=3  serial=A998463C2C69ABFD  cohort=6  reason=2  connDurationMs=2  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=0
+May 26 21:50:09 ip-10-0-12-190 start.sh[427846]: 2026-05-26 21:50:09.734 INFO  Disconnected  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+May 26 21:50:09 ip-10-0-12-190 start.sh[427846]: 2026-05-26 21:50:09.985 INFO  Connecting to device  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+May 26 21:50:09 ip-10-0-12-190 start.sh[427846]: 2026-05-26 21:50:09.991 INFO  Connected successfully  deviceId=3  serial=A998463C2C69ABFD  cohort=6  durationMs=6
+May 26 21:50:09 ip-10-0-12-190 start.sh[427846]: 2026-05-26 21:50:09.999 INFO  Stalled device recovered via re-arm  deviceId=3  serial=A998463C2C69ABFD  name=DCL-Moeck  reason=silent_stall  durationMs=6
+May 26 21:50:10 ip-10-0-12-190 start.sh[427846]: 2026-05-26 21:50:10.360 INFO  Fetched device info from PowerMon  deviceId=3  serial=A998463C2C69ABFD  cohort=6  serialNumber=A998463C2C69ABFD  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Moeck
+May 26 21:50:10 ip-10-0-12-190 start.sh[427846]: 2026-05-26 21:50:10.362 INFO  Updated device info  deviceId=3  serialNumber=A998463C2C69ABFD  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Moeck
+May 26 22:05:06 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:05:06.222 WARN  Poll failed  deviceId=3  serial=A998463C2C69ABFD  cohort=6  code=8  failures=1
+May 26 22:05:22 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:05:22.915 INFO  onDisconnect fired  deviceId=3  serial=A998463C2C69ABFD  cohort=6  reason=2  connDurationMs=912924  hadSuccessfulPoll=true  wasConnected=true  consecutiveFailures=1  rapidDisconnects=0
+May 26 22:05:24 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:05:24.078 ERROR Poll timed out — forcing disconnect so next tick reconnects  deviceId=3  deviceName=DCL-Moeck  timeoutMs=8000
+May 26 22:05:24 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:05:24.078 INFO  Disconnected  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+May 26 22:05:24 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:05:24.078 INFO  Scheduling reconnect  deviceId=3  serial=A998463C2C69ABFD  cohort=6  attempt=1  delayMs=1000
+May 26 22:05:25 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:05:25.079 INFO  Connecting to device  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+May 26 22:05:25 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:05:25.084 INFO  Connected successfully  deviceId=3  serial=A998463C2C69ABFD  cohort=6  durationMs=5
+May 26 22:05:25 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:05:25.087 INFO  onDisconnect fired  deviceId=3  serial=A998463C2C69ABFD  cohort=6  reason=2  connDurationMs=3  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=0
+May 26 22:10:09 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:10:09.741 INFO  Disconnected  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+May 26 22:10:09 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:10:09.991 INFO  Connecting to device  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+May 26 22:10:09 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:10:09.996 INFO  Connected successfully  deviceId=3  serial=A998463C2C69ABFD  cohort=6  durationMs=5
+May 26 22:10:10 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:10:10.000 INFO  Stalled device recovered via re-arm  deviceId=3  serial=A998463C2C69ABFD  name=DCL-Moeck  reason=silent_stall  durationMs=5
+May 26 22:10:11 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:10:11.043 INFO  Fetched device info from PowerMon  deviceId=3  serial=A998463C2C69ABFD  cohort=6  serialNumber=A998463C2C69ABFD  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Moeck
+May 26 22:10:11 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:10:11.045 INFO  Updated device info  deviceId=3  serialNumber=A998463C2C69ABFD  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Moeck
+May 26 22:16:05 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:16:05.273 WARN  Poll failed  deviceId=3  serial=A998463C2C69ABFD  cohort=6  code=8  failures=1
+May 26 22:19:33 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:19:33.389 WARN  Poll failed  deviceId=3  serial=A998463C2C69ABFD  cohort=6  code=8  failures=1
+May 26 22:19:51 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:19:51.556 WARN  Poll failed  deviceId=3  serial=A998463C2C69ABFD  cohort=6  code=8  failures=2
+May 26 22:19:54 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:19:54.565 INFO  onDisconnect fired  deviceId=3  serial=A998463C2C69ABFD  cohort=6  reason=2  connDurationMs=584569  hadSuccessfulPoll=true  wasConnected=true  consecutiveFailures=2  rapidDisconnects=0
+May 26 22:25:09 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:25:09.743 INFO  Disconnected  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+May 26 22:25:09 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:25:09.992 INFO  Connecting to device  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+May 26 22:25:09 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:25:09.998 INFO  Connected successfully  deviceId=3  serial=A998463C2C69ABFD  cohort=6  durationMs=6
+May 26 22:25:10 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:25:10.012 INFO  Stalled device recovered via re-arm  deviceId=3  serial=A998463C2C69ABFD  name=DCL-Moeck  reason=silent_stall  durationMs=6
+May 26 22:25:10 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:25:10.344 INFO  Fetched device info from PowerMon  deviceId=3  serial=A998463C2C69ABFD  cohort=6  serialNumber=A998463C2C69ABFD  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Moeck
+May 26 22:25:10 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:25:10.346 INFO  Updated device info  deviceId=3  serialNumber=A998463C2C69ABFD  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Moeck
+May 26 22:54:02 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:54:02.025 WARN  Poll failed  deviceId=3  serial=A998463C2C69ABFD  cohort=6  code=8  failures=1
+May 26 22:54:19 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:54:19.419 INFO  onDisconnect fired  deviceId=3  serial=A998463C2C69ABFD  cohort=6  reason=2  connDurationMs=1749421  hadSuccessfulPoll=true  wasConnected=true  consecutiveFailures=1  rapidDisconnects=0
+May 26 22:54:20 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:54:20.119 ERROR Poll timed out — forcing disconnect so next tick reconnects  deviceId=3  deviceName=DCL-Moeck  timeoutMs=8000
+May 26 22:54:20 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:54:20.119 INFO  Disconnected  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+May 26 22:54:20 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:54:20.120 INFO  Scheduling reconnect  deviceId=3  serial=A998463C2C69ABFD  cohort=6  attempt=1  delayMs=1000
+May 26 22:54:21 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:54:21.121 INFO  Connecting to device  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+May 26 22:54:21 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:54:21.144 INFO  Connected successfully  deviceId=3  serial=A998463C2C69ABFD  cohort=6  durationMs=23
+May 26 22:54:21 ip-10-0-12-190 start.sh[427846]: 2026-05-26 22:54:21.147 INFO  onDisconnect fired  deviceId=3  serial=A998463C2C69ABFD  cohort=6  reason=2  connDurationMs=3  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=0
+May 26 23:00:09 ip-10-0-12-190 start.sh[427846]: 2026-05-26 23:00:09.752 INFO  Disconnected  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+May 26 23:00:10 ip-10-0-12-190 start.sh[427846]: 2026-05-26 23:00:10.003 INFO  Connecting to device  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+May 26 23:00:10 ip-10-0-12-190 start.sh[427846]: 2026-05-26 23:00:10.056 INFO  Connected successfully  deviceId=3  serial=A998463C2C69ABFD  cohort=6  durationMs=53
+May 26 23:00:10 ip-10-0-12-190 start.sh[427846]: 2026-05-26 23:00:10.063 INFO  Stalled device recovered via re-arm  deviceId=3  serial=A998463C2C69ABFD  name=DCL-Moeck  reason=silent_stall  durationMs=53
+May 26 23:00:10 ip-10-0-12-190 start.sh[427846]: 2026-05-26 23:00:10.424 INFO  Fetched device info from PowerMon  deviceId=3  serial=A998463C2C69ABFD  cohort=6  serialNumber=A998463C2C69ABFD  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Moeck
+May 26 23:00:10 ip-10-0-12-190 start.sh[427846]: 2026-05-26 23:00:10.426 INFO  Updated device info  deviceId=3  serialNumber=A998463C2C69ABFD  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Moeck
+May 26 23:37:17 ip-10-0-12-190 start.sh[427846]: 2026-05-26 23:37:17.737 ERROR Poll timed out — forcing disconnect so next tick reconnects  deviceId=3  deviceName=DCL-Moeck  timeoutMs=8000
+May 26 23:37:17 ip-10-0-12-190 start.sh[427846]: 2026-05-26 23:37:17.737 INFO  Disconnected  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+May 26 23:37:17 ip-10-0-12-190 start.sh[427846]: 2026-05-26 23:37:17.737 INFO  Scheduling reconnect  deviceId=3  serial=A998463C2C69ABFD  cohort=6  attempt=1  delayMs=1000
+May 26 23:37:17 ip-10-0-12-190 start.sh[427846]: 2026-05-26 23:37:17.737 INFO  onDisconnect fired  deviceId=3  serial=A998463C2C69ABFD  cohort=6  reason=none  connDurationMs=2227681  hadSuccessfulPoll=true  wasConnected=false  consecutiveFailures=0  rapidDisconnects=0
+May 26 23:37:18 ip-10-0-12-190 start.sh[427846]: 2026-05-26 23:37:18.737 INFO  Connecting to device  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+May 26 23:37:18 ip-10-0-12-190 start.sh[427846]: 2026-05-26 23:37:18.742 INFO  Connected successfully  deviceId=3  serial=A998463C2C69ABFD  cohort=6  durationMs=5
+May 26 23:37:26 ip-10-0-12-190 start.sh[427846]: 2026-05-26 23:37:26.748 WARN  Failed to get device info  deviceId=3  serial=A998463C2C69ABFD  cohort=6  code=8
+May 27 00:00:08 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:08.935 INFO  onDisconnect fired  deviceId=3  serial=A998463C2C69ABFD  cohort=6  reason=2  connDurationMs=1370193  hadSuccessfulPoll=true  wasConnected=true  consecutiveFailures=0  rapidDisconnects=0
+May 27 00:00:08 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:08.936 INFO  Device disconnected (unexpected)  deviceId=3  serial=A998463C2C69ABFD  cohort=6  reason=2  isRapidDisconnect=false
+May 27 00:00:08 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:08.941 INFO  Using firmware-close cooldown delay  deviceId=3  serial=A998463C2C69ABFD  cohort=6  delayMs=2000
+May 27 00:00:08 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:08.942 INFO  Scheduling reconnect  deviceId=3  serial=A998463C2C69ABFD  cohort=6  attempt=1  delayMs=2000
+May 27 00:00:10 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:10.941 INFO  Connecting to device  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+May 27 00:00:10 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:10.947 INFO  Connected successfully  deviceId=3  serial=A998463C2C69ABFD  cohort=6  durationMs=6
+May 27 00:00:10 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:10.949 INFO  onDisconnect fired  deviceId=3  serial=A998463C2C69ABFD  cohort=6  reason=2  connDurationMs=2  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=0
+May 27 00:00:10 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:10.949 WARN  Rapid disconnect detected (error)  deviceId=3  serial=A998463C2C69ABFD  cohort=6  reason=2  rapidDisconnects=1  connectionDurationMs=2
+May 27 00:00:10 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:10.950 WARN  Instant disconnect detected (1/3) — early warning, device stays in pool  deviceId=3  serial=A998463C2C69ABFD  cohort=6  connectionDurationMs=2  deviceName=DCL-Moeck
+May 27 00:00:10 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:10.950 INFO  Device disconnected (unexpected)  deviceId=3  serial=A998463C2C69ABFD  cohort=6  reason=2  isRapidDisconnect=true
+May 27 00:00:10 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:10.954 INFO  Scheduling reconnect  deviceId=3  serial=A998463C2C69ABFD  cohort=6  attempt=1  delayMs=1000
+May 27 00:00:11 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:11.955 INFO  Connecting to device  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+May 27 00:00:11 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:11.960 INFO  Connected successfully  deviceId=3  serial=A998463C2C69ABFD  cohort=6  durationMs=5
+May 27 00:00:11 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:11.962 INFO  onDisconnect fired  deviceId=3  serial=A998463C2C69ABFD  cohort=6  reason=2  connDurationMs=2  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=1
+May 27 00:00:11 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:11.962 WARN  Rapid disconnect detected (error)  deviceId=3  serial=A998463C2C69ABFD  cohort=6  reason=2  rapidDisconnects=2  connectionDurationMs=2
+May 27 00:00:11 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:11.962 WARN  Instant disconnect detected (2/3) — early warning, device stays in pool  deviceId=3  serial=A998463C2C69ABFD  cohort=6  connectionDurationMs=2  deviceName=DCL-Moeck
+May 27 00:00:11 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:11.962 INFO  Device disconnected (unexpected)  deviceId=3  serial=A998463C2C69ABFD  cohort=6  reason=2  isRapidDisconnect=true
+May 27 00:00:11 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:11.967 INFO  Scheduling reconnect  deviceId=3  serial=A998463C2C69ABFD  cohort=6  attempt=1  delayMs=1000
+May 27 00:00:12 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:12.967 INFO  Connecting to device  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+May 27 00:00:12 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:12.972 INFO  Connected successfully  deviceId=3  serial=A998463C2C69ABFD  cohort=6  durationMs=5
+May 27 00:00:12 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:12.975 INFO  onDisconnect fired  deviceId=3  serial=A998463C2C69ABFD  cohort=6  reason=5  connDurationMs=3  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=2
+May 27 00:00:12 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:12.975 WARN  Rapid disconnect detected (error)  deviceId=3  serial=A998463C2C69ABFD  cohort=6  reason=5  rapidDisconnects=3  connectionDurationMs=3
+May 27 00:00:12 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:12.975 ERROR Circuit breaker OPEN - flapping (≥3 instant disconnects)  deviceId=3  serial=A998463C2C69ABFD  cohort=6  rapidDisconnects=3  instantDisconnects=3  connectionDurationMs=3  backoffMinutes=5  resetAt=2026-05-27T00:05:12.975Z
+May 27 00:00:12 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:12.975 WARN  Marking device as flapping in database  deviceId=3
+May 27 00:00:13 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:13.125 WARN  FLAPPING DIAGNOSTIC  deviceId=3  deviceName=DCL-Moeck  truckId=1  status=flapping  routerReachable=true  gpsLastUpdate=Tue May 26 2026 23:59:12 GMT+0000 (Coordinated Universal Time)  gpsAgeMinutes=1  gpsLocation=Spokane County, WA  verdict=router REACHABLE — PowerMon-side issue (firmware/RF/USB)
+May 27 00:00:15 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:15.928 ERROR Poll timed out — forcing disconnect so next tick reconnects  deviceId=3  deviceName=DCL-Moeck  timeoutMs=8000
+May 27 00:00:15 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:15.928 INFO  Disconnected  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+May 27 00:00:15 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:15.928 INFO  Scheduling reconnect  deviceId=3  serial=A998463C2C69ABFD  cohort=6  attempt=1  delayMs=1000
+May 27 00:00:16 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:16.928 INFO  Scheduling reconnect  deviceId=3  serial=A998463C2C69ABFD  cohort=6  attempt=2  delayMs=2000
+May 27 00:00:18 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:18.928 INFO  Scheduling reconnect  deviceId=3  serial=A998463C2C69ABFD  cohort=6  attempt=3  delayMs=4000
+May 27 00:00:22 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:22.928 INFO  Scheduling reconnect  deviceId=3  serial=A998463C2C69ABFD  cohort=6  attempt=4  delayMs=8000
+May 27 00:00:30 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:30.931 INFO  Scheduling reconnect  deviceId=3  serial=A998463C2C69ABFD  cohort=6  attempt=5  delayMs=16000
+May 27 00:00:46 ip-10-0-12-190 start.sh[427846]: 2026-05-27 00:00:46.930 ERROR Max reconnect attempts reached  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+$
