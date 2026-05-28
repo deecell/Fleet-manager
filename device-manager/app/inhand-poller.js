@@ -250,6 +250,8 @@ class InHandPoller {
 
       let trucksUpdated = 0;
       let simsMatched = 0;
+      let simsOnline = 0;
+      let simsOffline = 0;
       let simsRssiUpdated = 0;
       let unmatched = [];
 
@@ -271,19 +273,38 @@ class InHandPoller {
 
         simsMatched++;
 
-        // Always persist the latest router signal — independent of GPS.
-        // If InHand omitted a signal field, device.rssi is null and we still
-        // bump router_signal_updated_at so the freshness clock matches the
-        // poll cadence (the UI/SignalCell shows "—" for null anyway).
-        await pool.query(
-          `UPDATE sims SET
-            router_rssi = $1,
-            router_signal_updated_at = NOW(),
-            updated_at = NOW()
-          WHERE id = $2`,
-          [device.rssi, sim.id]
-        );
-        if (device.rssi != null) simsRssiUpdated++;
+        // Gate the router-signal write on InHand's authoritative online state.
+        // InHand cloud caches the last-known-good signal field for offline
+        // routers, so if we blindly stamped router_signal_updated_at = NOW()
+        // every poll we'd silently treat dead routers as "fresh signal" (see
+        // DCL-Carter — physically off for days, DB showed -87 dBm 26s ago).
+        // Treat anything other than online === 1 as offline (covers null /
+        // missing field too — conservative is correct here).
+        if (device.online === 1) {
+          simsOnline++;
+          await pool.query(
+            `UPDATE sims SET
+              router_rssi = $1,
+              router_signal_updated_at = NOW(),
+              updated_at = NOW()
+            WHERE id = $2`,
+            [device.rssi, sim.id]
+          );
+          if (device.rssi != null) simsRssiUpdated++;
+        } else {
+          simsOffline++;
+          // Clear RSSI so the UI doesn't display stale cached dBm, but leave
+          // router_signal_updated_at alone — it now reflects the last moment
+          // we actually knew the router was up, which is what downstream
+          // diagnostics (Task #25 verdict matrix) need.
+          await pool.query(
+            `UPDATE sims SET
+              router_rssi = NULL,
+              updated_at = NOW()
+            WHERE id = $1 AND router_rssi IS NOT NULL`,
+            [sim.id]
+          );
+        }
 
         // Truck-side GPS update — only when this device actually reported
         // coords AND the SIM is assigned to a truck.
@@ -322,6 +343,8 @@ class InHandPoller {
         totalDevices: devices.length,
         devicesWithIds: devicesWithIds.length,
         simsMatched,
+        simsOnline,
+        simsOffline,
         simsRssiUpdated,
         trucksUpdated,
         unmatchedDevices: unmatched.length > 0 ? unmatched.map(d => `${d.name}(msisdn=${d.msisdn},iccid=${d.iccid})`).join('; ') : undefined,

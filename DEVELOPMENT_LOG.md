@@ -4,6 +4,19 @@
 
 ---
 
+## Latest Updates (May 28, 2026)
+
+### InHand poller — trust router-online state (Task #24)
+- **Symptom**: DCL-Carter (id=5, truck CTR-69) was physically powered off for 6+ days (batteries dead, parked indoors, no shore power, router LED off — confirmed visually by Andy). Database showed `router_rssi = -87 dBm` with `router_signal_updated_at = 26 seconds ago`. The data was being fabricated by our InHand poller on every cycle.
+- **Root cause** (`device-manager/app/inhand-poller.js`): the matched-SIM update block unconditionally wrote `router_signal_updated_at = NOW()` plus whatever RSSI value `_extractRssi()` returned, regardless of `device.online`. InHand's bulk `/api/devices?verbose=100` response retains last-known-good signal fields for offline routers (the cloud's own caching), so we kept stamping the cached value as fresh truth. The per-device `/signal` enrichment in `_enrichSignalFromPerDevice` already gated correctly on `online === 1`, but the bulk-path write did not.
+- **Why this matters beyond cosmetics**: any diagnostic that uses `router_signal_updated_at` as proxy for "router currently alive" inherits the lie. Specifically blocked Task #25's FLAPPING DIAGNOSTIC verdict matrix, which needs an honest router-alive signal to distinguish "PowerMon powered off" from "PowerMon firmware-wedged" — the exact distinction we missed on DCL-Epler earlier this month.
+- **Fix**: gated the SIM signal write on `device.online === 1`. When online: write RSSI + bump `router_signal_updated_at` (existing behavior). When offline (or `online` field missing — conservative treats undefined as offline): clear `router_rssi` to NULL so the UI's SignalCell renders `—`, but leave `router_signal_updated_at` untouched so the freshness clock continues to reflect the last moment we genuinely knew the router was up. The NULL write is guarded by `WHERE router_rssi IS NOT NULL` to avoid pointless updates on already-cleared rows. Also added `simsOnline` / `simsOffline` counters to the `InHand poll complete` log line so the new behavior is verifiable from journalctl without DB queries.
+- **Expected verification after deploy**: `sudo systemctl restart device-manager`, then within one poll cycle (~2 min):
+  - DCL-Carter's `router_signal_updated_at` stops advancing; `router_rssi` becomes NULL on the next poll cycle.
+  - DCL-Moeck and DCL-Moeck-Shop (powered bench units) continue to advance their freshness timestamp every ~2 minutes as before.
+  - `journalctl -u device-manager | grep "InHand poll complete" | tail -3` shows the new `simsOnline` and `simsOffline` fields broken out.
+- **Scope**: pure JS change in `device-manager/app/inhand-poller.js`. No schema change, no native rebuild. Unblocks Task #25.
+
 ## Latest Updates (May 25, 2026)
 
 ### PowerMon-E fw 1.4 flap-cascade fix — instant threshold + firmware-close cooldown
