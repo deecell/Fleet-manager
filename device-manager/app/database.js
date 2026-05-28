@@ -1005,6 +1005,38 @@ async function getTruckLastGpsUpdate(truckId) {
   return result.rows[0] || null;
 }
 
+/**
+ * Returns the two liveness signals needed by the FLAPPING DIAGNOSTIC verdict
+ * matrix: (a) PowerMon-side freshness from power_mon_devices.last_reported_at,
+ * and (b) router-side freshness from sims.router_signal_updated_at (the
+ * latter is now trustworthy as of Task #24 — only InHand-online routers
+ * advance that timestamp). If a truck has multiple SIMs we take the freshest
+ * router signal across them.
+ *
+ * Returns { powerMonLastReportedAt: Date|null, routerSignalUpdatedAt: Date|null }
+ * or null if the device doesn't exist.
+ */
+async function getDeviceLivenessSnapshot(deviceId, truckId) {
+  if (!deviceId) return null;
+  const result = await query(`
+    SELECT
+      d.last_reported_at AS pm_last_reported_at,
+      (
+        SELECT MAX(s.router_signal_updated_at)
+        FROM sims s
+        WHERE s.truck_id = $2
+      ) AS router_signal_updated_at
+    FROM power_mon_devices d
+    WHERE d.id = $1
+  `, [deviceId, truckId || null]);
+  const row = result.rows[0];
+  if (!row) return null;
+  return {
+    powerMonLastReportedAt: row.pm_last_reported_at || null,
+    routerSignalUpdatedAt: row.router_signal_updated_at || null,
+  };
+}
+
 async function closeDatabase() {
   if (pool) {
     await pool.end();
@@ -1071,5 +1103,6 @@ module.exports = {
   readCrashAttribution,
   markCrashCulprit,
   getTruckLastGpsUpdate,
+  getDeviceLivenessSnapshot,
   getDeviceForRecovery,
 };

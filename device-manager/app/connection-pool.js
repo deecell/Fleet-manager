@@ -91,6 +91,34 @@ const RAPID_DISCONNECT_GRACE_RECONNECTS = 2; // Don't count rapid disconnects fo
  * @param {number} timeoutMs - Timeout in milliseconds (default 5000)
  * @returns {Promise<boolean>} - True if reachable, false otherwise
  */
+// FLAPPING DIAGNOSTIC verdict matrix (Task #25).
+// Inputs are minutes-since values (null = unknown), produced from the new
+// db.getDeviceLivenessSnapshot helper. The truthiness of each input maps to
+// the three-bucket verdict below.
+//
+//   | Router signal fresh (<10 min)? | PowerMon reported recently (<6 h)? | Verdict                           |
+//   | Yes                            | Yes                                 | PowerMon-side flap                |
+//   | Yes                            | No                                  | PowerMon offline — verify         |
+//   | No                             | (any)                               | Router/cellular outage            |
+//
+// Router signal freshness is now trustworthy (Task #24 gated those writes on
+// InHand's online flag), so "router fresh" honestly means "the router was
+// online within the last 10 min." When router is fresh but PowerMon has been
+// silent for >6 h, the device is either powered off or firmware-wedged — the
+// operator needs to physically verify (the DCL-Epler / DCL-Moeck-Shop case
+// the previous verdict misclassified as "PowerMon-side firmware issue").
+const FLAPPING_ROUTER_FRESH_THRESHOLD_MINUTES = 10;
+const FLAPPING_POWERMON_RECENT_THRESHOLD_MINUTES = 6 * 60;
+function classifyFlappingVerdict(routerSignalMinutesAgo, lastReportedMinutesAgo) {
+  const routerFresh = routerSignalMinutesAgo != null
+    && routerSignalMinutesAgo < FLAPPING_ROUTER_FRESH_THRESHOLD_MINUTES;
+  const powerMonRecent = lastReportedMinutesAgo != null
+    && lastReportedMinutesAgo < FLAPPING_POWERMON_RECENT_THRESHOLD_MINUTES;
+  if (!routerFresh) return 'Router/cellular outage — truck unreachable';
+  if (powerMonRecent) return 'PowerMon-side flap — actively connecting + failing (likely firmware/RF/USB)';
+  return 'PowerMon offline — verify physically (powered off OR firmware-wedged)';
+}
+
 async function pingApplinkUrl(applinkUrl, timeoutMs = 5000) {
   return new Promise((resolve) => {
     try {
@@ -431,9 +459,21 @@ class DeviceConnection {
                   try {
                     const routerReachable = this.applinkUrl ? await pingApplinkUrl(this.applinkUrl, 3000) : null;
                     const gpsData = await db.getTruckLastGpsUpdate(this.truckId);
-                    const gpsAge = gpsData?.last_location_update 
+                    const liveness = await db.getDeviceLivenessSnapshot(this.deviceId, this.truckId);
+                    const gpsAge = gpsData?.last_location_update
                       ? Math.round((Date.now() - new Date(gpsData.last_location_update).getTime()) / 60000)
                       : null;
+                    // Math.floor (not round) so the threshold comparisons in
+                    // classifyFlappingVerdict respect strict-less-than boundaries:
+                    // 9m59s → 9 (fresh), 10m00s → 10 (stale). Rounding flipped
+                    // 9m31s to 10 and crossed the boundary the wrong way.
+                    const routerSignalMinutesAgo = liveness?.routerSignalUpdatedAt
+                      ? Math.floor((Date.now() - new Date(liveness.routerSignalUpdatedAt).getTime()) / 60000)
+                      : null;
+                    const lastReportedMinutesAgo = liveness?.powerMonLastReportedAt
+                      ? Math.floor((Date.now() - new Date(liveness.powerMonLastReportedAt).getTime()) / 60000)
+                      : null;
+                    const verdict = classifyFlappingVerdict(routerSignalMinutesAgo, lastReportedMinutesAgo);
                     logger.warn('FLAPPING DIAGNOSTIC', {
                       deviceId: this.deviceId,
                       deviceName: this.deviceName,
@@ -443,11 +483,9 @@ class DeviceConnection {
                       gpsLastUpdate: gpsData?.last_location_update || null,
                       gpsAgeMinutes: gpsAge,
                       gpsLocation: gpsData?.location_description || null,
-                      verdict: routerReachable 
-                        ? 'router REACHABLE — PowerMon-side issue (firmware/RF/USB)'
-                        : gpsAge != null && gpsAge < 5
-                          ? 'router unreachable but GPS recent (<5m) — transient network'
-                          : 'router unreachable, no recent GPS — could be power loss or full outage'
+                      routerSignalMinutesAgo,
+                      lastReportedMinutesAgo,
+                      verdict,
                     });
                   } catch (err) {
                     logger.warn('FLAPPING DIAGNOSTIC failed', { error: err.message });
@@ -1623,17 +1661,25 @@ class ConnectionPool {
         this.cohorts.get(cohortId).add(device.device_id);
         
         try {
-          // Pre-retry diagnostic: check router reachability and GPS status
-          const [pingResult, gpsResult] = await Promise.allSettled([
+          // Pre-retry diagnostic: fetch the same liveness signals the
+          // FLAPPING DIAGNOSTIC log uses so the CLI verdict matches what
+          // gets written to the journal. Router ping is kept for log
+          // parity but no longer drives the verdict.
+          const [pingResult, livenessResult] = await Promise.allSettled([
             device.applink_url ? pingApplinkUrl(device.applink_url, 3000) : Promise.resolve(null),
-            db.getTruckLastGpsUpdate(device.truck_id)
+            db.getDeviceLivenessSnapshot(device.device_id, device.truck_id),
           ]);
           const routerReachable = pingResult.status === 'fulfilled' ? pingResult.value : null;
-          const gpsData = gpsResult.status === 'fulfilled' ? gpsResult.value : null;
-          const gpsAge = gpsData?.last_location_update 
-            ? Math.round((Date.now() - new Date(gpsData.last_location_update).getTime()) / 60000)
+          const liveness = livenessResult.status === 'fulfilled' ? livenessResult.value : null;
+          // Math.floor to preserve strict-less-than boundary semantics in
+          // classifyFlappingVerdict (see comment at structured-log call site).
+          const routerSignalMinutesAgo = liveness?.routerSignalUpdatedAt
+            ? Math.floor((Date.now() - new Date(liveness.routerSignalUpdatedAt).getTime()) / 60000)
             : null;
-          
+          const lastReportedMinutesAgo = liveness?.powerMonLastReportedAt
+            ? Math.floor((Date.now() - new Date(liveness.powerMonLastReportedAt).getTime()) / 60000)
+            : null;
+
           const result = await conn.connect();
           const rts = new Date().toISOString().slice(11, 19);
           
@@ -1647,17 +1693,23 @@ class ConnectionPool {
           } else {
             this.connections.delete(device.device_id);
             this.cohorts.get(cohortId)?.delete(device.device_id);
-            
+
             await db.markDeviceUnstable(device.device_id, 'flapping');
-            
+
             const tag = '[still off]'.padEnd(12);
             const name = (device.device_name || device.serial_number).padEnd(41);
-            const diag = routerReachable 
-              ? `${yellow}router UP${rst}${dim} (connectivity issue)${rst}` 
-              : gpsAge != null && gpsAge < 5 
-                ? `${dim}router down, GPS ${gpsAge}m ago (transient?)${rst}` 
-                : `${dim}router down, no recent GPS${rst}`;
-            console.log(`${dim}${rts}${rst} ${yellow}AUTO ${rst} ${yellow}${tag}${rst}${dim}${name}will retry in 5m | ${rst}${diag}`);
+            const verdict = classifyFlappingVerdict(routerSignalMinutesAgo, lastReportedMinutesAgo);
+            // Color-code by severity: router outage = dim (waiting on network),
+            // PowerMon-offline = yellow (operator action needed), PowerMon-flap = yellow.
+            const verdictColored = verdict.startsWith('Router/cellular')
+              ? `${dim}${verdict}${rst}`
+              : `${yellow}${verdict}${rst}`;
+            const pingNote = routerReachable === true
+              ? `${dim} (applink ping OK)${rst}`
+              : routerReachable === false
+                ? `${dim} (applink ping FAIL)${rst}`
+                : '';
+            console.log(`${dim}${rts}${rst} ${yellow}AUTO ${rst} ${yellow}${tag}${rst}${dim}${name}will retry in 5m | ${rst}${verdictColored}${pingNote}`);
           }
         } catch (err) {
           this.connections.delete(device.device_id);

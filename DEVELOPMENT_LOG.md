@@ -6,6 +6,25 @@
 
 ## Latest Updates (May 28, 2026)
 
+### FLAPPING DIAGNOSTIC verdict matrix (Task #25)
+- **Why**: The previous verdict ternary in `connection-pool.js` (the line that fires from `logger.warn('FLAPPING DIAGNOSTIC', …)` when the circuit breaker opens) decided "PowerMon issue vs network issue" based purely on whether the InHand applink TCP-pings and how old the GPS update is. Two recent real-world failures showed the limit of that:
+  1. **DCL-Epler** (PowerMon-W fw 1.35): router on inverter, inverter switched off; router was briefly TCP-pingable during a momentary inverter check, so the verdict came back "PowerMon-side firmware/RF/USB issue" when the truth was "everything off." Wasted operator triage time.
+  2. **DCL-Moeck-Shop** (PowerMon-E fw 1.4): router healthy, cellular signal strong, but PowerMon silent 23+ h — a genuine firmware wedge. Same generic "PowerMon-side issue" verdict regardless of how long the silence had lasted, so long-term degradation went unflagged.
+- **What changed** (`device-manager/app/connection-pool.js` + `device-manager/app/database.js`):
+  - New DB helper `db.getDeviceLivenessSnapshot(deviceId, truckId)` returns `{ powerMonLastReportedAt, routerSignalUpdatedAt }` in a single query (joins `power_mon_devices` with the freshest `sims.router_signal_updated_at` for the truck's SIMs — multi-SIM trucks take the max).
+  - New module-level helper `classifyFlappingVerdict(routerSignalMinutesAgo, lastReportedMinutesAgo)` implements a three-bucket matrix:
+    - Router fresh (<10 min) AND PowerMon recent (<6 h) → `PowerMon-side flap — actively connecting + failing (likely firmware/RF/USB)`
+    - Router fresh AND PowerMon stale → `PowerMon offline — verify physically (powered off OR firmware-wedged)`
+    - Router stale (or unknown) → `Router/cellular outage — truck unreachable`
+  - This works honestly only because Task #24 made `router_signal_updated_at` trustworthy (it now only advances when InHand reports the router online).
+- **FLAPPING DIAGNOSTIC log line** now carries two extra fields — `routerSignalMinutesAgo` and `lastReportedMinutesAgo` — plus the new verdict string. `routerReachable`, `gpsLastUpdate`, `gpsAgeMinutes`, `gpsLocation` are kept for backwards-compatible log parsing.
+- **Supervisor CLI mirror**: `_probeFlappingDevices` `[still off]` line uses the same verdict via the same helper, so operators see consistent wording in both surfaces. Router ping is kept as a small `(applink ping OK/FAIL)` tail note for log parity but no longer drives the wording.
+- **Expected verdicts on current production state** after deploy:
+  - DCL-Carter (router off, PowerMon off ~6+ days) → `Router/cellular outage — truck unreachable`
+  - DCL-Moeck-Shop (if it flaps again — router on, PowerMon silent 23 h) → `PowerMon offline — verify physically`
+  - DCL-Moeck (router on, PowerMon actively flapping) → `PowerMon-side flap`
+- **Scope**: pure JS change, no schema/migration. After `sudo systemctl restart device-manager`, the next breaker trip on any device will emit the new format.
+
 ### InHand poller — trust router-online state (Task #24)
 - **Symptom**: DCL-Carter (id=5, truck CTR-69) was physically powered off for 6+ days (batteries dead, parked indoors, no shore power, router LED off — confirmed visually by Andy). Database showed `router_rssi = -87 dBm` with `router_signal_updated_at = 26 seconds ago`. The data was being fabricated by our InHand poller on every cycle.
 - **Root cause** (`device-manager/app/inhand-poller.js`): the matched-SIM update block unconditionally wrote `router_signal_updated_at = NOW()` plus whatever RSSI value `_extractRssi()` returned, regardless of `device.online`. InHand's bulk `/api/devices?verbose=100` response retains last-known-good signal fields for offline routers (the cloud's own caching), so we kept stamping the cached value as fresh truth. The per-device `/signal` enrichment in `_enrichSignalFromPerDevice` already gated correctly on `online === 1`, but the bulk-path write did not.
