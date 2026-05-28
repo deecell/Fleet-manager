@@ -4,6 +4,31 @@
 
 ---
 
+## 2026-05-28 — Dashboard verdict labels (Task #25 follow-up)
+
+After Task #25 deployed and the new three-bucket verdict logic verified in prod logs, surfaced the same verdicts on two dashboard surfaces so operators see the honest diagnosis instead of the misleading "Flapping" label (DCL-Carter was rendering as "Flapping" when it's actually fully powered off).
+
+**Shared classifier**
+- New `shared/flapping-verdict.ts` exports `classifyFlappingVerdict(routerSignalUpdatedAt, lastReportedAt)` returning `{ bucket: "outage" | "powermon_offline" | "powermon_flap", label, tooltip }`. TS port of the device-manager `classifyFlappingVerdict` so both surfaces speak the same language. Thresholds match: router fresh < 10 min, PowerMon recent < 6 h. Uses `Math.floor` for strict-less-than boundary parity with the JS version. Missing/stale router timestamps collapse to "Router/cellular outage" — matching the device-manager runtime (a device whose router signal we've never seen is, for the operator, unreachable). Never returns null, so callers don't need fallback branches.
+
+**Backend (db-storage.ts)**
+- `listDevices` (customer `/api/v1/devices`), `listAllDevicesWithSnapshots` (admin all-orgs), and `listDevicesWithSnapshots` (admin per-org) now also fetch `sims.router_signal_updated_at` and attach as `routerSignalUpdatedAt` on each device. Reused the same single-query sims join pattern that already existed for `routerRssi`. Customer `listDevices` previously had no sims join at all — added one.
+
+**Frontend**
+- `client/src/pages/admin/DevicesPage.tsx`: when `connectionStatus` is `flapping` OR `unstable`, compute the verdict and render `verdict.label` ("Router/cellular outage", "PowerMon offline", or "PowerMon-side flap") instead of the raw "Flapping"/"Unstable" pill. Color: powermon_offline → orange, outage + flap → red. Tooltip carries the full explanation. Falls back to the original label + color when liveness data is missing so we never lose information.
+- `client/src/components/FleetTable.tsx`: extended the WifiOff icon to trigger on `unstable` as well as `flapping`, and the tooltip now reads "`{verdict.label} — {verdict.tooltip}`" instead of the generic "Flapping (repeated instant disconnects)". Icon color matches the bucket (orange for PowerMon offline, red otherwise).
+- `client/src/lib/api.ts`: extended `LegacyTruckWithDevice` with `deviceLastReportedAt` + `deviceRouterSignalUpdatedAt`, populated in `useLegacyTrucks` from the customer devices response.
+- `client/src/lib/admin-api.ts`: extended `DeviceWithSnapshot` with `routerSignalUpdatedAt`.
+
+**Expected after deploy** (based on the prod values from Task #25 verification):
+- DCL-Carter → orange "Router/cellular outage" pill (router stale 30m, PowerMon silent 6+ days)
+- DCL-Radian-1 → orange "PowerMon offline" pill (router fresh 0m, PowerMon silent ~7 days)
+- DCL-Radian-2 → red "PowerMon-side flap" pill (router fresh 1m, PowerMon recent 17m)
+
+No schema or migration needed — both fields already exist (`sims.router_signal_updated_at`, `power_mon_devices.last_reported_at`).
+
+---
+
 ## Latest Updates (May 28, 2026)
 
 ### FLAPPING DIAGNOSTIC verdict matrix (Task #25)

@@ -2,6 +2,7 @@
 import { LegacyTruckWithDevice } from "@/lib/api";
 import { ArrowUpDown, AlertTriangle, WifiOff } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { classifyFlappingVerdict } from "@shared/flapping-verdict";
 import { useState } from "react";
 
 interface FleetTableProps {
@@ -124,14 +125,21 @@ export default function FleetTable({ trucks, selectedTruckId, onTruckSelect, ale
                     {alertTruckIds.includes(truck.id) && (
                       <AlertTriangle className="w-4 h-4 text-[#f55200] shrink-0" data-testid={`alert-icon-${truck.id}`} />
                     )}
-                    {truck.deviceConnectionStatus === "flapping" && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <WifiOff className="w-3.5 h-3.5 text-[#cc0000] shrink-0" data-testid={`flapping-icon-${truck.id}`} />
-                        </TooltipTrigger>
-                        <TooltipContent>Flapping (repeated instant disconnects)</TooltipContent>
-                      </Tooltip>
-                    )}
+                    {(truck.deviceConnectionStatus === "flapping" || truck.deviceConnectionStatus === "unstable") && (() => {
+                      const verdict = classifyFlappingVerdict(
+                        truck.deviceRouterSignalUpdatedAt,
+                        truck.deviceLastReportedAt,
+                      );
+                      const iconColor = verdict.bucket === "powermon_offline" ? "text-[#cc8400]" : "text-[#cc0000]";
+                      return (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <WifiOff className={`w-3.5 h-3.5 ${iconColor} shrink-0`} data-testid={`flapping-icon-${truck.id}`} />
+                          </TooltipTrigger>
+                          <TooltipContent>{verdict.label} — {verdict.tooltip}</TooltipContent>
+                        </Tooltip>
+                      );
+                    })()}
                   </div>
                 </td>
                 <td className="px-3 py-2 text-left">

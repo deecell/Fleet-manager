@@ -54,6 +54,7 @@ import { Plus, Pencil, Cpu, Link2, Unlink, Key, Search, Trash2, RotateCcw, WifiO
 import type { PowerMonDevice } from "@shared/schema";
 import type { DeviceWithSnapshot } from "@/lib/admin-api";
 import { SignalCell, classifySignal } from "@/components/SignalCell";
+import { classifyFlappingVerdict } from "@shared/flapping-verdict";
 
 function SortIcon() {
   return (
@@ -666,29 +667,30 @@ export default function DevicesPage() {
                           </TableCell>
                           <TableCell>
                             {(() => {
-                              if (device.connectionStatus === "flapping") {
+                              if (device.connectionStatus === "flapping" || device.connectionStatus === "unstable") {
+                                const verdict = classifyFlappingVerdict(
+                                  device.routerSignalUpdatedAt,
+                                  device.lastReportedAt,
+                                );
+                                // Color by verdict bucket: outage/flap = red, powermon_offline = orange.
+                                const cls = verdict.bucket === "powermon_offline"
+                                  ? "bg-[rgba(255,165,0,0.14)] border-[#ffa500] text-[#cc8400]"
+                                  : "bg-[rgba(255,0,0,0.08)] border-[#ff4444] text-[#cc0000]";
                                 return (
                                   <div
-                                    className="inline-flex items-center justify-center px-3 py-1.5 rounded-md border text-xs font-normal bg-[rgba(255,0,0,0.08)] border-[#ff4444] text-[#cc0000]"
-                                    title="Repeated near-instant disconnects — device isolated to a solo probe"
+                                    className={`inline-flex items-center justify-center px-3 py-1.5 rounded-md border text-xs font-normal whitespace-nowrap ${cls}`}
+                                    title={verdict.tooltip}
+                                    data-testid={`status-verdict-${device.id}`}
                                   >
-                                    Flapping
+                                    {verdict.label}
                                   </div>
                                 );
                               }
-                              
+
                               if (device.connectionStatus === "probing") {
                                 return (
                                   <div className="inline-flex items-center justify-center px-3 py-1.5 rounded-md border text-xs font-normal bg-[rgba(59,130,246,0.08)] border-[#3b82f6] text-[#2563eb] dark:text-[#60a5fa]">
                                     Probing
-                                  </div>
-                                );
-                              }
-                              
-                              if (device.connectionStatus === "unstable") {
-                                return (
-                                  <div className="inline-flex items-center justify-center px-3 py-1.5 rounded-md border text-xs font-normal bg-[rgba(255,165,0,0.14)] border-[#ffa500] text-[#cc8400]">
-                                    Unstable
                                   </div>
                                 );
                               }

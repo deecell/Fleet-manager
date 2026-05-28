@@ -15,6 +15,10 @@ export type DeviceWithSnapshot = PowerMonDevice & {
   // Null when no SIM is linked to the device or the InHand poller hasn't
   // reported a signal yet.
   routerRssi?: number | null;
+  // Wall-clock of the most recent InHand poll that returned a router signal.
+  // Feeds classifyFlappingVerdict() on the admin Devices page so the status
+  // column can distinguish "PowerMon offline" from "Router/cellular outage".
+  routerSignalUpdatedAt?: string | Date | null;
 };
 
 // Auto-refresh interval for admin dashboard (10 seconds, matching Fleet dashboard)

@@ -35,7 +35,9 @@ interface SnapshotsResponse {
 }
 
 interface DevicesResponse {
-  devices: PowerMonDevice[];
+  // routerSignalUpdatedAt is joined from sims by listDevices in server/db-storage.ts
+  // and feeds classifyFlappingVerdict() in FleetTable.
+  devices: (PowerMonDevice & { routerSignalUpdatedAt?: string | Date | null })[];
 }
 
 interface AlertsResponse {
@@ -159,6 +161,8 @@ export interface LegacyTruckWithDevice extends LegacyTruckWithHistory {
   fuelSavings?: number;
   mtdFuelSavings?: number;
   deviceConnectionStatus?: string;
+  deviceLastReportedAt?: string | null;
+  deviceRouterSignalUpdatedAt?: string | null;
 }
 
 // Fuel savings and parked status constants imported from @shared/truck-status
@@ -281,6 +285,8 @@ export function useLegacyTrucks() {
       history: [],
       deviceId: device?.id,
       deviceConnectionStatus: device?.connectionStatus ?? undefined,
+      deviceLastReportedAt: device?.lastReportedAt ? String(device.lastReportedAt) : null,
+      deviceRouterSignalUpdatedAt: device?.routerSignalUpdatedAt ? String(device.routerSignalUpdatedAt) : null,
       lastUpdated: snapshot?.updatedAt ? String(snapshot.updatedAt) : snapshot?.recordedAt ? String(snapshot.recordedAt) : undefined,
       isParked,
       isIdling,
