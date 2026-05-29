@@ -1,0 +1,34 @@
+ssm-user@ip-10-0-12-190:/var/snap/amazon-ssm-agent/13009$ sudo systemctl status device-manager --no-pager
+● device-manager.service - Deecell Device Manager
+     Loaded: loaded (/etc/systemd/system/device-manager.service; enabled; preset: enabled)
+     Active: active (running) since Fri 2026-05-29 06:03:17 UTC; 12h ago
+   Main PID: 448371 (node)
+      Tasks: 134 (limit: 1017)
+     Memory: 381.3M (peak: 423.2M)
+        CPU: 6min 36.922s
+     CGroup: /system.slice/device-manager.service
+             ├─448371 node app/index.js
+             ├─448565 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─448571 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─448572 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─448573 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─448574 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─448576 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─448577 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─448582 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─448588 /usr/bin/node /opt/device-manager/app/worker.js
+             ├─448610 /usr/bin/node /opt/device-manager/app/worker.js
+             └─453122 /usr/bin/node /opt/device-manager/app/worker.js
+
+May 29 18:31:32 ip-10-0-12-190 start.sh[453122]: 2026-05-29 18:31:32.629 INFO  Scheduling reconnect  deviceId=13  serial=292240386041C12B  cohort=1  attempt=1  delayMs=1000
+May 29 18:31:33 ip-10-0-12-190 start.sh[453122]: 2026-05-29 18:31:33.630 INFO  Connecting to device  deviceId=13  serial=292240386041C12B  cohort=1
+May 29 18:31:33 ip-10-0-12-190 start.sh[453122]: 2026-05-29 18:31:33.636 INFO  Connected successfully  deviceId=13  serial=292240386041C12B  cohort=1  durationMs=6
+May 29 18:31:33 ip-10-0-12-190 start.sh[453122]: 2026-05-29 18:31:33.639 INFO  onDisconnect fired  deviceId=13  serial=292240386041C12B  cohort=1  reason=2  connDurationMs=3  hadSuccessfulPoll=false  wasConn…apidDisconnects=2
+May 29 18:31:33 ip-10-0-12-190 start.sh[453122]: 2026-05-29 18:31:33.639 WARN  Rapid disconnect detected (error)  deviceId=13  serial=292240386041C12B  cohort=1  reason=2  rapidDisconnects=3  connectionDurationMs=3
+May 29 18:31:33 ip-10-0-12-190 start.sh[453122]: 2026-05-29 18:31:33.639 ERROR Circuit breaker OPEN - flapping (≥3 instant disconnects)  deviceId=13  serial=292240386041C12B  cohort=1  rapidDisconnects=3  i…5-29T18:36:33.639Z
+May 29 18:31:33 ip-10-0-12-190 start.sh[453122]: 2026-05-29 18:31:33.639 WARN  Marking device as flapping in database  deviceId=13
+May 29 18:31:33 ip-10-0-12-190 start.sh[453122]: 2026-05-29 18:31:33.864 WARN  FLAPPING DIAGNOSTIC  deviceId=13  deviceName=DCL-Thibert  truckId=11  status=flapping  routerReachable=true  gpsLastUpdate=Wed Apr 29 2026 08:29:…
+May 29 18:31:35 ip-10-0-12-190 start.sh[448574]: 2026-05-29 18:31:35.924 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.71  v2= 13.2034  today=    0m  month=  1734m  since=2026-05-28 02:30:02
+May 29 18:31:45 ip-10-0-12-190 start.sh[448574]: 2026-05-29 18:31:45.940 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.71  v2= 13.1989  today=    0m  month=  1734m  since=2026-05-28 02:30:02
+Hint: Some lines were ellipsized, use -l to show in full.
+ssm-user@ip-10-0-12-190:/var/snap/amazon-ssm-agent/13009$
