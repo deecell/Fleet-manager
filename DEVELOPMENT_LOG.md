@@ -27,6 +27,8 @@ After Task #25 deployed and the new three-bucket verdict logic verified in prod 
 
 No schema or migration needed — both fields already exist (`sims.router_signal_updated_at`, `power_mon_devices.last_reported_at`).
 
+**Follow-up — Data Status sort fix:** the `/admin/devices` "Data Status" column sort was keying on the raw `dataStatus` DB column, but the pill text follows a render-priority chain (verdict → probing → offline → disconnected → dataStatus). That meant a "Router/cellular outage" row sorted by its underlying `dataStatus` ("no data"/"stale") and interleaved with genuine "No data" rows. Added a module-level `getDataStatusLabel(device)` in `DevicesPage.tsx` that returns the exact displayed pill text, and the sort now keys on that so identical pills group together.
+
 ---
 
 ## Latest Updates (May 28, 2026)

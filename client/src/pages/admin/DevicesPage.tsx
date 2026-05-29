@@ -56,6 +56,21 @@ import type { DeviceWithSnapshot } from "@/lib/admin-api";
 import { SignalCell, classifySignal } from "@/components/SignalCell";
 import { classifyFlappingVerdict } from "@shared/flapping-verdict";
 
+// Returns the text actually shown in the Data Status pill, mirroring the render
+// priority (verdict → probing → offline → disconnected → dataStatus). Used both
+// for sorting (so identical pills group together) and the cell render.
+function getDataStatusLabel(device: DeviceWithSnapshot): string {
+  if (device.connectionStatus === "flapping" || device.connectionStatus === "unstable") {
+    return classifyFlappingVerdict(device.routerSignalUpdatedAt, device.lastReportedAt).label;
+  }
+  if (device.connectionStatus === "probing") return "Probing";
+  if (device.connectionStatus === "offline") return "Offline";
+  if (device.connectionStatus === "disconnected") return "Disconnected";
+  if (device.dataStatus === "reporting") return "Reporting";
+  if (device.dataStatus === "stale") return "Stale";
+  return "No data";
+}
+
 function SortIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -373,8 +388,12 @@ export default function DevicesPage() {
         bVal = b.connectionStatus || "";
         break;
       case "dataStatus":
-        aVal = a.dataStatus || "";
-        bVal = b.dataStatus || "";
+        // Sort by the *displayed* pill text, not the raw dataStatus column, so
+        // identical pills group together (e.g. all "Router/cellular outage"
+        // rows stay together instead of mixing with "No data" rows that share
+        // the same underlying dataStatus). Mirrors the render priority below.
+        aVal = getDataStatusLabel(a).toLowerCase();
+        bVal = getDataStatusLabel(b).toLowerCase();
         break;
       case "organization":
         aVal = getOrganizationName(a.organizationId);
