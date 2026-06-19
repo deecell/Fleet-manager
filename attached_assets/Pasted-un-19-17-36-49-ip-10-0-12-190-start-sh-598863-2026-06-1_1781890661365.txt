@@ -1,0 +1,48 @@
+un 19 17:36:49 ip-10-0-12-190 start.sh[598863]: 2026-06-19 17:36:49.805 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.59  v2=  0.0381  today= 1057m  month= 21515m  since=2025-12-29 23:22:12
+Jun 19 17:36:51 ip-10-0-12-190 start.sh[598793]: Skipping 6 offline/unstable devices:
+Jun 19 17:36:51 ip-10-0-12-190 start.sh[598793]:                   [flapping]  DCL-Epler                                (0 disconnects) (retry in 3m)
+Jun 19 17:36:51 ip-10-0-12-190 start.sh[598793]:                   [flapping]  DCL-Kalitta-Hospitality                  (0 disconnects) (probe #4 failed, retry in 177m)
+Jun 19 17:36:51 ip-10-0-12-190 start.sh[598793]:                   [flapping]  DCL-Howard                               (0 disconnects) (probe on next check)
+Jun 19 17:36:51 ip-10-0-12-190 start.sh[598793]:                   [flapping]  DCL-Radian-1                             (0 disconnects) (probe #3 failed, retry in 32m)
+Jun 19 17:36:51 ip-10-0-12-190 start.sh[598793]:                   [flapping]  DCL-Radian-2                             (0 disconnects) (probe #3 failed, retry in 26m)
+Jun 19 17:36:51 ip-10-0-12-190 start.sh[598793]:                   [flapping]  DCL-Penske01                             (0 disconnects) (probe #4 failed, retry in 177m)
+Jun 19 17:36:51 ip-10-0-12-190 start.sh[598793]: 17:36:51 PROBE Spawned solo probe for DCL-Howard (attempt #3, pid 600323)
+Jun 19 17:36:51 ip-10-0-12-190 start.sh[600323]: 2026-06-19 17:36:51.299 INFO  PowerMon addon loaded successfully
+Jun 19 17:36:51 ip-10-0-12-190 start.sh[600323]: WORKER_COHORT_ID or WORKER_SOLO_SERIAL environment variable is required
+Jun 19 17:36:51 ip-10-0-12-190 start.sh[598793]: 17:36:51 PROBE DCL-Howard still offline (attempt #3, next retry in 60m)
+Jun 19 17:36:51 ip-10-0-12-190 start.sh[598872]: 2026-06-19 17:36:51.658 INFO  DCL-Kruse (WKR-01)                       parked   v1= 28.70  v2=  0.0370  today= 1057m  month= 18676m  since=2025-12-29 23:27:57
+Jun 19 17:36:51 ip-10-0-12-190 start.sh[598874]: 2026-06-19 17:36:51.865 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.51  v2= 12.6551  today= 1057m  month=  3377m  since=2026-05-24 18:38:29
+Jun 19 17:36:52 ip-10-0-12-190 start.sh[598871]: 2026-06-19 17:36:52.402 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 29.51  v2= 13.2621  today=    0m  month=     5m  since=2026-06-14 23:12:07
+Jun 19 17:36:52 ip-10-0-12-190 start.sh[598871]: 2026-06-19 17:36:52.407 INFO  DCL-KTR (KTR-01)                         parked   v1= 26.19  v2=  9.4389  today= 1057m  month=  2749m  since=2026-06-18 11:45:48
+Jun 19 17:36:52 ip-10-0-12-190 start.sh[598871]: 2026-06-19 17:36:52.413 INFO  DCL-Carter (CTR-69)                      parked   v1= 27.21  v2=  0.0426  today= 1057m  month= 12919m  since=2025-12-03 17:15:48
+Jun 19 17:36:58 ip-10-0-12-190 start.sh[598862]: 2026-06-19 17:36:58.084 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 28.73  v2=  0.0393  today= 1057m  month= 20957m  since=2025-12-29 23:38:19
+Jun 19 17:36:58 ip-10-0-12-190 start.sh[598862]: 2026-06-19 17:36:58.097 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 28.83  v2=  0.0444  today= 1057m  month= 23434m  since=2025-12-29 23:38:54
+Jun 19 17:36:59 ip-10-0-12-190 start.sh[598863]: 2026-06-19 17:36:59.820 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.59  v2=  0.0382  today= 1057m  month= 21515m  since=2025-12-29 23:22:12
+Jun 19 17:36:59 ip-10-0-12-190 start.sh[598863]: 2026-06-19 17:36:59.826 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.72  v2=  0.0384  today= 1057m  month= 17187m  since=2026-01-09 21:34:37
+Jun 19 17:37:00 ip-10-0-12-190 start.sh[598866]: 2026-06-19 17:37:00.600 INFO  DCL-NHRA-Tech-Trailer (TRK-01)           parked   v1= 28.82  v2=  0.0449  today= 1057m  month=  8678m  since=2026-02-17 23:59:07
+Jun 19 17:37:01 ip-10-0-12-190 start.sh[598872]: 2026-06-19 17:37:01.674 INFO  DCL-Kruse (WKR-01)                       parked   v1= 28.70  v2=  0.0373  today= 1057m  month= 18676m  since=2025-12-29 23:27:57
+Jun 19 17:37:01 ip-10-0-12-190 start.sh[598874]: 2026-06-19 17:37:01.885 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.51  v2= 12.6597  today= 1057m  month=  3377m  since=2026-05-24 18:38:29
+Jun 19 17:37:04 ip-10-0-12-190 start.sh[598871]: 2026-06-19 17:37:04.435 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 29.51  v2= 13.2754  today=    0m  month=     5m  since=2026-06-14 23:12:07
+Jun 19 17:37:04 ip-10-0-12-190 start.sh[598871]: 2026-06-19 17:37:04.440 INFO  DCL-KTR (KTR-01)                         parked   v1= 26.21  v2=  9.4950  today= 1057m  month=  2749m  since=2026-06-18 11:45:48
+Jun 19 17:37:04 ip-10-0-12-190 start.sh[598871]: 2026-06-19 17:37:04.446 INFO  DCL-Carter (CTR-69)                      parked   v1= 27.21  v2=  0.0425  today= 1057m  month= 12919m  since=2025-12-03 17:15:48
+Jun 19 17:37:08 ip-10-0-12-190 start.sh[598862]: 2026-06-19 17:37:08.128 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 28.85  v2=  0.0446  today= 1057m  month= 23434m  since=2025-12-29 23:38:54
+Jun 19 17:37:08 ip-10-0-12-190 start.sh[598862]: 2026-06-19 17:37:08.133 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 28.72  v2=  0.0398  today= 1057m  month= 20957m  since=2025-12-29 23:38:19
+Jun 19 17:37:09 ip-10-0-12-190 start.sh[598863]: 2026-06-19 17:37:09.842 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.59  v2=  0.0382  today= 1057m  month= 21515m  since=2025-12-29 23:22:12
+Jun 19 17:37:10 ip-10-0-12-190 start.sh[598866]: 2026-06-19 17:37:10.615 INFO  DCL-NHRA-Tech-Trailer (TRK-01)           parked   v1= 28.82  v2=  0.0449  today= 1057m  month=  8678m  since=2026-02-17 23:59:07
+Jun 19 17:37:11 ip-10-0-12-190 start.sh[598872]: 2026-06-19 17:37:11.691 INFO  DCL-Kruse (WKR-01)                       parked   v1= 28.70  v2=  0.0376  today= 1057m  month= 18676m  since=2025-12-29 23:27:57
+Jun 19 17:37:11 ip-10-0-12-190 start.sh[598863]: 2026-06-19 17:37:11.850 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.72  v2=  0.0385  today= 1057m  month= 17187m  since=2026-01-09 21:34:37
+Jun 19 17:37:11 ip-10-0-12-190 start.sh[598874]: 2026-06-19 17:37:11.917 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.51  v2= 12.6617  today= 1057m  month=  3377m  since=2026-05-24 18:38:29
+Jun 19 17:37:14 ip-10-0-12-190 start.sh[598871]: 2026-06-19 17:37:14.462 INFO  DCL-KTR (KTR-01)                         parked   v1= 26.31  v2=  9.3000  today= 1057m  month=  2749m  since=2026-06-18 11:45:48
+Jun 19 17:37:14 ip-10-0-12-190 start.sh[598871]: 2026-06-19 17:37:14.468 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 29.53  v2= 13.2764  today=    0m  month=     5m  since=2026-06-14 23:12:07
+Jun 19 17:37:14 ip-10-0-12-190 start.sh[598871]: 2026-06-19 17:37:14.474 INFO  DCL-Carter (CTR-69)                      parked   v1= 27.22  v2=  0.0417  today= 1057m  month= 12919m  since=2025-12-03 17:15:48
+Jun 19 17:37:18 ip-10-0-12-190 start.sh[598862]: 2026-06-19 17:37:18.151 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 28.74  v2=  0.0408  today= 1057m  month= 20957m  since=2025-12-29 23:38:19
+Jun 19 17:37:18 ip-10-0-12-190 start.sh[598862]: 2026-06-19 17:37:18.156 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 28.80  v2=  0.0455  today= 1057m  month= 23434m  since=2025-12-29 23:38:54
+Jun 19 17:37:20 ip-10-0-12-190 start.sh[598866]: 2026-06-19 17:37:20.630 INFO  DCL-NHRA-Tech-Trailer (TRK-01)           parked   v1= 28.82  v2=  0.0453  today= 1057m  month=  8678m  since=2026-02-17 23:59:07
+Jun 19 17:37:21 ip-10-0-12-190 start.sh[598863]: 2026-06-19 17:37:21.866 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.72  v2=  0.0385  today= 1057m  month= 17187m  since=2026-01-09 21:34:37
+Jun 19 17:37:21 ip-10-0-12-190 start.sh[598863]: 2026-06-19 17:37:21.871 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.59  v2=  0.0380  today= 1057m  month= 21515m  since=2025-12-29 23:22:12
+Jun 19 17:37:21 ip-10-0-12-190 start.sh[598874]: 2026-06-19 17:37:21.934 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.52  v2= 12.6654  today= 1057m  month=  3377m  since=2026-05-24 18:38:29
+Jun 19 17:37:23 ip-10-0-12-190 start.sh[598872]: 2026-06-19 17:37:23.709 INFO  DCL-Kruse (WKR-01)                       parked   v1= 28.70  v2=  0.0369  today= 1057m  month= 18676m  since=2025-12-29 23:27:57
+Jun 19 17:37:24 ip-10-0-12-190 start.sh[598871]: 2026-06-19 17:37:24.502 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 29.53  v2= 13.2760  today=    0m  month=     5m  since=2026-06-14 23:12:07
+Jun 19 17:37:24 ip-10-0-12-190 start.sh[598871]: 2026-06-19 17:37:24.511 INFO  DCL-KTR (KTR-01)                         parked   v1= 26.31  v2=  9.5599  today= 1057m  month=  2749m  since=2026-06-18 11:45:48
+Jun 19 17:37:24 ip-10-0-12-190 start.sh[598871]: 2026-06-19 17:37:24.518 INFO  DCL-Carter (CTR-69)                      parked   v1= 27.22  v2=  0.0425  today= 1057m  month= 12919m  since=2025-12-03 17:15:48
+
