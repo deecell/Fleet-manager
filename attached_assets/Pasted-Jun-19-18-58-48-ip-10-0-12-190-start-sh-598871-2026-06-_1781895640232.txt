@@ -1,0 +1,227 @@
+Jun 19 18:58:48 ip-10-0-12-190 start.sh[598871]: 2026-06-19 18:58:48.595 INFO  DCL-Carter (CTR-69)                      parked   v1= 28.72  v2=  0.0442  today= 1139m  month= 13001m  since=2025-12-03 17:15:48
+Jun 19 18:58:48 ip-10-0-12-190 start.sh[598871]: 2026-06-19 18:58:48.602 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 29.52  v2= 13.2751  today=    0m  month=     5m  since=2026-06-14 23:12:07
+Jun 19 18:58:48 ip-10-0-12-190 start.sh[598871]: 2026-06-19 18:58:48.609 INFO  DCL-KTR (KTR-01)                         parked   v1= 25.94  v2=  8.8743  today= 1139m  month=  2831m  since=2026-06-18 11:45:48
+Jun 19 18:58:50 ip-10-0-12-190 start.sh[598872]: 2026-06-19 18:58:50.213 INFO  DCL-Kruse (WKR-01)                       parked   v1= 28.70  v2=  0.0370  today= 1139m  month= 18758m  since=2025-12-29 23:27:57
+Jun 19 18:58:50 ip-10-0-12-190 start.sh[598872]: 2026-06-19 18:58:50.220 INFO  DCL-CDOT-1 (SIM-001)                     driving  v1= 28.98  v2= 13.1117  today=    0m  month=     9m  since=2026-06-03 15:11:18
+Jun 19 18:58:51 ip-10-0-12-190 start.sh[598864]: 2026-06-19 18:58:51.832 INFO  DCL-Moeck-Shop (GFR-70)                  driving  v1= 27.61  v2= 13.1671  today=    0m  month=     0m  since=2026-05-10 01:14:21
+Jun 19 18:58:51 ip-10-0-12-190 start.sh[598793]: Skipping 5 offline/unstable devices:
+Jun 19 18:58:51 ip-10-0-12-190 start.sh[598793]:                   [flapping]  DCL-Epler                                (0 disconnects) (probe #3 failed, retry in 4m)
+Jun 19 18:58:51 ip-10-0-12-190 start.sh[598793]:                   [flapping]  DCL-Kalitta-Hospitality                  (0 disconnects) (probe #4 failed, retry in 95m)
+Jun 19 18:58:51 ip-10-0-12-190 start.sh[598793]:                   [flapping]  DCL-Radian-1                             (0 disconnects) (probe on next check)
+Jun 19 18:58:51 ip-10-0-12-190 start.sh[598793]:                   [flapping]  DCL-Radian-2                             (0 disconnects) (probe #4 failed, retry in 185m)
+Jun 19 18:58:51 ip-10-0-12-190 start.sh[598793]:                   [flapping]  DCL-Penske01                             (0 disconnects) (probe #4 failed, retry in 95m)
+Jun 19 18:58:51 ip-10-0-12-190 start.sh[598793]: 18:58:51 PROBE Spawned solo probe for DCL-Radian-1 (attempt #3, pid 600822)
+Jun 19 18:58:52 ip-10-0-12-190 start.sh[598874]: 2026-06-19 18:58:52.121 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.51  v2= 12.6725  today= 1139m  month=  3459m  since=2026-05-24 18:38:29
+Jun 19 18:58:52 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:58:52.245 INFO  PowerMon addon loaded successfully
+Jun 19 18:58:52 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:58:52.260 INFO  [probe:A8839FDD47E0D9B9] Starting solo probe
+Jun 19 18:58:52 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:58:52.261 INFO  Database connection configured  host=deecell-fleet-production-postgres.cn4qsw8g8yyx.us-east-2.rds.amazonaws.com  database=deecell_fleet
+Jun 19 18:58:52 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:58:52.261 INFO  Database pool initialized  poolSize=10
+Jun 19 18:58:52 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:58:52.262 INFO  Initializing connection pool for solo device  serial=A8839FDD47E0D9B9
+Jun 19 18:58:52 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:58:52.357 INFO  Solo device initialized  serial=A8839FDD47E0D9B9  deviceId=21  deviceName=DCL-Radian-1
+Jun 19 18:58:52 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:58:52.358 INFO  Batch writer started  flushIntervalMs=2000  maxBatchSize=500
+Jun 19 18:58:52 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:58:52.358 INFO  === STARTUP: Connecting to all devices ===  deviceCount=1  timestamp=2026-06-19T18:58:52.358Z
+Jun 19 18:58:52 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:58:52.358 INFO  Connecting device 1/1  serialNumber=A8839FDD47E0D9B9  deviceName=DCL-Radian-1  cohort=1
+Jun 19 18:58:52 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:58:52.359 INFO  Connecting to device  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1
+Jun 19 18:58:52 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:58:52.366 INFO  Connected successfully  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  durationMs=7
+Jun 19 18:58:52 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:58:52.373 INFO  Device 1/1 connected  serialNumber=A8839FDD47E0D9B9  durationMs=7
+Jun 19 18:58:52 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:58:52.374 INFO  === STARTUP COMPLETE: Connection Summary ===  success=1  failed=0  skipped=0  timedOut=0  totalDurationMs=15  averageDurationMs=7
+Jun 19 18:58:52 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:58:52.374 INFO  Starting polling scheduler (worker mode)  intervalMs=10000
+Jun 19 18:58:52 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:58:52.374 INFO  [probe:A8839FDD47E0D9B9] Connected, monitoring for 30 seconds
+Jun 19 18:58:52 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:58:52.660 INFO  Fetched device info from PowerMon  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  serialNumber=A8839FDD47E0D9B9  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Radian-1
+Jun 19 18:58:52 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:58:52.663 INFO  Updated device info  deviceId=21  serialNumber=A8839FDD47E0D9B9  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Radian-1
+Jun 19 18:58:55 ip-10-0-12-190 start.sh[598863]: 2026-06-19 18:58:55.503 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.73  v2=  0.0382  today= 1139m  month= 17269m  since=2026-01-09 21:34:37
+Jun 19 18:58:55 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:58:55.715 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 28.84  v2=  0.0466  today= 1139m  month= 23516m  since=2025-12-29 23:38:54
+Jun 19 18:58:55 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:58:55.721 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 28.74  v2=  0.0396  today= 1139m  month= 21039m  since=2025-12-29 23:38:19
+Jun 19 18:58:56 ip-10-0-12-190 start.sh[598866]: 2026-06-19 18:58:56.902 INFO  DCL-NHRA-Tech-Trailer (TRK-01)           parked   v1= 28.83  v2=  0.0439  today= 1139m  month=  8760m  since=2026-02-17 23:59:07
+Jun 19 18:58:57 ip-10-0-12-190 start.sh[598863]: 2026-06-19 18:58:57.515 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.61  v2=  0.0391  today= 1139m  month= 21597m  since=2025-12-29 23:22:12
+Jun 19 18:58:58 ip-10-0-12-190 start.sh[598871]: 2026-06-19 18:58:58.624 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 29.52  v2= 13.2763  today=    0m  month=     5m  since=2026-06-14 23:12:07
+Jun 19 18:58:58 ip-10-0-12-190 start.sh[598871]: 2026-06-19 18:58:58.631 INFO  DCL-KTR (KTR-01)                         parked   v1= 25.93  v2=  8.8873  today= 1139m  month=  2831m  since=2026-06-18 11:45:48
+Jun 19 18:58:58 ip-10-0-12-190 start.sh[598871]: 2026-06-19 18:58:58.638 INFO  DCL-Carter (CTR-69)                      parked   v1= 28.72  v2=  0.0435  today= 1139m  month= 13001m  since=2025-12-03 17:15:48
+Jun 19 18:59:00 ip-10-0-12-190 start.sh[598872]: 2026-06-19 18:59:00.237 INFO  DCL-Kruse (WKR-01)                       parked   v1= 28.70  v2=  0.0372  today= 1139m  month= 18758m  since=2025-12-29 23:27:57
+Jun 19 18:59:00 ip-10-0-12-190 start.sh[598872]: 2026-06-19 18:59:00.245 INFO  DCL-CDOT-1 (SIM-001)                     driving  v1= 28.98  v2= 13.1125  today=    0m  month=     9m  since=2026-06-03 15:11:18
+Jun 19 18:59:01 ip-10-0-12-190 start.sh[598864]: 2026-06-19 18:59:01.857 INFO  DCL-Moeck-Shop (GFR-70)                  driving  v1= 27.61  v2= 13.1640  today=    0m  month=     0m  since=2026-05-10 01:14:21
+Jun 19 18:59:02 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:02.883 INFO  onDisconnect fired  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  reason=2  connDurationMs=10517  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=0
+Jun 19 18:59:02 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:02.883 INFO  Device disconnected (unexpected)  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  reason=2  isRapidDisconnect=false
+Jun 19 18:59:02 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:02.890 INFO  Using firmware-close cooldown delay  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  delayMs=2000
+Jun 19 18:59:02 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:02.891 INFO  Scheduling reconnect  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  attempt=1  delayMs=2000
+Jun 19 18:59:04 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:04.891 INFO  Connecting to device  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1
+Jun 19 18:59:04 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:04.938 INFO  Connected successfully  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  durationMs=47
+Jun 19 18:59:04 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:04.941 INFO  onDisconnect fired  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  reason=2  connDurationMs=3  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=0
+Jun 19 18:59:04 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:04.941 WARN  Rapid disconnect detected (error)  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  reason=2  rapidDisconnects=1  connectionDurationMs=3
+Jun 19 18:59:04 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:04.942 WARN  Instant disconnect detected (1/3) — early warning, device stays in pool  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  connectionDurationMs=3  deviceName=DCL-Radian-1
+Jun 19 18:59:04 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:04.942 INFO  Device disconnected (unexpected)  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  reason=2  isRapidDisconnect=true
+Jun 19 18:59:04 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:04.974 INFO  Scheduling reconnect  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  attempt=1  delayMs=1000
+Jun 19 18:59:05 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:05.975 INFO  Connecting to device  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1
+Jun 19 18:59:05 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:05.981 INFO  Connected successfully  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  durationMs=6
+Jun 19 18:59:05 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:05.985 INFO  onDisconnect fired  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  reason=2  connDurationMs=4  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=1
+Jun 19 18:59:05 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:05.985 WARN  Rapid disconnect detected (error)  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  reason=2  rapidDisconnects=2  connectionDurationMs=4
+Jun 19 18:59:05 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:05.985 WARN  Instant disconnect detected (2/3) — early warning, device stays in pool  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  connectionDurationMs=4  deviceName=DCL-Radian-1
+Jun 19 18:59:05 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:05.985 INFO  Device disconnected (unexpected)  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  reason=2  isRapidDisconnect=true
+Jun 19 18:59:05 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:05.990 INFO  Scheduling reconnect  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  attempt=1  delayMs=1000
+Jun 19 18:59:06 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:06.991 INFO  Connecting to device  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1
+Jun 19 18:59:06 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:06.998 INFO  Connected successfully  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  durationMs=7
+Jun 19 18:59:07 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:07.001 INFO  onDisconnect fired  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  reason=2  connDurationMs=3  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=2
+Jun 19 18:59:07 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:07.001 WARN  Rapid disconnect detected (error)  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  reason=2  rapidDisconnects=3  connectionDurationMs=3
+Jun 19 18:59:07 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:07.001 ERROR Circuit breaker OPEN - flapping (≥3 instant disconnects)  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  rapidDisconnects=3  instantDisconnects=3  connectionDurationMs=3  backoffMinutes=5  resetAt=2026-06-19T19:04:07.001Z
+Jun 19 18:59:07 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:07.002 WARN  Marking device as flapping in database  deviceId=21
+Jun 19 18:59:07 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:07.161 WARN  FLAPPING DIAGNOSTIC  deviceId=21  deviceName=DCL-Radian-1  truckId=18  status=flapping  routerReachable=true  gpsLastUpdate=Fri Jun 19 2026 18:57:52 GMT+0000 (Coordinated Universal Time)  gpsAgeMinutes=1  gpsLocation=Putnam County, NY  routerSignalMinutesAgo=1  lastReportedMinutesAgo=28  verdict=PowerMon-side flap — actively connecting + failing (likely firmware/RF/USB)
+Jun 19 18:59:07 ip-10-0-12-190 start.sh[598863]: 2026-06-19 18:59:07.530 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.61  v2=  0.0388  today= 1139m  month= 21597m  since=2025-12-29 23:22:12
+Jun 19 18:59:07 ip-10-0-12-190 start.sh[598863]: 2026-06-19 18:59:07.537 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.73  v2=  0.0375  today= 1139m  month= 17269m  since=2026-01-09 21:34:37
+Jun 19 18:59:07 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:07.741 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 28.86  v2=  0.0476  today= 1139m  month= 23516m  since=2025-12-29 23:38:54
+Jun 19 18:59:07 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:07.748 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 28.76  v2=  0.0395  today= 1139m  month= 21039m  since=2025-12-29 23:38:19
+Jun 19 18:59:08 ip-10-0-12-190 start.sh[598871]: 2026-06-19 18:59:08.655 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 29.53  v2= 13.2761  today=    0m  month=     5m  since=2026-06-14 23:12:07
+Jun 19 18:59:08 ip-10-0-12-190 start.sh[598874]: 2026-06-19 18:59:08.729 ERROR Poll timed out — forcing disconnect so next tick reconnects  deviceId=3  deviceName=DCL-Moeck  timeoutMs=8000
+Jun 19 18:59:08 ip-10-0-12-190 start.sh[598874]: 2026-06-19 18:59:08.729 INFO  Disconnected  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+Jun 19 18:59:08 ip-10-0-12-190 start.sh[598874]: 2026-06-19 18:59:08.729 INFO  Scheduling reconnect  deviceId=3  serial=A998463C2C69ABFD  cohort=6  attempt=1  delayMs=1000
+Jun 19 18:59:08 ip-10-0-12-190 start.sh[598874]: 2026-06-19 18:59:08.729 INFO  onDisconnect fired  deviceId=3  serial=A998463C2C69ABFD  cohort=6  reason=none  connDurationMs=257234  hadSuccessfulPoll=true  wasConnected=false  consecutiveFailures=0  rapidDisconnects=0
+Jun 19 18:59:08 ip-10-0-12-190 start.sh[598866]: 2026-06-19 18:59:08.919 INFO  DCL-NHRA-Tech-Trailer (TRK-01)           parked   v1= 28.83  v2=  0.0441  today= 1139m  month=  8760m  since=2026-02-17 23:59:07
+Jun 19 18:59:09 ip-10-0-12-190 start.sh[598874]: 2026-06-19 18:59:09.731 INFO  Connecting to device  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+Jun 19 18:59:09 ip-10-0-12-190 start.sh[598874]: 2026-06-19 18:59:09.735 INFO  Connected successfully  deviceId=3  serial=A998463C2C69ABFD  cohort=6  durationMs=4
+Jun 19 18:59:10 ip-10-0-12-190 start.sh[598872]: 2026-06-19 18:59:10.265 INFO  DCL-Kruse (WKR-01)                       parked   v1= 28.70  v2=  0.0369  today= 1139m  month= 18758m  since=2025-12-29 23:27:57
+Jun 19 18:59:10 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:10.543 ERROR Poll timed out — forcing disconnect so next tick reconnects  deviceId=21  deviceName=DCL-Radian-1  timeoutMs=8000
+Jun 19 18:59:10 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:10.543 INFO  Disconnected  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1
+Jun 19 18:59:10 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:10.543 INFO  Scheduling reconnect  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  attempt=1  delayMs=1000
+Jun 19 18:59:10 ip-10-0-12-190 start.sh[598871]: 2026-06-19 18:59:10.667 INFO  DCL-Carter (CTR-69)                      parked   v1= 28.72  v2=  0.0432  today= 1139m  month= 13001m  since=2025-12-03 17:15:48
+Jun 19 18:59:10 ip-10-0-12-190 start.sh[598871]: 2026-06-19 18:59:10.674 INFO  DCL-KTR (KTR-01)                         parked   v1= 25.93  v2=  8.8892  today= 1139m  month=  2831m  since=2026-06-18 11:45:48
+Jun 19 18:59:11 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:11.544 INFO  Scheduling reconnect  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  attempt=2  delayMs=2000
+Jun 19 18:59:12 ip-10-0-12-190 start.sh[598872]: 2026-06-19 18:59:12.277 INFO  DCL-CDOT-1 (SIM-001)                     driving  v1= 28.98  v2= 13.1095  today=    0m  month=     9m  since=2026-06-03 15:11:18
+Jun 19 18:59:13 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:13.546 INFO  Scheduling reconnect  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  attempt=3  delayMs=4000
+Jun 19 18:59:13 ip-10-0-12-190 start.sh[598864]: 2026-06-19 18:59:13.880 INFO  DCL-Moeck-Shop (GFR-70)                  driving  v1= 27.61  v2= 13.1654  today=    0m  month=     0m  since=2026-05-10 01:14:21
+Jun 19 18:59:17 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:17.547 INFO  Scheduling reconnect  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  attempt=4  delayMs=8000
+Jun 19 18:59:17 ip-10-0-12-190 start.sh[598863]: 2026-06-19 18:59:17.556 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.61  v2=  0.0384  today= 1139m  month= 21597m  since=2025-12-29 23:22:12
+Jun 19 18:59:17 ip-10-0-12-190 start.sh[598863]: 2026-06-19 18:59:17.563 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.73  v2=  0.0379  today= 1139m  month= 17269m  since=2026-01-09 21:34:37
+Jun 19 18:59:17 ip-10-0-12-190 start.sh[598874]: 2026-06-19 18:59:17.741 WARN  Failed to get device info  deviceId=3  serial=A998463C2C69ABFD  cohort=6  code=8
+Jun 19 18:59:17 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:17.766 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 28.78  v2=  0.0466  today= 1139m  month= 23516m  since=2025-12-29 23:38:54
+Jun 19 18:59:17 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:17.773 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 28.73  v2=  0.0396  today= 1139m  month= 21039m  since=2025-12-29 23:38:19
+Jun 19 18:59:18 ip-10-0-12-190 start.sh[598866]: 2026-06-19 18:59:18.937 INFO  DCL-NHRA-Tech-Trailer (TRK-01)           parked   v1= 28.83  v2=  0.0445  today= 1139m  month=  8760m  since=2026-02-17 23:59:07
+Jun 19 18:59:20 ip-10-0-12-190 start.sh[598874]: 2026-06-19 18:59:20.149 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.52  v2= 12.6743  today= 1139m  month=  3459m  since=2026-05-24 18:38:29
+Jun 19 18:59:20 ip-10-0-12-190 start.sh[598871]: 2026-06-19 18:59:20.691 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 29.51  v2= 13.2763  today=    0m  month=     5m  since=2026-06-14 23:12:07
+Jun 19 18:59:20 ip-10-0-12-190 start.sh[598871]: 2026-06-19 18:59:20.698 INFO  DCL-Carter (CTR-69)                      parked   v1= 28.72  v2=  0.0429  today= 1139m  month= 13001m  since=2025-12-03 17:15:48
+Jun 19 18:59:22 ip-10-0-12-190 start.sh[598872]: 2026-06-19 18:59:22.292 INFO  DCL-CDOT-1 (SIM-001)                     driving  v1= 28.98  v2= 13.1101  today=    0m  month=     9m  since=2026-06-03 15:11:18
+Jun 19 18:59:22 ip-10-0-12-190 start.sh[598872]: 2026-06-19 18:59:22.299 INFO  DCL-Kruse (WKR-01)                       parked   v1= 28.70  v2=  0.0370  today= 1139m  month= 18758m  since=2025-12-29 23:27:57
+Jun 19 18:59:22 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:22.377 WARN  [probe:A8839FDD47E0D9B9] Probe timed out - no successful poll in 30s
+Jun 19 18:59:22 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:22.377 WARN  Marking device as flapping in database  deviceId=21
+Jun 19 18:59:22 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:22.380 INFO  Polling scheduler stopped  totalPolls=1  successfulPolls=0  failedPolls=1  skippedPolls=0  ticksProcessed=2  lastTickTime=Fri Jun 19 2026 18:59:20 GMT+0000 (Coordinated Universal Time)  averagePollDurationMs=720.1800000000001
+Jun 19 18:59:22 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:22.380 INFO  Batch writer stopped  totalWritten=0  totalBatches=0  failedBatches=0  queueHighWaterMark=0  lastFlushTime=null  averageFlushDurationMs=0  snapshotsWritten=0  recentSnapshotFailures=0  lastSnapshotWriteTime=null
+Jun 19 18:59:22 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:22.380 INFO  Disconnecting all devices
+Jun 19 18:59:22 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:22.380 INFO  Disconnected  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1
+Jun 19 18:59:22 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:22.380 INFO  All devices disconnected
+Jun 19 18:59:22 ip-10-0-12-190 start.sh[600822]: 2026-06-19 18:59:22.381 INFO  Database pool closed
+Jun 19 18:59:22 ip-10-0-12-190 start.sh[598793]: 18:59:22 PROBE DCL-Radian-1 still offline (attempt #3, next retry in 60m)
+Jun 19 18:59:22 ip-10-0-12-190 start.sh[598871]: 2026-06-19 18:59:22.709 INFO  DCL-KTR (KTR-01)                         parked   v1= 26.03  v2=  8.8662  today= 1139m  month=  2831m  since=2026-06-18 11:45:48
+Jun 19 18:59:23 ip-10-0-12-190 start.sh[598864]: 2026-06-19 18:59:23.900 INFO  DCL-Moeck-Shop (GFR-70)                  driving  v1= 27.61  v2= 13.1650  today=    0m  month=     0m  since=2026-05-10 01:14:21
+Jun 19 18:59:27 ip-10-0-12-190 start.sh[598863]: 2026-06-19 18:59:27.580 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.73  v2=  0.0383  today= 1139m  month= 17269m  since=2026-01-09 21:34:37
+Jun 19 18:59:27 ip-10-0-12-190 start.sh[598863]: 2026-06-19 18:59:27.588 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.61  v2=  0.0388  today= 1139m  month= 21597m  since=2025-12-29 23:22:12
+Jun 19 18:59:27 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:27.790 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 28.78  v2=  0.0471  today= 1139m  month= 23516m  since=2025-12-29 23:38:54
+Jun 19 18:59:27 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:27.797 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 28.72  v2=  0.0385  today= 1139m  month= 21039m  since=2025-12-29 23:38:19
+Jun 19 18:59:28 ip-10-0-12-190 start.sh[598866]: 2026-06-19 18:59:28.953 INFO  DCL-NHRA-Tech-Trailer (TRK-01)           parked   v1= 28.83  v2=  0.0450  today= 1139m  month=  8760m  since=2026-02-17 23:59:07
+Jun 19 18:59:32 ip-10-0-12-190 start.sh[598874]: 2026-06-19 18:59:32.168 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.52  v2= 12.6748  today= 1140m  month=  3460m  since=2026-05-24 18:38:29
+Jun 19 18:59:32 ip-10-0-12-190 start.sh[598872]: 2026-06-19 18:59:32.318 INFO  DCL-CDOT-1 (SIM-001)                     driving  v1= 28.98  v2= 13.1102  today=    0m  month=     9m  since=2026-06-03 15:11:18
+Jun 19 18:59:32 ip-10-0-12-190 start.sh[598872]: 2026-06-19 18:59:32.325 INFO  DCL-Kruse (WKR-01)                       parked   v1= 28.70  v2=  0.0369  today= 1140m  month= 18759m  since=2025-12-29 23:27:57
+Jun 19 18:59:32 ip-10-0-12-190 start.sh[598871]: 2026-06-19 18:59:32.726 INFO  DCL-KTR (KTR-01)                         parked   v1= 26.05  v2=  8.8924  today= 1140m  month=  2832m  since=2026-06-18 11:45:48
+Jun 19 18:59:32 ip-10-0-12-190 start.sh[598871]: 2026-06-19 18:59:32.734 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 29.52  v2= 13.2757  today=    0m  month=     5m  since=2026-06-14 23:12:07
+Jun 19 18:59:32 ip-10-0-12-190 start.sh[598871]: 2026-06-19 18:59:32.741 INFO  DCL-Carter (CTR-69)                      parked   v1= 28.72  v2=  0.0431  today= 1140m  month= 13002m  since=2025-12-03 17:15:48
+Jun 19 18:59:33 ip-10-0-12-190 start.sh[598864]: 2026-06-19 18:59:33.918 INFO  DCL-Moeck-Shop (GFR-70)                  driving  v1= 27.61  v2= 13.1697  today=    0m  month=     0m  since=2026-05-10 01:14:21
+Jun 19 18:59:37 ip-10-0-12-190 start.sh[598863]: 2026-06-19 18:59:37.606 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.61  v2=  0.0380  today= 1140m  month= 21598m  since=2025-12-29 23:22:12
+Jun 19 18:59:37 ip-10-0-12-190 start.sh[598863]: 2026-06-19 18:59:37.612 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.73  v2=  0.0381  today= 1140m  month= 17270m  since=2026-01-09 21:34:37
+Jun 19 18:59:37 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:37.814 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 28.78  v2=  0.0475  today= 1140m  month= 23517m  since=2025-12-29 23:38:54
+Jun 19 18:59:37 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:37.820 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 28.74  v2=  0.0389  today= 1140m  month= 21040m  since=2025-12-29 23:38:19
+Jun 19 18:59:38 ip-10-0-12-190 start.sh[598866]: 2026-06-19 18:59:38.972 INFO  DCL-NHRA-Tech-Trailer (TRK-01)           parked   v1= 28.83  v2=  0.0455  today= 1140m  month=  8761m  since=2026-02-17 23:59:07
+Jun 19 18:59:42 ip-10-0-12-190 start.sh[598874]: 2026-06-19 18:59:42.223 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.52  v2= 12.6753  today= 1140m  month=  3460m  since=2026-05-24 18:38:29
+Jun 19 18:59:42 ip-10-0-12-190 start.sh[598872]: 2026-06-19 18:59:42.343 INFO  DCL-CDOT-1 (SIM-001)                     driving  v1= 28.98  v2= 13.1050  today=    0m  month=     9m  since=2026-06-03 15:11:18
+Jun 19 18:59:42 ip-10-0-12-190 start.sh[598872]: 2026-06-19 18:59:42.349 INFO  DCL-Kruse (WKR-01)                       parked   v1= 28.70  v2=  0.0369  today= 1140m  month= 18759m  since=2025-12-29 23:27:57
+Jun 19 18:59:42 ip-10-0-12-190 start.sh[598871]: 2026-06-19 18:59:42.759 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 29.53  v2= 13.2770  today=    0m  month=     5m  since=2026-06-14 23:12:07
+Jun 19 18:59:42 ip-10-0-12-190 start.sh[598871]: 2026-06-19 18:59:42.765 INFO  DCL-KTR (KTR-01)                         parked   v1= 26.05  v2=  8.8883  today= 1140m  month=  2832m  since=2026-06-18 11:45:48
+Jun 19 18:59:42 ip-10-0-12-190 start.sh[598871]: 2026-06-19 18:59:42.770 INFO  DCL-Carter (CTR-69)                      parked   v1= 28.72  v2=  0.0436  today= 1140m  month= 13002m  since=2025-12-03 17:15:48
+Jun 19 18:59:43 ip-10-0-12-190 start.sh[598864]: 2026-06-19 18:59:43.935 INFO  DCL-Moeck-Shop (GFR-70)                  driving  v1= 27.61  v2= 13.1642  today=    0m  month=     0m  since=2026-05-10 01:14:21
+Jun 19 18:59:47 ip-10-0-12-190 start.sh[598863]: 2026-06-19 18:59:47.625 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.61  v2=  0.0384  today= 1140m  month= 21598m  since=2025-12-29 23:22:12
+Jun 19 18:59:47 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:47.835 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 28.80  v2=  0.0474  today= 1140m  month= 23517m  since=2025-12-29 23:38:54
+Jun 19 18:59:47 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:47.843 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 28.76  v2=  0.0392  today= 1140m  month= 21040m  since=2025-12-29 23:38:19
+Jun 19 18:59:48 ip-10-0-12-190 start.sh[598866]: 2026-06-19 18:59:48.989 INFO  DCL-NHRA-Tech-Trailer (TRK-01)           parked   v1= 28.83  v2=  0.0451  today= 1140m  month=  8761m  since=2026-02-17 23:59:07
+Jun 19 18:59:49 ip-10-0-12-190 start.sh[598863]: 2026-06-19 18:59:49.633 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.73  v2=  0.0386  today= 1140m  month= 17270m  since=2026-01-09 21:34:37
+Jun 19 18:59:50 ip-10-0-12-190 start.sh[598793]: Skipping 5 offline/unstable devices:
+Jun 19 18:59:50 ip-10-0-12-190 start.sh[598793]:                   [flapping]  DCL-Epler                                (0 disconnects) (supervisor will probe)
+Jun 19 18:59:50 ip-10-0-12-190 start.sh[598793]:                   [flapping]  DCL-Kalitta-Hospitality                  (0 disconnects) (supervisor will probe)
+Jun 19 18:59:50 ip-10-0-12-190 start.sh[598793]:                   [flapping]  DCL-Radian-1                             (0 disconnects) (supervisor will probe)
+Jun 19 18:59:50 ip-10-0-12-190 start.sh[598793]:                   [flapping]  DCL-Radian-2                             (0 disconnects) (supervisor will probe)
+Jun 19 18:59:50 ip-10-0-12-190 start.sh[598793]:                   [flapping]  DCL-Penske01                             (0 disconnects) (supervisor will probe)
+Jun 19 18:59:51 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:51.215 INFO  Found newly activated device in cohort  serialNumber=  deviceName=DCL-Howard  cohortId=0
+Jun 19 18:59:51 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:51.218 INFO  Connecting to device  deviceId=28  serial=  cohort=0
+Jun 19 18:59:51 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:51.224 INFO  Connected successfully  deviceId=28  serial=  cohort=0  durationMs=6
+Jun 19 18:59:51 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:51.227 INFO  onDisconnect fired  deviceId=28  serial=  cohort=0  reason=2  connDurationMs=3  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=0
+Jun 19 18:59:51 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:51.228 WARN  Rapid disconnect detected (error)  deviceId=28  serial=  cohort=0  reason=2  rapidDisconnects=1  connectionDurationMs=3
+Jun 19 18:59:51 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:51.228 WARN  Instant disconnect detected (1/3) — early warning, device stays in pool  deviceId=28  serial=  cohort=0  connectionDurationMs=3  deviceName=DCL-Howard
+Jun 19 18:59:51 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:51.228 INFO  Device disconnected (unexpected)  deviceId=28  serial=  cohort=0  reason=2  isRapidDisconnect=true
+Jun 19 18:59:51 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:51.233 INFO  New device connected  serialNumber=  deviceName=DCL-Howard  durationMs=6
+Jun 19 18:59:51 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:51.234 INFO  Added 1 new device(s) to cohort 0
+Jun 19 18:59:51 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:51.271 INFO  Scheduling reconnect  deviceId=28  serial=  cohort=0  attempt=1  delayMs=1000
+Jun 19 18:59:51 ip-10-0-12-190 start.sh[598793]: Skipping 5 offline/unstable devices:
+Jun 19 18:59:51 ip-10-0-12-190 start.sh[598793]:                   [flapping]  DCL-Epler                                (0 disconnects) (probe #3 failed, retry in 3m)
+Jun 19 18:59:51 ip-10-0-12-190 start.sh[598793]:                   [flapping]  DCL-Kalitta-Hospitality                  (0 disconnects) (probe #4 failed, retry in 94m)
+Jun 19 18:59:51 ip-10-0-12-190 start.sh[598793]:                   [flapping]  DCL-Radian-1                             (0 disconnects) (probe #3 failed, retry in 60m)
+Jun 19 18:59:51 ip-10-0-12-190 start.sh[598793]:                   [flapping]  DCL-Radian-2                             (0 disconnects) (probe #4 failed, retry in 184m)
+Jun 19 18:59:51 ip-10-0-12-190 start.sh[598793]:                   [flapping]  DCL-Penske01                             (0 disconnects) (probe #4 failed, retry in 94m)
+Jun 19 18:59:52 ip-10-0-12-190 start.sh[598874]: 2026-06-19 18:59:52.245 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.52  v2= 12.6745  today= 1140m  month=  3460m  since=2026-05-24 18:38:29
+Jun 19 18:59:52 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:52.270 INFO  Connecting to device  deviceId=28  serial=  cohort=0
+Jun 19 18:59:52 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:52.275 INFO  Connected successfully  deviceId=28  serial=  cohort=0  durationMs=5
+Jun 19 18:59:52 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:52.278 INFO  onDisconnect fired  deviceId=28  serial=  cohort=0  reason=2  connDurationMs=3  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=1
+Jun 19 18:59:52 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:52.278 WARN  Rapid disconnect detected (error)  deviceId=28  serial=  cohort=0  reason=2  rapidDisconnects=2  connectionDurationMs=3
+Jun 19 18:59:52 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:52.279 WARN  Instant disconnect detected (2/3) — early warning, device stays in pool  deviceId=28  serial=  cohort=0  connectionDurationMs=3  deviceName=DCL-Howard
+Jun 19 18:59:52 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:52.279 INFO  Device disconnected (unexpected)  deviceId=28  serial=  cohort=0  reason=2  isRapidDisconnect=true
+Jun 19 18:59:52 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:52.283 INFO  Scheduling reconnect  deviceId=28  serial=  cohort=0  attempt=1  delayMs=1000
+Jun 19 18:59:52 ip-10-0-12-190 start.sh[598872]: 2026-06-19 18:59:52.366 INFO  DCL-CDOT-1 (SIM-001)                     driving  v1= 28.98  v2= 13.1035  today=    0m  month=     9m  since=2026-06-03 15:11:18
+Jun 19 18:59:52 ip-10-0-12-190 start.sh[598793]: 2026-06-19 18:59:52.368 INFO  InHand poll complete  totalDevices=45  devicesWithIds=45  simsMatched=17  simsOnline=8  simsOffline=9  simsRssiUpdated=8  trucksUpdated=10  unmatchedDevices=RF3022529634046(msisdn=null,iccid=8931086125129524302F); RF3022547677591(msisdn=null,iccid=8931086125129524245F); IR302_1(msisdn=883190603571829,iccid=null); IR302_2(msisdn=883190603571826,iccid=null); IR302_6(msisdn=883190603400850,iccid=null); IR302_7(msisdn=883190603400853,iccid=null); IR302_9(msisdn=883190603748141,iccid=null); IR302_10(msisdn=883190603748135,iccid=89444611503508862610); IR302_11(msisdn=883190603748140,iccid=null); IR302_12(msisdn=883190603748143,iccid=null); IR302_14(msisdn=883190603748142,iccid=null); IR302_15(msisdn=883190603748136,iccid=89444611503508862651); IR302_16(msisdn=883190603748139,iccid=null); IR302_17(msisdn=883190603748134,iccid=null); IR302_18(msisdn=883190603748138,iccid=null); IR302_19(msisdn=883190603657506,iccid=89444611503507318093); IR302_20(msisdn=883190603657500,iccid=89444611503507318325); IR302_22(msisdn=883190603657501,iccid=null); IR302_26(msisdn=883190603657504,iccid=null); IR302_27(msisdn=883190603657505,iccid=null); IR302_28(msisdn=883190603659416,iccid=null); IR302_29(msisdn=883190603659415,iccid=89444611503507317905); IR302_30(msisdn=883190603659423,iccid=null); IR302_31(msisdn=883190603659413,iccid=null); IR302_34(msisdn=883190603659435,iccid=null); IR302_35(msisdn=883190603659421,iccid=89444611503507317848); IR302_36(msisdn=883190603659408,iccid=null); IR302_39(msisdn=883190603571823,iccid=null)  durationMs=539
+Jun 19 18:59:52 ip-10-0-12-190 start.sh[598872]: 2026-06-19 18:59:52.372 INFO  DCL-Kruse (WKR-01)                       parked   v1= 28.70  v2=  0.0376  today= 1140m  month= 18759m  since=2025-12-29 23:27:57
+Jun 19 18:59:52 ip-10-0-12-190 start.sh[598866]: 2026-06-19 18:59:52.537 INFO  Processing pending backfills  count=1
+Jun 19 18:59:52 ip-10-0-12-190 start.sh[598866]: 2026-06-19 18:59:52.537 INFO  Starting backfill  deviceId=28  serial=  operation=backfill  gapStart=null  gapEnd=null
+Jun 19 18:59:52 ip-10-0-12-190 start.sh[598866]: 2026-06-19 18:59:52.540 ERROR Backfill failed  deviceId=28  serial=  operation=backfill  error=powermon.createInstance is not a function
+Jun 19 18:59:52 ip-10-0-12-190 start.sh[598871]: 2026-06-19 18:59:52.789 INFO  DCL-KTR (KTR-01)                         parked   v1= 26.06  v2=  8.9465  today= 1140m  month=  2832m  since=2026-06-18 11:45:48
+Jun 19 18:59:53 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:53.282 INFO  Connecting to device  deviceId=28  serial=  cohort=0
+Jun 19 18:59:53 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:53.287 INFO  Connected successfully  deviceId=28  serial=  cohort=0  durationMs=5
+Jun 19 18:59:53 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:53.290 INFO  onDisconnect fired  deviceId=28  serial=  cohort=0  reason=2  connDurationMs=3  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=2
+Jun 19 18:59:53 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:53.290 WARN  Rapid disconnect detected (error)  deviceId=28  serial=  cohort=0  reason=2  rapidDisconnects=3  connectionDurationMs=3
+Jun 19 18:59:53 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:53.290 ERROR Circuit breaker OPEN - flapping (≥3 instant disconnects)  deviceId=28  serial=  cohort=0  rapidDisconnects=3  instantDisconnects=3  connectionDurationMs=3  backoffMinutes=5  resetAt=2026-06-19T19:04:53.290Z
+Jun 19 18:59:53 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:53.290 WARN  Marking device as flapping in database  deviceId=28
+Jun 19 18:59:53 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:53.422 WARN  FLAPPING DIAGNOSTIC  deviceId=28  deviceName=DCL-Howard  truckId=10  status=flapping  routerReachable=true  gpsLastUpdate=Wed Apr 29 2026 08:29:47 GMT+0000 (Coordinated Universal Time)  gpsAgeMinutes=74070  gpsLocation=null  routerSignalMinutesAgo=null  lastReportedMinutesAgo=null  verdict=Router/cellular outage — truck unreachable
+Jun 19 18:59:54 ip-10-0-12-190 start.sh[598871]: 2026-06-19 18:59:54.799 INFO  DCL-Carter (CTR-69)                      parked   v1= 28.72  v2=  0.0436  today= 1140m  month= 13002m  since=2025-12-03 17:15:48
+Jun 19 18:59:54 ip-10-0-12-190 start.sh[598871]: 2026-06-19 18:59:54.805 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 29.51  v2= 13.2755  today=    0m  month=     5m  since=2026-06-14 23:12:07
+Jun 19 18:59:55 ip-10-0-12-190 start.sh[598864]: 2026-06-19 18:59:55.959 INFO  DCL-Moeck-Shop (GFR-70)                  driving  v1= 27.61  v2= 13.1611  today=    0m  month=     0m  since=2026-05-10 01:14:21
+Jun 19 18:59:57 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:57.865 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 28.82  v2=  0.0468  today= 1140m  month= 23517m  since=2025-12-29 23:38:54
+Jun 19 18:59:57 ip-10-0-12-190 start.sh[598862]: 2026-06-19 18:59:57.871 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 28.73  v2=  0.0389  today= 1140m  month= 21040m  since=2025-12-29 23:38:19
+Jun 19 18:59:59 ip-10-0-12-190 start.sh[598863]: 2026-06-19 18:59:59.651 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.61  v2=  0.0384  today= 1140m  month= 21598m  since=2025-12-29 23:22:12
+Jun 19 18:59:59 ip-10-0-12-190 start.sh[598863]: 2026-06-19 18:59:59.656 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.73  v2=  0.0384  today= 1140m  month= 17270m  since=2026-01-09 21:34:37
+Jun 19 19:00:01 ip-10-0-12-190 start.sh[598866]: 2026-06-19 19:00:01.017 INFO  DCL-NHRA-Tech-Trailer (TRK-01)           parked   v1= 28.83  v2=  0.0442  today= 1140m  month=  8761m  since=2026-02-17 23:59:07
+Jun 19 19:00:02 ip-10-0-12-190 start.sh[598874]: 2026-06-19 19:00:02.275 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.52  v2= 12.6699  today= 1140m  month=  3460m  since=2026-05-24 18:38:29
+Jun 19 19:00:02 ip-10-0-12-190 start.sh[598872]: 2026-06-19 19:00:02.409 INFO  DCL-Kruse (WKR-01)                       parked   v1= 28.70  v2=  0.0364  today= 1140m  month= 18759m  since=2025-12-29 23:27:57
+Jun 19 19:00:02 ip-10-0-12-190 start.sh[598872]: 2026-06-19 19:00:02.444 INFO  DCL-CDOT-1 (SIM-001)                     driving  v1= 28.98  v2= 13.1066  today=    0m  month=     9m  since=2026-06-03 15:11:18
+Jun 19 19:00:04 ip-10-0-12-190 start.sh[598871]: 2026-06-19 19:00:04.831 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 29.50  v2= 13.2762  today=    0m  month=     5m  since=2026-06-14 23:12:07
+Jun 19 19:00:04 ip-10-0-12-190 start.sh[598871]: 2026-06-19 19:00:04.844 INFO  DCL-Carter (CTR-69)                      parked   v1= 28.72  v2=  0.0435  today= 1140m  month= 13002m  since=2025-12-03 17:15:48
+Jun 19 19:00:04 ip-10-0-12-190 start.sh[598871]: 2026-06-19 19:00:04.866 INFO  DCL-KTR (KTR-01)                         parked   v1= 26.07  v2=  8.8635  today= 1140m  month=  2832m  since=2026-06-18 11:45:48
+Jun 19 19:00:05 ip-10-0-12-190 start.sh[598864]: 2026-06-19 19:00:05.979 INFO  DCL-Moeck-Shop (GFR-70)                  driving  v1= 27.61  v2= 13.1641  today=    0m  month=     0m  since=2026-05-10 01:14:21
+Jun 19 19:00:07 ip-10-0-12-190 start.sh[598862]: 2026-06-19 19:00:07.891 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 28.72  v2=  0.0392  today= 1140m  month= 21040m  since=2025-12-29 23:38:19
+Jun 19 19:00:09 ip-10-0-12-190 start.sh[598863]: 2026-06-19 19:00:09.674 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.61  v2=  0.0382  today= 1140m  month= 21598m  since=2025-12-29 23:22:12
+Jun 19 19:00:09 ip-10-0-12-190 start.sh[598863]: 2026-06-19 19:00:09.697 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.73  v2=  0.0382  today= 1140m  month= 17270m  since=2026-01-09 21:34:37
+Jun 19 19:00:09 ip-10-0-12-190 start.sh[598862]: 2026-06-19 19:00:09.906 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 28.84  v2=  0.0468  today= 1140m  month= 23517m  since=2025-12-29 23:38:54
+Jun 19 19:00:11 ip-10-0-12-190 start.sh[598866]: 2026-06-19 19:00:11.038 INFO  DCL-NHRA-Tech-Trailer (TRK-01)           parked   v1= 28.83  v2=  0.0447  today= 1140m  month=  8761m  since=2026-02-17 23:59:07
+Jun 19 19:00:12 ip-10-0-12-190 start.sh[598872]: 2026-06-19 19:00:12.467 INFO  DCL-CDOT-1 (SIM-001)                     driving  v1= 28.98  v2= 13.0984  today=    0m  month=     9m  since=2026-06-03 15:11:18
+Jun 19 19:00:12 ip-10-0-12-190 start.sh[598872]: 2026-06-19 19:00:12.473 INFO  DCL-Kruse (WKR-01)                       parked   v1= 28.70  v2=  0.0380  today= 1140m  month= 18759m  since=2025-12-29 23:27:57
+Jun 19 19:00:14 ip-10-0-12-190 start.sh[598874]: 2026-06-19 19:00:14.301 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.52  v2= 12.6694  today= 1140m  month=  3460m  since=2026-05-24 18:38:29
+Jun 19 19:00:14 ip-10-0-12-190 start.sh[598871]: 2026-06-19 19:00:14.892 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 29.53  v2= 13.2633  today=    0m  month=     5m  since=2026-06-14 23:12:07
+Jun 19 19:00:14 ip-10-0-12-190 start.sh[598871]: 2026-06-19 19:00:14.898 INFO  DCL-Carter (CTR-69)                      parked   v1= 28.72  v2=  0.0436  today= 1140m  month= 13002m  since=2025-12-03 17:15:48
+Jun 19 19:00:14 ip-10-0-12-190 start.sh[598871]: 2026-06-19 19:00:14.903 INFO  DCL-KTR (KTR-01)                         parked   v1= 26.06  v2=  8.8900  today= 1140m  month=  2832m  since=2026-06-18 11:45:48
+Jun 19 19:00:16 ip-10-0-12-190 start.sh[598864]: 2026-06-19 19:00:16.006 INFO  DCL-Moeck-Shop (GFR-70)                  driving  v1= 27.61  v2= 13.1696  today=    0m  month=     0m  since=2026-05-10 01:14:21
+Jun 19 19:00:19 ip-10-0-12-190 start.sh[598863]: 2026-06-19 19:00:19.715 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.61  v2=  0.0384  today= 1140m  month= 21598m  since=2025-12-29 23:22:12
+Jun 19 19:00:19 ip-10-0-12-190 start.sh[598863]: 2026-06-19 19:00:19.721 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.73  v2=  0.0384  today= 1140m  month= 17270m  since=2026-01-09 21:34:37
+Jun 19 19:00:19 ip-10-0-12-190 start.sh[598862]: 2026-06-19 19:00:19.922 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 28.85  v2=  0.0462  today= 1140m  month= 23517m  since=2025-12-29 23:38:54
+Jun 19 19:00:19 ip-10-0-12-190 start.sh[598862]: 2026-06-19 19:00:19.928 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 28.74  v2=  0.0387  today= 1140m  month= 21040m  since=2025-12-29 23:38:19
+Jun 19 19:00:21 ip-10-0-12-190 start.sh[598866]: 2026-06-19 19:00:21.059 INFO  DCL-NHRA-Tech-Trailer (TRK-01)           parked   v1= 28.83  v2=  0.0455  today= 1140m  month=  8761m  since=2026-02-17 23:59:07
+Jun 19 19:00:22 ip-10-0-12-190 start.sh[598872]: 2026-06-19 19:00:22.489 INFO  DCL-Kruse (WKR-01)                       parked   v1= 28.70  v2=  0.0379  today= 1140m  month= 18759m  since=2025-12-29 23:27:57
+Jun 19 19:00:24 ip-10-0-12-190 start.sh[598874]: 2026-06-19 19:00:24.319 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.52  v2= 12.6742  today= 1140m  month=  3460m  since=2026-05-24 18:38:29
+Jun 19 19:00:24 ip-10-0-12-190 start.sh[598872]: 2026-06-19 19:00:24.505 INFO  DCL-CDOT-1 (SIM-001)                     driving  v1= 28.98  v2= 13.1019  today=    0m  month=     9m  since=2026-06-03 15:11:18
+Jun 19 19:00:24 ip-10-0-12-190 start.sh[598871]: 2026-06-19 19:00:24.918 INFO  DCL-KTR (KTR-01)                         parked   v1= 26.07  v2=  8.8271  today= 1140m  month=  2832m  since=2026-06-18 11:45:48
+Jun 19 19:00:24 ip-10-0-12-190 start.sh[598871]: 2026-06-19 19:00:24.924 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 29.51  v2= 13.2766  today=    0m  month=     5m  since=2026-06-14 23:12:07
+Jun 19 19:00:24 ip-10-0-12-190 start.sh[598871]: 2026-06-19 19:00:24.930 INFO  DCL-Carter (CTR-69)                      parked   v1= 28.72  v2=  0.0437  today= 1140m  month= 13002m  since=2025-12-03 17:15:48
+Jun 19 19:00:26 ip-10-0-12-190 start.sh[598864]: 2026-06-19 19:00:26.022 INFO  DCL-Moeck-Shop (GFR-70)                  driving  v1= 27.61  v2= 13.1670  today=    0m  month=     0m  since=2026-05-10 01:14:21
+Jun 19 19:00:29 ip-10-0-12-190 start.sh[598862]: 2026-06-19 19:00:29.939 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 28.78  v2=  0.0467  today= 1140m  month= 23517m  since=2025-12-29 23:38:54
+Jun 19 19:00:29 ip-10-0-12-190 start.sh[598862]: 2026-06-19 19:00:29.945 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 28.75  v2=  0.0393  today= 1140m  month= 21040m  since=2025-12-29 23:38:19
+
