@@ -35,6 +35,7 @@ class Supervisor {
 
     this.probeWorkers = new Map();
     this.probeBackoff = new Map();
+    this.noSerialWarned = new Set();
   }
 
   async start() {
@@ -151,6 +152,25 @@ class Supervisor {
 
   forkProbeWorker(serial, deviceName) {
     if (this.isShuttingDown) return;
+
+    // A solo probe is keyed on the device's serial number, which is passed to the
+    // child via WORKER_SOLO_SERIAL. If the device record has no serial, the child
+    // would exit immediately ("WORKER_COHORT_ID or WORKER_SOLO_SERIAL ... required")
+    // and be misreported as "probe failed". Skip it with a clear, one-time message
+    // instead of spawning a doomed probe.
+    if (!serial || String(serial).trim() === '') {
+      if (!this.noSerialWarned.has(deviceName)) {
+        this.noSerialWarned.add(deviceName);
+        const yellow = '\x1b[33m';
+        const dim = '\x1b[2m';
+        const rst = '\x1b[0m';
+        const ts = new Date().toISOString().slice(11, 19);
+        console.log(`${dim}${ts}${rst} ${yellow}PROBE${rst} Skipped ${deviceName || '(unknown device)'} — no serial number on record; cannot probe (set its serial in the dashboard)`);
+        logger.warn('Supervisor: Skipping probe — device has no serial number', { deviceName });
+      }
+      return;
+    }
+
     if (this.probeWorkers.has(serial)) return;
 
     const workerPath = path.join(__dirname, 'worker.js');
@@ -294,7 +314,9 @@ class Supervisor {
         const status = `[${d.connection_status}]`.padEnd(12);
         const name = (d.device_name || d.serial_number).padEnd(41);
         let ttlInfo = '';
-        if (d.connection_status === 'flapping' && d.minutes_quarantined != null) {
+        if (d.connection_status === 'flapping' && (!d.serial_number || String(d.serial_number).trim() === '')) {
+          ttlInfo = ' (no serial — cannot probe; set its serial in the dashboard)';
+        } else if (d.connection_status === 'flapping' && d.minutes_quarantined != null) {
           const backoff = this.probeBackoff.get(d.serial_number);
           if (backoff && Date.now() < backoff.nextProbeAfter) {
             const minutesRemaining = Math.round((backoff.nextProbeAfter - Date.now()) / 60000);

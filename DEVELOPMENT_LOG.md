@@ -4,6 +4,20 @@
 
 ---
 
+## 2026-06-19 — Probe guard for devices with no serial number
+
+**Why**: During a live incident, DCL-Howard was set online but never recovered. The supervisor kept spawning solo recovery probes for it, and each probe child died instantly with `WORKER_COHORT_ID or WORKER_SOLO_SERIAL environment variable is required`, then logged a misleading `still offline (probe failed)`. Root cause: a solo probe is keyed on the device's serial number (passed to the child via `WORKER_SOLO_SERIAL` in `forkProbeWorker`). Howard's record had no serial number, so the env var was unset and the child bailed before testing anything. The "probe failed" lines were false — nothing was ever probed. (Confirmed contrast: DCL-Radian-1, which has a serial, spawned a probe that connected fine and genuinely flapped due to marginal cellular — that's a real field fault, not this bug.)
+
+**What changed** (`device-manager/app/supervisor.js`):
+- `forkProbeWorker(serial, deviceName)` now guards at the top: if `serial` is null/empty, it logs a clear one-time `PROBE Skipped <device> — no serial number on record; cannot probe (set its serial in the dashboard)` and returns without spawning a doomed child. A new `this.noSerialWarned` Set throttles the message to once per device per process so the loop doesn't spam logs every check.
+- `_logSkippedDevices` skip-list now renders `(no serial — cannot probe; set its serial in the dashboard)` for a flapping device with no serial, instead of the misleading `(probe #N failed, retry in Xm)`.
+
+**Not changed**: `worker.js` is correct as-is (it only errors when *both* env vars are missing). This is purely a supervisor-side guard so a misconfigured record produces an honest log instead of a fake probe-failure loop. The actual fix for a Howard-type device is to populate its serial number (+ active credentials) on the device record.
+
+No schema or migration needed — no DB changes.
+
+---
+
 ## 2026-05-28 — Dashboard verdict labels (Task #25 follow-up)
 
 After Task #25 deployed and the new three-bucket verdict logic verified in prod logs, surfaced the same verdicts on two dashboard surfaces so operators see the honest diagnosis instead of the misleading "Flapping" label (DCL-Carter was rendering as "Flapping" when it's actually fully powered off).
