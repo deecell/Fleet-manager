@@ -14,6 +14,10 @@
 
 **Note on viewing color**: the logs already emit ANSI color codes. To see the color you need a color-aware viewer — `journalctl -u <unit>` through its pager, or `less -R` / `cat` in a terminal. Opening a redirected `.log` file in a plain text editor shows the raw escape codes, not color (that's inherent to ANSI; a text file can't carry color any other way).
 
+**Follow logs with color (operator command)**: `sudo journalctl -u device-manager -f -o cat`. The `-o cat` mode prints the raw message field, which (a) preserves the app's ANSI colors (the default journald format escapes them) and (b) drops the redundant `Jun 22 ... ip-10-0-12-190 start.sh[PID]:` prefix.
+
+**Shorter timestamp** (`device-manager/app/logger.js`): with `-o cat` the journald prefix is gone, so the app's own timestamp was the only one — and it repeated the full date on every line. Trimmed `2026-06-22 12:36:55.013` → time-only `12:36:55.013` (UTC, ms kept for spotting sub-second flapping). Full date is still recoverable via plain `journalctl` without `-o cat`, since journald stores its own timestamp.
+
 No schema/DB changes. Must be deployed to the EC2 device-manager to take effect in production.
 
 ---

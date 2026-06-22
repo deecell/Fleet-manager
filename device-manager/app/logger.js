@@ -27,7 +27,10 @@ const LEVEL_COLORS = {
  * Format a log entry as a colorized, human-readable line
  */
 function formatLog(level, message, context = {}) {
-  const ts = new Date().toISOString().replace('T', ' ').replace('Z', '');
+  // Time-only (HH:MM:SS.mmm, UTC). Date is dropped to keep lines short — journald
+  // retains the full date/timestamp itself (visible without `-o cat`), and ms are
+  // kept because they're needed to spot rapid (sub-second) disconnect flapping.
+  const ts = new Date().toISOString().slice(11, 23);
   const dim = '\x1b[2m';
   const reset = '\x1b[0m';
   const bold = '\x1b[1m';
