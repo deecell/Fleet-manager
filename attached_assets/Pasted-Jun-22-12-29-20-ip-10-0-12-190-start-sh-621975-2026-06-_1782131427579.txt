@@ -1,0 +1,24 @@
+Jun 22 12:29:20 ip-10-0-12-190 start.sh[621975]: 2026-06-22 12:29:20.280 INFO  onDisconnect fired  deviceId=27  serial=93A06F1D0939561B  cohort=5  reason=2  connDurationMs=535290  hadSuccessfulPoll=true  wasConnected=true  consecutiveFailures=1  rapidDisconnects=0
+Jun 22 12:29:20 ip-10-0-12-190 start.sh[621975]: 2026-06-22 12:29:20.280 INFO  Device disconnected (unexpected)  deviceId=27  serial=93A06F1D0939561B  cohort=5  reason=2  isRapidDisconnect=false
+Jun 22 12:29:20 ip-10-0-12-190 start.sh[621975]: 2026-06-22 12:29:20.285 INFO  Using firmware-close cooldown delay  deviceId=27  serial=93A06F1D0939561B  cohort=5  delayMs=2000
+Jun 22 12:29:20 ip-10-0-12-190 start.sh[621975]: 2026-06-22 12:29:20.285 INFO  Scheduling reconnect  deviceId=27  serial=93A06F1D0939561B  cohort=5  attempt=1  delayMs=2000
+Jun 22 12:29:21 ip-10-0-12-190 start.sh[621975]: 2026-06-22 12:29:21.993 ERROR Poll timed out — forcing disconnect so next tick reconnects  deviceId=27  deviceName=DCL-CDOT-1  timeoutMs=8000
+Jun 22 12:29:21 ip-10-0-12-190 start.sh[621975]: 2026-06-22 12:29:21.993 INFO  Disconnected  deviceId=27  serial=93A06F1D0939561B  cohort=5
+Jun 22 12:29:21 ip-10-0-12-190 start.sh[621975]: 2026-06-22 12:29:21.994 INFO  Scheduling reconnect  deviceId=27  serial=93A06F1D0939561B  cohort=5  attempt=2  delayMs=2000
+Jun 22 12:29:22 ip-10-0-12-190 start.sh[621986]: 2026-06-22 12:29:22.011 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.50  v2= 12.6825  today=  749m  month=  5822m  since=2026-05-24 18:38:29
+Jun 22 12:29:22 ip-10-0-12-190 start.sh[621986]: 2026-06-22 12:29:22.017 INFO  DCL-Brown (RBR-01)                       parked   v1= 27.67  v2= 12.7246  today=    8m  month=  2094m  since=2026-06-22 12:21:44
+Jun 22 12:29:23 ip-10-0-12-190 start.sh[621966]: 2026-06-22 12:29:23.797 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.78  v2=  0.0386  today=  749m  month= 18494m  since=2026-01-09 21:34:37
+Jun 22 12:29:23 ip-10-0-12-190 start.sh[621966]: 2026-06-22 12:29:23.804 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.50  v2=  0.0394  today=  749m  month= 25527m  since=2025-12-29 23:22:12
+Jun 22 12:29:23 ip-10-0-12-190 start.sh[621975]: 2026-06-22 12:29:23.995 INFO  Connecting to device  deviceId=27  serial=93A06F1D0939561B  cohort=5
+Jun 22 12:29:24 ip-10-0-12-190 start.sh[621975]: 2026-06-22 12:29:24.038 INFO  Connected successfully  deviceId=27  serial=93A06F1D0939561B  cohort=5  durationMs=42
+Jun 22 12:29:24 ip-10-0-12-190 start.sh[621975]: 2026-06-22 12:29:24.040 INFO  onDisconnect fired  deviceId=27  serial=93A06F1D0939561B  cohort=5  reason=2  connDurationMs=3  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=0
+Jun 22 12:29:24 ip-10-0-12-190 start.sh[621974]: 2026-06-22 12:29:24.857 INFO  DCL-KTR (KTR-01)                         driving  v1= 26.56  v2= 13.0284  today=  748m  month=  5320m  since=2026-06-22 12:27:34
+Jun 22 12:29:24 ip-10-0-12-190 start.sh[621974]: 2026-06-22 12:29:24.863 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 26.52  v2= 13.2766  today=    0m  month=     5m  since=2026-06-14 23:12:07
+Jun 22 12:29:24 ip-10-0-12-190 start.sh[621974]: 2026-06-22 12:29:24.869 INFO  DCL-Carter (CTR-69)                      parked   v1= 26.54  v2=  0.0387  today=  749m  month= 16931m  since=2025-12-03 17:15:48
+Jun 22 12:29:26 ip-10-0-12-190 start.sh[621965]: 2026-06-22 12:29:26.086 INFO  DCL-Howard (MHR-01)                      parked   v1= 52.44  v2=  0.0377  today=    2m  month=     2m  since=2026-06-22 12:27:33
+Jun 22 12:29:26 ip-10-0-12-190 start.sh[621965]: 2026-06-22 12:29:26.093 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.54  v2=  0.0424  today=  749m  month= 24969m  since=2025-12-29 23:38:19
+Jun 22 12:29:26 ip-10-0-12-190 start.sh[621965]: 2026-06-22 12:29:26.102 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 26.53  v2=  0.0445  today=  749m  month= 27446m  since=2025-12-29 23:38:54
+Jun 22 12:29:26 ip-10-0-12-190 start.sh[621897]: Skipping 3 offline/unstable devices:
+Jun 22 12:29:26 ip-10-0-12-190 start.sh[621897]:                   [flapping]  DCL-Kalitta-Hospitality                  (0 disconnects) (probe #2 failed, retry in 6m)
+Jun 22 12:29:26 ip-10-0-12-190 start.sh[621897]:                   [flapping]  DCL-Radian-1                             (0 disconnects) (probe #2 failed, retry in 11m)
+Jun 22 12:29:26 ip-10-0-12-190 start.sh[621897]:                   [flapping]  DCL-Penske01                             (0 disconnects) (probe #2 failed, retry in 6m)
