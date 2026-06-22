@@ -18,6 +18,8 @@
 
 **Shorter timestamp** (`device-manager/app/logger.js`): with `-o cat` the journald prefix is gone, so the app's own timestamp was the only one — and it repeated the full date on every line. Trimmed `2026-06-22 12:36:55.013` → time-only `12:36:55.013` (UTC, ms kept for spotting sub-second flapping). Full date is still recoverable via plain `journalctl` without `-o cat`, since journald stores its own timestamp.
 
+**Timestamp consistency on poll-summary lines** (`device-manager/app/database.js`): the per-poll status line (`DCL-Moeck (GFR-69) parked v1=… v2=…`) builds its own timestamp instead of going through `logger.js`, so it was still printing the full date (`2026-06-22 14:57:28.102`) while every event line had switched to time-only. Aligned it to the same `new Date().toISOString().slice(11, 23)` time-only format so the whole log reads consistently.
+
 No schema/DB changes. Must be deployed to the EC2 device-manager to take effect in production.
 
 ---

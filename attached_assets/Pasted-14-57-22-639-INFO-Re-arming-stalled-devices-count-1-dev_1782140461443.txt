@@ -1,0 +1,24 @@
+14:57:22.639 INFO  Re-arming stalled devices  count=1  devices=[{"name":"DCL-Moeck-Shop","reason":"silent_stall","stalledForMs":6462404}]
+14:57:22.639 INFO  Disconnected  deviceName=DCL-Moeck-Shop  deviceId=20  serial=E18590457A387E04  cohort=2
+14:57:22.664 INFO  Found newly activated device in cohort  serialNumber=A998463C2C69ABFD  deviceName=DCL-Moeck  cohortId=6
+14:57:22.670 INFO  Connecting to device  deviceName=DCL-Moeck  deviceId=3  serial=A998463C2C69ABFD  cohort=6
+14:57:22.725 INFO  Connected successfully  deviceName=DCL-Moeck  deviceId=3  serial=A998463C2C69ABFD  cohort=6  durationMs=55
+14:57:22.729 INFO  New device connected  serialNumber=A998463C2C69ABFD  deviceName=DCL-Moeck  durationMs=55
+14:57:22.729 INFO  Added 1 new device(s) to cohort 6
+14:57:22.889 INFO  Connecting to device  deviceName=DCL-Moeck-Shop  deviceId=20  serial=E18590457A387E04  cohort=2
+14:57:22.895 INFO  Connected successfully  deviceName=DCL-Moeck-Shop  deviceId=20  serial=E18590457A387E04  cohort=2  durationMs=6
+14:57:22.897 INFO  onDisconnect fired  deviceName=DCL-Moeck-Shop  deviceId=20  serial=E18590457A387E04  cohort=2  reason=2  connDurationMs=2  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=0
+14:57:22.899 INFO  Stalled device recovered via re-arm  deviceId=20  serial=E18590457A387E04  name=DCL-Moeck-Shop  reason=silent_stall  durationMs=6
+14:57:22.899 INFO  Stalled-device re-arm complete  attempted=1  recovered=1
+14:57:23.110 INFO  Fetched device info from PowerMon  deviceName=DCL-Moeck  deviceId=3  serial=A998463C2C69ABFD  cohort=6  serialNumber=A998463C2C69ABFD  firmwareVersion=1.4  hardwareRevision=PowerMon-E
+14:57:23.113 INFO  Updated device info  deviceId=3  serialNumber=A998463C2C69ABFD  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Moeck
+2026-06-22 14:57:28.102 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.59  v2=  0.0432  today=  897m  month= 25117m  since=2025-12-29 23:38:19
+2026-06-22 14:57:28.108 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 26.99  v2=  0.0455  today=  897m  month= 27594m  since=2025-12-29 23:38:54
+2026-06-22 14:57:28.527 INFO  DCL-CDOT-1 (SIM-001)                     driving  v1= 26.83  v2= 13.1345  today=    0m  month=     9m  since=2026-06-03 15:11:18
+2026-06-22 14:57:28.532 INFO  DCL-Epler (TRL-01)                       parked   v1= 26.99  v2=  0.0397  today=  897m  month= 22566m  since=2026-01-31 18:59:00
+2026-06-22 14:57:28.538 INFO  DCL-Kruse (WKR-01)                       parked   v1= 28.71  v2=  0.0383  today=  897m  month= 22045m  since=2025-12-29 23:27:57
+2026-06-22 14:57:28.622 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.61  v2=  0.0398  today=  897m  month= 25675m  since=2025-12-29 23:22:12
+2026-06-22 14:57:28.629 INFO  DCL-Thibert (RTR-01)                     parked   v1= 27.78  v2=  0.0379  today=  897m  month= 18642m  since=2026-01-09 21:34:37
+2026-06-22 14:57:30.506 INFO  DCL-Howard (MHR-01)                      parked   v1= 53.16  v2=  0.0389  today=  150m  month=   150m  since=2026-06-22 12:27:33
+2026-06-22 14:57:30.682 INFO  DCL-Brown (RBR-01)                       parked   v1= 27.68  v2= 12.8583  today=    2m  month=  2088m  since=2026-06-22 14:55:40
+2026-06-22 14:57:30.688 INFO  DCL-Moeck (GFR-69)                       parked   v1= 13.51  v2= 12.6911  today=  898m  month=  5971m  since=2026-05-24 18:38:29

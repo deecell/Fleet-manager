@@ -779,7 +779,7 @@ async function upsertDeviceSnapshot(snapshot) {
     const bold = '\x1b[1m';
     const dim = '\x1b[2m';
     const rst = '\x1b[0m';
-    const ts = new Date().toISOString().replace('T', ' ').replace('Z', '');
+    const ts = new Date().toISOString().slice(11, 23); // time-only HH:MM:SS.mmm UTC, matches logger.js
     const name = truckLabel.padEnd(40);
     const v1 = (snapshot.voltage1?.toFixed(2) || '-').padStart(6);
     const v2 = (snapshot.voltage2?.toFixed(4) || '-').padStart(8);
