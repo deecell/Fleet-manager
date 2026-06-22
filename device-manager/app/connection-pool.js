@@ -194,6 +194,7 @@ class DeviceConnection {
                                               // giving the device time to clear its session state before we reconnect.
     
     this.log = logger.child({ 
+      deviceName: this.deviceName,
       deviceId: this.deviceId, 
       serial: this.serialNumber,
       cohort: this.cohortId 

@@ -44,7 +44,11 @@ function formatLog(level, message, context = {}) {
     contextStr = `  ${parts.join('  ')}`;
   }
 
-  return `${dim}${ts}${reset} ${levelColor}${tag}${reset} ${bold}${message}${reset}${contextStr}`;
+  // For warn/error, colorize the whole message (not just the level tag) so they
+  // stand out when scanning. info/debug keep the default bold-white message.
+  const messageColor = (level === 'error' || level === 'warn') ? levelColor : '';
+
+  return `${dim}${ts}${reset} ${levelColor}${tag}${reset} ${messageColor}${bold}${message}${reset}${contextStr}`;
 }
 
 /**

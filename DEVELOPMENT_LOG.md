@@ -4,6 +4,20 @@
 
 ---
 
+## 2026-06-22 — Device name + clearer color in device-manager logs
+
+**Why**: Several per-device log lines (`onDisconnect fired`, `Scheduling reconnect`, `Connecting to device`, `Connected successfully`, `Disconnected`, `Device disconnected (unexpected)`, `Using firmware-close cooldown delay`) only printed `deviceId`/`serial`/`cohort`, so you had to cross-reference the ID to know which truck. Operator wanted the device name inline like the poll lines, plus more scannable color.
+
+**What changed**:
+- `device-manager/app/connection-pool.js`: added `deviceName` to the per-device child logger context (`this.log = logger.child({ deviceName, deviceId, serial, cohort })`). Because every `this.log.*` call in `DeviceConnection` flows through that child, all of those lines now show the truck name automatically — no per-call edits needed.
+- `device-manager/app/logger.js`: the colorizer already tinted the level tag (ERROR red, WARN yellow, INFO cyan). Extended it so `warn`/`error` lines now colorize the **whole message** too, so they pop when scanning; `info`/`debug` keep the default bold-white message.
+
+**Note on viewing color**: the logs already emit ANSI color codes. To see the color you need a color-aware viewer — `journalctl -u <unit>` through its pager, or `less -R` / `cat` in a terminal. Opening a redirected `.log` file in a plain text editor shows the raw escape codes, not color (that's inherent to ANSI; a text file can't carry color any other way).
+
+No schema/DB changes. Must be deployed to the EC2 device-manager to take effect in production.
+
+---
+
 ## 2026-06-19 — Probe guard for devices with no serial number
 
 **Why**: During a live incident, DCL-Howard was set online but never recovered. The supervisor kept spawning solo recovery probes for it, and each probe child died instantly with `WORKER_COHORT_ID or WORKER_SOLO_SERIAL environment variable is required`, then logged a misleading `still offline (probe failed)`. Root cause: a solo probe is keyed on the device's serial number (passed to the child via `WORKER_SOLO_SERIAL` in `forkProbeWorker`). Howard's record had no serial number, so the env var was unset and the child bailed before testing anything. The "probe failed" lines were false — nothing was ever probed. (Confirmed contrast: DCL-Radian-1, which has a serial, spawned a probe that connected fine and genuinely flapped due to marginal cellular — that's a real field fault, not this bug.)
