@@ -12,6 +12,7 @@ const { URL } = require('url');
 const { config } = require('./config');
 const logger = require('./logger');
 const db = require('./database');
+const { classifyFlappingVerdict, minutesAgo } = require('./flapping-verdict');
 
 // Load the native addon - with graceful fallback to simulation mode
 let powermon = null;
@@ -91,33 +92,8 @@ const RAPID_DISCONNECT_GRACE_RECONNECTS = 2; // Don't count rapid disconnects fo
  * @param {number} timeoutMs - Timeout in milliseconds (default 5000)
  * @returns {Promise<boolean>} - True if reachable, false otherwise
  */
-// FLAPPING DIAGNOSTIC verdict matrix (Task #25).
-// Inputs are minutes-since values (null = unknown), produced from the new
-// db.getDeviceLivenessSnapshot helper. The truthiness of each input maps to
-// the three-bucket verdict below.
-//
-//   | Router signal fresh (<10 min)? | PowerMon reported recently (<6 h)? | Verdict                           |
-//   | Yes                            | Yes                                 | PowerMon-side flap                |
-//   | Yes                            | No                                  | PowerMon offline — verify         |
-//   | No                             | (any)                               | Router/cellular outage            |
-//
-// Router signal freshness is now trustworthy (Task #24 gated those writes on
-// InHand's online flag), so "router fresh" honestly means "the router was
-// online within the last 10 min." When router is fresh but PowerMon has been
-// silent for >6 h, the device is either powered off or firmware-wedged — the
-// operator needs to physically verify (the DCL-Epler / DCL-Moeck-Shop case
-// the previous verdict misclassified as "PowerMon-side firmware issue").
-const FLAPPING_ROUTER_FRESH_THRESHOLD_MINUTES = 10;
-const FLAPPING_POWERMON_RECENT_THRESHOLD_MINUTES = 6 * 60;
-function classifyFlappingVerdict(routerSignalMinutesAgo, lastReportedMinutesAgo) {
-  const routerFresh = routerSignalMinutesAgo != null
-    && routerSignalMinutesAgo < FLAPPING_ROUTER_FRESH_THRESHOLD_MINUTES;
-  const powerMonRecent = lastReportedMinutesAgo != null
-    && lastReportedMinutesAgo < FLAPPING_POWERMON_RECENT_THRESHOLD_MINUTES;
-  if (!routerFresh) return 'Router/cellular outage — truck unreachable';
-  if (powerMonRecent) return 'PowerMon-side flap — actively connecting + failing (likely firmware/RF/USB)';
-  return 'PowerMon offline — verify physically (powered off OR firmware-wedged)';
-}
+// classifyFlappingVerdict + thresholds live in ./flapping-verdict (shared with
+// supervisor.js so the solo-probe CLI prints identical wording).
 
 async function pingApplinkUrl(applinkUrl, timeoutMs = 5000) {
   return new Promise((resolve) => {
@@ -1672,14 +1648,8 @@ class ConnectionPool {
           ]);
           const routerReachable = pingResult.status === 'fulfilled' ? pingResult.value : null;
           const liveness = livenessResult.status === 'fulfilled' ? livenessResult.value : null;
-          // Math.floor to preserve strict-less-than boundary semantics in
-          // classifyFlappingVerdict (see comment at structured-log call site).
-          const routerSignalMinutesAgo = liveness?.routerSignalUpdatedAt
-            ? Math.floor((Date.now() - new Date(liveness.routerSignalUpdatedAt).getTime()) / 60000)
-            : null;
-          const lastReportedMinutesAgo = liveness?.powerMonLastReportedAt
-            ? Math.floor((Date.now() - new Date(liveness.powerMonLastReportedAt).getTime()) / 60000)
-            : null;
+          const routerSignalMinutesAgo = minutesAgo(liveness?.routerSignalUpdatedAt);
+          const lastReportedMinutesAgo = minutesAgo(liveness?.powerMonLastReportedAt);
 
           const result = await conn.connect();
           const rts = new Date().toISOString().slice(11, 19);

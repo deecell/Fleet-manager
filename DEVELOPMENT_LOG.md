@@ -4,6 +4,19 @@
 
 ---
 
+## 2026-06-23 — Flapping verdict parity in supervisor (production) probe path
+
+**Why**: The three-bucket flapping verdict (Router/cellular outage vs PowerMon-side flap vs PowerMon offline—verify) was only emitted by the single-process recovery CLI (`connection-pool.recoverFlappingDevices`). Production runs in **supervisor mode**, where solo-probe failures were logged by `supervisor.js` as a generic `"still offline (attempt #…, next retry…)"` — so operators watching the production journal never saw the verdict.
+
+**What changed**:
+- New shared module `device-manager/app/flapping-verdict.js` is now the single source of truth for `classifyFlappingVerdict` + thresholds + a `minutesAgo` helper. This guarantees identical wording across the FLAPPING DIAGNOSTIC structured log, the single-process CLI, and the supervisor CLI.
+- `connection-pool.js` now imports from that module (removed its inline copy; replaced inline `Math.floor` minute math with `minutesAgo`).
+- `supervisor.js` `forkProbeWorker` now receives `deviceId`/`truckId`; on a probe-failure exit it best-effort fetches `db.getDeviceLivenessSnapshot`, classifies, and appends the color-coded verdict to the "still offline" line (plus a structured `logger.info` carrying `verdict`, `routerSignalMinutesAgo`, `lastReportedMinutesAgo`). On any liveness-fetch error it falls back to the plain line.
+
+**Verify**: in supervisor-mode logs, a still-failing probe (e.g. DCL-Carter, DCL-Moeck-Shop) should now read `… still offline (attempt #N, next retry in Mm) | <verdict>`, matching the FLAPPING DIAGNOSTIC wording.
+
+---
+
 ## 2026-06-23 — Fix DCL-Moeck SIM swap (Wireless Logic CF1 was backwards)
 
 **Why**: Wireless Logic Custom Field 1 was set backwards on the two Moeck SIMs, so each SIM/router got linked to the *other* PowerMon device — Wireless Logic data + InHand GPS/signal showed up under the wrong truck (DCL-Moeck-Fleet ↔ DCL-Moeck-Hauler). CF1 has since been corrected in Wireless Logic.

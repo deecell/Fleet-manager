@@ -21,6 +21,7 @@ const { startMetricsServer, stopMetricsServer } = require('./metrics');
 const { simPoller } = require('./sim-poller');
 const { inhandPoller } = require('./inhand-poller');
 const { simSync } = require('./sim-sync');
+const { classifyFlappingVerdict, minutesAgo } = require('./flapping-verdict');
 
 const FLAPPING_QUARANTINE_MS = 5 * 60 * 1000;
 const PROBE_BACKOFF_MINUTES = [5, 15, 60, 240];
@@ -150,7 +151,7 @@ class Supervisor {
     });
   }
 
-  forkProbeWorker(serial, deviceName) {
+  forkProbeWorker(serial, deviceName, deviceId = null, truckId = null) {
     if (this.isShuttingDown) return;
 
     // A solo probe is keyed on the device's serial number, which is passed to the
@@ -233,9 +234,40 @@ class Supervisor {
         backoff.nextProbeAfter = Date.now() + nextRetryMinutes * 60 * 1000;
         this.probeBackoff.set(serial, backoff);
 
+        // Mirror the FLAPPING DIAGNOSTIC three-bucket verdict so the supervisor
+        // (production default) CLI shows the same wording as the single-process
+        // recovery path. Liveness fetch is best-effort — on any failure we fall
+        // back to the plain "still offline" line.
+        let verdict = null;
+        let routerSignalMinutesAgo = null;
+        let lastReportedMinutesAgo = null;
+        if (deviceId) {
+          try {
+            const liveness = await db.getDeviceLivenessSnapshot(deviceId, truckId);
+            routerSignalMinutesAgo = minutesAgo(liveness?.routerSignalUpdatedAt);
+            lastReportedMinutesAgo = minutesAgo(liveness?.powerMonLastReportedAt);
+            verdict = classifyFlappingVerdict(routerSignalMinutesAgo, lastReportedMinutesAgo);
+          } catch (e) {
+            logger.warn(`Supervisor: liveness fetch failed for ${serial}`, { error: e.message });
+          }
+        }
+
         const yellow = '\x1b[33m';
         const sts = new Date().toISOString().slice(11, 19);
-        console.log(`${dim}${sts}${rst} ${yellow}PROBE${rst} ${deviceName || serial} still offline (attempt #${backoff.failures}, next retry in ${nextRetryMinutes}m)`);
+        const verdictColored = verdict
+          ? (verdict.startsWith('Router/cellular') ? `${dim}${verdict}${rst}` : `${yellow}${verdict}${rst}`)
+          : '';
+        const verdictSuffix = verdict ? ` | ${verdictColored}` : '';
+        console.log(`${dim}${sts}${rst} ${yellow}PROBE${rst} ${deviceName || serial} still offline (attempt #${backoff.failures}, next retry in ${nextRetryMinutes}m)${verdictSuffix}`);
+        logger.info('Supervisor: probe still offline', {
+          serial,
+          deviceName,
+          attempt: backoff.failures,
+          nextRetryMinutes,
+          verdict,
+          routerSignalMinutesAgo,
+          lastReportedMinutesAgo,
+        });
       }
     });
 
@@ -259,7 +291,7 @@ class Supervisor {
         const backoff = this.probeBackoff.get(serial);
         if (backoff && Date.now() < backoff.nextProbeAfter) continue;
 
-        this.forkProbeWorker(serial, device.device_name);
+        this.forkProbeWorker(serial, device.device_name, device.device_id, device.truck_id);
       }
     } catch (err) {
       logger.error('Supervisor: Failed to probe flapping devices', { error: err.message });
