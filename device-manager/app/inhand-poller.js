@@ -253,13 +253,23 @@ class InHandPoller {
       let simsOnline = 0;
       let simsOffline = 0;
       let simsRssiUpdated = 0;
+      let matched = [];
       let unmatched = [];
 
       for (const device of devicesWithIds) {
-        const sim = (device.iccid && simsByIccid.get(device.iccid))
-          || (device.imsi && simsByImsi.get(device.imsi))
-          || (device.msisdn && simsByMsisdn.get(device.msisdn))
-          || (device.deviceName && simsByDeviceName.get(device.deviceName.toLowerCase()));
+        // Resolve the match AND remember which key matched, so the poll-complete
+        // log can show how each device was linked (iccid/imsi/msisdn/name).
+        let sim = null;
+        let matchKey = null;
+        if (device.iccid && simsByIccid.get(device.iccid)) {
+          sim = simsByIccid.get(device.iccid); matchKey = 'iccid';
+        } else if (device.imsi && simsByImsi.get(device.imsi)) {
+          sim = simsByImsi.get(device.imsi); matchKey = 'imsi';
+        } else if (device.msisdn && simsByMsisdn.get(device.msisdn)) {
+          sim = simsByMsisdn.get(device.msisdn); matchKey = 'msisdn';
+        } else if (device.deviceName && simsByDeviceName.get(device.deviceName.toLowerCase())) {
+          sim = simsByDeviceName.get(device.deviceName.toLowerCase()); matchKey = 'name';
+        }
 
         if (!sim) {
           unmatched.push({
@@ -272,6 +282,12 @@ class InHandPoller {
         }
 
         simsMatched++;
+        matched.push({
+          name: device.deviceName,
+          truck: sim.truck_number || null,
+          simName: sim.device_name || null,
+          via: matchKey,
+        });
 
         // Gate the router-signal write on InHand's authoritative online state.
         // InHand cloud caches the last-known-good signal field for offline
@@ -347,6 +363,7 @@ class InHandPoller {
         simsOffline,
         simsRssiUpdated,
         trucksUpdated,
+        matchedDevices: matched.length > 0 ? matched.map(d => `${d.name || '(no name)'}→${d.truck || d.simName || '(unassigned)'} via ${d.via}`).join('; ') : undefined,
         unmatchedDevices: unmatched.length > 0 ? unmatched.map(d => `${d.name}(msisdn=${d.msisdn},iccid=${d.iccid})`).join('; ') : undefined,
         durationMs: duration,
       });

@@ -4,6 +4,20 @@
 
 ---
 
+## 2026-06-23 — Show matched devices (not just unmatched) in InHand poll log
+
+**Why**: The `InHand poll complete` line only listed `unmatchedDevices`. When diagnosing why a gateway wasn't linking, the operator could see what *didn't* match but had no visibility into what *did* — so there was no way to confirm a given InHand device was matched to the correct truck/SIM, or by which key.
+
+**What changed** (`device-manager/app/inhand-poller.js`):
+- The match loop now captures the key that matched (`iccid` / `imsi` / `msisdn` / `name`) instead of resolving the SIM in a single `||` chain, and collects matched devices into a `matched` array alongside the existing `unmatched` array.
+- Added a `matchedDevices` field to the `InHand poll complete` log line, rendered as `InHandName→TruckNumber via key` (falls back to the SIM's `device_name`, then `(unassigned)`, when no truck is assigned). The existing `unmatchedDevices` field is unchanged.
+
+**Context**: confirmed during this session that InHand device renames *do* flow into our logs automatically (we read `device.name` raw on each ~2-min poll) — e.g. `IR302_31`→`DCL-Penske-01` and `IR302_34`→`DCL-Radian-Shop` propagated on their own. Names only affect matching if a SIM row already exists with that `device_name` (from Wireless Logic custom_field1); we never store InHand names in our DB.
+
+No schema/DB changes. Must be deployed to the EC2 device-manager to take effect in production.
+
+---
+
 ## 2026-06-22 — Device name + clearer color in device-manager logs
 
 **Why**: Several per-device log lines (`onDisconnect fired`, `Scheduling reconnect`, `Connecting to device`, `Connected successfully`, `Disconnected`, `Device disconnected (unexpected)`, `Using firmware-close cooldown delay`) only printed `deviceId`/`serial`/`cohort`, so you had to cross-reference the ID to know which truck. Operator wanted the device name inline like the poll lines, plus more scannable color.
