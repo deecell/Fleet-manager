@@ -4,6 +4,25 @@
 
 ---
 
+## 2026-06-23 — DCL-Moeck signal-on-wrong-side: root cause was InHand gateway name + WL Custom Field 1 BOTH swapped (corrects earlier entry)
+
+**Correction to the "Fix DCL-Moeck SIM swap" entry below.** That detach+Refresh ran cleanly but was a **net no-op** — BEFORE and AFTER linkage were identical (Fleet→ICCID …4517903, Hauler→…7317871), so the symptom persisted: live router signal showed on the offline truck.
+
+**Decisive evidence (live InHand API, `/api/devices?verbose=100`)**:
+- InHand gateway **"DCL-Moeck-Fleet"** — serial `RF3022532644365`, IMEI `863890057565590`, ICCID `89444611503504517903`, MSISDN `883190603571827` — is **ONLINE** (fresh signal ts, -79 dBm).
+- InHand gateway **"DCL-Moeck-Hauler"** — serial `RF3022532644350`, IMEI `863890057565053`, ICCID `89444611503507317871`, MSISDN `883190603659432` — is **OFFLINE** (stale signal).
+- PowerMon ground truth (and the operator) say the **Hauler** truck is the powered/online one. Since only one router is online and only the Hauler truck is powered, **the online gateway (named "Fleet") is physically in the Hauler truck.** Both gateways also share WiFi SSID "DCL Hauler" — another sign the configs were cloned/mislabelled.
+
+**Conclusion**: the InHand **gateway name** and the Wireless Logic **Custom Field 1** are both swapped relative to the physical trucks. The dashboard attributes router signal/GPS by **ICCID**, so it faithfully put the live SIM (…4517903) on whatever device CF1 said — Fleet — which is wrong.
+
+**Correct mapping (anchor on immutable IDs, not labels)**:
+- ICCID `…4517903` / InHand serial `RF3022532644365` → **DCL-Moeck-Hauler** (GFR-70) — this is the live one.
+- ICCID `…7317871` / InHand serial `RF3022532644350` → **DCL-Moeck-Fleet** (GFR-69).
+
+**Fix (operator, at source)**: swap Custom Field 1 in Wireless Logic + rename the gateways in InHand to the mapping above, then re-run `scripts/migrations/2026-06-23_detach_moeck_sims.sh` and click "Refresh SIM from Wireless Logic" on both devices. Reuses the existing detach+Refresh path unchanged.
+
+---
+
 ## 2026-06-23 — Flapping verdict parity in supervisor (production) probe path
 
 **Why**: The three-bucket flapping verdict (Router/cellular outage vs PowerMon-side flap vs PowerMon offline—verify) was only emitted by the single-process recovery CLI (`connection-pool.recoverFlappingDevices`). Production runs in **supervisor mode**, where solo-probe failures were logged by `supervisor.js` as a generic `"still offline (attempt #…, next retry…)"` — so operators watching the production journal never saw the verdict.
