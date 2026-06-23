@@ -4,6 +4,20 @@
 
 ---
 
+## 2026-06-23 — Fix DCL-Moeck SIM swap (Wireless Logic CF1 was backwards)
+
+**Why**: Wireless Logic Custom Field 1 was set backwards on the two Moeck SIMs, so each SIM/router got linked to the *other* PowerMon device — Wireless Logic data + InHand GPS/signal showed up under the wrong truck (DCL-Moeck-Fleet ↔ DCL-Moeck-Hauler). CF1 has since been corrected in Wireless Logic.
+
+**Why the UI alone can't fix it**: neither automatic path repairs a direct swap. The periodic SIMPro sync intentionally never re-links from CF1 (so router-swaps aren't reverted), and the per-device "Refresh SIM" button refuses to steal a SIM that's currently linked to a *different* device (`409 SIM_ALREADY_LINKED`, the "no silent steal" guard at `server/api/admin-routes.ts:874`). In a swap, each correct SIM is held by the other device, so both refreshes 409 — a deadlock. There is no SIM-detach button (assign/unassign act on the device's truck, not the SIM link).
+
+**Approach chosen — detach (SQL) then Refresh (UI)**: rather than hand-rolling a relative-swap SQL (run-once footgun; the corrected mapping lives in Wireless Logic, not the DB), break the deadlock with a tiny detach and then let the system's own tested path do the relink:
+- **Step 1** (`scripts/migrations/2026-06-23_detach_moeck_sims.{sh,sql}`): one atomic transaction that prints a BEFORE snapshot, NULLs `device_id`/`truck_id`/`router_rssi`/`router_signal_updated_at` on whatever `sims` rows are currently linked to the two devices, then prints an AFTER snapshot. `\set ON_ERROR_STOP on` + BEGIN/COMMIT = rolls back on any error. **Idempotent** (safe to re-run; just re-detaches). The periodic sync won't re-link a detached row, so there's no race before Step 2. Same SSM `send-command` → EC2 → psql pattern as prior migrations.
+- **Step 2** (admin UI, `/admin/devices`): click "Refresh SIM from Wireless Logic" on DCL-Moeck-Fleet, then DCL-Moeck-Hauler. With the rows now unlinked, the 409 guard passes and each device re-links from its now-correct CF1 via the authoritative `getSimByDeviceName()` path — pulling truth from the corrected Wireless Logic data instead of a hand-derived swap.
+
+**Verify after**: watch the new `matchedDevices` field in the `InHand poll complete` log (~2 min) — both Moeck devices should show `→<correct truck> via msisdn/iccid`, and router signal repopulates from the correct router.
+
+---
+
 ## 2026-06-23 — Show matched devices (not just unmatched) in InHand poll log
 
 **Why**: The `InHand poll complete` line only listed `unmatchedDevices`. When diagnosing why a gateway wasn't linking, the operator could see what *didn't* match but had no visibility into what *did* — so there was no way to confirm a given InHand device was matched to the correct truck/SIM, or by which key.

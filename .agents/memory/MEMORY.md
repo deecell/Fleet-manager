@@ -1,0 +1,1 @@
+- [SIM link swap recovery](sim-link-swap-recovery.md) — two SIMs cross-linked to each others PowerMon device cant be fixed by Refresh (409) or sync; detach via SQL then click Refresh.
