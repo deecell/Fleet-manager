@@ -4,6 +4,24 @@
 
 ---
 
+## 2026-06-24 — Surface truck location on /admin/devices + instrument the GPS feed (Phase 1)
+
+**Goal**: make the InHand router GPS feed visible and measurable so we can judge (a) accuracy and (b) update frequency before building any driving-vs-idling state machine (Phase 2, deferred).
+
+**Four changes (no schema changes — all data already exists on `trucks`)**:
+
+1. **Plumb location through the admin devices API** (`server/db-storage.ts`, `server/storage.ts`): `listAllDevicesWithSnapshots` and `listDevicesWithSnapshots` now batch-join `trucks` (`latitude`/`longitude`/`location_description`/`last_location_update`) onto each device by `truck_id`. The per-org method scopes the truck join to the same `organization_id`. `IStorage` return types updated to carry the optional location fields. No route change needed — the admin route already passes storage results through.
+
+2. **Location column on `/admin/devices`** (`client/src/pages/admin/DevicesPage.tsx` + new `client/src/components/LocationCell.tsx`): new "Location" column after "Router Sig". `LocationCell` renders the reverse-geocoded address as a Google-Maps link (`maps?q=lat,lng`), the raw `lat,lng` to 5 dp (so coarse jitter is visible), and an "x min ago" freshness line that greys out / turns amber when the fix is stale. Shows "—" when the device has no assigned truck or no GPS fix yet.
+
+3. **`loc=` on the PowerMon voltage debug line** (`device-manager/app/database.js`): the per-poll INFO line (truck, voltages, parked/driving minutes) now also pulls `location_description` in its existing truck-label query and appends `loc=<address>` (`loc=--` when there's no fix), so the debug stream ties power state to location at a glance.
+
+4. **GPS movement instrumentation** (`device-manager/app/inhand-poller.js`): added a `haversineMeters()` helper (refactored `hasCoordsMoved` to reuse it). On every poll where an assigned truck reports coords, the poller now reads the previous `last_location_update`, computes Δmeters / Δseconds / implied mph vs the prior fix, and logs a `GPS fix` line per truck. This characterizes jitter (small Δmeters while parked) and cadence (Δseconds between fixes), and the implied speed flags whether a jump is real travel or a bad fix.
+
+**Deferred to Phase 2**: using GPS movement + chassis voltage to classify DRIVING vs IDLING vs PARKED.
+
+---
+
 ## 2026-06-24 — Fix midnight (00:00 UTC) fleet-wide "No data" wedging
 
 **Root cause**: At 00:00 UTC the PowerMon-W firmware closes every live session at once (reason=2). The synchronized reconnect storm gets accepted-then-instant-closed (0–5 ms) by the still-settling firmware; 3 instant drops trip the flapping circuit breaker, so reachable trucks fleet-wide get stranded in `flapping`/`probing`/`unstable` and show "No data". A second bug made the diagnostic verdict misclassify these as "Router/cellular outage — truck unreachable" even though the connect had just succeeded, because the verdict keyed off stale (months-old) router-signal/GPS timestamps.

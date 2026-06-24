@@ -19,6 +19,12 @@ export type DeviceWithSnapshot = PowerMonDevice & {
   // Feeds classifyFlappingVerdict() on the admin Devices page so the status
   // column can distinguish "PowerMon offline" from "Router/cellular outage".
   routerSignalUpdatedAt?: string | Date | null;
+  // Latest GPS location of the assigned truck (from the InHand router poll).
+  // Null when the device has no truck assigned or no GPS fix has landed yet.
+  latitude?: number | null;
+  longitude?: number | null;
+  locationDescription?: string | null;
+  lastLocationUpdate?: string | Date | null;
 };
 
 // Auto-refresh interval for admin dashboard (10 seconds, matching Fleet dashboard)

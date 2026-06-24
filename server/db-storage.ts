@@ -1109,15 +1109,17 @@ export class DbStorage {
     return db.select().from(powerMonDevices).orderBy(asc(powerMonDevices.serialNumber));
   }
 
-  async listAllDevicesWithSnapshots(): Promise<(PowerMonDevice & { snapshot?: DeviceSnapshot; routerRssi?: number | null; routerSignalUpdatedAt?: Date | null })[]> {
+  async listAllDevicesWithSnapshots(): Promise<(PowerMonDevice & { snapshot?: DeviceSnapshot; routerRssi?: number | null; routerSignalUpdatedAt?: Date | null; latitude?: number | null; longitude?: number | null; locationDescription?: string | null; lastLocationUpdate?: Date | null })[]> {
     const deviceList = await db.select().from(powerMonDevices).orderBy(asc(powerMonDevices.serialNumber));
     const deviceIds = deviceList.map(d => d.id);
+    const truckIds = deviceList.map(d => d.truckId).filter((id): id is number => id != null);
     
     let snapshotMap = new Map<number, DeviceSnapshot>();
     let routerRssiMap = new Map<number, number | null>();
     let routerSignalMap = new Map<number, Date | null>();
+    let truckLocationMap = new Map<number, { latitude: number | null; longitude: number | null; locationDescription: string | null; lastLocationUpdate: Date | null }>();
     if (deviceIds.length > 0) {
-      const [snapshots, simRows] = await Promise.all([
+      const [snapshots, simRows, truckRows] = await Promise.all([
         db.select().from(deviceSnapshots)
           .where(inArray(deviceSnapshots.deviceId, deviceIds)),
         db.select({
@@ -1125,6 +1127,15 @@ export class DbStorage {
           routerRssi: sims.routerRssi,
           routerSignalUpdatedAt: sims.routerSignalUpdatedAt,
         }).from(sims).where(inArray(sims.deviceId, deviceIds)),
+        truckIds.length > 0
+          ? db.select({
+              id: trucks.id,
+              latitude: trucks.latitude,
+              longitude: trucks.longitude,
+              locationDescription: trucks.locationDescription,
+              lastLocationUpdate: trucks.lastLocationUpdate,
+            }).from(trucks).where(inArray(trucks.id, truckIds))
+          : Promise.resolve([] as { id: number; latitude: number | null; longitude: number | null; locationDescription: string | null; lastLocationUpdate: Date | null }[]),
       ]);
       for (const s of snapshots) {
         snapshotMap.set(s.deviceId, s);
@@ -1135,27 +1146,39 @@ export class DbStorage {
           routerSignalMap.set(s.deviceId, s.routerSignalUpdatedAt);
         }
       }
+      for (const t of truckRows) {
+        truckLocationMap.set(t.id, t);
+      }
     }
     
-    return deviceList.map(device => ({
-      ...device,
-      snapshot: snapshotMap.get(device.id),
-      routerRssi: routerRssiMap.get(device.id) ?? null,
-      routerSignalUpdatedAt: routerSignalMap.get(device.id) ?? null,
-    }));
+    return deviceList.map(device => {
+      const loc = device.truckId != null ? truckLocationMap.get(device.truckId) : undefined;
+      return {
+        ...device,
+        snapshot: snapshotMap.get(device.id),
+        routerRssi: routerRssiMap.get(device.id) ?? null,
+        routerSignalUpdatedAt: routerSignalMap.get(device.id) ?? null,
+        latitude: loc?.latitude ?? null,
+        longitude: loc?.longitude ?? null,
+        locationDescription: loc?.locationDescription ?? null,
+        lastLocationUpdate: loc?.lastLocationUpdate ?? null,
+      };
+    });
   }
 
-  async listDevicesWithSnapshots(organizationId: number): Promise<(PowerMonDevice & { snapshot?: DeviceSnapshot; routerRssi?: number | null; routerSignalUpdatedAt?: Date | null })[]> {
+  async listDevicesWithSnapshots(organizationId: number): Promise<(PowerMonDevice & { snapshot?: DeviceSnapshot; routerRssi?: number | null; routerSignalUpdatedAt?: Date | null; latitude?: number | null; longitude?: number | null; locationDescription?: string | null; lastLocationUpdate?: Date | null })[]> {
     const deviceList = await db.select().from(powerMonDevices)
       .where(eq(powerMonDevices.organizationId, organizationId))
       .orderBy(asc(powerMonDevices.serialNumber));
     const deviceIds = deviceList.map(d => d.id);
+    const truckIds = deviceList.map(d => d.truckId).filter((id): id is number => id != null);
     
     let snapshotMap = new Map<number, DeviceSnapshot>();
     let routerRssiMap = new Map<number, number | null>();
     let routerSignalMap = new Map<number, Date | null>();
+    let truckLocationMap = new Map<number, { latitude: number | null; longitude: number | null; locationDescription: string | null; lastLocationUpdate: Date | null }>();
     if (deviceIds.length > 0) {
-      const [snapshots, simRows] = await Promise.all([
+      const [snapshots, simRows, truckRows] = await Promise.all([
         db.select().from(deviceSnapshots)
           .where(and(
             eq(deviceSnapshots.organizationId, organizationId),
@@ -1169,6 +1192,18 @@ export class DbStorage {
           eq(sims.organizationId, organizationId),
           inArray(sims.deviceId, deviceIds),
         )),
+        truckIds.length > 0
+          ? db.select({
+              id: trucks.id,
+              latitude: trucks.latitude,
+              longitude: trucks.longitude,
+              locationDescription: trucks.locationDescription,
+              lastLocationUpdate: trucks.lastLocationUpdate,
+            }).from(trucks).where(and(
+              eq(trucks.organizationId, organizationId),
+              inArray(trucks.id, truckIds),
+            ))
+          : Promise.resolve([] as { id: number; latitude: number | null; longitude: number | null; locationDescription: string | null; lastLocationUpdate: Date | null }[]),
       ]);
       for (const s of snapshots) {
         snapshotMap.set(s.deviceId, s);
@@ -1179,14 +1214,24 @@ export class DbStorage {
           routerSignalMap.set(s.deviceId, s.routerSignalUpdatedAt);
         }
       }
+      for (const t of truckRows) {
+        truckLocationMap.set(t.id, t);
+      }
     }
     
-    return deviceList.map(device => ({
-      ...device,
-      snapshot: snapshotMap.get(device.id),
-      routerRssi: routerRssiMap.get(device.id) ?? null,
-      routerSignalUpdatedAt: routerSignalMap.get(device.id) ?? null,
-    }));
+    return deviceList.map(device => {
+      const loc = device.truckId != null ? truckLocationMap.get(device.truckId) : undefined;
+      return {
+        ...device,
+        snapshot: snapshotMap.get(device.id),
+        routerRssi: routerRssiMap.get(device.id) ?? null,
+        routerSignalUpdatedAt: routerSignalMap.get(device.id) ?? null,
+        latitude: loc?.latitude ?? null,
+        longitude: loc?.longitude ?? null,
+        locationDescription: loc?.locationDescription ?? null,
+        lastLocationUpdate: loc?.lastLocationUpdate ?? null,
+      };
+    });
   }
 
   async listAllTrucks(): Promise<Truck[]> {

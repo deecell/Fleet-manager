@@ -764,14 +764,16 @@ async function upsertDeviceSnapshot(snapshot) {
   // Log device status at info level for visibility
   {
     let truckLabel = `device#${snapshot.deviceId}`;
+    let locDesc = null;
     try {
       const truckResult = await query(
-        'SELECT d.device_name, t.truck_number FROM power_mon_devices d LEFT JOIN trucks t ON t.id = d.truck_id WHERE d.id = $1',
+        'SELECT d.device_name, t.truck_number, t.location_description, t.last_location_update FROM power_mon_devices d LEFT JOIN trucks t ON t.id = d.truck_id WHERE d.id = $1',
         [snapshot.deviceId]
       );
       if (truckResult.rows.length > 0) {
         const r = truckResult.rows[0];
         truckLabel = r.device_name ? `${r.device_name} (${r.truck_number})` : r.truck_number;
+        locDesc = r.location_description || null;
       }
     } catch (e) {}
     const green = '\x1b[32m';
@@ -788,7 +790,8 @@ async function upsertDeviceSnapshot(snapshot) {
     const statusLabel = isCurrentlyParked ? `${dim}parked ${rst}` : `${green}driving${rst}`;
     const sinceTime = isCurrentlyParked ? parkedSince : drivingSince;
     const since = sinceTime ? sinceTime.toISOString().replace('T', ' ').replace(/\.\d+Z/, '') : 'n/a';
-    console.log(`${dim}${ts}${rst} ${cyan}INFO ${rst} ${bold}${name}${rst} ${statusLabel}  v1=${v1}  v2=${v2}  ${dim}today=${rst}${today}m  ${dim}month=${rst}${month}m  ${dim}since=${rst}${since}`);
+    const loc = locDesc || '--';
+    console.log(`${dim}${ts}${rst} ${cyan}INFO ${rst} ${bold}${name}${rst} ${statusLabel}  v1=${v1}  v2=${v2}  ${dim}today=${rst}${today}m  ${dim}month=${rst}${month}m  ${dim}since=${rst}${since}  ${dim}loc=${rst}${loc}`);
   }
   
   try {

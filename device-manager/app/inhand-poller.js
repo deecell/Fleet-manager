@@ -54,13 +54,21 @@ function geoCacheKey(lat, lng) {
 
 function hasCoordsMoved(oldLat, oldLng, newLat, newLng, thresholdKm = 1) {
   if (oldLat == null || oldLng == null) return true;
-  const R = 6371;
-  const dLat = (newLat - oldLat) * Math.PI / 180;
-  const dLng = (newLng - oldLng) * Math.PI / 180;
+  return haversineMeters(oldLat, oldLng, newLat, newLng) >= thresholdKm * 1000;
+}
+
+// Great-circle distance in meters between two lat/lng points. Used to
+// characterize the GPS feed: how far the reported fix jumped between two
+// consecutive polls (jitter when parked, real travel when driving).
+function haversineMeters(lat1, lng1, lat2, lng2) {
+  if (lat1 == null || lng1 == null || lat2 == null || lng2 == null) return null;
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
   const a = Math.sin(dLat/2)**2 +
-    Math.cos(oldLat * Math.PI / 180) * Math.cos(newLat * Math.PI / 180) *
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
     Math.sin(dLng/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)) >= thresholdKm;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
 async function reverseGeocode(lat, lng) {
@@ -326,7 +334,7 @@ class InHandPoller {
         // coords AND the SIM is assigned to a truck.
         if (sim.truck_id && device.latitude != null && device.longitude != null) {
           const truckResult = await pool.query(
-            'SELECT latitude, longitude, location_description FROM trucks WHERE id = $1',
+            'SELECT latitude, longitude, location_description, last_location_update FROM trucks WHERE id = $1',
             [sim.truck_id]
           );
           const currentTruck = truckResult.rows[0];
@@ -334,7 +342,33 @@ class InHandPoller {
             currentTruck?.latitude, currentTruck?.longitude,
             device.latitude, device.longitude
           );
-          
+
+          // GPS feed instrumentation: how far the fix jumped and over how long,
+          // so the operator can characterize accuracy (jitter while parked) and
+          // cadence (seconds between fixes). Implied speed flags whether a move
+          // is real travel or a bad fix.
+          const deltaMeters = haversineMeters(
+            currentTruck?.latitude, currentTruck?.longitude,
+            device.latitude, device.longitude
+          );
+          const prevTs = currentTruck?.last_location_update
+            ? new Date(currentTruck.last_location_update).getTime()
+            : null;
+          // Clamp to >= 0 so a clock-skew blip never produces a confusing
+          // negative cadence (and a bogus negative implied speed).
+          const deltaSeconds = prevTs != null ? Math.max(0, Math.round((Date.now() - prevTs) / 1000)) : null;
+          const impliedMph = (deltaMeters != null && deltaSeconds != null && deltaSeconds > 0)
+            ? (deltaMeters / deltaSeconds) * 2.23694
+            : null;
+          logger.info('GPS fix', {
+            truckId: sim.truck_id,
+            lat: device.latitude,
+            lng: device.longitude,
+            deltaMeters: deltaMeters != null ? Math.round(deltaMeters) : null,
+            deltaSeconds,
+            impliedMph: impliedMph != null ? Math.round(impliedMph * 10) / 10 : null,
+          });
+
           let locationDesc = currentTruck?.location_description || null;
           if (moved || !locationDesc) {
             locationDesc = await reverseGeocode(device.latitude, device.longitude);

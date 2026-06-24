@@ -201,8 +201,8 @@ export interface IStorage {
   getAdminDevicesForExport(filters: import("./services/exports/admin-types").GetAdminDevicesForExportFilters): Promise<import("./services/exports/admin-types").AdminDeviceExportRow[]>;
   deleteOrganization(id: number): Promise<boolean>;
   listAllDevices(): Promise<PowerMonDevice[]>;
-  listAllDevicesWithSnapshots(): Promise<(PowerMonDevice & { snapshot?: DeviceSnapshot })[]>;
-  listDevicesWithSnapshots(organizationId: number): Promise<(PowerMonDevice & { snapshot?: DeviceSnapshot })[]>;
+  listAllDevicesWithSnapshots(): Promise<(PowerMonDevice & { snapshot?: DeviceSnapshot; routerRssi?: number | null; routerSignalUpdatedAt?: Date | null; latitude?: number | null; longitude?: number | null; locationDescription?: string | null; lastLocationUpdate?: Date | null })[]>;
+  listDevicesWithSnapshots(organizationId: number): Promise<(PowerMonDevice & { snapshot?: DeviceSnapshot; routerRssi?: number | null; routerSignalUpdatedAt?: Date | null; latitude?: number | null; longitude?: number | null; locationDescription?: string | null; lastLocationUpdate?: Date | null })[]>;
   listAllUsers(): Promise<User[]>;
   deleteUser(organizationId: number, id: number): Promise<boolean>;
   getUserByEmailGlobal(email: string): Promise<User | undefined>;
