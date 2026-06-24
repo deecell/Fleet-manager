@@ -4,6 +4,18 @@
 
 ---
 
+## 2026-06-24 — Persist router GPS fixes to history (capture driving paths)
+
+**Why**: trucks are driving to Norwalk and we want to review the route afterward. The InHand poller was only **overwriting** `trucks.latitude/longitude` on each poll, so only the latest point survived — the full path was never stored. (The "GPS fix" instrumentation lines from Phase 1 go to the journal, which rotates and isn't queryable.)
+
+**Change** (`device-manager/app/inhand-poller.js`): immediately after the `trucks` UPDATE, the poller now also `INSERT`s each router GPS fix into the existing `sim_location_history` table (`organization_id`, `sim_id`, `truck_id`, `latitude`, `longitude`, `source='router_gps'`, `recorded_at=NOW()`). The `source='router_gps'` tag distinguishes these accurate router fixes from the SIMPro `cell_tower` rows already in that table. The insert is wrapped in try/catch so a history-write failure never blocks the live-position update, and a new `locationsRecorded` counter is reported in the `InHand poll complete` log.
+
+**No schema change** — `sim_location_history` already exists in dev and prod (created by `startup-migrations.ts`). This is the same table the per-truck **historical export** reads for per-bucket lat/long, so recorded drives are reviewable through the existing export flow.
+
+**Deploy note**: this runs in the **device-manager (EC2)**, not the web app — it only takes effect after the device-manager is redeployed. Until then, nothing is recorded.
+
+---
+
 ## 2026-06-24 — Collapse /admin/devices row actions into a dropdown menu
 
 **Goal**: the per-device actions column on `/admin/devices` had grown to six icon buttons (edit, manage PowerMon URL, assign/unassign truck, set online/offline, refresh SIM, delete) and was visually crowded.

@@ -257,6 +257,7 @@ class InHandPoller {
       }
 
       let trucksUpdated = 0;
+      let locationsRecorded = 0;
       let simsMatched = 0;
       let simsOnline = 0;
       let simsOffline = 0;
@@ -385,6 +386,26 @@ class InHandPoller {
             [device.latitude, device.longitude, sim.truck_id, locationDesc]
           );
           trucksUpdated++;
+
+          // Persist every router GPS fix as history so the full driving path is
+          // reviewable later — the trucks UPDATE above only keeps the latest
+          // point. Tagged source='router_gps' to distinguish these accurate
+          // router fixes from the SIMPro cell-tower points in the same table.
+          try {
+            await pool.query(
+              `INSERT INTO sim_location_history
+                (organization_id, sim_id, truck_id, latitude, longitude, source, recorded_at)
+               VALUES ($1, $2, $3, $4, $5, 'router_gps', NOW())`,
+              [sim.organization_id, sim.id, sim.truck_id, device.latitude, device.longitude]
+            );
+            locationsRecorded++;
+          } catch (err) {
+            logger.warn('Failed to record GPS history', {
+              truckId: sim.truck_id,
+              simId: sim.id,
+              error: err.message,
+            });
+          }
         }
       }
 
@@ -397,6 +418,7 @@ class InHandPoller {
         simsOffline,
         simsRssiUpdated,
         trucksUpdated,
+        locationsRecorded,
         matchedDevices: matched.length > 0 ? matched.map(d => `${d.name || '(no name)'}→${d.truck || d.simName || '(unassigned)'} via ${d.via}`).join('; ') : undefined,
         unmatchedDevices: unmatched.length > 0 ? unmatched.map(d => `${d.name}(msisdn=${d.msisdn},iccid=${d.iccid})`).join('; ') : undefined,
         durationMs: duration,
