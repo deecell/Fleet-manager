@@ -1,0 +1,19 @@
+ssm-user@ip-10-0-12-190:/var/snap/amazon-ssm-agent/13009$ psql "$DATABASE_URL" -c "SELECT ss.cohort_id, d.data_status, d.connection_status, COUNT(*) AS devices, MIN(d.last_reported_at) AS earliest, MAX(d.last_reported_at) AS latest FROM power_mon_devices d LEFT JOIN device_sync_status ss ON ss.device_id = d.id GROUP BY ss.cohort_id, d.data_status, d.connection_status ORDER BY ss.cohort_id;"
+ cohort_id | data_status | connection_status | devices |        earliest         |         latest          
+-----------+-------------+-------------------+---------+-------------------------+-------------------------
+         0 | no_data     | online            |       2 | 2026-06-23 23:59:53.955 | 2026-06-23 23:59:53.961
+         1 | no_data     | flapping          |       2 | 2026-06-23 16:33:12.749 | 2026-06-24 16:01:27.047
+         1 | no_data     | probing           |       1 | 2026-06-23 15:38:41.972 | 2026-06-23 15:38:41.972
+         1 | reporting   | online            |       1 | 2026-06-24 16:14:54.721 | 2026-06-24 16:14:54.721
+         2 | no_data     | online            |       1 | 2026-06-24 09:53:30.178 | 2026-06-24 09:53:30.178
+         3 | no_data     | online            |       1 | 2026-06-24 00:00:05.296 | 2026-06-24 00:00:05.296
+         3 | no_data     | probing           |       1 | 2026-06-21 00:59:32.46  | 2026-06-21 00:59:32.46
+         4 | no_data     | online            |       2 | 2026-06-23 21:02:13.668 | 2026-06-23 22:34:04.225
+         4 | no_data     | probing           |       1 | 2026-04-23 17:01:48.864 | 2026-04-23 17:01:48.864
+         4 | reporting   | online            |       1 | 2026-06-24 16:14:54.891 | 2026-06-24 16:14:54.891
+         5 | no_data     | online            |       3 | 2026-06-23 23:59:55.921 | 2026-06-24 08:08:04.749
+         5 | no_data     | probing           |       1 | 2026-06-15 16:19:13.345 | 2026-06-15 16:19:13.345
+         6 | reporting   | online            |       2 | 2026-06-24 16:14:43.76  | 2026-06-24 16:14:43.766
+(13 rows)
+
+ssm-user@ip-10-0-12-190:/var/snap/amazon-ssm-agent/13009$ 
