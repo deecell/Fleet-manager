@@ -10,9 +10,13 @@
 
 **Change** (`device-manager/app/inhand-poller.js`): immediately after the `trucks` UPDATE, the poller now also `INSERT`s each router GPS fix into the existing `sim_location_history` table (`organization_id`, `sim_id`, `truck_id`, `latitude`, `longitude`, `source='router_gps'`, `recorded_at=NOW()`). The `source='router_gps'` tag distinguishes these accurate router fixes from the SIMPro `cell_tower` rows already in that table. The insert is wrapped in try/catch so a history-write failure never blocks the live-position update, and a new `locationsRecorded` counter is reported in the `InHand poll complete` log.
 
-**No schema change** — `sim_location_history` already exists in dev and prod (created by `startup-migrations.ts`). This is the same table the per-truck **historical export** reads for per-bucket lat/long, so recorded drives are reviewable through the existing export flow.
+**Schema drift caught in prod**: the `source` column exists in the Drizzle schema (`shared/schema.ts`) and in dev (via `db:push`), but production's `sim_location_history` was built by `startup-migrations.ts` *before* that column was added, so prod was missing it. The poller's `source='router_gps'` INSERT failed silently in prod (try/catch swallows it). Fixes:
+- **Runnable migration** `scripts/migrations/2026-06-24_add_source_to_sim_location_history.sh` — `ALTER TABLE sim_location_history ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'cell_tower';` (safe + idempotent; existing cell-tower writes rely on the default and never name the column, so they were unaffected).
+- **`startup-migrations.ts`** updated to include `source` in the CREATE TABLE and an idempotent `ALTER ... ADD COLUMN IF NOT EXISTS` so future fresh/redeployed DBs are correct.
 
-**Deploy note**: this runs in the **device-manager (EC2)**, not the web app — it only takes effect after the device-manager is redeployed. Until then, nothing is recorded.
+`sim_location_history` is the same table the per-truck **historical export** reads for per-bucket lat/long, so recorded drives are reviewable through the existing export flow.
+
+**Deploy note**: the poller runs in the **device-manager (EC2)**, not the web app — it only takes effect after the device-manager is redeployed, *and* after the `source` column migration is applied to prod. Until both are done, nothing is recorded.
 
 ---
 

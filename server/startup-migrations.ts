@@ -468,9 +468,12 @@ export async function runStartupMigrations(): Promise<boolean> {
         latitude REAL NOT NULL,
         longitude REAL NOT NULL,
         accuracy INTEGER,
+        source TEXT DEFAULT 'cell_tower',
         recorded_at TIMESTAMP NOT NULL,
         created_at TIMESTAMP DEFAULT NOW()
       );
+      -- Existing deployments predate the source column; add it idempotently.
+      ALTER TABLE sim_location_history ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'cell_tower';
       CREATE INDEX IF NOT EXISTS sim_location_sim_idx ON sim_location_history(sim_id);
       CREATE INDEX IF NOT EXISTS sim_location_time_idx ON sim_location_history(recorded_at);
     `);
