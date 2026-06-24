@@ -4,6 +4,12 @@
 
 ---
 
+## 2026-06-24 — Trim & reorganize replit.md
+
+Housekeeping: `replit.md` had grown into several very dense changelog-style paragraphs (Authentication, Device Registration, Device Manager, Fleet/Admin Export) that were hard to scan. Condensed each architecture section to durable, high-level summaries with bullets, keeping the key operational diagnostics (e.g. the `sims.truck_id` NULL → blank-location rule) and dropping the blow-by-blow implementation narrative — that dated history lives here in `DEVELOPMENT_LOG.md`. Also corrected the database note to reflect that dev uses Neon while production is AWS RDS PostgreSQL, and added a pointer at the top of `replit.md` directing detailed history to this log. No code changes.
+
+---
+
 ## 2026-06-24 — Sync sims.truck_id on device assignment (GPS location bug)
 
 **Symptom**: DCL-Howard showed router signal but no location on `/admin/devices`, even though the device was assigned to a truck (Mike Howard Racing / MHR-01) and "Reporting".
