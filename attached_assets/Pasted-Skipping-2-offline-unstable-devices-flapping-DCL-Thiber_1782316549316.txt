@@ -1,0 +1,58 @@
+Skipping 2 offline/unstable devices:
+                  [flapping]  DCL-Thibert                              (0 disconnects) (probe #9 failed, retry in 232m)
+                  [flapping]  DCL-Radian-1                             (0 disconnects) (probe on next check)
+15:54:16 PROBE Spawned solo probe for DCL-Radian-1 (attempt #3, pid 642712)
+15:54:16.800 INFO  PowerMon addon loaded successfully
+15:54:16.804 INFO  [probe:A8839FDD47E0D9B9] Starting solo probe
+15:54:16.805 INFO  Database connection configured  host=deecell-fleet-production-postgres.cn4qsw8g8yyx.us-east-2.rds.amazonaws.com  database=deecell_fleet
+15:54:16.806 INFO  Database pool initialized  poolSize=10
+15:54:16.806 INFO  Initializing connection pool for solo device  serial=A8839FDD47E0D9B9
+15:54:16.911 INFO  Solo device initialized  serial=A8839FDD47E0D9B9  deviceId=21  deviceName=DCL-Radian-1
+15:54:16.912 INFO  Batch writer started  flushIntervalMs=2000  maxBatchSize=500
+15:54:16.912 INFO  === STARTUP: Connecting to all devices ===  deviceCount=1  timestamp=2026-06-24T15:54:16.912Z
+15:54:16.912 INFO  Connecting device 1/1  serialNumber=A8839FDD47E0D9B9  deviceName=DCL-Radian-1  cohort=1
+15:54:16.913 INFO  Connecting to device  deviceName=DCL-Radian-1  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1
+15:54:16.920 INFO  Connected successfully  deviceName=DCL-Radian-1  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  durationMs=7
+15:54:16.925 INFO  Device 1/1 connected  serialNumber=A8839FDD47E0D9B9  durationMs=7
+15:54:16.925 INFO  === STARTUP COMPLETE: Connection Summary ===  success=1  failed=0  skipped=0  timedOut=0  totalDurationMs=13  averageDurationMs=7
+15:54:16.925 INFO  Starting polling scheduler (worker mode)  intervalMs=10000
+15:54:16.925 INFO  [probe:A8839FDD47E0D9B9] Connected, monitoring for 30 seconds
+15:54:17.065 INFO  Fetched device info from PowerMon  deviceName=DCL-Radian-1  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1  serialNumber=A8839FDD47E0D9B9  firmwareVersion=1.4  hardwareRevision=PowerMon-E
+15:54:17.067 INFO  Updated device info  deviceId=21  serialNumber=A8839FDD47E0D9B9  firmwareVersion=1.4  hardwareRevision=PowerMon-E  deviceName=DCL-Radian-1
+15:54:17.249 INFO  InHand poll complete  totalDevices=45  devicesWithIds=45  simsMatched=17  simsOnline=10  simsOffline=7  simsRssiUpdated=10  trucksUpdated=10  matchedDevices=DCL-Elite-Hospitality→TRK-01 via iccid; DCL-Howard→DCL-Howard via iccid; DCL-Brown→RBR-01 via msisdn; DCL-CDOT-1→SIM-001 via iccid; DCL-Epler→TRL-01 via iccid; DCL-Carter→CTR-69 via iccid; DCL-NHRA-Tech-Hauler→TRK-01 via msisdn; DCL-Radian-2→M38 via iccid; DCL-Moeck-Fleet→GFR-69 via iccid; DCL-Kruse→WKR-01 via msisdn; DCL-Radian-1→M53 via iccid; DCL-Thibert→RTR-01 via msisdn; DCL-Kalitta-Hospitality→TRK-01 via iccid; DCL-Haynes→RHR-01 via msisdn; DCL-Curtis-2→TRK-02 via msisdn; DCL-Curtis-1→TRK-01 via iccid; DCL-Moeck-Hauler→GFR-70 via iccid  unmatchedDevices=RF3022529634046(msisdn=null,iccid=8931086125129524302F); RF3022547677591(msisdn=null,iccid=8931086125129524245F); IR302_1(msisdn=883190603571829,iccid=null); IR302_2(msisdn=883190603571826,iccid=null); IR302_6(msisdn=883190603400850,iccid=null); IR302_7(msisdn=883190603400853,iccid=null); IR302_9(msisdn=883190603748141,iccid=null); IR302_10(msisdn=883190603748135,iccid=89444611503508862610); IR302_11(msisdn=883190603748140,iccid=null); IR302_12(msisdn=883190603748143,iccid=null); IR302_14(msisdn=883190603748142,iccid=null); IR302_15(msisdn=883190603748136,iccid=89444611503508862651); IR302_16(msisdn=883190603748139,iccid=null); IR302_17(msisdn=883190603748134,iccid=null); IR302_18(msisdn=883190603748138,iccid=null); IR302_19(msisdn=883190603657506,iccid=89444611503507318093); IR302_20(msisdn=883190603657500,iccid=89444611503507318325); IR302_22(msisdn=883190603657501,iccid=null); IR302_26(msisdn=883190603657504,iccid=null); IR302_27(msisdn=883190603657505,iccid=null); IR302_28(msisdn=883190603659416,iccid=null); IR302_29(msisdn=883190603659415,iccid=89444611503507317905); IR302_30(msisdn=883190603659423,iccid=null); DCL-Penske-01(msisdn=883190603659413,iccid=null); DCL-Radian-Shop(msisdn=883190603659435,iccid=null); IR302_35(msisdn=883190603659421,iccid=89444611503507317848); IR302_36(msisdn=883190603659408,iccid=null); IR302_39(msisdn=883190603571823,iccid=null)  durationMs=691
+15:54:20.823 INFO  DCL-Brown (RBR-01)                       parked   v1= 27.66  v2= 12.7344  today=    8m  month=  2188m  since=2026-06-24 15:46:37
+15:54:22.561 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.52  v2=  0.0393  today=  954m  month= 28612m  since=2025-12-29 23:22:12
+15:54:26.705 INFO  DCL-KTR (KTR-01)                         parked   v1= 25.53  v2= 12.9568  today=    7m  month=  4613m  since=2026-06-24 15:47:52
+15:54:28.930 INFO  DCL-Radian-1 (M53)                       parked   v1= 13.47  v2=  0.0000  today=  954m  month=  9560m  since=2026-03-25 23:01:53
+15:54:30.837 INFO  DCL-Brown (RBR-01)                       parked   v1= 27.66  v2= 12.7320  today=    8m  month=  2188m  since=2026-06-24 15:46:37
+15:54:31.927 INFO  [probe:A8839FDD47E0D9B9] Probe successful - device polled successfully
+15:54:31.928 INFO  Polling scheduler stopped  totalPolls=1  successfulPolls=1  failedPolls=0  skippedPolls=0  ticksProcessed=1  lastTickTime=Wed Jun 24 2026 15:54:26 GMT+0000 (Coordinated Universal Time)  averagePollDurationMs=78.7
+15:54:31.928 INFO  Batch writer stopped  totalWritten=1  totalBatches=1  failedBatches=0  queueHighWaterMark=1  lastFlushTime=Wed Jun 24 2026 15:54:28 GMT+0000 (Coordinated Universal Time)  averageFlushDurationMs=1.4000000000000001  snapshotsWritten=1  recentSnapshotFailures=0  lastSnapshotWriteTime=Wed Jun 24 2026 15:54:28 GMT+0000 (Coordinated Universal Time)
+15:54:31.928 INFO  Disconnecting all devices
+15:54:31.928 INFO  Disconnected  deviceName=DCL-Radian-1  deviceId=21  serial=A8839FDD47E0D9B9  cohort=1
+15:54:31.928 INFO  All devices disconnected
+15:54:31 PROBE DCL-Radian-1 RECOVERED — will rejoin shared worker on next check
+15:54:31.929 INFO  Database pool closed
+15:54:31.937 INFO  Supervisor: Probe recovered DCL-Radian-1
+15:54:32.578 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.52  v2=  0.0388  today=  955m  month= 28613m  since=2025-12-29 23:22:12
+15:54:36.720 INFO  DCL-KTR (KTR-01)                         parked   v1= 25.53  v2= 12.9603  today=    7m  month=  4613m  since=2026-06-24 15:47:52
+15:54:40.854 INFO  DCL-Brown (RBR-01)                       parked   v1= 27.66  v2= 12.7286  today=    8m  month=  2188m  since=2026-06-24 15:46:37
+15:54:44.594 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.52  v2=  0.0396  today=  955m  month= 28613m  since=2025-12-29 23:22:12
+15:54:46.736 INFO  DCL-KTR (KTR-01)                         parked   v1= 25.53  v2= 12.9526  today=    7m  month=  4613m  since=2026-06-24 15:47:52
+15:54:50.871 INFO  DCL-Brown (RBR-01)                       parked   v1= 27.66  v2= 12.7288  today=    8m  month=  2188m  since=2026-06-24 15:46:37
+15:54:54.612 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.52  v2=  0.0394  today=  955m  month= 28613m  since=2025-12-29 23:22:12
+15:54:56.754 INFO  DCL-KTR (KTR-01)                         parked   v1= 25.53  v2= 12.9589  today=    7m  month=  4613m  since=2026-06-24 15:47:52
+15:55:00.887 INFO  DCL-Brown (RBR-01)                       parked   v1= 27.66  v2= 12.7256  today=    8m  month=  2188m  since=2026-06-24 15:46:37
+15:55:04.630 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.52  v2=  0.0393  today=  955m  month= 28613m  since=2025-12-29 23:22:12
+15:55:06.771 INFO  DCL-KTR (KTR-01)                         parked   v1= 25.52  v2= 12.9595  today=    7m  month=  4613m  since=2026-06-24 15:47:52
+15:55:10.906 INFO  DCL-Brown (RBR-01)                       parked   v1= 27.66  v2= 12.7238  today=    9m  month=  2189m  since=2026-06-24 15:46:37
+15:55:14.647 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.52  v2=  0.0400  today=  955m  month= 28613m  since=2025-12-29 23:22:12
+Skipping 1 offline/unstable devices:
+                  [flapping]  DCL-Thibert                              (0 disconnects) (probe #9 failed, retry in 231m)
+15:55:16.787 INFO  DCL-KTR (KTR-01)                         parked   v1= 25.52  v2= 12.9589  today=    7m  month=  4613m  since=2026-06-24 15:47:52
+15:55:20.920 INFO  DCL-Brown (RBR-01)                       parked   v1= 27.66  v2= 12.7205  today=    9m  month=  2189m  since=2026-06-24 15:46:37
+15:55:24.664 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.52  v2=  0.0392  today=  955m  month= 28613m  since=2025-12-29 23:22:12
+15:55:26.803 INFO  DCL-KTR (KTR-01)                         parked   v1= 25.52  v2= 12.9564  today=    8m  month=  4614m  since=2026-06-24 15:47:52
+15:55:30.936 INFO  DCL-Brown (RBR-01)                       parked   v1= 27.66  v2= 12.7193  today=    9m  month=  2189m  since=2026-06-24 15:46:37
+15:55:34.681 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.52  v2=  0.0395  today=  956m  month= 28614m  since=2025-12-29 23:22:12
+1
