@@ -1,0 +1,40 @@
+ssm-user@ip-10-0-12-190:/var/snap/amazon-ssm-agent/13009$ systemctl list-units --type=service --all | grep -iE 'device|deecell|fleet|powermon|node'
+# then, with the real name (e.g. device-manager.service):
+sudo journalctl -u <real-name> --since "2026-06-24 00:00" --until "2026-06-24 00:05" --no-pager
+# and rule out cron as the midnight trigger:
+sudo crontab -l 2>/dev/null; ls -la /etc/cron.d/ /etc/cron.daily/ 2>/dev/null
+  blk-availability.service                       loaded    active   exited  Availability of block devices
+  device-manager.service                         loaded    active   running Deecell Device Manager
+  dm-event.service                               loaded    inactive dead    Device-mapper event daemon
+  kmod-static-nodes.service                      loaded    active   exited  Create List of Static Device Nodes
+  multipathd.service                             loaded    active   running Device-Mapper Multipath Device Controller
+  snapd.autoimport.service                       loaded    inactive dead    Auto import assertions from block devices
+  snapd.core-fixup.service                       loaded    inactive dead    Automatically repair incorrect owner/permissions on core devices
+  systemd-fsck-root.service                      loaded    active   exited  File System Check on Root Device
+  systemd-tmpfiles-setup-dev-early.service       loaded    active   exited  Create Static Device Nodes in /dev gracefully
+  systemd-tmpfiles-setup-dev.service             loaded    active   exited  Create Static Device Nodes in /dev
+  systemd-udev-settle.service                    loaded    inactive dead    Wait for udev To Complete Device Initialization
+  systemd-udev-trigger.service                   loaded    active   exited  Coldplug All udev Devices
+  systemd-udevd.service                          loaded    active   running Rule-based Manager for Device Events and Files
+  tpm-udev.service                               loaded    inactive dead    Handle dynamically added tpm devices
+bash: real-name: No such file or directory
+/etc/cron.d/:
+total 20
+drwxr-xr-x   2 root root 4096 Dec 12  2025 .
+drwxr-xr-x 112 root root 4096 Jun 23 06:11 ..
+-rw-r--r--   1 root root  102 Mar 31  2024 .placeholder
+-rw-r--r--   1 root root  201 Apr  8  2024 e2scrub_all
+-rw-r--r--   1 root root  396 Jan  9  2024 sysstat
+
+/etc/cron.daily/:
+total 36
+drwxr-xr-x   2 root root 4096 May  8 06:13 .
+drwxr-xr-x 112 root root 4096 Jun 23 06:11 ..
+-rw-r--r--   1 root root  102 Mar 31  2024 .placeholder
+-rwxr-xr-x   1 root root  376 Jul  8  2025 apport
+-rwxr-xr-x   1 root root 1478 Mar 22  2024 apt-compat
+-rwxr-xr-x   1 root root  123 Feb  5  2024 dpkg
+-rwxr-xr-x   1 root root  377 Apr  8  2024 logrotate
+-rwxr-xr-x   1 root root 1395 Mar 29  2024 man-db
+-rwxr-xr-x   1 root root  518 Jan  9  2024 sysstat
+ssm-user@ip-10-0-12-190:/var/snap/amazon-ssm-agent/13009$
