@@ -1,0 +1,22 @@
+ssm-user@ip-10-0-12-190:/var/snap/amazon-ssm-agent/13009$ systemctl list-timers --all --no-pager
+NEXT                            LEFT LAST                              PASSED UNIT                           ACTIVATES                       
+Wed 2026-06-24 16:40:00 UTC     7min Wed 2026-06-24 16:30:07 UTC 2min 15s ago sysstat-collect.timer          sysstat-collect.service
+Wed 2026-06-24 17:54:51 UTC 1h 22min Wed 2026-06-24 16:31:20 UTC  1min 2s ago fwupd-refresh.timer            fwupd-refresh.service
+Thu 2026-06-25 00:00:00 UTC       7h Wed 2026-06-24 00:00:12 UTC      16h ago dpkg-db-backup.timer           dpkg-db-backup.service
+Thu 2026-06-25 00:00:00 UTC       7h Wed 2026-06-24 00:00:12 UTC      16h ago logrotate.timer                logrotate.service
+Thu 2026-06-25 00:07:00 UTC       7h Wed 2026-06-24 00:07:12 UTC      16h ago sysstat-summary.timer          sysstat-summary.service
+Thu 2026-06-25 05:15:45 UTC      12h Wed 2026-06-24 12:09:12 UTC 4h 23min ago apt-daily.timer                apt-daily.service
+Thu 2026-06-25 05:22:13 UTC      12h Wed 2026-06-24 11:54:48 UTC 4h 37min ago man-db.timer                   man-db.service
+Thu 2026-06-25 06:17:57 UTC      13h Wed 2026-06-24 06:35:22 UTC       9h ago apt-daily-upgrade.timer        apt-daily-upgrade.service
+Thu 2026-06-25 07:23:52 UTC      14h Wed 2026-06-24 16:02:05 UTC    30min ago motd-news.timer                motd-news.service
+Thu 2026-06-25 08:56:20 UTC      16h Wed 2026-06-24 08:56:20 UTC       7h ago update-notifier-download.timer update-notifier-download.service
+Thu 2026-06-25 09:06:20 UTC      16h Wed 2026-06-24 09:06:20 UTC       7h ago systemd-tmpfiles-clean.timer   systemd-tmpfiles-clean.service
+Sun 2026-06-28 03:10:09 UTC   3 days Sun 2026-06-21 03:11:12 UTC   3 days ago e2scrub_all.timer              e2scrub_all.service
+Mon 2026-06-29 01:37:05 UTC   4 days Mon 2026-06-22 00:14:48 UTC   2 days ago fstrim.timer                   fstrim.service
+Mon 2026-06-29 04:56:14 UTC   4 days Mon 2026-06-22 08:14:48 UTC   2 days ago update-notifier-motd.timer     update-notifier-motd.service
+-                                  - -                                      - apport-autoreport.timer        apport-autoreport.service
+-                                  - -                                      - snapd.snap-repair.timer        snapd.snap-repair.service
+-                                  - -                                      - ua-timer.timer                 ua-timer.service
+
+17 timers listed.
+ssm-user@ip-10-0-12-190:/var/snap/amazon-ssm-agent/13009$ 
