@@ -1,1 +1,3 @@
-- [SIM link swap recovery](sim-link-swap-recovery.md) — two SIMs cross-linked to each others PowerMon device cant be fixed by Refresh (409) or sync; detach via SQL then click Refresh.
+- [Midnight UTC fleet disconnect](midnight-firmware-mass-close.md) — all PowerMon-W devices firmware-close their session at 00:00 UTC daily; the reconnect storm false-trips the flapping circuit breaker and wedges a subset.
+- [Flapping verdict reachability](flapping-verdict-reachability.md) — a successful PowerMon TCP connect proves the truck is reachable; verdict must not call it "router/cellular outage" off stale GPS/signal age.
+- [Orphaned probing rows](orphaned-probing-state.md) — connection_status='probing' is tracked only in-memory; startup sweep and the probe loop never reclaim it, so a lost probe strands the device forever.
