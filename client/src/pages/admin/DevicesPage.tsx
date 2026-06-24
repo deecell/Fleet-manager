@@ -50,7 +50,14 @@ import {
   type SimBackfillSummary,
   type RefreshSimResult,
 } from "@/lib/admin-api";
-import { Plus, Pencil, Cpu, Link2, Unlink, Key, Search, Trash2, RotateCcw, WifiOff, RefreshCw, AlertCircle, RotateCw } from "lucide-react";
+import { Plus, Pencil, Cpu, Link2, Unlink, Key, Search, Trash2, RotateCcw, WifiOff, RefreshCw, AlertCircle, RotateCw, MoreHorizontal } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { PowerMonDevice } from "@shared/schema";
 import type { DeviceWithSnapshot } from "@/lib/admin-api";
 import { SignalCell, classifySignal } from "@/components/SignalCell";
@@ -807,86 +814,90 @@ export default function DevicesPage() {
                             />
                           </TableCell>
                           <TableCell className="text-center">
-                            <div className="flex items-center justify-center gap-0">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => openEdit(device)}
-                                data-testid={`button-edit-device-${device.id}`}
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => openCredentials(device)}
-                                data-testid={`button-credentials-device-${device.id}`}
-                                title="Manage PowerMon URL"
-                              >
-                                <Key className="h-4 w-4 text-purple-600" />
-                              </Button>
-                              {device.truckId ? (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleUnassign(device)}
-                                  data-testid={`button-unassign-device-${device.id}`}
-                                >
-                                  <Unlink className="h-4 w-4 text-orange-600" />
-                                </Button>
-                              ) : (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => setAssigningDevice(device)}
-                                  disabled={allTrucks.filter(t => t.organizationId === device.organizationId && !devices.some(d => d.truckId === t.id)).length === 0}
-                                  data-testid={`button-assign-device-${device.id}`}
-                                >
-                                  <Link2 className="h-4 w-4 text-blue-600" />
-                                </Button>
-                              )}
-                              {(device.connectionStatus === "unstable" || device.connectionStatus === "offline" || device.connectionStatus === "flapping" || device.connectionStatus === "probing") ? (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleResetStatus(device)}
-                                  disabled={resetDeviceStatus.isPending}
-                                  data-testid={`button-reset-device-${device.id}`}
-                                  title="Set Online (reset connection status)"
-                                >
-                                  <RotateCcw className="h-4 w-4 text-green-600" />
-                                </Button>
-                              ) : (device.connectionStatus !== "disconnected") && (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleSetOffline(device)}
-                                  disabled={setDeviceOffline.isPending}
-                                  data-testid={`button-offline-device-${device.id}`}
-                                  title="Set Offline (stop polling)"
-                                >
-                                  <WifiOff className="h-4 w-4 text-orange-600" />
-                                </Button>
-                              )}
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleRefreshSim(device)}
-                                disabled={refreshingDeviceId === device.id}
-                                data-testid={`button-refresh-sim-${device.id}`}
-                                title="Refresh SIM from Wireless Logic (use after replacing the router)"
-                              >
-                                <RotateCw className={`h-4 w-4 text-blue-600 ${refreshingDeviceId === device.id ? "animate-spin" : ""}`} />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setDeletingDevice(device)}
-                                data-testid={`button-delete-device-${device.id}`}
-                                title="Delete device"
-                              >
-                                <Trash2 className="h-4 w-4 text-red-600" />
-                              </Button>
+                            <div className="flex items-center justify-center">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    data-testid={`button-actions-device-${device.id}`}
+                                    title="Device actions"
+                                  >
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-52">
+                                  <DropdownMenuItem
+                                    onClick={() => openEdit(device)}
+                                    data-testid={`button-edit-device-${device.id}`}
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                    Edit device
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => openCredentials(device)}
+                                    data-testid={`button-credentials-device-${device.id}`}
+                                  >
+                                    <Key className="h-4 w-4 text-purple-600" />
+                                    Manage PowerMon URL
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  {device.truckId ? (
+                                    <DropdownMenuItem
+                                      onClick={() => handleUnassign(device)}
+                                      data-testid={`button-unassign-device-${device.id}`}
+                                    >
+                                      <Unlink className="h-4 w-4 text-orange-600" />
+                                      Unassign truck
+                                    </DropdownMenuItem>
+                                  ) : (
+                                    <DropdownMenuItem
+                                      onClick={() => setAssigningDevice(device)}
+                                      disabled={allTrucks.filter(t => t.organizationId === device.organizationId && !devices.some(d => d.truckId === t.id)).length === 0}
+                                      data-testid={`button-assign-device-${device.id}`}
+                                    >
+                                      <Link2 className="h-4 w-4 text-blue-600" />
+                                      Assign truck
+                                    </DropdownMenuItem>
+                                  )}
+                                  {(device.connectionStatus === "unstable" || device.connectionStatus === "offline" || device.connectionStatus === "flapping" || device.connectionStatus === "probing") ? (
+                                    <DropdownMenuItem
+                                      onClick={() => handleResetStatus(device)}
+                                      disabled={resetDeviceStatus.isPending}
+                                      data-testid={`button-reset-device-${device.id}`}
+                                    >
+                                      <RotateCcw className="h-4 w-4 text-green-600" />
+                                      Set online
+                                    </DropdownMenuItem>
+                                  ) : (device.connectionStatus !== "disconnected") && (
+                                    <DropdownMenuItem
+                                      onClick={() => handleSetOffline(device)}
+                                      disabled={setDeviceOffline.isPending}
+                                      data-testid={`button-offline-device-${device.id}`}
+                                    >
+                                      <WifiOff className="h-4 w-4 text-orange-600" />
+                                      Set offline
+                                    </DropdownMenuItem>
+                                  )}
+                                  <DropdownMenuItem
+                                    onClick={() => handleRefreshSim(device)}
+                                    disabled={refreshingDeviceId === device.id}
+                                    data-testid={`button-refresh-sim-${device.id}`}
+                                  >
+                                    <RotateCw className={`h-4 w-4 text-blue-600 ${refreshingDeviceId === device.id ? "animate-spin" : ""}`} />
+                                    Refresh SIM
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    onClick={() => setDeletingDevice(device)}
+                                    data-testid={`button-delete-device-${device.id}`}
+                                    className="text-destructive focus:text-destructive"
+                                  >
+                                    <Trash2 className="h-4 w-4 text-red-600" />
+                                    Delete device
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </div>
                           </TableCell>
                         </TableRow>
