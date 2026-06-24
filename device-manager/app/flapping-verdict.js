@@ -24,7 +24,20 @@
 const FLAPPING_ROUTER_FRESH_THRESHOLD_MINUTES = 10;
 const FLAPPING_POWERMON_RECENT_THRESHOLD_MINUTES = 6 * 60;
 
-function classifyFlappingVerdict(routerSignalMinutesAgo, lastReportedMinutesAgo) {
+function classifyFlappingVerdict(routerSignalMinutesAgo, lastReportedMinutesAgo, opts = {}) {
+  const { powerMonConnected = false } = opts;
+
+  // A completed PowerMon TCP connect is DIRECT, real-time proof the truck's
+  // router/cellular path is up — it overrides the stale router-signal age, which
+  // is only a proxy for reachability. A device that just connected and then
+  // can't hold the session / poll is flapping on the PowerMon side, never a
+  // "router/cellular outage". (This is the #26 fix: at the 00:00 UTC firmware
+  // mass-close, devices with months-old router-signal timestamps were getting
+  // mislabelled "truck unreachable" even though their connect had just succeeded.)
+  if (powerMonConnected) {
+    return 'PowerMon-side flap — actively connecting + failing (likely firmware/RF/USB)';
+  }
+
   const routerFresh = routerSignalMinutesAgo != null
     && routerSignalMinutesAgo < FLAPPING_ROUTER_FRESH_THRESHOLD_MINUTES;
   const powerMonRecent = lastReportedMinutesAgo != null

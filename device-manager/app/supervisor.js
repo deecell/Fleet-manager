@@ -203,21 +203,32 @@ class Supervisor {
     });
 
     worker.on('exit', async (code, signal) => {
-      this.probeWorkers.delete(serial);
+      // IMPORTANT: keep the probeWorkers entry until AFTER the DB status write
+      // below. The periodic reconcile (_probeFlappingDevices) treats "serial not in
+      // probeWorkers" as an orphaned probe and flips its 'probing' row to 'flapping'.
+      // If we deleted the entry first, a reconcile firing in the gap before the
+      // success UPDATE would set the row to 'flapping', and then the success
+      // `UPDATE ... WHERE connection_status = 'probing'` would match 0 rows —
+      // stranding a just-recovered device in 'flapping'. Holding the entry through
+      // the write closes that race (and also blocks a duplicate probe). The finally
+      // deletes it; if the write threw, the row stays 'probing' and the next
+      // reconcile correctly reclaims it as a genuine orphan.
+      try {
+        if (this.isShuttingDown) return;
 
-      if (this.isShuttingDown) return;
-
-      if (code === 0) {
-        logger.info(`Supervisor: Probe recovered ${deviceName || serial}`);
-        try {
-          await db.query(
-            `UPDATE power_mon_devices SET connection_status = NULL, marked_unstable_at = NULL, updated_at = NOW() WHERE serial_number = $1 AND connection_status = 'probing'`,
-            [serial]
-          );
-        } catch (e) {
-          logger.error(`Supervisor: Failed to clear probing status for ${serial}`, { error: e.message });
+        if (code === 0) {
+          logger.info(`Supervisor: Probe recovered ${deviceName || serial}`);
+          try {
+            await db.query(
+              `UPDATE power_mon_devices SET connection_status = NULL, marked_unstable_at = NULL, updated_at = NOW() WHERE serial_number = $1 AND connection_status = 'probing'`,
+              [serial]
+            );
+          } catch (e) {
+            logger.error(`Supervisor: Failed to clear probing status for ${serial}`, { error: e.message });
+          }
+          return;
         }
-      } else {
+
         try {
           await db.query(
             `UPDATE power_mon_devices SET connection_status = 'flapping', updated_at = NOW() WHERE serial_number = $1 AND connection_status = 'probing'`,
@@ -246,7 +257,10 @@ class Supervisor {
             const liveness = await db.getDeviceLivenessSnapshot(deviceId, truckId);
             routerSignalMinutesAgo = minutesAgo(liveness?.routerSignalUpdatedAt);
             lastReportedMinutesAgo = minutesAgo(liveness?.powerMonLastReportedAt);
-            verdict = classifyFlappingVerdict(routerSignalMinutesAgo, lastReportedMinutesAgo);
+            // This runs in the probe-FAILED branch (exit code !== 0), so the probe did
+            // not establish a working PowerMon session — no live reachability proof,
+            // fall back to the router-signal heuristic.
+            verdict = classifyFlappingVerdict(routerSignalMinutesAgo, lastReportedMinutesAgo, { powerMonConnected: false });
           } catch (e) {
             logger.warn(`Supervisor: liveness fetch failed for ${serial}`, { error: e.message });
           }
@@ -268,6 +282,8 @@ class Supervisor {
           routerSignalMinutesAgo,
           lastReportedMinutesAgo,
         });
+      } finally {
+        this.probeWorkers.delete(serial);
       }
     });
 
@@ -280,6 +296,28 @@ class Supervisor {
     if (this.isShuttingDown) return;
 
     try {
+      // First reclaim any orphaned 'probing' rows (probe SIGKILLed, or its exit-
+      // handler DB write threw) so they re-enter the flapping/probe cycle instead
+      // of staying frozen in 'probing' forever.
+      try {
+        const activeSerials = Array.from(this.probeWorkers.keys());
+        const orphaned = await db.reconcileOrphanedProbing(activeSerials);
+        if (orphaned.length > 0) {
+          const yellow = '\x1b[33m';
+          const dim = '\x1b[2m';
+          const rst = '\x1b[0m';
+          const ts = new Date().toISOString().slice(11, 19);
+          const names = orphaned.map(d => d.device_name || d.serial_number).join(', ');
+          console.log(`${dim}${ts}${rst} ${yellow}PROBE${rst} Reclaimed ${orphaned.length} orphaned probing device(s) → flapping: ${names}`);
+          logger.warn('Supervisor: reclaimed orphaned probing devices', {
+            count: orphaned.length,
+            devices: orphaned.map(d => d.device_name || d.serial_number),
+          });
+        }
+      } catch (e) {
+        logger.error('Supervisor: Failed to reconcile orphaned probing devices', { error: e.message });
+      }
+
       const devices = await db.getFlappingDevicesReadyForRecovery(FLAPPING_QUARANTINE_MS);
       if (devices.length === 0) return;
 

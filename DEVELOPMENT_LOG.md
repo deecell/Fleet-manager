@@ -4,6 +4,24 @@
 
 ---
 
+## 2026-06-24 — Fix midnight (00:00 UTC) fleet-wide "No data" wedging
+
+**Root cause**: At 00:00 UTC the PowerMon-W firmware closes every live session at once (reason=2). The synchronized reconnect storm gets accepted-then-instant-closed (0–5 ms) by the still-settling firmware; 3 instant drops trip the flapping circuit breaker, so reachable trucks fleet-wide get stranded in `flapping`/`probing`/`unstable` and show "No data". A second bug made the diagnostic verdict misclassify these as "Router/cellular outage — truck unreachable" even though the connect had just succeeded, because the verdict keyed off stale (months-old) router-signal/GPS timestamps.
+
+**Four fixes (all in `device-manager/`)**:
+
+1. **Stop midnight false-flapping** (`connection-pool.js`): after a reason=2 close of a *real* (≥200 ms) session, open a 2-minute **firmware-recovery window** (`FIRMWARE_RECOVERY_WINDOW_MS`). While inside it, instant rejects are logged but **not counted toward the breaker**, and every reconnect is spaced out to `FIRMWARE_RECOVERY_RECONNECT_DELAY_MS` (20 s) — time-based so it survives the connect→instant-drop cycles that keep resetting `reconnectAttempts`. Cleared on the next successful poll. A device still instant-dropping after the window expires trips the breaker as before (genuine flappers are still caught, ~2 min later).
+
+2. **Verdict reachability (#26)** (`flapping-verdict.js` + 3 call sites): `classifyFlappingVerdict()` now takes `opts.powerMonConnected`. A completed PowerMon TCP connect is direct proof the truck is reachable, so it forces "PowerMon-side flap" and never "router/cellular outage" regardless of stale signal age. The breaker-open FLAPPING DIAGNOSTIC passes `true` (that path only runs after a successful connect); the connect-failed recovery CLI passes `result.success`; the probe-failed supervisor path passes `false`. (Did **not** reintroduce the previously-removed `routerReachable` ping into the verdict.)
+
+3. **Orphaned `probing` state** (`database.js` + `supervisor.js`): a probe sets `connection_status='probing'` but the live worker is tracked only in the supervisor's in-memory `probeWorkers` map. If the supervisor dies mid-probe or the exit-handler DB write throws, the row is stranded forever. Fix: `startupRecoverySweep` now also resets orphaned `probing` rows → `flapping` (preserving `marked_unstable_at`), and the periodic `supervisor._probeFlappingDevices` loop calls the new `db.reconcileOrphanedProbing(activeSerials)` to reset any `probing` row whose serial has no live worker → `flapping`.
+
+4. **Immediate unstick script** (`scripts/migrations/2026-06-24_unstick_probing.{sh,sql}`): one-time reset of currently-wedged rows (`probing`/`flapping`/`unstable` with active credentials → clean slate) so the already-stranded fleet reconnects now. Same SSM `send-command` → EC2 → psql pattern as the 2026-06-23 migration; prints BEFORE/AFTER status counts; idempotent. `offline` (admin-set) is left untouched.
+
+**Verify after deploy**: at the next 00:00 UTC, journal should show `Instant reject during firmware-recovery window, not counting` / `Using firmware-recovery reconnect delay` instead of breaker trips, and devices should stay reporting. Any orphaned probing rows produce `Reclaimed N orphaned probing device(s) → flapping`.
+
+---
+
 ## 2026-06-23 — DCL-Moeck signal-on-wrong-side: root cause was InHand gateway name + WL Custom Field 1 BOTH swapped (corrects earlier entry)
 
 **Correction to the "Fix DCL-Moeck SIM swap" entry below.** That detach+Refresh ran cleanly but was a **net no-op** — BEFORE and AFTER linkage were identical (Fleet→ICCID …4517903, Hauler→…7317871), so the symptom persisted: live router signal showed on the offline truck.

@@ -82,6 +82,16 @@ const POST_FIRMWARE_CLOSE_DELAY_MS = 2000; // Delay before reconnecting after th
                                            // cleared yet — it accepts the TCP socket then closes it in 2-3ms.
                                            // 2s is enough to let the session state on the device clear.
 const RAPID_DISCONNECT_GRACE_RECONNECTS = 2; // Don't count rapid disconnects for the first N reconnects after a poll failure
+const FIRMWARE_RECOVERY_WINDOW_MS = 120000; // 2 min. After a reason=2 firmware close of a REAL session,
+                                            // the PowerMon firmware (notably the synchronized ~00:00 UTC
+                                            // session reset that hits the whole fleet at once) accepts a
+                                            // fresh TCP socket then instant-closes it for a while before
+                                            // it's ready to poll again. During this window we reconnect
+                                            // patiently and do NOT count those instant rejects toward the
+                                            // flapping circuit breaker — otherwise a normal daily firmware
+                                            // reset quarantines half the fleet. A device still instant-
+                                            // dropping after the window expires trips the breaker as usual.
+const FIRMWARE_RECOVERY_RECONNECT_DELAY_MS = 20000; // Spaced-out reconnect cadence while inside the window.
 
 /**
  * Ping an applink URL to check if the device router is reachable
@@ -168,6 +178,9 @@ class DeviceConnection {
     this.firmwareClosedAfterSession = false; // Set when firmware closes a non-instant session (reason=2, >=200ms).
                                               // scheduleReconnect consumes this once to apply POST_FIRMWARE_CLOSE_DELAY_MS,
                                               // giving the device time to clear its session state before we reconnect.
+    this.firmwareRecoveryUntil = 0; // Epoch ms. While Date.now() < this, instant rejects are treated as the
+                                    // firmware still settling after a reason=2 close (see FIRMWARE_RECOVERY_WINDOW_MS)
+                                    // — not counted toward the breaker. Cleared on the next successful poll.
     
     this.log = logger.child({ 
       deviceName: this.deviceName,
@@ -333,6 +346,10 @@ class DeviceConnection {
               connDurationMs >= FLAPPING_INSTANT_THRESHOLD_MS
             ) {
               this.firmwareClosedAfterSession = true;
+              // Open a recovery window: the firmware that just closed a real session
+              // will accept-then-instant-close reconnects until it settles. Don't let
+              // that storm trip the breaker (root cause of the 00:00 UTC fleet wedge).
+              this.firmwareRecoveryUntil = Date.now() + FIRMWARE_RECOVERY_WINDOW_MS;
             }
             
             // Check for rapid disconnect (disconnect within threshold of connect)
@@ -341,6 +358,25 @@ class DeviceConnection {
               connDurationMs !== null && connDurationMs < RAPID_DISCONNECT_THRESHOLD_MS;
             
             if (isRapidDisconnect) {
+              const isInstantDisconnect = connDurationMs < FLAPPING_INSTANT_THRESHOLD_MS;
+
+              // Firmware-recovery grace: an instant reject inside the window opened by
+              // a reason=2 firmware close is the device's firmware still settling, not
+              // flapping. Don't count it toward the breaker — reconnect patiently (the
+              // longer cadence is applied in scheduleReconnect) and let it come back.
+              if (isInstantDisconnect && Date.now() < this.firmwareRecoveryUntil) {
+                this.log.info('Instant reject during firmware-recovery window, not counting', {
+                  reason,
+                  connectionDurationMs: connDurationMs,
+                  recoveryMsRemaining: this.firmwareRecoveryUntil - Date.now(),
+                });
+                this.status = 'disconnected';
+                db.markDeviceDisconnected(this.deviceId, this.lastSuccessfulPollAt, reason)
+                  .catch(err => this.log.error('Failed to update disconnect status', { error: err.message }));
+                this.scheduleReconnect();
+                return;
+              }
+
               if (this.graceReconnectsRemaining > 0) {
                 this.graceReconnectsRemaining--;
                 this.log.info('Rapid disconnect during grace period, not counting', {
@@ -369,7 +405,6 @@ class DeviceConnection {
               // split into weak_signal/no_power); ≥3 rapid-but-not-instant as "unstable".
               // The state is causally honest about what we OBSERVED — we don't claim it's
               // a power issue, signal issue, or anything else without evidence.
-              const isInstantDisconnect = connDurationMs < FLAPPING_INSTANT_THRESHOLD_MS;
               const instantDisconnectCount = (this.rapidDisconnectDurations || []).filter(d => d < FLAPPING_INSTANT_THRESHOLD_MS).length;
               
               // Log every pre-trip instant disconnect as an early warning, no DB write.
@@ -450,7 +485,11 @@ class DeviceConnection {
                     const lastReportedMinutesAgo = liveness?.powerMonLastReportedAt
                       ? Math.floor((Date.now() - new Date(liveness.powerMonLastReportedAt).getTime()) / 60000)
                       : null;
-                    const verdict = classifyFlappingVerdict(routerSignalMinutesAgo, lastReportedMinutesAgo);
+                    // We only reach this breaker-open path after a connect SUCCEEDED
+                    // (lastConnectedAt set) and then dropped — so the truck is provably
+                    // reachable. Force the PowerMon-side-flap verdict regardless of how
+                    // stale the router-signal/GPS timestamps are.
+                    const verdict = classifyFlappingVerdict(routerSignalMinutesAgo, lastReportedMinutesAgo, { powerMonConnected: true });
                     logger.warn('FLAPPING DIAGNOSTIC', {
                       deviceId: this.deviceId,
                       deviceName: this.deviceName,
@@ -642,6 +681,7 @@ class DeviceConnection {
           this.consecutiveFailures = 0;
           this.hadRecentPollFailure = false;
           this.firmwareClosedAfterSession = false;
+          this.firmwareRecoveryUntil = 0;
           this.graceReconnectsRemaining = 0;
           
           // Reset rapid disconnect counter and durations on successful poll
@@ -731,6 +771,15 @@ class DeviceConnection {
       delay = Math.max(delay, POST_FIRMWARE_CLOSE_DELAY_MS);
       this.log.info('Using firmware-close cooldown delay', { delayMs: delay });
       this.firmwareClosedAfterSession = false;
+    }
+
+    // Inside the firmware-recovery window every reconnect is spaced out (not just
+    // the first), so we knock gently while the firmware settles instead of
+    // hammering it into a breaker trip. Time-based, so it survives the connect→
+    // instant-drop cycles that keep resetting reconnectAttempts to 0.
+    if (Date.now() < this.firmwareRecoveryUntil) {
+      delay = Math.max(delay, FIRMWARE_RECOVERY_RECONNECT_DELAY_MS);
+      this.log.info('Using firmware-recovery reconnect delay', { delayMs: delay });
     }
 
     this.status = 'reconnecting';
@@ -1669,7 +1718,9 @@ class ConnectionPool {
 
             const tag = '[still off]'.padEnd(12);
             const name = (device.device_name || device.serial_number).padEnd(41);
-            const verdict = classifyFlappingVerdict(routerSignalMinutesAgo, lastReportedMinutesAgo);
+            // This branch is the connect-FAILED path (result.success === false), so we
+            // have no live reachability proof — fall back to the router-signal heuristic.
+            const verdict = classifyFlappingVerdict(routerSignalMinutesAgo, lastReportedMinutesAgo, { powerMonConnected: result.success });
             // Color-code by severity: router outage = dim (waiting on network),
             // PowerMon-offline = yellow (operator action needed), PowerMon-flap = yellow.
             const verdictColored = verdict.startsWith('Router/cellular')

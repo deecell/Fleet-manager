@@ -905,18 +905,69 @@ async function startupRecoverySweep() {
     RETURNING d.id, d.device_name, d.serial_number, d.connection_status
   `);
   
+  // Reclaim orphaned 'probing' rows. A probe sets connection_status='probing' but
+  // tracks the live worker only in the supervisor's in-memory probeWorkers map. At
+  // startup no probe is running, so ANY 'probing' row is by definition orphaned
+  // (e.g. the supervisor died mid-probe). Put them back into 'flapping' so the
+  // solo-probe loop re-tries them — without this they stay 'probing' forever and
+  // are frozen out of polling. marked_unstable_at is preserved (or set to NOW() if
+  // somehow null) so the quarantine TTL stays meaningful.
+  const probingResult = await query(`
+    UPDATE power_mon_devices d
+    SET 
+      connection_status = 'flapping',
+      marked_unstable_at = COALESCE(d.marked_unstable_at, NOW()),
+      updated_at = NOW()
+    WHERE d.connection_status = 'probing'
+      AND EXISTS (
+        SELECT 1 FROM device_credentials c 
+        WHERE c.device_id = d.id AND c.is_active = true
+      )
+    RETURNING d.id, d.device_name, d.serial_number
+  `);
+
   const summary = {
     devicesReset: resetResult.rows.length,
     devices: resetResult.rows.map(d => d.device_name || d.serial_number),
+    orphanedProbingReset: probingResult.rows.length,
+    orphanedProbingDevices: probingResult.rows.map(d => d.device_name || d.serial_number),
   };
   
-  if (summary.devicesReset > 0) {
+  if (summary.devicesReset > 0 || summary.orphanedProbingReset > 0) {
     logger.info('Recovery sweep reset devices', summary);
   } else {
     logger.info('Recovery sweep: No stuck devices found');
   }
   
   return summary;
+}
+
+/**
+ * Reconcile orphaned 'probing' rows while the supervisor is running.
+ *
+ * A probe sets connection_status='probing'; the supervisor's exit handler is
+ * responsible for resetting it (→ NULL on success, → 'flapping' on failure). If
+ * that exit handler never runs (probe SIGKILLed) or its DB write throws, the row
+ * is stranded in 'probing' with no live worker. This resets any 'probing' device
+ * whose serial is NOT in the supplied set of actively-probing serials back to
+ * 'flapping' so it re-enters the quarantine/probe cycle.
+ *
+ * @param {string[]} activeSerials - serials with a live probe worker right now
+ * @returns {Array} rows reset
+ */
+async function reconcileOrphanedProbing(activeSerials = []) {
+  const result = await query(`
+    UPDATE power_mon_devices
+    SET 
+      connection_status = 'flapping',
+      marked_unstable_at = COALESCE(marked_unstable_at, NOW()),
+      updated_at = NOW()
+    WHERE connection_status = 'probing'
+      AND serial_number IS NOT NULL
+      AND NOT (serial_number = ANY($1::text[]))
+    RETURNING id, device_name, serial_number
+  `, [activeSerials]);
+  return result.rows;
 }
 
 /**
@@ -1099,6 +1150,7 @@ module.exports = {
   upsertDeviceSnapshot,
   closeDatabase,
   startupRecoverySweep,
+  reconcileOrphanedProbing,
   recordActiveDevice,
   readCrashAttribution,
   markCrashCulprit,
