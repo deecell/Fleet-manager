@@ -4,6 +4,14 @@
 
 ---
 
+## 2026-06-24 — Collapse /admin/devices row actions into a dropdown menu
+
+**Goal**: the per-device actions column on `/admin/devices` had grown to six icon buttons (edit, manage PowerMon URL, assign/unassign truck, set online/offline, refresh SIM, delete) and was visually crowded.
+
+**Change** (`client/src/pages/admin/DevicesPage.tsx`): replaced the inline row of icon `Button`s with a single `MoreHorizontal` (⋯) trigger that opens a shadcn `DropdownMenu` per row. Each former button is now a labelled `DropdownMenuItem` keeping its original icon, `onClick`, `disabled` logic, and `data-testid` (so no behavioural change). The same conditionals remain: Assign vs Unassign based on `device.truckId`, Set online vs Set offline based on `connectionStatus`. Items are grouped with separators (edit/credentials · truck+status+SIM · delete), and Delete is rendered with `text-destructive` at the bottom.
+
+---
+
 ## 2026-06-24 — Surface truck location on /admin/devices + instrument the GPS feed (Phase 1)
 
 **Goal**: make the InHand router GPS feed visible and measurable so we can judge (a) accuracy and (b) update frequency before building any driving-vs-idling state machine (Phase 2, deferred).
