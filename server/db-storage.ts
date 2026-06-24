@@ -302,19 +302,34 @@ export class DbStorage {
   }
 
   async assignDeviceToTruck(organizationId: number, deviceId: number, truckId: number): Promise<PowerMonDevice | undefined> {
-    const [device] = await db.update(powerMonDevices)
-      .set({ truckId, assignedAt: new Date(), unassignedAt: null, updatedAt: new Date() })
-      .where(and(eq(powerMonDevices.organizationId, organizationId), eq(powerMonDevices.id, deviceId)))
-      .returning();
-    return device;
+    return await db.transaction(async (tx) => {
+      const [device] = await tx.update(powerMonDevices)
+        .set({ truckId, assignedAt: new Date(), unassignedAt: null, updatedAt: new Date() })
+        .where(and(eq(powerMonDevices.organizationId, organizationId), eq(powerMonDevices.id, deviceId)))
+        .returning();
+      // Keep the linked SIM's truckId in sync — the InHand GPS poller writes
+      // truck location based on sims.truckId, so without this an assigned
+      // device's GPS fixes would never land on the truck.
+      await tx.update(sims)
+        .set({ truckId, updatedAt: new Date() })
+        .where(and(eq(sims.organizationId, organizationId), eq(sims.deviceId, deviceId)));
+      return device;
+    });
   }
 
   async unassignDevice(organizationId: number, deviceId: number): Promise<PowerMonDevice | undefined> {
-    const [device] = await db.update(powerMonDevices)
-      .set({ truckId: null, unassignedAt: new Date(), updatedAt: new Date() })
-      .where(and(eq(powerMonDevices.organizationId, organizationId), eq(powerMonDevices.id, deviceId)))
-      .returning();
-    return device;
+    return await db.transaction(async (tx) => {
+      const [device] = await tx.update(powerMonDevices)
+        .set({ truckId: null, unassignedAt: new Date(), updatedAt: new Date() })
+        .where(and(eq(powerMonDevices.organizationId, organizationId), eq(powerMonDevices.id, deviceId)))
+        .returning();
+      // Clear the linked SIM's truckId too so GPS stops attributing fixes to
+      // a truck the device is no longer on.
+      await tx.update(sims)
+        .set({ truckId: null, updatedAt: new Date() })
+        .where(and(eq(sims.organizationId, organizationId), eq(sims.deviceId, deviceId)));
+      return device;
+    });
   }
 
   async updateDeviceStatus(organizationId: number, id: number, status: string): Promise<void> {

@@ -4,6 +4,20 @@
 
 ---
 
+## 2026-06-24 — Sync sims.truck_id on device assignment (GPS location bug)
+
+**Symptom**: DCL-Howard showed router signal but no location on `/admin/devices`, even though the device was assigned to a truck (Mike Howard Racing / MHR-01) and "Reporting".
+
+**Root cause**: the admin "Assign Truck" action (`assignDeviceToTruck` in `server/db-storage.ts`) only set `truck_id` on `power_mon_devices` — it never touched the linked `sims` row. But the InHand GPS poller decides where to write truck location based on **`sims.truck_id`** (`if (sim.truck_id && coords...)`). So a device assigned through the UI had a truck on the device record but a `NULL` `sims.truck_id`, and every GPS fix was silently dropped. Signal still showed because it lives on the SIM itself (`sims.router_rssi`), not the truck.
+
+**Fixes**:
+- **Code** (`server/db-storage.ts`): `assignDeviceToTruck` and `unassignDevice` now run in a transaction that also sets/clears `sims.truck_id` for the linked SIM(s). Assignment and unassignment keep both links in sync going forward.
+- **Backfill migration** `scripts/migrations/2026-06-24_sync_sim_truck_from_device.sh` — copies `power_mon_devices.truck_id` onto the linked `sims` row wherever they differ (idempotent; previews changes first). This makes already-assigned trucks (incl. MHR-01) start recording immediately — no device-manager redeploy needed, since the deployed poller already reads `sims.truck_id`.
+
+**Note**: location will only appear once the router actually reports a GPS fix; a good signal (-71 dBm) confirms the router is online but not that it has a GPS lock.
+
+---
+
 ## 2026-06-24 — Persist router GPS fixes to history (capture driving paths)
 
 **Why**: trucks are driving to Norwalk and we want to review the route afterward. The InHand poller was only **overwriting** `trucks.latitude/longitude` on each poll, so only the latest point survived — the full path was never stored. (The "GPS fix" instrumentation lines from Phase 1 go to the journal, which rotates and isn't queryable.)
