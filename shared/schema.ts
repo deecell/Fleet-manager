@@ -515,6 +515,10 @@ export const simLocationHistory = pgTable("sim_location_history", {
   simIdx: index("sim_location_sim_idx").on(table.simId),
   timeIdx: index("sim_location_time_idx").on(table.recordedAt),
   simTimeIdx: index("sim_location_sim_time_idx").on(table.simId, table.recordedAt),
+  // Backs the per-truck 24h movement query (getTruckMovementMiles), which the
+  // admin Devices page runs on every ~10s poll and which window-functions over
+  // each truck's recent router_gps fixes ordered by time.
+  truckTimeIdx: index("sim_location_truck_time_idx").on(table.truckId, table.recordedAt),
 }));
 
 // =============================================================================

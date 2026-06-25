@@ -1124,7 +1124,49 @@ export class DbStorage {
     return db.select().from(powerMonDevices).orderBy(asc(powerMonDevices.serialNumber));
   }
 
-  async listAllDevicesWithSnapshots(): Promise<(PowerMonDevice & { snapshot?: DeviceSnapshot; routerRssi?: number | null; routerSignalUpdatedAt?: Date | null; latitude?: number | null; longitude?: number | null; locationDescription?: string | null; lastLocationUpdate?: Date | null })[]> {
+  /**
+   * Total distance (miles) each truck has moved over the last `hours` hours,
+   * summing the haversine distance between consecutive router GPS fixes in
+   * sim_location_history. Per-segment hops below ~0.03 mi (~50 m) are dropped so
+   * parked GPS jitter doesn't accumulate into phantom mileage. Returns a Map
+   * keyed by truckId; any truck with at least one fix in the window gets a value
+   * (0 when parked / no qualifying segment), while trucks with zero fixes are
+   * absent — so callers can tell "no GPS data" (absent) from "parked" (0).
+   */
+  private async getTruckMovementMiles(truckIds: number[], hours: number): Promise<Map<number, number>> {
+    if (truckIds.length === 0) return new Map();
+    const result = await db.execute<{ truck_id: number; distance_miles: number }>(sql`
+      WITH fixes AS (
+        SELECT truck_id, latitude, longitude,
+          LAG(latitude) OVER (PARTITION BY truck_id ORDER BY recorded_at) AS prev_lat,
+          LAG(longitude) OVER (PARTITION BY truck_id ORDER BY recorded_at) AS prev_lng
+        FROM sim_location_history
+        WHERE source = 'router_gps'
+          AND truck_id = ANY(${truckIds})
+          AND recorded_at >= NOW() - (${hours} * interval '1 hour')
+      ),
+      seg AS (
+        SELECT truck_id,
+          CASE WHEN prev_lat IS NULL THEN NULL ELSE
+            3959 * acos(LEAST(1, GREATEST(-1,
+              cos(radians(prev_lat)) * cos(radians(latitude)) *
+              cos(radians(longitude) - radians(prev_lng)) +
+              sin(radians(prev_lat)) * sin(radians(latitude))
+            ))) END AS miles
+        FROM fixes
+      )
+      SELECT truck_id, COALESCE(SUM(miles) FILTER (WHERE miles > 0.03), 0) AS distance_miles
+      FROM seg
+      GROUP BY truck_id
+    `);
+    const map = new Map<number, number>();
+    for (const r of result.rows) {
+      map.set(Number(r.truck_id), Number(r.distance_miles));
+    }
+    return map;
+  }
+
+  async listAllDevicesWithSnapshots(): Promise<(PowerMonDevice & { snapshot?: DeviceSnapshot; routerRssi?: number | null; routerSignalUpdatedAt?: Date | null; latitude?: number | null; longitude?: number | null; locationDescription?: string | null; lastLocationUpdate?: Date | null; movementMiles24h?: number | null })[]> {
     const deviceList = await db.select().from(powerMonDevices).orderBy(asc(powerMonDevices.serialNumber));
     const deviceIds = deviceList.map(d => d.id);
     const truckIds = deviceList.map(d => d.truckId).filter((id): id is number => id != null);
@@ -1133,8 +1175,9 @@ export class DbStorage {
     let routerRssiMap = new Map<number, number | null>();
     let routerSignalMap = new Map<number, Date | null>();
     let truckLocationMap = new Map<number, { latitude: number | null; longitude: number | null; locationDescription: string | null; lastLocationUpdate: Date | null }>();
+    let truckMovementMap = new Map<number, number>();
     if (deviceIds.length > 0) {
-      const [snapshots, simRows, truckRows] = await Promise.all([
+      const [snapshots, simRows, truckRows, movementMap] = await Promise.all([
         db.select().from(deviceSnapshots)
           .where(inArray(deviceSnapshots.deviceId, deviceIds)),
         db.select({
@@ -1151,6 +1194,7 @@ export class DbStorage {
               lastLocationUpdate: trucks.lastLocationUpdate,
             }).from(trucks).where(inArray(trucks.id, truckIds))
           : Promise.resolve([] as { id: number; latitude: number | null; longitude: number | null; locationDescription: string | null; lastLocationUpdate: Date | null }[]),
+        this.getTruckMovementMiles(truckIds, 24),
       ]);
       for (const s of snapshots) {
         snapshotMap.set(s.deviceId, s);
@@ -1164,6 +1208,7 @@ export class DbStorage {
       for (const t of truckRows) {
         truckLocationMap.set(t.id, t);
       }
+      truckMovementMap = movementMap;
     }
     
     return deviceList.map(device => {
@@ -1177,11 +1222,14 @@ export class DbStorage {
         longitude: loc?.longitude ?? null,
         locationDescription: loc?.locationDescription ?? null,
         lastLocationUpdate: loc?.lastLocationUpdate ?? null,
+        movementMiles24h: device.truckId != null && truckMovementMap.has(device.truckId)
+          ? truckMovementMap.get(device.truckId)!
+          : null,
       };
     });
   }
 
-  async listDevicesWithSnapshots(organizationId: number): Promise<(PowerMonDevice & { snapshot?: DeviceSnapshot; routerRssi?: number | null; routerSignalUpdatedAt?: Date | null; latitude?: number | null; longitude?: number | null; locationDescription?: string | null; lastLocationUpdate?: Date | null })[]> {
+  async listDevicesWithSnapshots(organizationId: number): Promise<(PowerMonDevice & { snapshot?: DeviceSnapshot; routerRssi?: number | null; routerSignalUpdatedAt?: Date | null; latitude?: number | null; longitude?: number | null; locationDescription?: string | null; lastLocationUpdate?: Date | null; movementMiles24h?: number | null })[]> {
     const deviceList = await db.select().from(powerMonDevices)
       .where(eq(powerMonDevices.organizationId, organizationId))
       .orderBy(asc(powerMonDevices.serialNumber));
@@ -1192,8 +1240,9 @@ export class DbStorage {
     let routerRssiMap = new Map<number, number | null>();
     let routerSignalMap = new Map<number, Date | null>();
     let truckLocationMap = new Map<number, { latitude: number | null; longitude: number | null; locationDescription: string | null; lastLocationUpdate: Date | null }>();
+    let truckMovementMap = new Map<number, number>();
     if (deviceIds.length > 0) {
-      const [snapshots, simRows, truckRows] = await Promise.all([
+      const [snapshots, simRows, truckRows, movementMap] = await Promise.all([
         db.select().from(deviceSnapshots)
           .where(and(
             eq(deviceSnapshots.organizationId, organizationId),
@@ -1219,6 +1268,7 @@ export class DbStorage {
               inArray(trucks.id, truckIds),
             ))
           : Promise.resolve([] as { id: number; latitude: number | null; longitude: number | null; locationDescription: string | null; lastLocationUpdate: Date | null }[]),
+        this.getTruckMovementMiles(truckIds, 24),
       ]);
       for (const s of snapshots) {
         snapshotMap.set(s.deviceId, s);
@@ -1232,6 +1282,7 @@ export class DbStorage {
       for (const t of truckRows) {
         truckLocationMap.set(t.id, t);
       }
+      truckMovementMap = movementMap;
     }
     
     return deviceList.map(device => {
@@ -1245,6 +1296,9 @@ export class DbStorage {
         longitude: loc?.longitude ?? null,
         locationDescription: loc?.locationDescription ?? null,
         lastLocationUpdate: loc?.lastLocationUpdate ?? null,
+        movementMiles24h: device.truckId != null && truckMovementMap.has(device.truckId)
+          ? truckMovementMap.get(device.truckId)!
+          : null,
       };
     });
   }

@@ -62,6 +62,7 @@ import type { PowerMonDevice } from "@shared/schema";
 import type { DeviceWithSnapshot } from "@/lib/admin-api";
 import { SignalCell, classifySignal } from "@/components/SignalCell";
 import { LocationCell } from "@/components/LocationCell";
+import { MovementCell } from "@/components/MovementCell";
 import { classifyFlappingVerdict } from "@shared/flapping-verdict";
 
 // Returns the text actually shown in the Data Status pill, mirroring the render
@@ -643,6 +644,7 @@ export default function DevicesPage() {
                         </div>
                       </TableHead>
                       <TableHead className="text-white font-medium">Location</TableHead>
+                      <TableHead className="text-white font-medium">Moved (24h)</TableHead>
                       <TableHead className="text-white font-medium text-center">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -811,6 +813,12 @@ export default function DevicesPage() {
                               locationDescription={device.locationDescription}
                               lastLocationUpdate={device.lastLocationUpdate}
                               testId={`location-${device.id}`}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <MovementCell
+                              miles={device.movementMiles24h}
+                              testId={`movement-${device.id}`}
                             />
                           </TableCell>
                           <TableCell className="text-center">

@@ -25,6 +25,11 @@ export type DeviceWithSnapshot = PowerMonDevice & {
   longitude?: number | null;
   locationDescription?: string | null;
   lastLocationUpdate?: string | Date | null;
+  // Total miles the assigned truck has moved in the last 24 hours, summed from
+  // consecutive router GPS fixes (parked jitter filtered out). Null when the
+  // device has no truck assigned or no GPS fixes landed in the window; 0 means
+  // the truck has fixes but stayed put (parked).
+  movementMiles24h?: number | null;
 };
 
 // Auto-refresh interval for admin dashboard (10 seconds, matching Fleet dashboard)

@@ -4,6 +4,22 @@
 
 ---
 
+## 2026-06-25 — "Moved (24h)" distance indicator on /admin/devices
+
+**Goal**: at a glance, see whether each truck has moved in the last 24 hours and how far — without running SQL by hand.
+
+**Why total path distance, not straight-line spread**: a round trip (drive out and back) has ~0 straight-line spread but real miles driven. So we sum the haversine distance between **consecutive** router GPS fixes, not the bounding-box diagonal. MHR-01's pre-link Norwalk drive is the canonical case the spread metric missed.
+
+**Backend** (`server/db-storage.ts`): new `getTruckMovementMiles(truckIds, hours)` runs one window-function query over `sim_location_history` (`source='router_gps'`, last 24h): `LAG` to get each truck's previous fix, haversine per segment with a `LEAST(1, GREATEST(-1, …))` clamp (so `acos` never NaNs on identical points), then `SUM` of only the segments `> 0.03 mi` (~50 m) so parked GPS jitter doesn't accumulate into phantom mileage. Returned as a `Map<truckId, miles>` and merged into `listAllDevicesWithSnapshots` / `listDevicesWithSnapshots` (4th `Promise.all` element) as `movementMiles24h`. **null = no fixes in window; 0 = has ≥1 fix but parked** (any truck with at least one fix gets a value, fixed after review so a single-fix truck reads 0, not null).
+
+**Frontend**: `movementMiles24h` added to `DeviceWithSnapshot` (`client/src/lib/admin-api.ts`); new `client/src/components/MovementCell.tsx` (null → "—", `< 0.2 mi` → muted "Parked", else green "{miles} mi" with a nav icon); new "Moved (24h)" column on `/admin/devices` between Location and Actions.
+
+**Jitter calibration (real data)**: GFR-70 and GFR-69 sat side-by-side in the same shop, yet GFR-70 read 0.17 mi of spread while GFR-69 read 0.00 — confirming parked GPS can drift up to ~0.2 mi. Hence the **0.2 mi UI "Parked" threshold** (total-window noise floor) on top of the **0.03 mi per-segment filter** (per-hop jitter floor). The two thresholds operate at different scales and are complementary; sub-0.2 mi real movement (e.g. shuffling across a yard) is intentionally shown as "Parked".
+
+**Index** (`shared/schema.ts` + `scripts/migrations/2026-06-25_add_sim_location_truck_time_idx.sh`): added `sim_location_truck_time_idx` on `sim_location_history (truck_id, recorded_at)`. The admin page polls every ~10s and this table grows forever (one row/truck/~2 min), so the query needs an index to avoid a full scan each poll. The prod script uses `CREATE INDEX CONCURRENTLY IF NOT EXISTS` (no write lock, idempotent). Dev picks it up via `db:push` when safe.
+
+---
+
 ## 2026-06-24 — Trim & reorganize replit.md
 
 Housekeeping: `replit.md` had grown into several very dense changelog-style paragraphs (Authentication, Device Registration, Device Manager, Fleet/Admin Export) that were hard to scan. Condensed each architecture section to durable, high-level summaries with bullets, keeping the key operational diagnostics (e.g. the `sims.truck_id` NULL → blank-location rule) and dropping the blow-by-blow implementation narrative — that dated history lives here in `DEVELOPMENT_LOG.md`. Also corrected the database note to reflect that dev uses Neon while production is AWS RDS PostgreSQL, and added a pointer at the top of `replit.md` directing detailed history to this log. No code changes.
