@@ -1,0 +1,71 @@
+amoeck@Melissas-MacBook-Pro-2 Fleet-manager % ./scripts/migrations/2026-06-25_add_sim_location_truck_time_idx.sh
+=== Deecell Production Database Migration ===
+Migration: Add (truck_id, recorded_at) index on sim_location_history
+
+[1/5] Looking up device-manager EC2 instance in us-east-2...
+      Found: i-0a435441556fc5ab1
+
+[2/5] SQL to execute:
+----------------------------------------
+-- =============================================
+-- Preview: existing indexes on sim_location_history
+-- =============================================
+SELECT indexname FROM pg_indexes
+WHERE tablename = 'sim_location_history'
+ORDER BY indexname;
+
+-- =============================================
+-- Apply: composite index backing the per-truck 24h movement query
+-- (getTruckMovementMiles, the /admin/devices "Moved (24h)" column).
+-- CONCURRENTLY = no write lock while it builds; IF NOT EXISTS = idempotent.
+-- NOTE: psql here runs in autocommit (no -1), so CONCURRENTLY is allowed.
+-- =============================================
+CREATE INDEX CONCURRENTLY IF NOT EXISTS sim_location_truck_time_idx
+  ON sim_location_history (truck_id, recorded_at);
+
+-- =============================================
+-- Verify: the new index is present (rows returned = success)
+-- =============================================
+SELECT indexname FROM pg_indexes
+WHERE tablename = 'sim_location_history'
+  AND indexname = 'sim_location_truck_time_idx';
+----------------------------------------
+
+Run this migration on production? (y/n) y
+
+[3/5] Building SSM command payload...
+[4/5] Sending command to i-0a435441556fc5ab1 via SSM...
+      Command ID: abdd71d9-89a3-40c3-9908-a5e3826232c6
+
+[5/5] Waiting for completion...
+.
+
+=== Final Status: Success ===
+
+--- Standard Output ---
+Using: /usr/bin/psql
+          indexname          
+-----------------------------
+ sim_location_history_pkey
+ sim_location_sim_idx
+ sim_location_time_idx
+ sim_location_truck_time_idx
+(4 rows)
+
+CREATE INDEX
+          indexname          
+-----------------------------
+ sim_location_truck_time_idx
+(1 row)
+
+
+
+--- Standard Error ---
+psql:/tmp/migration.J5b7z0.sql:15: NOTICE:  relation "sim_location_truck_time_idx" already exists, skipping
+
+==========================================================================
+Done. The sim_location_truck_time_idx index is in place. The verify query
+above should list 'sim_location_truck_time_idx'. The /admin/devices
+"Moved (24h)" column query is now index-backed.
+==========================================================================
+amoeck@Melissas-MacBook-Pro-2 Fleet-manager %
