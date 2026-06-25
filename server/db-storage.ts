@@ -1135,6 +1135,11 @@ export class DbStorage {
    */
   private async getTruckMovementMiles(truckIds: number[], hours: number): Promise<Map<number, number>> {
     if (truckIds.length === 0) return new Map();
+    // NOTE: interpolating a JS array directly into `ANY(${truckIds})` makes
+    // drizzle expand it into a comma-separated parameter list, so ANY() receives
+    // a scalar and Postgres throws "op ANY/ALL (array) requires array on right
+    // side". Build an explicit IN-list instead (matches drizzle's list binding).
+    const truckIdList = sql.join(truckIds.map((id) => sql`${id}`), sql`, `);
     const result = await db.execute<{ truck_id: number; distance_miles: number }>(sql`
       WITH fixes AS (
         SELECT truck_id, latitude, longitude,
@@ -1142,7 +1147,7 @@ export class DbStorage {
           LAG(longitude) OVER (PARTITION BY truck_id ORDER BY recorded_at) AS prev_lng
         FROM sim_location_history
         WHERE source = 'router_gps'
-          AND truck_id = ANY(${truckIds})
+          AND truck_id IN (${truckIdList})
           AND recorded_at >= NOW() - (${hours} * interval '1 hour')
       ),
       seg AS (

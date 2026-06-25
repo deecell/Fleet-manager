@@ -4,6 +4,27 @@
 
 ---
 
+## 2026-06-25 — HOTFIX: production `/api/v1/admin/devices` 500 (Moved-24h query)
+
+**Symptom**: after deploying the "Moved (24h)" feature, prod `app.deecell.com` `/api/v1/admin/devices` returned HTTP 500 ("No devices registered"). The Dashboard loaded fine (19 devices) because it doesn't call the movement query.
+
+**Root cause** (`getTruckMovementMiles`): the WHERE clause used `truck_id = ANY(${truckIds})` where `truckIds` is a JS array. Drizzle interpolates a JS array as a **comma-separated parameter list**, so `ANY()` received a scalar and Postgres threw:
+
+```
+op ANY/ALL (array) requires array on right side
+```
+
+This fails for **any** non-empty truck list, so it broke on every real call. It wasn't a timeout, a bad/invalid index, or an `acos` domain error — the index is valid and `sim_location_history` is tiny in prod (1891 rows).
+
+**Why it slipped through**: the dev DB has **0** `sim_location_history` rows and its trucks are IDs 20–23, so the original dev test (truck IDs 1–5) returned empty and never exercised the binding. The prod diagnostic that "passed" had hardcoded `ANY(ARRAY(SELECT id FROM trucks))` — a literal array — instead of the bound parameter, masking the bug. Confirmed by reproducing with the **exact** drizzle `sql` template + bound params against the dev DB via `tsx`.
+
+**Fix**: build an explicit IN-list that matches drizzle's list binding —
+`const truckIdList = sql.join(truckIds.map((id) => sql\`${id}\`), sql\`, \`);` then `truck_id IN (${truckIdList})`. Verified it runs clean (no error) against dev. The `truckIds.length === 0` guard above it means the IN-list is never empty.
+
+**Deploy**: code-only change (no schema/DB migration). Push to GitHub to trigger the ECS redeploy; the page recovers once the new task is live.
+
+---
+
 ## 2026-06-25 — "Moved (24h)" distance indicator on /admin/devices
 
 **Goal**: at a glance, see whether each truck has moved in the last 24 hours and how far — without running SQL by hand.
