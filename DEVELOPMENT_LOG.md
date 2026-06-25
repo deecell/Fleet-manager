@@ -4,6 +4,37 @@
 
 ---
 
+## 2026-06-25 — Live drive test: GFR-69 (DCL-Moeck-Fleet) — InHand cell data is ~5-min cadence, signal-gated, location never moves
+
+Ran a live ground-truth drive with truck **GFR-69** (truck_id 1, InHand device `DCL-Moeck-Fleet`) to measure how real-time InHand's cell-tower data actually is while moving. A read-only logger polled the InHand bulk API every 30s and recorded `cid/lac/mcc/mnc`, full `signalStrength.*`, and `location`. Andy recorded stop times by hand.
+
+**Route (all times Pacific / PDT = UTC−7):** Shop (8579 W Westbow Blvd, Spokane WA) → I-90 east → Maverick gas, Exit 1 Idaho → west back through Spokane Valley (bank at Sullivan & I-90) → one more stop → shop. ~2 hr, ~45 mi round trip.
+
+**Timeline of what InHand actually surfaced:**
+| Pacific | UTC | Event | InHand state |
+|---|---|---|---|
+| 9:23 | 16:23 | Leave shop | Healthy signal (rssi −71, rsrp −100, sinr +12), AT&T 310/410, last check-in 9:15 |
+| 9:37 | 16:37 | driving I-90 E | Tower handoff (sig cid 158248449→107567895), signal degrading (rssi −85, sinr −3), check-in → 9:30 |
+| 9:54 | 16:54 | Arrive Maverick, Exit 1 ID (~22 mi) | Whole leg: location never moved; **1 handoff total**; then silent after 9:30 |
+| 10:05 | 17:05 | Leave Maverick (parked ~11 min) | Still silent — no check-in since 9:30 (35 min) |
+| 10:21 | 17:21 | At bank (Sullivan & I-90) | **Caught up**: check-in 9:30→10:00, handoff cid→107594505, rssi −79 sinr 0 |
+| 10:26 | 17:26 | Leave bank (parked ~5 min) | No new check-in (still 10:00) |
+| 10:36 | 17:36 | Next stop | Still 10:00 |
+| 11:09 | 18:09 | Back at shop | (raw CSV lost to env restart; drive-back leg not captured) |
+
+**Findings:**
+1. **The map location (cellTower lat/lng) never updated once** across the entire ~45-mile round trip — frozen at the June 21 value the whole time. Confirms prior finding: cell-tower location is useless for live tracking.
+2. **Cell/signal telemetry updates ~every 5 min at best — and only with adequate signal.** Out at the Idaho border on a weak roaming AT&T tower (rsrp −117, sinr −3) the router went **dark for 35+ minutes**, parked or moving. As soon as it returned to stronger Spokane coverage it **caught up** (9:30 → 10:00 in one jump).
+3. **It's signal-gated, not movement-gated.** The earlier hypothesis ("goes dark when moving") was wrong — the device goes quiet whenever backhaul signal is poor, regardless of moving/parked, and catches up when signal recovers. Even in town it lagged ~20 min behind real time.
+4. **Only ~3 tower handoffs** detected over the whole drive — far too coarse to reconstruct a route.
+5. Carrier was **AT&T (310/410) the entire drive**; the earlier T-Mobile (310/260) reading was pre-departure. The Wireless Logic roaming SIM does hop carriers, but didn't during this run.
+
+**Conclusion:** InHand cell data cannot provide live tracking. Both the location (dead/frozen) and the cadence (~5 min, signal-gated, drops out entirely in weak coverage) rule it out. For real-time movement/route tracking the only viable path is **enabling/connecting GNSS on the routers** so `location.source` becomes `gps` (cell-tower investigation, option B). Capturing cell handoffs (option A) gives at best a coarse "moved into a new area within ~5 min, when signal is OK" signal.
+
+**Note on data:** the 30s raw CSV (`/tmp/gfr69_drive_test.csv`) and the logger's console logs were lost to a mid-test environment restart; the drive-back leg (10:36→11:09) wasn't captured. The transition timeline above was preserved from live analysis during the drive. No production code changed; the temporary logger workflow and `device-manager/app/_drive_test.js` were removed afterward.
+
+---
+
 ## 2026-06-25 — Investigation: Kalitta (TRK-01) drive — GPS is endpoint-only, parked-state is voltage-only
 
 Pulled the Kalitta Hospitality trailer's data from PROD (read-only, SSM→EC2→psql) to see how we tracked its Ypsilanti, MI → Summit Motorsports Park (Huron County, OH) drive. Findings:
