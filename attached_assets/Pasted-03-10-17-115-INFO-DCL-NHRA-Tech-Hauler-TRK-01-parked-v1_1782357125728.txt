@@ -1,0 +1,139 @@
+03:10:17.115 INFO  DCL-NHRA-Tech-Hauler (TRK-01)            parked   v1= 27.77  v2=  0.0463  today=  190m  month= 12191m  since=2026-02-17 23:59:07  loc=--
+03:10:17.262 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.56  v2=  0.0373  today=  190m  month= 28730m  since=2025-12-29 23:38:19  loc=Marysville, WA
+03:10:17.530 INFO  DCL-KTR (KTR-01)                         parked   v1= 25.29  v2= 12.6992  today=    6m  month=  4617m  since=2026-06-25 03:03:52  loc=Joliet, IL
+03:10:17.536 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 26.44  v2= 13.2764  today=    0m  month=     5m  since=2026-06-14 23:12:07  loc=Delaware, OH
+03:10:17.541 INFO  DCL-Carter (CTR-69)                      parked   v1= 28.52  v2=  0.0426  today=  190m  month= 20604m  since=2025-12-03 17:15:48  loc=Osburn, ID
+03:10:17.678 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.59  v2=  0.0400  today=  190m  month= 29288m  since=2025-12-29 23:22:12  loc=--
+03:10:18.496 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 52.89  v2=  0.0393  today=  190m  month= 17307m  since=2026-02-16 19:41:58  loc=Ypsilanti Charter Township, MI
+03:10:18.502 INFO  DCL-Epler (TRL-01)                       parked   v1= 26.42  v2=  0.0397  today=  190m  month= 26179m  since=2026-01-31 18:59:00  loc=Richland, WA
+03:10:18.507 INFO  DCL-CDOT-1 (SIM-001)                     driving  v1= 26.56  v2= 13.1233  today=    0m  month=     9m  since=2026-06-03 15:11:18  loc=Wheat Ridge, CO
+03:10:18.516 INFO  DCL-Kruse (WKR-01)                       parked   v1= 26.58  v2=  0.0389  today=  190m  month= 25658m  since=2025-12-29 23:27:57  loc=--
+03:10:18.557 INFO  DCL-Brown (RBR-01)                       parked   v1= 27.65  v2= 12.7906  today=    6m  month=  2193m  since=2026-06-25 03:03:55  loc=--
+03:10:19.272 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 26.56  v2=  0.0453  today=  190m  month= 31207m  since=2025-12-29 23:38:54  loc=--
+03:10:27.132 INFO  DCL-NHRA-Tech-Hauler (TRK-01)            parked   v1= 27.77  v2=  0.0450  today=  190m  month= 12191m  since=2026-02-17 23:59:07  loc=--
+03:10:27.557 INFO  DCL-KTR (KTR-01)                         parked   v1= 25.29  v2= 12.6969  today=    7m  month=  4618m  since=2026-06-25 03:03:52  loc=Joliet, IL
+03:10:27.563 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 26.44  v2= 13.2747  today=    0m  month=     5m  since=2026-06-14 23:12:07  loc=Delaware, OH
+03:10:27.568 INFO  DCL-Carter (CTR-69)                      parked   v1= 28.51  v2=  0.0425  today=  190m  month= 20604m  since=2025-12-03 17:15:48  loc=Osburn, ID
+03:10:27.692 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.59  v2=  0.0408  today=  190m  month= 29288m  since=2025-12-29 23:22:12  loc=--
+03:10:28.538 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 52.89  v2=  0.0390  today=  190m  month= 17307m  since=2026-02-16 19:41:58  loc=Ypsilanti Charter Township, MI
+03:10:28.544 INFO  DCL-Epler (TRL-01)                       parked   v1= 26.42  v2=  0.0383  today=  190m  month= 26179m  since=2026-01-31 18:59:00  loc=Richland, WA
+03:10:28.549 INFO  DCL-CDOT-1 (SIM-001)                     driving  v1= 26.56  v2= 13.1231  today=    0m  month=     9m  since=2026-06-03 15:11:18  loc=Wheat Ridge, CO
+03:10:28.554 INFO  DCL-Kruse (WKR-01)                       parked   v1= 26.58  v2=  0.0385  today=  190m  month= 25658m  since=2025-12-29 23:27:57  loc=--
+03:10:28.572 INFO  DCL-Brown (RBR-01)                       parked   v1= 27.66  v2= 12.7874  today=    7m  month=  2194m  since=2026-06-25 03:03:55  loc=--
+03:10:29.289 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 26.56  v2=  0.0450  today=  190m  month= 31207m  since=2025-12-29 23:38:54  loc=--
+03:10:29.294 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.56  v2=  0.0375  today=  190m  month= 28730m  since=2025-12-29 23:38:19  loc=Marysville, WA
+03:10:37.149 INFO  DCL-NHRA-Tech-Hauler (TRK-01)            parked   v1= 27.77  v2=  0.0450  today=  191m  month= 12192m  since=2026-02-17 23:59:07  loc=--
+03:10:37.584 INFO  DCL-KTR (KTR-01)                         parked   v1= 25.29  v2= 12.6921  today=    7m  month=  4618m  since=2026-06-25 03:03:52  loc=Joliet, IL
+03:10:37.591 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 26.44  v2= 13.2755  today=    0m  month=     5m  since=2026-06-14 23:12:07  loc=Delaware, OH
+03:10:37.596 INFO  DCL-Carter (CTR-69)                      parked   v1= 28.51  v2=  0.0431  today=  191m  month= 20605m  since=2025-12-03 17:15:48  loc=Osburn, ID
+Skipping 3 offline/unstable devices:
+                  [flapping]  DCL-Thibert                              (0 disconnects) (probe #5 failed, retry in 186m)
+                  [flapping]  DCL-Radian-1                             (0 disconnects) (probe #4 failed, retry in 145m)
+                  [flapping]  DCL-Penske01                             (0 disconnects) (probe #5 failed, retry in 186m)
+03:10:38.568 INFO  DCL-Epler (TRL-01)                       parked   v1= 26.42  v2=  0.0394  today=  191m  month= 26180m  since=2026-01-31 18:59:00  loc=Richland, WA
+03:10:38.573 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 52.89  v2=  0.0382  today=  191m  month= 17308m  since=2026-02-16 19:41:58  loc=Ypsilanti Charter Township, MI
+03:10:38.579 INFO  DCL-CDOT-1 (SIM-001)                     driving  v1= 26.56  v2= 13.1222  today=    0m  month=     9m  since=2026-06-03 15:11:18  loc=Wheat Ridge, CO
+03:10:38.584 INFO  DCL-Kruse (WKR-01)                       parked   v1= 26.58  v2=  0.0389  today=  191m  month= 25659m  since=2025-12-29 23:27:57  loc=--
+03:10:38.588 INFO  DCL-Brown (RBR-01)                       parked   v1= 27.65  v2= 12.7838  today=    7m  month=  2194m  since=2026-06-25 03:03:55  loc=--
+03:10:39.313 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.56  v2=  0.0372  today=  191m  month= 28731m  since=2025-12-29 23:38:19  loc=Marysville, WA
+03:10:39.319 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 26.56  v2=  0.0453  today=  191m  month= 31208m  since=2025-12-29 23:38:54  loc=--
+03:10:39.711 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.59  v2=  0.0402  today=  191m  month= 29289m  since=2025-12-29 23:22:12  loc=--
+03:10:47.165 INFO  DCL-NHRA-Tech-Hauler (TRK-01)            parked   v1= 27.77  v2=  0.0459  today=  191m  month= 12192m  since=2026-02-17 23:59:07  loc=--
+03:10:47.614 INFO  DCL-KTR (KTR-01)                         parked   v1= 25.29  v2= 12.6846  today=    7m  month=  4618m  since=2026-06-25 03:03:52  loc=Joliet, IL
+03:10:48.599 INFO  DCL-CDOT-1 (SIM-001)                     driving  v1= 26.56  v2= 13.1213  today=    0m  month=     9m  since=2026-06-03 15:11:18  loc=Wheat Ridge, CO
+03:10:48.604 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 52.89  v2=  0.0390  today=  191m  month= 17308m  since=2026-02-16 19:41:58  loc=Ypsilanti Charter Township, MI
+03:10:48.605 INFO  DCL-Brown (RBR-01)                       parked   v1= 27.65  v2= 12.7820  today=    7m  month=  2194m  since=2026-06-25 03:03:55  loc=--
+03:10:48.610 INFO  DCL-Epler (TRL-01)                       parked   v1= 26.42  v2=  0.0392  today=  191m  month= 26180m  since=2026-01-31 18:59:00  loc=Richland, WA
+03:10:48.615 INFO  DCL-Kruse (WKR-01)                       parked   v1= 26.58  v2=  0.0392  today=  191m  month= 25659m  since=2025-12-29 23:27:57  loc=--
+03:10:49.336 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.56  v2=  0.0377  today=  191m  month= 28731m  since=2025-12-29 23:38:19  loc=Marysville, WA
+03:10:49.342 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 26.56  v2=  0.0457  today=  191m  month= 31208m  since=2025-12-29 23:38:54  loc=--
+03:10:49.630 INFO  DCL-Carter (CTR-69)                      parked   v1= 28.50  v2=  0.0427  today=  191m  month= 20605m  since=2025-12-03 17:15:48  loc=Osburn, ID
+03:10:49.635 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 26.44  v2= 13.2753  today=    0m  month=     5m  since=2026-06-14 23:12:07  loc=Delaware, OH
+03:10:49.728 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.59  v2=  0.0406  today=  191m  month= 29289m  since=2025-12-29 23:22:12  loc=--
+03:10:57.183 INFO  DCL-NHRA-Tech-Hauler (TRK-01)            parked   v1= 27.77  v2=  0.0461  today=  191m  month= 12192m  since=2026-02-17 23:59:07  loc=--
+03:10:58.622 INFO  DCL-Brown (RBR-01)                       parked   v1= 27.65  v2= 12.7785  today=    7m  month=  2194m  since=2026-06-25 03:03:55  loc=--
+03:10:58.631 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 52.88  v2=  0.0388  today=  191m  month= 17308m  since=2026-02-16 19:41:58  loc=Ypsilanti Charter Township, MI
+03:10:58.637 INFO  DCL-Epler (TRL-01)                       parked   v1= 26.42  v2=  0.0388  today=  191m  month= 26180m  since=2026-01-31 18:59:00  loc=Richland, WA
+03:10:58.642 INFO  DCL-CDOT-1 (SIM-001)                     driving  v1= 26.56  v2= 13.1217  today=    0m  month=     9m  since=2026-06-03 15:11:18  loc=Wheat Ridge, CO
+03:10:58.647 INFO  DCL-Kruse (WKR-01)                       parked   v1= 26.58  v2=  0.0392  today=  191m  month= 25659m  since=2025-12-29 23:27:57  loc=--
+03:10:59.359 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.56  v2=  0.0370  today=  191m  month= 28731m  since=2025-12-29 23:38:19  loc=Marysville, WA
+03:10:59.365 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 26.56  v2=  0.0465  today=  191m  month= 31208m  since=2025-12-29 23:38:54  loc=--
+03:10:59.654 INFO  DCL-KTR (KTR-01)                         parked   v1= 25.29  v2= 12.6821  today=    7m  month=  4618m  since=2026-06-25 03:03:52  loc=Joliet, IL
+03:10:59.659 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 26.45  v2= 13.2762  today=    0m  month=     5m  since=2026-06-14 23:12:07  loc=Delaware, OH
+03:10:59.665 INFO  DCL-Carter (CTR-69)                      parked   v1= 28.49  v2=  0.0428  today=  191m  month= 20605m  since=2025-12-03 17:15:48  loc=Osburn, ID
+03:10:59.744 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.59  v2=  0.0397  today=  191m  month= 29289m  since=2025-12-29 23:22:12  loc=--
+03:11:07.199 INFO  DCL-NHRA-Tech-Hauler (TRK-01)            parked   v1= 27.77  v2=  0.0459  today=  191m  month= 12192m  since=2026-02-17 23:59:07  loc=--
+03:11:08.638 INFO  DCL-Brown (RBR-01)                       parked   v1= 27.65  v2= 12.7778  today=    7m  month=  2194m  since=2026-06-25 03:03:55  loc=--
+03:11:08.664 INFO  DCL-CDOT-1 (SIM-001)                     driving  v1= 26.56  v2= 13.1216  today=    0m  month=     9m  since=2026-06-03 15:11:18  loc=Wheat Ridge, CO
+03:11:08.669 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 52.88  v2=  0.0384  today=  191m  month= 17308m  since=2026-02-16 19:41:58  loc=Ypsilanti Charter Township, MI
+03:11:08.675 INFO  DCL-Epler (TRL-01)                       parked   v1= 26.42  v2=  0.0394  today=  191m  month= 26180m  since=2026-01-31 18:59:00  loc=Richland, WA
+03:11:08.680 INFO  DCL-Kruse (WKR-01)                       parked   v1= 26.58  v2=  0.0389  today=  191m  month= 25659m  since=2025-12-29 23:27:57  loc=--
+03:11:09.680 INFO  DCL-KTR (KTR-01)                         parked   v1= 25.29  v2= 12.6866  today=    7m  month=  4618m  since=2026-06-25 03:03:52  loc=Joliet, IL
+03:11:09.686 INFO  DCL-Carter (CTR-69)                      parked   v1= 28.49  v2=  0.0429  today=  191m  month= 20605m  since=2025-12-03 17:15:48  loc=Osburn, ID
+03:11:09.691 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 26.39  v2= 13.2757  today=    0m  month=     5m  since=2026-06-14 23:12:07  loc=Delaware, OH
+03:11:09.761 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.59  v2=  0.0401  today=  191m  month= 29289m  since=2025-12-29 23:22:12  loc=--
+03:11:11.382 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 26.56  v2=  0.0453  today=  191m  month= 31208m  since=2025-12-29 23:38:54  loc=--
+03:11:11.387 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.56  v2=  0.0369  today=  191m  month= 28731m  since=2025-12-29 23:38:19  loc=Marysville, WA
+03:11:17.214 INFO  DCL-NHRA-Tech-Hauler (TRK-01)            parked   v1= 27.77  v2=  0.0460  today=  191m  month= 12192m  since=2026-02-17 23:59:07  loc=--
+03:11:19.705 INFO  DCL-KTR (KTR-01)                         parked   v1= 25.29  v2= 12.6892  today=    7m  month=  4618m  since=2026-06-25 03:03:52  loc=Joliet, IL
+03:11:20.655 INFO  DCL-Brown (RBR-01)                       parked   v1= 27.65  v2= 12.7744  today=    7m  month=  2194m  since=2026-06-25 03:03:55  loc=--
+03:11:20.701 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 52.88  v2=  0.0392  today=  191m  month= 17308m  since=2026-02-16 19:41:58  loc=Ypsilanti Charter Township, MI
+03:11:20.707 INFO  DCL-Epler (TRL-01)                       parked   v1= 26.42  v2=  0.0391  today=  191m  month= 26180m  since=2026-01-31 18:59:00  loc=Richland, WA
+03:11:20.713 INFO  DCL-CDOT-1 (SIM-001)                     driving  v1= 26.56  v2= 13.1232  today=    0m  month=     9m  since=2026-06-03 15:11:18  loc=Wheat Ridge, CO
+03:11:20.719 INFO  DCL-Kruse (WKR-01)                       parked   v1= 26.58  v2=  0.0393  today=  191m  month= 25659m  since=2025-12-29 23:27:57  loc=--
+03:11:21.403 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 26.56  v2=  0.0457  today=  191m  month= 31208m  since=2025-12-29 23:38:54  loc=--
+03:11:21.409 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.56  v2=  0.0373  today=  191m  month= 28731m  since=2025-12-29 23:38:19  loc=Marysville, WA
+03:11:21.714 INFO  DCL-Carter (CTR-69)                      parked   v1= 28.48  v2=  0.0431  today=  191m  month= 20605m  since=2025-12-03 17:15:48  loc=Osburn, ID
+03:11:21.719 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 26.38  v2= 13.2764  today=    0m  month=     5m  since=2026-06-14 23:12:07  loc=Delaware, OH
+03:11:21.779 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.59  v2=  0.0393  today=  191m  month= 29289m  since=2025-12-29 23:22:12  loc=--
+03:11:29.232 INFO  DCL-NHRA-Tech-Hauler (TRK-01)            parked   v1= 27.77  v2=  0.0448  today=  191m  month= 12192m  since=2026-02-17 23:59:07  loc=--
+03:11:30.671 INFO  DCL-Brown (RBR-01)                       parked   v1= 27.65  v2= 12.7722  today=    8m  month=  2195m  since=2026-06-25 03:03:55  loc=--
+03:11:30.736 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 52.88  v2=  0.0381  today=  192m  month= 17309m  since=2026-02-16 19:41:58  loc=Ypsilanti Charter Township, MI
+03:11:30.742 INFO  DCL-CDOT-1 (SIM-001)                     driving  v1= 26.56  v2= 13.1220  today=    0m  month=     9m  since=2026-06-03 15:11:18  loc=Wheat Ridge, CO
+03:11:30.747 INFO  DCL-Epler (TRL-01)                       parked   v1= 26.42  v2=  0.0390  today=  192m  month= 26181m  since=2026-01-31 18:59:00  loc=Richland, WA
+03:11:30.753 INFO  DCL-Kruse (WKR-01)                       parked   v1= 26.58  v2=  0.0385  today=  192m  month= 25660m  since=2025-12-29 23:27:57  loc=--
+03:11:31.424 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 26.56  v2=  0.0459  today=  192m  month= 31209m  since=2025-12-29 23:38:54  loc=--
+03:11:31.429 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.56  v2=  0.0375  today=  192m  month= 28732m  since=2025-12-29 23:38:19  loc=Marysville, WA
+03:11:31.737 INFO  DCL-KTR (KTR-01)                         parked   v1= 25.29  v2= 12.6865  today=    8m  month=  4619m  since=2026-06-25 03:03:52  loc=Joliet, IL
+03:11:31.742 INFO  DCL-Carter (CTR-69)                      parked   v1= 28.48  v2=  0.0433  today=  192m  month= 20606m  since=2025-12-03 17:15:48  loc=Osburn, ID
+03:11:31.748 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 26.38  v2= 13.2744  today=    0m  month=     5m  since=2026-06-14 23:12:07  loc=Delaware, OH
+03:11:31.797 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.59  v2=  0.0393  today=  192m  month= 29290m  since=2025-12-29 23:22:12  loc=--
+03:11:35.971 INFO  Re-arming stalled devices  count=1  devices=[{"name":"DCL-Radian-2","reason":"silent_stall","stalledForMs":556187}]
+03:11:35.971 INFO  Disconnected  deviceName=DCL-Radian-2  deviceId=25  serial=555F07DA68E55AAA  cohort=1
+Skipping 3 offline/unstable devices:
+                  [flapping]  DCL-Thibert                              (0 disconnects) (supervisor will probe)
+                  [flapping]  DCL-Radian-1                             (0 disconnects) (supervisor will probe)
+                  [flapping]  DCL-Penske01                             (0 disconnects) (supervisor will probe)
+03:11:36.220 INFO  Connecting to device  deviceName=DCL-Radian-2  deviceId=25  serial=555F07DA68E55AAA  cohort=1
+03:11:36.240 INFO  Connected successfully  deviceName=DCL-Radian-2  deviceId=25  serial=555F07DA68E55AAA  cohort=1  durationMs=20
+03:11:36.243 INFO  onDisconnect fired  deviceName=DCL-Radian-2  deviceId=25  serial=555F07DA68E55AAA  cohort=1  reason=2  connDurationMs=3  hadSuccessfulPoll=false  wasConnected=true  consecutiveFailures=0  rapidDisconnects=0
+03:11:36.244 INFO  Stalled device recovered via re-arm  deviceId=25  serial=555F07DA68E55AAA  name=DCL-Radian-2  reason=silent_stall  durationMs=20
+03:11:36.244 INFO  Stalled-device re-arm complete  attempted=1  recovered=1
+Skipping 3 offline/unstable devices:
+                  [flapping]  DCL-Thibert                              (0 disconnects) (probe #5 failed, retry in 185m)
+                  [flapping]  DCL-Radian-1                             (0 disconnects) (probe #4 failed, retry in 144m)
+                  [flapping]  DCL-Penske01                             (0 disconnects) (probe #5 failed, retry in 185m)
+03:11:38.707 INFO  GPS fix  truckId=12  lat=40.2779353  lng=-83.1068385  deltaMeters=0  deltaSeconds=120  impliedMph=0
+03:11:38.714 INFO  GPS fix  truckId=10  lat=41.24493  lng=-82.541279  deltaMeters=0  deltaSeconds=120  impliedMph=0
+03:11:38.724 INFO  GPS fix  truckId=20  lat=39.775724  lng=-105.150179  deltaMeters=0  deltaSeconds=120  impliedMph=0
+03:11:38.731 INFO  GPS fix  truckId=14  lat=46.197764  lng=-119.269778  deltaMeters=0  deltaSeconds=120  impliedMph=0
+03:11:38.738 INFO  GPS fix  truckId=3  lat=47.506258  lng=-115.9998898  deltaMeters=0  deltaSeconds=120  impliedMph=0
+03:11:38.745 INFO  GPS fix  truckId=17  lat=41.362787  lng=-73.630637  deltaMeters=0  deltaSeconds=120  impliedMph=0
+03:11:38.751 INFO  GPS fix  truckId=1  lat=47.603196  lng=-117.539251  deltaMeters=0  deltaSeconds=120  impliedMph=0
+03:11:38.758 INFO  GPS fix  truckId=18  lat=41.362787  lng=-73.630637  deltaMeters=0  deltaSeconds=120  impliedMph=0
+03:11:38.764 INFO  GPS fix  truckId=16  lat=42.224154  lng=-83.613579  deltaMeters=0  deltaSeconds=120  impliedMph=0
+03:11:38.772 INFO  GPS fix  truckId=8  lat=48.064823  lng=-122.185572  deltaMeters=0  deltaSeconds=120  impliedMph=0
+03:11:38.778 INFO  GPS fix  truckId=2  lat=47.603837  lng=-117.53583  deltaMeters=0  deltaSeconds=120  impliedMph=0
+03:11:38.781 INFO  InHand poll complete  totalDevices=45  devicesWithIds=45  simsMatched=17  simsOnline=9  simsOffline=8  simsRssiUpdated=9  trucksUpdated=11  locationsRecorded=11  matchedDevices=DCL-Elite-Hospitality→TRK-01 via iccid; DCL-Howard→MHR-01 via iccid; DCL-Brown→RBR-01 via msisdn; DCL-CDOT-1→SIM-001 via iccid; DCL-Epler→TRL-01 via iccid; DCL-Carter→CTR-69 via iccid; DCL-NHRA-Tech-Hauler→TRK-01 via msisdn; DCL-Radian-2→M38 via iccid; DCL-Moeck-Fleet→GFR-69 via iccid; DCL-Kruse→WKR-01 via msisdn; DCL-Radian-1→M53 via iccid; DCL-Thibert→RTR-01 via msisdn; DCL-Kalitta-Hospitality→TRK-01 via iccid; DCL-Haynes→RHR-01 via msisdn; DCL-Curtis-2→TRK-02 via msisdn; DCL-Curtis-1→TRK-01 via iccid; DCL-Moeck-Hauler→GFR-70 via iccid  unmatchedDevices=RF3022529634046(msisdn=null,iccid=8931086125129524302F); RF3022547677591(msisdn=null,iccid=8931086125129524245F); IR302_1(msisdn=883190603571829,iccid=null); IR302_2(msisdn=883190603571826,iccid=null); IR302_6(msisdn=883190603400850,iccid=null); IR302_7(msisdn=883190603400853,iccid=null); IR302_9(msisdn=883190603748141,iccid=null); IR302_10(msisdn=883190603748135,iccid=89444611503508862610); IR302_11(msisdn=883190603748140,iccid=null); IR302_12(msisdn=883190603748143,iccid=null); IR302_14(msisdn=883190603748142,iccid=null); IR302_15(msisdn=883190603748136,iccid=89444611503508862651); IR302_16(msisdn=883190603748139,iccid=null); IR302_17(msisdn=883190603748134,iccid=null); IR302_18(msisdn=883190603748138,iccid=null); IR302_19(msisdn=883190603657506,iccid=89444611503507318093); IR302_20(msisdn=883190603657500,iccid=89444611503507318325); IR302_22(msisdn=883190603657501,iccid=null); IR302_26(msisdn=883190603657504,iccid=null); IR302_27(msisdn=883190603657505,iccid=null); IR302_28(msisdn=883190603659416,iccid=null); IR302_29(msisdn=883190603659415,iccid=89444611503507317905); IR302_30(msisdn=883190603659423,iccid=null); DCL-Penske-01(msisdn=883190603659413,iccid=null); DCL-Radian-Shop(msisdn=883190603659435,iccid=null); IR302_35(msisdn=883190603659421,iccid=89444611503507317848); IR302_36(msisdn=883190603659408,iccid=null); IR302_39(msisdn=883190603571823,iccid=null)  durationMs=592
+03:11:39.251 INFO  DCL-NHRA-Tech-Hauler (TRK-01)            parked   v1= 27.77  v2=  0.0446  today=  192m  month= 12193m  since=2026-02-17 23:59:07  loc=--
+03:11:40.687 INFO  DCL-Brown (RBR-01)                       parked   v1= 27.65  v2= 12.7688  today=    8m  month=  2195m  since=2026-06-25 03:03:55  loc=--
+03:11:40.768 INFO  DCL-CDOT-1 (SIM-001)                     driving  v1= 26.56  v2= 13.1201  today=    0m  month=     9m  since=2026-06-03 15:11:18  loc=Wheat Ridge, CO
+03:11:40.774 INFO  DCL-Kruse (WKR-01)                       parked   v1= 26.58  v2=  0.0386  today=  192m  month= 25660m  since=2025-12-29 23:27:57  loc=--
+03:11:40.779 INFO  DCL-Kalitta-Hospitality (TRK-01)         parked   v1= 52.88  v2=  0.0392  today=  192m  month= 17309m  since=2026-02-16 19:41:58  loc=Ypsilanti Charter Township, MI
+03:11:40.785 INFO  DCL-Epler (TRL-01)                       parked   v1= 26.42  v2=  0.0396  today=  192m  month= 26181m  since=2026-01-31 18:59:00  loc=Richland, WA
+03:11:41.446 INFO  DCL-Curtis-2 (TRK-02)                    parked   v1= 26.56  v2=  0.0456  today=  192m  month= 31209m  since=2025-12-29 23:38:54  loc=--
+03:11:41.452 INFO  DCL-Curtis-1 (TRK-01)                    parked   v1= 26.56  v2=  0.0375  today=  192m  month= 28732m  since=2025-12-29 23:38:19  loc=Marysville, WA
+03:11:41.766 INFO  DCL-KTR (KTR-01)                         parked   v1= 25.29  v2= 12.6761  today=    8m  month=  4619m  since=2026-06-25 03:03:52  loc=Joliet, IL
+03:11:41.772 INFO  DCL-Elite-Hospitality (TRK-01)           driving  v1= 26.38  v2= 13.2744  today=    0m  month=     5m  since=2026-06-14 23:12:07  loc=Delaware, OH
+03:11:41.777 INFO  DCL-Carter (CTR-69)                      parked   v1= 28.47  v2=  0.0435  today=  192m  month= 20606m  since=2025-12-03 17:15:48  loc=Osburn, ID
+03:11:41.816 INFO  DCL-Haynes (RHR-01)                      parked   v1= 27.59  v2=  0.0396  today=  192m  month= 29290m  since=2025-12-29 23:22:12  loc=--
