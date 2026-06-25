@@ -475,6 +475,49 @@ async function getFlappingDevicesReadyForRecovery(quarantineMs = 5 * 60 * 1000) 
 }
 
 /**
+ * Backstop: find "stranded" devices.
+ *
+ * A stranded device has a connection_status that looks healthy (i.e. NOT a
+ * recovery state — not flapping/unstable/probing/offline) but has not reported
+ * any data in `staleMs`. This is the signature of the dead-zone bug where a
+ * racing connect-success write flipped a flapping device's row back to 'online'
+ * while the in-memory circuit breaker stayed open: the supervisor solo-probe
+ * only adopts 'flapping' rows, and the worker re-arm skips isCircuitOpen
+ * connections, so nothing ever reclaims it.
+ *
+ * Freshness is measured by last_reported_at (written on every successful poll
+ * by markDeviceReporting), NOT last_seen_at — last_seen_at is only stamped on
+ * (re)connect, so a long-lived healthy connection would false-positive on it.
+ *
+ * Caller demotes each result to 'flapping' so the solo-probe loop adopts and
+ * recovers it. Only devices that have reported before (last_reported_at IS NOT
+ * NULL) and have an active credential are considered, so never-provisioned or
+ * decommissioned devices are left alone.
+ *
+ * @param {number} staleMs - No-data threshold in milliseconds (default 20 minutes)
+ */
+async function getStrandedDevices(staleMs = 20 * 60 * 1000) {
+  const result = await query(`
+    SELECT
+      d.id as device_id,
+      d.serial_number,
+      d.device_name,
+      d.connection_status,
+      d.data_status,
+      d.last_reported_at,
+      EXTRACT(EPOCH FROM (NOW() - d.last_reported_at)) / 60 as mins_since_reported
+    FROM power_mon_devices d
+    INNER JOIN device_credentials c ON c.device_id = d.id AND c.is_active = true
+    WHERE (d.connection_status IS NULL OR d.connection_status NOT IN ('unstable', 'offline', 'flapping', 'probing'))
+      AND d.last_reported_at IS NOT NULL
+      AND d.last_reported_at < NOW() - INTERVAL '1 millisecond' * $1
+    ORDER BY d.last_reported_at ASC
+  `, [staleMs]);
+
+  return result.rows;
+}
+
+/**
  * Get unstable devices that are ready for recovery attempt
  * Returns devices marked unstable for longer than the backoff period
  * @param {number} backoffMs - Backoff period in milliseconds (default 5 minutes)
@@ -1142,6 +1185,7 @@ module.exports = {
   markDeviceUnstable,
   getUnstableDevicesReadyForRecovery,
   getFlappingDevicesReadyForRecovery,
+  getStrandedDevices,
   getOfflineDevicesForRecovery,
   updateMarkedOfflineAt,
   resetDeviceStability,

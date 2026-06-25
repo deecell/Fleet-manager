@@ -26,6 +26,14 @@ const { classifyFlappingVerdict, minutesAgo } = require('./flapping-verdict');
 const FLAPPING_QUARANTINE_MS = 5 * 60 * 1000;
 const PROBE_BACKOFF_MINUTES = [5, 15, 60, 240];
 
+// Backstop: a device whose status looks healthy but that hasn't reported data
+// in this long is treated as "stranded" and demoted to 'flapping' so the
+// solo-probe loop reclaims it. Set well past the normal re-arm (5 min) and
+// probe (5 min quarantine) windows so this only fires for devices the regular
+// recovery paths genuinely missed — never as a race against them.
+const STRANDED_DATA_STALE_MS = 20 * 60 * 1000;
+const STRANDED_CHECK_INTERVAL_MS = 5 * 60 * 1000;
+
 class Supervisor {
   constructor() {
     this.workers = new Map();
@@ -76,6 +84,7 @@ class Supervisor {
     setInterval(() => this._checkForNewCohorts(), 5 * 60 * 1000);
     setInterval(() => this._logSkippedDevices(), 60 * 1000);
     setInterval(() => this._probeFlappingDevices(), 60 * 1000);
+    setInterval(() => this._recoverStrandedDevices(), STRANDED_CHECK_INTERVAL_MS);
 
     logger.info('Supervisor: All services started', {
       workers: this.workers.size,
@@ -333,6 +342,57 @@ class Supervisor {
       }
     } catch (err) {
       logger.error('Supervisor: Failed to probe flapping devices', { error: err.message });
+    }
+  }
+
+  /**
+   * Backstop recovery for "stranded" devices.
+   *
+   * A stranded device looks healthy in the DB (connection_status is not a
+   * recovery state) but has gone silent — no successful poll for
+   * STRANDED_DATA_STALE_MS. This is the dead-zone signature: a racing
+   * connect-success write flipped a flapping row back to 'online' while the
+   * in-memory circuit breaker stayed open, so neither the worker re-arm (skips
+   * isCircuitOpen) nor this probe loop (only adopts 'flapping') would ever
+   * reclaim it. The onConnect race guard now prevents that desync at the
+   * source; this backstop is defense-in-depth that recovers a stranded device
+   * regardless of how its status/freshness diverged.
+   *
+   * We demote each stranded device to 'flapping' (marked_unstable_at = NOW()).
+   * The next _probeFlappingDevices pass adopts it after the quarantine, the
+   * solo probe reconnects it, and the worker's checkForNewDevices re-arms the
+   * in-pool connection — the same path normal flapping recovery uses.
+   */
+  async _recoverStrandedDevices() {
+    if (this.isShuttingDown) return;
+
+    try {
+      const stranded = await db.getStrandedDevices(STRANDED_DATA_STALE_MS);
+      if (stranded.length === 0) return;
+
+      for (const device of stranded) {
+        await db.markDeviceUnstable(device.device_id, 'flapping');
+      }
+
+      const yellow = '\x1b[33m';
+      const dim = '\x1b[2m';
+      const rst = '\x1b[0m';
+      const ts = new Date().toISOString().slice(11, 19);
+      const names = stranded
+        .map(d => `${d.device_name || d.serial_number} (${Math.round(d.mins_since_reported)}m)`)
+        .join(', ');
+      console.log(`${dim}${ts}${rst} ${yellow}BACKSTOP${rst} Demoted ${stranded.length} stranded device(s) → flapping: ${names}`);
+      logger.warn('Supervisor: backstop demoted stranded devices to flapping', {
+        count: stranded.length,
+        thresholdMinutes: STRANDED_DATA_STALE_MS / 60000,
+        devices: stranded.map(d => ({
+          name: d.device_name || d.serial_number,
+          connection_status: d.connection_status,
+          minsSinceReported: Math.round(d.mins_since_reported),
+        })),
+      });
+    } catch (err) {
+      logger.error('Supervisor: Failed to recover stranded devices', { error: err.message });
     }
   }
 

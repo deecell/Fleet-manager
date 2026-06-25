@@ -297,6 +297,38 @@ class DeviceConnection {
             clearTimeout(timeout);
             db.recordActiveDevice(null);
             const durationMs = Date.now() - connectStartTime;
+
+            // RACE GUARD: the circuit breaker can OPEN (device marked
+            // 'flapping') on an earlier generation's onDisconnect while THIS
+            // connect() is still in flight. If that happened, this is a stale
+            // success callback. Honoring it is exactly what created the
+            // production dead-zone: markDeviceConnected() below clobbers the
+            // 'flapping' DB row back to 'online' (and nulls marked_unstable_at),
+            // while isCircuitOpen stays true in memory. The result is a device
+            // that NO recovery path can reach — the supervisor solo-probe only
+            // adopts 'flapping' rows (DB now says 'online'), and the worker
+            // re-arm explicitly skips isCircuitOpen connections. It then sits
+            // silent until the next process restart.
+            //
+            // So when the breaker is open, do NOT write markDeviceConnected and
+            // do NOT flip status to 'connected'. Leave the row 'flapping' and
+            // the conn 'disconnected' (set at breaker-open) so the normal
+            // probe → checkForNewDevices re-arm path owns recovery.
+            if (this.isCircuitOpen) {
+              this.log.warn('Connect succeeded but circuit breaker is open — ignoring stale success to preserve flapping state', { durationMs });
+              if (this.device) {
+                try {
+                  this.intentionalDisconnect = true;
+                  this.device.disconnect();
+                } catch (e) {
+                  this.log.warn('Error disconnecting stale post-breaker connection', { error: e.message });
+                }
+                this.device = null;
+              }
+              resolve({ success: false, durationMs, skipped: true });
+              return;
+            }
+
             this.status = 'connected';
             this.consecutiveFailures = 0;
             this.reconnectAttempts = 0;

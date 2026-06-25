@@ -4,6 +4,18 @@
 
 ---
 
+## 2026-06-25 — PERMANENT FIX: close the circuit-breaker / DB desync dead-zone
+
+Builds on the incident below (DCL-Howard / DCL-Moeck-Hauler stuck "online / no_data"). Two-part fix in the Device Manager (`device-manager/app/`); ships via the EC2 deploy path, not the web/ECS one.
+
+**1. Root-cause fix — `onConnect` race guard (`connection-pool.js`)**: the dead-zone was created by a *stale* connect-success callback. When the circuit breaker opens on an earlier generation's `onDisconnect` (sets `isCircuitOpen=true`, nulls `this.device`, sets `status='disconnected'`, writes `flapping`), an in-flight `connect()` from a prior generation can still fire its `onConnect` afterward. That callback ran `markDeviceConnected()` (flipping the row back to `online` and nulling `marked_unstable_at`) and set `status='connected'` — clobbering both the DB flapping mark and the in-memory `disconnected` status while `isCircuitOpen` stayed true. `onConnect` now checks `if (this.isCircuitOpen)` first: if the breaker is open it logs, cleanly disconnects the stale native handle, and bails (`resolve({success:false, skipped:true})`) **without** writing the DB or touching status. The row stays `flapping` and the conn stays `disconnected`, so the normal `probe → checkForNewDevices` re-arm path recovers it. Safe by construction: `connect()` already calls `shouldSkipConnection()` first (which clears `isCircuitOpen` once the cooldown passes), so a legitimate post-cooldown connect never sees `isCircuitOpen=true` in `onConnect` and never false-bails.
+
+**2. Defense-in-depth — supervisor "stranded device" backstop (`supervisor.js` + `database.js`)**: new `getStrandedDevices(staleMs)` finds devices whose `connection_status` is NOT a recovery state (not `flapping`/`unstable`/`probing`/`offline`) but whose `last_reported_at` is older than the threshold (default **20 min**). New `Supervisor._recoverStrandedDevices()` runs every 5 min and demotes each to `flapping` (via `markDeviceUnstable`), so the existing solo-probe loop adopts and recovers it on its next pass — the same machinery as normal flapping recovery. Freshness uses `last_reported_at` (written on every successful poll), **not** `last_seen_at` (only stamped on connect, so a long-lived healthy connection would false-positive). Threshold is set well past the 5-min re-arm and 5-min probe-quarantine windows so the backstop only fires for devices the regular paths genuinely missed — never as a race against them. Only devices with `last_reported_at IS NOT NULL` and an active credential are touched (never-provisioned / decommissioned devices are left alone). Logs a `BACKSTOP` line + structured warning when it acts.
+
+**Net effect**: part 1 stops the desync at its source; part 2 guarantees that *any* future device that ends up "healthy status but silent" self-heals within ~one backstop+probe cycle instead of sitting dark until the next process restart.
+
+---
+
 ## 2026-06-25 — DCL-Howard + DCL-Moeck-Hauler stuck "online / no_data" 12h (circuit-breaker / DB desync dead-zone)
 
 **Symptom**: two devices showed `connection_status='online'` but battery data frozen since ~00:02 UTC (GPS/router signal kept reporting fine). DCL-Howard (truck MHR-01, id 28, cohort 3, serial 35B1B4D3E0226F46, PowerMon-W fw1.24). DCL-Moeck-Hauler (id 20, cohort 2, serial E18590457A387E04, PowerMon-E fw1.4). Their HW/FW twins all recovered, so it wasn't a device trait.
