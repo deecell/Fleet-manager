@@ -4,6 +4,26 @@
 
 ---
 
+## 2026-06-25 — DCL-Howard + DCL-Moeck-Hauler stuck "online / no_data" 12h (circuit-breaker / DB desync dead-zone)
+
+**Symptom**: two devices showed `connection_status='online'` but battery data frozen since ~00:02 UTC (GPS/router signal kept reporting fine). DCL-Howard (truck MHR-01, id 28, cohort 3, serial 35B1B4D3E0226F46, PowerMon-W fw1.24). DCL-Moeck-Hauler (id 20, cohort 2, serial E18590457A387E04, PowerMon-E fw1.4). Their HW/FW twins all recovered, so it wasn't a device trait.
+
+**Root cause (proven from `/var/log/syslog` on the DM host, NOT journald — see below)**: at `00:02:08 UTC` the **midnight firmware mass-close reconnect storm** drove both devices through 3 instant disconnects → `Circuit breaker OPEN - flapping` → `Marking device as flapping in database`. That set in-memory `isCircuitOpen=true`. But a **racing connect-success DB write then flipped `connection_status` back to `'online'`**, clobbering the just-written `flapping` mark, **without clearing the in-memory `isCircuitOpen` flag**. The two states diverged:
+- **DB** says `online` (looks healthy → supervisor solo-probe never adopts it; it only probes `flapping` rows).
+- **Memory** says `isCircuitOpen=true` (worker re-arm explicitly does `if (conn.isCircuitOpen) continue;` → skips it).
+
+Neither recovery path can reach them → **dead-zone**. After `00:02:08` there are **zero** log lines for either device for 12h (no re-arm, no probe). Confirmed the recovery machinery itself is healthy: other cohorts (1/5/6) re-arm every 5 min and the supervisor probe recovered DCL-Radian-1 / DCL-Moeck-Fleet today.
+
+**Why a DB nudge to `flapping` would NOT fix it**: even if the solo-probe proved reachability and set the row back, the worker's `checkForNewDevicesInCohort` re-adoption does `if (this.connections.has(deviceId)) continue;`. The poisoned connection object is **still in the worker's in-memory pool** (the breaker never evicted it), so it's skipped. Only discarding that in-memory object resumes polling.
+
+**Surgical recovery (no full DM restart)**: `scripts/migrations/2026-06-25_unstick_howard_moeck_hauler.sh` — SIGTERMs **only** the cohort 2 + cohort 3 worker child processes (looked up live by `WORKER_COHORT_ID`). The supervisor's `worker.on('exit')` handler auto-respawns each within seconds; on respawn they reload their cohort from the DB (`online` qualifies), build fresh connections (`isCircuitOpen=false`) and resume polling. Blast radius = only cohort 2 & 3 devices get a brief reconnect; supervisor, the other 8 workers, InHand poller and web app untouched. Script previews → confirms → bounces → re-verifies `last_seen_at` freshness.
+
+**Ops note — where the DM logs actually live**: the unit is `StandardOutput=journal`, but `journalctl` returns ~0 lines because journald rate-limits under the DM's poll-line volume. The real logs are in **`/var/log/syslog`** (rsyslog), ISO timestamps (`2026-06-25T00:02:08`), ANSI-coded. The DM host is **`i-0a435441556fc5ab1`** (region us-east-2) — note this differs from the psql box used in older migration scripts.
+
+**Permanent fix (proposed, not yet built)**: close the dead-zone so DB-status and in-memory circuit state can't strand a device. Options: (a) when the connect-success path resets status to `online`, also clear `isCircuitOpen`/`reconnectAttempts` in memory; (b) don't let a connect-success write overwrite a `flapping` mark while the breaker is open; and/or (c) a supervisor backstop that demotes any device with stale `last_seen_at` but a non-recovery `connection_status` into `flapping` so the probe loop adopts it. (c) is the most robust catch-all.
+
+---
+
 ## 2026-06-25 — HOTFIX: production `/api/v1/admin/devices` 500 (Moved-24h query)
 
 **Symptom**: after deploying the "Moved (24h)" feature, prod `app.deecell.com` `/api/v1/admin/devices` returned HTTP 500 ("No devices registered"). The Dashboard loaded fine (19 devices) because it doesn't call the movement query.
