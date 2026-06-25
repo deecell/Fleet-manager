@@ -80,7 +80,8 @@ PY
   local err
   err=$(aws ssm get-command-invocation --command-id "$cid" --instance-id "$DM_INSTANCE_ID" \
     --region "$REGION" --query 'StandardErrorContent' --output text)
-  [ -n "$err" ] && { echo "--- stderr ---"; echo "$err"; }
+  if [ -n "$err" ]; then echo "--- stderr ---"; echo "$err"; fi
+  return 0
 }
 
 # --- remote snippet: list current cohort workers + the two devices' freshness -
