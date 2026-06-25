@@ -4,6 +4,23 @@
 
 ---
 
+## 2026-06-25 — ROOT CAUSE: InHand "Device Manager" upload intervals capped at 1 hour (LBS + Series Info)
+
+Wireless Logic pointed us to the InHand router's **Device Manager** service config (the cloud connection to `iot.inhandnetworks.com` that our API reads). On `DCL-Moeck-Fleet` (IR300):
+- **LBS info Upload Interval = 1 Hour** (LBS = cell-tower location)
+- **Series Info Upload Interval = 1 Hour** (signal/cell telemetry time-series)
+- Channel Keepalive = 30 s
+
+**Both are already at the minimum.** The field rejects anything below 1 and reports **"valid values are 1–24" (hours)**. So via the GUI, the fastest the router will push cell/LBS/signal telemetry to InHand's cloud is **once per hour** — this is the throttle behind the stale/coarse data, and it is a **platform/config cap, not (only) our poller**. We cannot reach near-real-time through the standard Device Manager config.
+
+**Genuine InHand bug on top of the cap:** even at the 1-hour LBS setting, `location.time` is **4.5 days stale** (baseline 2026-06-25 22:10 UTC: `location.time = 2026-06-21T01:03:08Z`). So LBS isn't even honoring its own hourly interval. And `info.cid`/`lac` stayed fixed across the 22-mile drive, so the uploaded cell identity isn't the live serving cell.
+
+**Baseline (22:10 UTC / 3:10 PM PDT):** location.time 2026-06-21 01:03 (4.5 d stale); signalStrength.ts 22:00 (on the hour); info.cid 108634129 / lac 37122; info.updatedAt 21:43.
+
+**Next steps / ask to InHand** (vendor letter updated → `docs/inhand-realtime-data-request.md`): (a) a path to **sub-hour** upload intervals (CLI/advanced/firmware) or raise the cap; (b) why LBS exceeds its own interval; (c) report the live serving cell, not a cached value; (d) store-and-forward across weak-signal gaps; (e) optional GNSS enablement on the IR300 as the real fix. Device is already at minimum — nothing further to change on it. No production code changed.
+
+---
+
 ## 2026-06-25 — Live drive test: GFR-69 (DCL-Moeck-Fleet) — InHand cell data is ~5-min cadence, signal-gated, location never moves
 
 Ran a live ground-truth drive with truck **GFR-69** (truck_id 1, InHand device `DCL-Moeck-Fleet`) to measure how real-time InHand's cell-tower data actually is while moving. A read-only logger polled the InHand bulk API every 30s and recorded `cid/lac/mcc/mnc`, full `signalStrength.*`, and `location`. Andy recorded stop times by hand.

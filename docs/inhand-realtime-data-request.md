@@ -1,69 +1,88 @@
-# Data Accuracy Issue: API Returns Stale Cellular Network State
+# Data Accuracy & Upload-Interval Issue: InHand Cloud Reports Stale Cellular State
 
 **To:** InHand Networks Support / Engineering
 **From:** Deecell (account: andy@deecell.com)
 **Date:** 2026-06-25
-**Re:** Cellular telemetry (`cid` / `lac` / signal) returned by the API is stale and does not match the device's actual live radio state
+**Re:** (1) Device Manager upload intervals are capped at 1 hour; (2) even at that cap, location/cell data is stale and does not match the device's live radio state
 
 ---
 
 ## Scope of this request (please read first)
 
-**This is a data-accuracy issue, not a request for a GPS/tracking product.** We are **not** asking the router to be a vehicle tracker. We are reporting that the **cellular network fields your API already returns** — serving cell ID (`cid`), location area code (`lac`), carrier (`mcc`/`mnc`), and `signalStrength` — **do not reflect the device's real, live radio state.** The router inherently knows these values at all times (it must, in order to maintain its cellular connection), so when the API returns stale or unchanging values for a device that has physically moved, that is a defect in the data pipeline, not a missing feature.
+**This is a data-accuracy and configuration issue, not a request for a GPS/tracking product.** We are **not** asking the router to be a vehicle tracker. We are reporting two concrete problems with the **cellular network data your cloud already collects** — serving cell ID (`cid`), location area code (`lac`), carrier (`mcc`/`mnc`), `signalStrength`, and cell-tower location (LBS):
+
+1. Your **Device Manager** service will not upload this data more often than **once per hour** (the config field's valid range is **1–24 hours**), and
+2. Even at that 1-hour setting, the data we receive is **far older than an hour and does not reflect the device's actual current cell**.
+
+The router inherently knows its serving cell and signal at all times (it must, to keep its data connection up), so this is a defect/limitation in the **cloud upload pipeline and its configurable cadence**, not a missing hardware feature.
 
 ---
 
-## The core defect (the part that can't be explained by "we're not a tracker")
+## Finding 1 — The upload interval is capped at 1 hour (this is the core blocker)
 
-On a controlled drive, one of our routers traveled **22 miles from West Spokane, WA to the Idaho state line on I-90** and back. Over that drive, your API reported:
+On `DCL-Moeck-Fleet` (IR300), under **Service Manager → Device Manager** (Server: `iot.inhandnetworks.com`), the relevant settings are:
+
+| Setting | Current value | Meaning |
+|---|---|---|
+| **LBS info Upload Interval** | **1 Hour** | Cell-tower (LBS) location upload cadence |
+| **Series Info Upload Interval** | **1 Hour** | Signal / cell telemetry time-series upload cadence |
+| Channel Keepalive | 30 Seconds | — |
+
+Both are **already at the minimum**. Attempting to set either below 1 returns the error: **"valid values are 1–24"** (hours). So the fastest the router will push cell/LBS/signal telemetry to your cloud — which is what our API (`GET /api/devices?verbose=100`, `GET /api/devices/{id}/signal`) reads — is **once per hour**.
+
+**What we need:** a supported way to upload LBS and Series Info at **sub-hour intervals — ideally ~1 minute (30–60 s)**. Specifically:
+- Is there a **CLI, advanced config, or firmware option** that allows an upload interval below 1 hour?
+- If not, can the platform be updated to **accept seconds/minutes** for these fields?
+- If 1 hour is a hard platform limit, please tell us directly so we can plan around it.
+
+---
+
+## Finding 2 — Even at the 1-hour cap, the data is stale and wrong
+
+This is independent of the interval cap and, we believe, a genuine bug.
+
+### 2a. Location is days stale, not 1 hour
+Baseline reading (2026-06-25 22:10 UTC) from your API for `DCL-Moeck-Fleet`:
+- `location.source = "cellTower"`, **`location.time = 2026-06-21T01:03:08Z`** — i.e., **~4.5 days old**, despite the LBS upload interval being set to 1 hour.
+- Across all 48 of our devices, **0 report `location.source: "gps"`**, and `location.time` is routinely multiple days stale.
+
+If LBS were honoring its 1-hour interval, location should be at most ~1 hour old. It is not. **Why does LBS exceed its own configured upload interval?**
+
+### 2b. The serving cell does not change across a 22-mile drive
+We ran a controlled drive: one router traveled **22 miles from West Spokane, WA to the Idaho state line on I-90** and back. Over that drive your API reported:
 
 - **`info.cid = 107713764` — UNCHANGED the entire 22-mile leg.**
-- **`lac = 37122` — UNCHANGED the entire 22-mile leg** (including crossing from the Spokane market into Idaho).
-- The signal-block cell ID (`signalStrength.cid`) changed **exactly once** in 22 miles.
+- **`lac = 37122` — UNCHANGED the entire 22-mile leg** (including crossing into the Idaho market).
+- The signal-block `signalStrength.cid` changed **only once** in 22 miles.
 
-**This is physically impossible for a live cellular connection.** A vehicle driving 22 miles on an interstate passes through **dozens of distinct cell sectors**; the serving `cid` must change many times, and `lac` should change at least once across that distance and a state-line/market boundary. A single change (and zero change in the `info` block) can only mean one thing: **the API is returning a cached/stale serving-cell value, not the device's actual current cell.**
+A vehicle driving 22 miles on an interstate passes through **dozens of cell sectors**; the serving `cid` must change many times and `lac` should change at least once. A single change (and zero change in the `info` block) means the uploaded values are **cached/stale, not the device's actual current serving cell.**
 
-The router never lost service during this drive (it kept its data connection the whole time), so the radio knew the truth in real time — your cloud simply isn't surfacing it.
+> We are **not** citing `mcc/mnc` (310/410, AT&T) as evidence — that is expected to stay constant if the device remained on AT&T. The unambiguous proof is **`cid`** (and `lac`), which cannot remain fixed across 22 miles.
 
-> Note on carrier code: `mcc/mnc` stayed `310/410` (AT&T). That one is *expected* if the device stayed on AT&T for the whole drive, so we are **not** citing it as evidence. The unambiguous proof is `cid` (and `lac`), which cannot remain fixed across 22 miles of driving.
-
----
-
-## Supporting evidence
-
-### 1. The telemetry timestamp freezes, then "catches up" in one jump
-- `signalStrength.ts` only advances about **every 5 minutes** at best.
-- When the device was on a weaker tower near the Idaho border, the data **stopped updating for 35+ minutes** — whether the truck was parked or moving — and then **jumped forward in a single step** once it returned to stronger coverage (e.g., last update leapt from 16:30 to 17:00 UTC at once).
-- This pattern indicates the cloud serves a **last-known cached value** while the device-to-cloud sync is degraded, rather than buffering timestamped samples and uploading them on reconnect. It is a **reporting/sync problem, not a radio problem.**
-
-### 2. `info.updatedAt` lags the real world
-The `info` block carried an `updatedAt` that froze for long stretches during the drive, confirming the `info` payload (which contains `cid`/`lac`) is refreshed far less often than the device's actual cell changes.
-
-### 3. The reported location is also stale (downstream of the same problem)
-Separately, `location.source = "cellTower"` with `location.time` stuck **4+ days in the past** (e.g., a 2026-06-21 timestamp during a 2026-06-25 drive), and across all 48 of our devices **0 report `source: "gps"`**. Even the cell-tower geolocation is not re-run when the (also stale) cell ID changes.
+### 2c. Telemetry freezes during weak signal, then jumps
+When the device was on a weaker tower near the Idaho border, the telemetry timestamp **stopped advancing for 35+ minutes** (parked or moving), then **jumped forward in a single step** once back in stronger coverage. This suggests the cloud serves a **last-known cached value** rather than buffering timestamped samples and uploading them on reconnect (store-and-forward).
 
 ---
 
-## What we need from InHand
+## What we need from InHand (summary)
 
-### Primary (data accuracy — the must-fix)
-1. **Return the device's live serving cell.** `info.cid` / `lac` (and `signalStrength.cid`) must reflect the **current** tower the radio is attached to, and update **on every handoff**. Please confirm why these fields remain unchanged across a 22-mile drive and fix the staleness.
-2. **Explain and fix the `info.updatedAt` / telemetry freeze.** Why does the serving-cell/signal payload stop updating for 30+ minutes, and how do we get it to report on the actual cadence the radio changes?
-3. **Buffer and forward telemetry across weak-signal gaps (store-and-forward).** When backhaul degrades, the device should **queue timestamped samples and upload them on reconnect**, rather than the API serving a frozen last-known value. Does the platform/firmware support this, and how do we enable it?
-4. **Allow a shorter reporting interval.** We currently see `config.timeout = 300000` (5 min). What is the **minimum supported reporting interval**, and how do we lower it (e.g., to 30–60 s) for `cid`/`lac`/`signalStrength`?
-5. **Per-sample timestamps on serving-cell data**, so we can reliably order handoffs over time.
+**Primary**
+1. **Allow sub-hour upload intervals** for LBS info and Series Info (your field caps at 1–24 hours; we need ~1 minute). Is there a CLI/advanced/firmware path, or can the limit be changed?
+2. **Fix LBS not honoring its interval** — explain why `location.time` is days stale when LBS is set to 1 hour.
+3. **Report the live serving cell** — `info.cid`/`lac` (and `signalStrength.cid`) must reflect the device's current tower at each upload, not a cached value.
+4. **Store-and-forward** — buffer timestamped telemetry during weak-signal gaps and upload on reconnect, instead of serving a frozen last-known value.
 
-### Secondary (optional, separate from the above)
-6. If the **IR300** hardware includes a **GNSS/GPS module**, we'd like to know how to enable it so `location.source` becomes `"gps"`. This is a *nice to have* — but note it is **not required** to fix the primary issue above. Even with cell data alone, accurate `cid`/`lac` would let us tell that a truck has moved between towers.
+**Secondary (optional)**
+5. If the **IR300** (product 302FQ38-WLAN, serial RF3022532644350) has a **GNSS/GPS module**, how do we enable it so `location.source` becomes `"gps"` with continuous fixes? Helpful, but not required to fix items 1–4.
 
-### Summary of questions
-1. Why do `info.cid` and `lac` stay fixed across a 22-mile drive, and how is this fixed?
-2. Why does the telemetry timestamp freeze for 30+ minutes, then jump?
-3. Does the platform buffer/forward telemetry during connectivity gaps?
-4. What is the minimum reporting interval, and how do we configure it?
+### Questions
+1. How do we set LBS/Series upload intervals below 1 hour (CLI, firmware, or platform change)? Is 1 hour a hard limit?
+2. Why is `location.time` days stale when LBS upload is set to 1 hour?
+3. Why do `info.cid`/`lac` stay fixed across a 22-mile drive?
+4. Does the platform support store-and-forward of telemetry across connectivity gaps?
 5. (Optional) Does this IR300 SKU have GNSS, and how is it enabled?
 
-We can provide our full raw drive logs (30-second samples with timestamps, `cid`, `lac`, `mcc`, `mnc`, and all `signalStrength` fields) and re-run the test on any device you specify. Our ask is simple and reasonable: **the cellular network data your API returns should match the radio's actual live state.**
+We can provide our full raw drive logs (30-second API samples with timestamps, `cid`, `lac`, `mcc`, `mnc`, and all `signalStrength` fields) and a screenshot of the Device Manager settings, and we can re-run the test on any device you specify. Our ask is simple: **let the router upload its real, current cellular state at a useful cadence.**
 
 Thank you,
 Deecell
@@ -76,11 +95,20 @@ Deecell
 - Name: `DCL-Moeck-Fleet`
 - Model: **IR300** · Product no.: 302FQ38-WLAN · Serial: **RF3022532644350**
 - Firmware: swVersion **V3.5.99**, bootVersion 1.1.3.r4956, hwVersion V1.0
-- Current config: `{ "sync": 2, "timeout": 300000, "ackTimeout": 120000, "ackRetries": 3 }`
+- Device Manager service config: LBS info Upload Interval = **1 Hour** (min, range 1–24), Series Info Upload Interval = **1 Hour** (min, range 1–24), Channel Keepalive = 30 s
+- Internal poll config seen via API: `{ "sync": 2, "timeout": 300000, "ackTimeout": 120000, "ackRetries": 3 }`
 
-**API endpoints we use:** `GET /api/devices?verbose=100` (bulk) and `GET /api/devices/{id}/signal`.
+**API endpoints we read:** `GET /api/devices?verbose=100` (bulk) and `GET /api/devices/{id}/signal`.
 
-**Drive-test timeline (UTC; local was Pacific = UTC−7), West Spokane → ID and back:**
+**Baseline reading — 2026-06-25 22:10 UTC:**
+| Field | Value | Age |
+|---|---|---|
+| `location.time` | 2026-06-21T01:03:08Z (cellTower) | ~4.5 days |
+| `signalStrength.ts` | 2026-06-25T22:00:00Z | on the hour |
+| `info.cid` / `lac` | 108634129 / 37122 | — |
+| `info.updatedAt` | 2026-06-25T21:43:55Z | ~27 min |
+
+**Drive-test timeline (UTC; local Pacific = UTC−7), West Spokane → ID border and back:**
 
 | UTC | Event | `info.cid` | `lac` | `signalStrength.cid` | Signal | Telemetry ts |
 |---|---|---|---|---|---|---|
