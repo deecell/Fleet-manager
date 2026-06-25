@@ -4,6 +4,19 @@
 
 ---
 
+## 2026-06-25 — Investigation: Kalitta (TRK-01) drive — GPS is endpoint-only, parked-state is voltage-only
+
+Pulled the Kalitta Hospitality trailer's data from PROD (read-only, SSM→EC2→psql) to see how we tracked its Ypsilanti, MI → Summit Motorsports Park (Huron County, OH) drive. Findings:
+
+- **502 GPS fixes over 30h (~1 every 2 min), but only TWO distinct positions reported:** origin `42.2242,-83.6136` (Ypsilanti) held until ~03:11 UTC, then a single jump to `41.2347,-82.5483` (Huron County, OH) first seen `2026-06-25 03:13:39 UTC` (11:13 PM EDT Jun 24), held ever since. The "Moved (24h) = 88 mi" is therefore one straight-line origin→destination segment, **not a tracked route**. The InHand router reported a stale/last-known stationary position the whole drive and only snapped to the destination once (≈ at arrival). Road distance is ~95 mi; we logged 87.7 mi straight-line — so the path-sum design is correct but only as good as the router's fix density, which here was 2 points.
+- **"When did it arrive" — best signal is the position jump at `03:13:39 UTC`.** After that, 0 mi/hr every hour = parked at the track. We cannot derive a true departure time, drive duration, or speed from this data (the position teleported in one poll interval).
+- **We never "decided it was moving" from GPS — there is no GPS-speed / moving-state logic.** The only parked/driving determination is **voltage-based** (chassis `voltage2 < 13V` ⇒ parked), stored in `device_snapshots`. For this trailer `voltage2 ≈ 0.04V` permanently (no chassis/alternator hookup on a hospitality trailer), so it's been flagged `is_parked=true` "since 2026-02-16" — the voltage method is meaningless for this unit.
+- **`trucks` has no parked/moving columns at all** (only lat/lng/location); parked state lives solely in `device_snapshots`.
+
+**Implication / options if we want real movement tracking:** today we get endpoint-only GPS + voltage-only parked (broken for chassis-less trailers). To detect "moving vs arrived" reliably we'd need either denser/fresher GPS position changes from the InHand router (it appears to dedupe/cache while moving), or a movement signal derived from successive GPS deltas + timestamps rather than chassis voltage. No code changed in this investigation.
+
+---
+
 ## 2026-06-25 — PERMANENT FIX: close the circuit-breaker / DB desync dead-zone
 
 Builds on the incident below (DCL-Howard / DCL-Moeck-Hauler stuck "online / no_data"). Two-part fix in the Device Manager (`device-manager/app/`); ships via the EC2 deploy path, not the web/ECS one.
