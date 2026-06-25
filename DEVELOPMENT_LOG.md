@@ -20,6 +20,8 @@ Neither recovery path can reach them → **dead-zone**. After `00:02:08` there a
 
 **Ops note — where the DM logs actually live**: the unit is `StandardOutput=journal`, but `journalctl` returns ~0 lines because journald rate-limits under the DM's poll-line volume. The real logs are in **`/var/log/syslog`** (rsyslog), ISO timestamps (`2026-06-25T00:02:08`), ANSI-coded. The DM host is **`i-0a435441556fc5ab1`** (region us-east-2) — note this differs from the psql box used in older migration scripts.
 
+**RESOLVED (2026-06-25 ~12:48 UTC)**: ran the recovery script against prod. After the SIGTERM + supervisor respawn (cohort 2 → new pid 652835, cohort 3 → new pid 652834), both devices went from `online`/`no_data`/785-min-stale to `online`/**`reporting`**/`mins_ago=1` within ~45s. Supervisor and the other 8 workers untouched. (Script `set -e` bug fixed first: the SSM helper's trailing `[ -n "$err" ]` returned non-zero on empty stderr and silently aborted the run before the confirm prompt → changed to an `if` + `return 0`.)
+
 **Permanent fix (proposed, not yet built)**: close the dead-zone so DB-status and in-memory circuit state can't strand a device. Options: (a) when the connect-success path resets status to `online`, also clear `isCircuitOpen`/`reconnectAttempts` in memory; (b) don't let a connect-success write overwrite a `flapping` mark while the breaker is open; and/or (c) a supervisor backstop that demotes any device with stale `last_seen_at` but a non-recovery `connection_status` into `flapping` so the probe loop adopts it. (c) is the most robust catch-all.
 
 ---

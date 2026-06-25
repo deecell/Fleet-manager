@@ -1,0 +1,68 @@
+amoeck@Melissas-MacBook-Pro-2 Fleet-manager % ./scripts/migrations/2026-06-25_unstick_howard_moeck_hauler.sh
+=== Deecell Production Recovery: un-stick DCL-Howard + DCL-Moeck-Hauler ===
+Target host : i-0a435441556fc5ab1  (device-manager.service)
+Target cohorts: 2 3   (2=Moeck-Hauler, 3=Howard)
+
+--- BEFORE ------------------------------------------------------------
+[ssm: Success]
+Supervisor MainPID: 645890
+Current cohort workers (pid -> cohort):
+  pid=645976 cohort=0
+  pid=645977 cohort=1
+  pid=645978 cohort=2  <== TARGET
+  pid=645984 cohort=3  <== TARGET
+  pid=645985 cohort=4
+  pid=645987 cohort=5
+  pid=645992 cohort=6
+  pid=645993 cohort=7
+  pid=645998 cohort=8
+  pid=646011 cohort=9
+
+Device freshness (minutes since last battery poll):
+   device_name    | connection_status | data_status | mins_ago 
+------------------+-------------------+-------------+----------
+ DCL-Howard       | online            | no_data     |      785
+ DCL-Moeck-Hauler | online            | no_data     |      785
+(2 rows)
+
+
+-----------------------------------------------------------------------
+
+Bounce ONLY the cohort 2 & 3 workers (supervisor stays up)? (y/n) y
+
+--- BOUNCING ----------------------------------------------------------
+[ssm: Success]
+Supervisor MainPID: 645890 (left running)
+SIGTERM worker pid=645978 (cohort 2)
+SIGTERM worker pid=645984 (cohort 3)
+Sent SIGTERM to 2 worker(s). Waiting 12s for supervisor respawn...
+Cohort workers after respawn (pid -> cohort):
+  pid=645976 cohort=0
+  pid=645977 cohort=1
+  pid=645985 cohort=4
+  pid=645987 cohort=5
+  pid=645992 cohort=6
+  pid=645993 cohort=7
+  pid=645998 cohort=8
+  pid=646011 cohort=9
+  pid=652834 cohort=3
+  pid=652835 cohort=2
+
+-----------------------------------------------------------------------
+
+Waiting 45s for the respawned workers to connect and complete a poll...
+
+--- AFTER (expect mins_ago to drop to 0-2 and data_status='reporting') -
+[ssm: Success]
+   device_name    | connection_status | data_status | mins_ago 
+------------------+-------------------+-------------+----------
+ DCL-Howard       | online            | reporting   |        1
+ DCL-Moeck-Hauler | online            | reporting   |        1
+(2 rows)
+
+
+-----------------------------------------------------------------------
+
+If mins_ago is still large after a minute, re-run this script (safe to
+repeat) or check: ssm syslog grep for 'DCL-Howard' / 'DCL-Moeck-Hauler'.
+amoeck@Melissas-MacBook-Pro-2 Fleet-manager %
