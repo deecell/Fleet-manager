@@ -26,7 +26,7 @@
 set -e
 
 REGION="us-east-2"
-INSTANCE_ID="i-05443904f977d7301"
+INSTANCE_ID="i-0a435441556fc5ab1"
 SECRET_ID="deecell-fleet-production/database-url"
 
 echo "=== Deecell Production Database Migration ==="
