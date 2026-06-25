@@ -15,6 +15,27 @@ Pulled the Kalitta Hospitality trailer's data from PROD (read-only, SSM→EC2→
 
 **Implication / options if we want real movement tracking:** today we get endpoint-only GPS + voltage-only parked (broken for chassis-less trailers). To detect "moving vs arrived" reliably we'd need either denser/fresher GPS position changes from the InHand router (it appears to dedupe/cache while moving), or a movement signal derived from successive GPS deltas + timestamps rather than chassis voltage. No code changed in this investigation.
 
+### CONFIRMED (live InHand API): location is cell-tower, NOT GPS
+
+Queried the live InHand API (`GET /api/devices?verbose=100`) for the Kalitta router (`DCL-Kalitta-Hospitality`, IR300) and dumped the full raw device object. Andy's hunch is correct:
+
+- **`location.source = "cellTower"`** — the lat/lng we store is the geolocated position of the **serving cell tower**, not a GPS fix. That's why it "teleports": it only changes when the truck hands off to a *different* tower and InHand re-geolocates it.
+- **Fleet-wide: 0 of 48 devices report `gps`.** 22 report location (all `cellTower`), 26 report no location at all. No truck has working GPS today.
+- **`location.time` is very stale — median age ~109h (4.5 days)** across the fleet. The cell-tower lat/lng refreshes rarely.
+- **We hardcode `source='router_gps'` in `sim_location_history`** (inhand-poller.js ~398) — that label is a **misnomer**; these are cell-tower fixes. `getTruckMovementMiles` is therefore summing cell-tower hops, which explains the coarse jumps.
+
+**There IS fresher cell info we currently discard.** Every online device's raw object carries:
+- `signalStrength { radio, level, asu, rssi, rsrp, rsrq, sinr, band, pci, cid, ts }` — **median `ts` age ~0.4h (24 min)**, 14/22 fresh within the last hour. ~270× fresher than the location lat/lng.
+- `info { cid, lac, mnc, mcc, rssi, imsi, iccid, imei, ... }` — the **serving cell identity** (cell ID + LAC + carrier).
+
+We only keep lat/lng + a single RSSI today. The serving **cell ID (`cid`/`lac`) changes on every tower handoff** — far more often than the geolocated lat/lng — so logging it each 2-min poll gives a much more granular "the truck moved" signal even without coordinates.
+
+**Options to answer "can we get cell info more real-time?" (yes):**
+- **A — Capture the cell data we already fetch (cheap):** log `cid/lac/mcc/mnc` + `signalStrength.*` + `ts` each poll. Detect movement from tower-handoff changes; optionally resolve `cid→lat/lng` via a cell-location DB (OpenCelliD free, or a paid geolocation API) for coarse positioning.
+- **B — Real continuous tracking (hardware/config):** enable/connect GNSS on the IR300/IR302 routers so `location.source` becomes `gps` with continuous fixes. This is the only path to a true route + accurate moving/arrived detection.
+
+No code changed in this investigation.
+
 ---
 
 ## 2026-06-25 — PERMANENT FIX: close the circuit-breaker / DB desync dead-zone
