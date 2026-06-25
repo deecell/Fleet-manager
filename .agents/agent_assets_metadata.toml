@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "OtTkd8W0QYBLaYthyCpQ0"
+uri = "file://docs/inhand-realtime-data-request.md"
+type = "text"
+title = "InHand Real-Time Data Request (vendor letter)"
