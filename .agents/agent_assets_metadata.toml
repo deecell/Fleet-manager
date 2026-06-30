@@ -6,3 +6,9 @@ id = "OtTkd8W0QYBLaYthyCpQ0"
 uri = "file://docs/inhand-realtime-data-request.md"
 type = "text"
 title = "InHand Data + Upload-Interval Request (final vendor letter)"
+
+[[outputs]]
+id = "ScNQC8TOQOAnwSLCTvshS"
+uri = "file://docs/inhand-realtime-data-request.docx"
+type = "word_document"
+title = "InHand Data Request — Word document (pretty, emailable)"
