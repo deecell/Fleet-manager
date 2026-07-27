@@ -2,7 +2,8 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import session from "express-session";
 import { storage } from "./storage";
-import { getFileUrl, listFiles, getUploadPresignedUrl } from "./aws/s3";
+import { getFileUrl, listFiles, getUploadPresignedUrl, useLocalFileMock, LOCAL_UPLOADS_DIR } from "./aws/s3";
+import express from "express";
 import { query, testConnection, initializeTables } from "./aws/rds";
 import fleetRoutes from "./api/fleet-routes";
 import adminRoutes from "./api/admin-routes";
@@ -175,6 +176,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register async Fleet Export API routes
   app.use("/api/v1/exports", exportsRoutes);
+
+  // Serves files written by the local-disk S3 mock (see server/aws/s3.ts) —
+  // only registered when S3_BUCKET_NAME isn't set, i.e. never in production.
+  if (useLocalFileMock) {
+    app.use("/local-uploads", express.static(LOCAL_UPLOADS_DIR));
+  }
 
   // Health check endpoint
   app.get("/api/health", async (req: Request, res: Response) => {

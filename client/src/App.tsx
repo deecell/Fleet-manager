@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -20,6 +20,7 @@ import UsersPage from "@/pages/admin/UsersPage";
 import IssuesPage from "@/pages/admin/IssuesPage";
 import ExportPage from "@/pages/admin/ExportPage";
 import { ExportsBanner } from "@/components/ExportsBanner";
+import { ADMIN_EXPORTS_ENDPOINT } from "@/lib/exports-api";
 
 function Router() {
   return (
@@ -43,6 +44,18 @@ function Router() {
   );
 }
 
+/**
+ * Mounted once here (not inside AdminLayout) so it survives navigation
+ * between admin pages — AdminLayout is re-rendered per admin route, which
+ * would otherwise unmount/remount the banner and reset its poll on every
+ * click through the sidebar.
+ */
+function AdminExportsBanner() {
+  const [location] = useLocation();
+  if (!location.startsWith("/admin") || location === "/admin/login") return null;
+  return <ExportsBanner endpoint={ADMIN_EXPORTS_ENDPOINT} />;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -50,6 +63,7 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <ExportsBanner />
+          <AdminExportsBanner />
           <Router />
         </TooltipProvider>
       </OrgProvider>

@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Table,
   TableBody,
@@ -50,7 +51,15 @@ import {
   type SimBackfillSummary,
   type RefreshSimResult,
 } from "@/lib/admin-api";
-import { Plus, Pencil, Cpu, Link2, Unlink, Key, Search, Trash2, RotateCcw, WifiOff, RefreshCw, AlertCircle, RotateCw, MoreHorizontal } from "lucide-react";
+import { useCreateAdminExport } from "@/lib/admin-exports-api";
+import {
+  HISTORICAL_GRANULARITY_META,
+  HISTORICAL_MAX_RANGE_MS,
+  HISTORICAL_MAX_ROWS,
+  estimateHistoricalRows,
+  type HistoricalGranularity,
+} from "@shared/export-historical";
+import { Plus, Pencil, Cpu, Link2, Unlink, Key, Search, Trash2, RotateCcw, WifiOff, RefreshCw, AlertCircle, AlertTriangle, RotateCw, MoreHorizontal, Download, Loader2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -121,6 +130,7 @@ export default function DevicesPage() {
   const [deletingDevice, setDeletingDevice] = useState<PowerMonDevice | null>(null);
   const [assigningDevice, setAssigningDevice] = useState<PowerMonDevice | null>(null);
   const [credentialsDevice, setCredentialsDevice] = useState<PowerMonDevice | null>(null);
+  const [exportingDevice, setExportingDevice] = useState<PowerMonDevice | null>(null);
   const [selectedTruckId, setSelectedTruckId] = useState<number | undefined>();
   const [applinkUrl, setApplinkUrl] = useState("");
   
@@ -895,6 +905,14 @@ export default function DevicesPage() {
                                     <RotateCw className={`h-4 w-4 text-blue-600 ${refreshingDeviceId === device.id ? "animate-spin" : ""}`} />
                                     Refresh SIM
                                   </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => setExportingDevice(device)}
+                                    disabled={!device.truckId}
+                                    data-testid={`button-export-device-${device.id}`}
+                                  >
+                                    <Download className="h-4 w-4 text-blue-600" />
+                                    Export
+                                  </DropdownMenuItem>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem
                                     onClick={() => setDeletingDevice(device)}
@@ -1242,6 +1260,14 @@ export default function DevicesPage() {
           </DialogContent>
         </Dialog>
 
+        {exportingDevice && (
+          <DeviceExportDialog
+            device={exportingDevice}
+            truckNumber={allTrucks.find((t) => t.id === exportingDevice.truckId)?.truckNumber ?? `Truck #${exportingDevice.truckId}`}
+            onClose={() => setExportingDevice(null)}
+          />
+        )}
+
         <Dialog open={!!deletingDevice} onOpenChange={() => setDeletingDevice(null)}>
           <DialogContent>
             <DialogHeader>
@@ -1403,5 +1429,220 @@ export default function DevicesPage() {
 
       </div>
     </AdminLayout>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Row-menu export dialog
+// ---------------------------------------------------------------------------
+
+function isoLocalDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${dd}`;
+}
+
+function startOfDayLocal(d: Date): Date {
+  const out = new Date(d);
+  out.setHours(0, 0, 0, 0);
+  return out;
+}
+
+function endOfDayLocal(d: Date): Date {
+  const out = new Date(d);
+  out.setHours(23, 59, 59, 999);
+  return out;
+}
+
+/**
+ * Same historical-export payload/validation as the Export tab's
+ * `HistoricalForm`, trimmed to start/end date + granularity + format since
+ * the organization and truck are already known from the row this was
+ * opened from. Queues via the same job, so progress shows up in the
+ * top-right ExportsBanner notification like any other admin export.
+ */
+function DeviceExportDialog({
+  device,
+  truckNumber,
+  onClose,
+}: {
+  device: PowerMonDevice;
+  truckNumber: string;
+  onClose: () => void;
+}) {
+  const { toast } = useToast();
+  const create = useCreateAdminExport();
+
+  const [startDate, setStartDate] = useState<string>(() => isoLocalDate(new Date(Date.now() - 7 * 86400000)));
+  const [endDate, setEndDate] = useState<string>(() => isoLocalDate(new Date()));
+  const [granularity, setGranularity] = useState<HistoricalGranularity>("hour");
+  const [format, setFormat] = useState<"csv" | "xlsx">("csv");
+
+  const startMs = startDate ? startOfDayLocal(new Date(startDate)).getTime() : NaN;
+  const endMs = endDate ? endOfDayLocal(new Date(endDate)).getTime() : NaN;
+  const validRange =
+    Number.isFinite(startMs)
+    && Number.isFinite(endMs)
+    && endMs > startMs
+    && endMs - startMs <= HISTORICAL_MAX_RANGE_MS;
+
+  const estimate = validRange ? estimateHistoricalRows({ startMs, endMs, granularity }) : null;
+  const tooManyRows = !!estimate && estimate.exceedsMaxRows;
+  const rangeTooLong =
+    Number.isFinite(startMs) && Number.isFinite(endMs) && endMs - startMs > HISTORICAL_MAX_RANGE_MS;
+
+  const submit = async () => {
+    if (!device.truckId || !validRange) return;
+    try {
+      await create.mutateAsync({
+        kind: "historical",
+        format,
+        organizationId: device.organizationId,
+        truckId: device.truckId,
+        granularity,
+        startTime: new Date(startMs).toISOString(),
+        endTime: new Date(endMs).toISOString(),
+      });
+      toast({
+        title: "Export queued",
+        description: "Track progress in the notification in the top-right corner.",
+      });
+      onClose();
+    } catch (e) {
+      const err = e as { message?: string };
+      toast({
+        title: "Could not queue export",
+        description: err?.message ?? "Unexpected error",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
+    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Export Truck History</DialogTitle>
+          <DialogDescription>
+            {truckNumber} · {device.serialNumber || device.deviceName || `Device #${device.id}`}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-5">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-xs text-muted-foreground" htmlFor="device-export-start">Start date</Label>
+              <Input
+                id="device-export-start"
+                type="date"
+                className="mt-1"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                data-testid="input-device-export-start"
+              />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground" htmlFor="device-export-end">End date</Label>
+              <Input
+                id="device-export-end"
+                type="date"
+                className="mt-1"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                data-testid="input-device-export-end"
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-xs text-muted-foreground">Granularity</Label>
+            <RadioGroup
+              value={granularity}
+              onValueChange={(v) => setGranularity(v as HistoricalGranularity)}
+              className="mt-2 space-y-2"
+            >
+              {(Object.keys(HISTORICAL_GRANULARITY_META) as HistoricalGranularity[]).map((g) => {
+                const meta = HISTORICAL_GRANULARITY_META[g];
+                return (
+                  <Label
+                    key={g}
+                    htmlFor={`device-export-gran-${g}`}
+                    className="flex items-start gap-3 cursor-pointer rounded-md border border-border px-3 py-2 hover-elevate"
+                  >
+                    <RadioGroupItem value={g} id={`device-export-gran-${g}`} data-testid={`radio-device-export-granularity-${g}`} />
+                    <div className="flex-1">
+                      <div className="text-sm font-medium">{meta.label}</div>
+                      <div className="text-xs text-muted-foreground">{meta.description}</div>
+                    </div>
+                  </Label>
+                );
+              })}
+            </RadioGroup>
+          </div>
+
+          <div>
+            <Label className="text-xs text-muted-foreground">Format</Label>
+            <RadioGroup
+              value={format}
+              onValueChange={(v) => setFormat(v as "csv" | "xlsx")}
+              className="flex gap-4 mt-2"
+            >
+              <Label htmlFor="device-export-fmt-csv" className="flex items-center gap-2 cursor-pointer">
+                <RadioGroupItem value="csv" id="device-export-fmt-csv" data-testid="radio-device-export-format-csv" />
+                <span className="text-sm">CSV</span>
+              </Label>
+              <Label htmlFor="device-export-fmt-xlsx" className="flex items-center gap-2 cursor-pointer">
+                <RadioGroupItem value="xlsx" id="device-export-fmt-xlsx" data-testid="radio-device-export-format-xlsx" />
+                <span className="text-sm">Excel (.xlsx)</span>
+              </Label>
+            </RadioGroup>
+          </div>
+
+          {rangeTooLong && (
+            <div className="flex items-start gap-2 text-sm text-destructive" data-testid="text-device-export-range-error">
+              <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+              <span>Range cannot exceed 1 year.</span>
+            </div>
+          )}
+          {tooManyRows && (
+            <div className="flex items-start gap-2 text-sm text-destructive" data-testid="text-device-export-rows-error">
+              <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+              <span>
+                Estimated {estimate!.rowCount.toLocaleString()} rows exceeds the {HISTORICAL_MAX_ROWS.toLocaleString()} row
+                cap. Choose a coarser granularity or shorter range.
+              </span>
+            </div>
+          )}
+          {create.error && (
+            <div className="flex items-start gap-2 text-sm text-destructive" data-testid="text-device-export-error">
+              <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+              <span>{create.error.message}</span>
+            </div>
+          )}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            onClick={submit}
+            disabled={!validRange || tooManyRows || create.isPending}
+            data-testid="button-submit-device-export"
+          >
+            {create.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Queuing…
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4 mr-2" />
+                Queue export
+              </>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

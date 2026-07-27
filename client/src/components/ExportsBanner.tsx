@@ -17,12 +17,15 @@ interface ExportsBannerProps {
 }
 
 /**
- * App-shell banner that surfaces in-flight + recently-finished export jobs
- * across every page. Renders nothing when there's nothing to show.
+ * Fixed top-right notification stack that surfaces in-flight + recently-
+ * finished export jobs across every page. Renders nothing when there's
+ * nothing to show.
  *
- * Mounted twice in the app:
- *   - Customer shell (`App.tsx`)               → CUSTOMER_EXPORTS_ENDPOINT
- *   - Admin shell    (`AdminLayout.tsx`)       → ADMIN_EXPORTS_ENDPOINT
+ * Mounted twice in `App.tsx`, both outside the router so neither remounts
+ * on navigation:
+ *   - Customer shell → CUSTOMER_EXPORTS_ENDPOINT (always mounted)
+ *   - Admin shell    → ADMIN_EXPORTS_ENDPOINT (mounted only while on /admin/*,
+ *     via the `AdminExportsBanner` gate in App.tsx)
  *
  * The two mounts use endpoint-scoped query keys so their caches don't
  * collide.
@@ -41,18 +44,16 @@ export function ExportsBanner({
 
   return (
     <div
-      className="sticky top-0 z-40 w-full bg-white border-b border-[#ebeef2] shadow-sm"
+      className="fixed top-4 right-4 z-50 flex w-[380px] max-w-[calc(100vw-2rem)] flex-col gap-2"
       data-testid={`banner-exports${testIdSuffix}`}
     >
-      <div className="px-6 lg:px-[144px] py-2 space-y-2">
-        {jobs.map((job) => (
-          <ExportRow
-            key={job.id}
-            job={job}
-            onDismiss={() => dismiss.mutate(job.id)}
-          />
-        ))}
-      </div>
+      {jobs.map((job) => (
+        <ExportRow
+          key={job.id}
+          job={job}
+          onDismiss={() => dismiss.mutate(job.id)}
+        />
+      ))}
     </div>
   );
 }
@@ -68,19 +69,33 @@ interface ExportRowProps {
 function ExportRow({ job, onDismiss }: ExportRowProps) {
   return (
     <div
-      className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-md border border-[#ebeef2] bg-[#fafbfc] px-3 py-2"
+      className="rounded-lg border border-[#ebeef2] bg-white px-3 py-3 shadow-lg"
       data-testid={`export-row-${job.id}`}
     >
-      <div className="flex items-start gap-3 flex-1 min-w-0 basis-full sm:basis-0">
+      <div className="flex items-start gap-3">
         <ExportIcon status={job.status} />
         <div className="flex-1 min-w-0">
           <ExportTitle job={job} />
           <ExportSubtitle job={job} />
         </div>
+
+        {/* Every row gets its own dismiss. For pending/running this hides the
+            row from the banner — the job continues processing in the
+            background and the user still gets the email when it finishes. */}
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-6 w-6 -mt-1 -mr-1 shrink-0"
+          onClick={onDismiss}
+          aria-label="Dismiss"
+          data-testid={`button-export-dismiss-${job.id}`}
+        >
+          <X className="w-4 h-4" />
+        </Button>
       </div>
 
-      <div className="flex items-center gap-1 ml-auto sm:ml-0">
-        {job.status === "completed" && job.downloadUrl && (
+      {job.status === "completed" && job.downloadUrl && (
+        <div className="mt-2 flex justify-end">
           <Button
             asChild
             size="sm"
@@ -95,21 +110,8 @@ function ExportRow({ job, onDismiss }: ExportRowProps) {
               Download
             </a>
           </Button>
-        )}
-
-        {/* Every row gets its own dismiss. For pending/running this hides the
-            row from the banner — the job continues processing in the
-            background and the user still gets the email when it finishes. */}
-        <Button
-          size="icon"
-          variant="ghost"
-          onClick={onDismiss}
-          aria-label="Dismiss"
-          data-testid={`button-export-dismiss-${job.id}`}
-        >
-          <X className="w-4 h-4" />
-        </Button>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

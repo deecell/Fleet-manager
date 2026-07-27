@@ -35,6 +35,9 @@ override.tf.json
 .env.*.local
 *.secret
 *credentials*
+
+# Local S3 mock (server/aws/s3.ts) — used when S3_BUCKET_NAME isn't set
+.local-uploads/
 *secrets*
 
 # AWS
