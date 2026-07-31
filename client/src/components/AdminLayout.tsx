@@ -18,7 +18,8 @@ const navItems = [
   { href: "/admin/devices", label: "Devices", icon: Cpu },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/issues", label: "Issues", icon: AlertCircle },
-  { href: "/admin/export", label: "Export", icon: Download },
+  // Hidden: Export functionality now lives in the Devices row action menu.
+  // { href: "/admin/export", label: "Export", icon: Download },
 ];
 
 export function AdminLayout({ children }: AdminLayoutProps) {
