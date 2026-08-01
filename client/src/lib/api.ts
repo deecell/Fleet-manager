@@ -351,19 +351,20 @@ export function useLegacyNotifications() {
 }
 
 export function useTruckHistory(deviceId: number | undefined) {
+  const { organizationId } = useOrganization();
   const measurementsQuery = useQuery<MeasurementsResponse>({
-    queryKey: ["/api/v1/devices", deviceId, "measurements", "history"],
+    queryKey: ["/api/v1/devices", deviceId, "measurements", "history", "org", organizationId],
     queryFn: async () => {
-      const startDate = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
-      const res = await fetch(`/api/v1/devices/${deviceId}/measurements?limit=500&startDate=${startDate}`, {
+      const startTime = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+      const res = await fetch(`/api/v1/devices/${deviceId}/measurements?limit=500&startTime=${startTime}`, {
         headers: {
-          "X-Organization-Id": "6",
+          "X-Organization-Id": String(organizationId),
         },
       });
       if (!res.ok) throw new Error("Failed to fetch measurements");
       return res.json();
     },
-    enabled: !!deviceId,
+    enabled: !!deviceId && !!organizationId,
     staleTime: 30000,
   });
   
@@ -398,19 +399,20 @@ interface TruckEventsResponse {
 }
 
 export function useTruckEvents(truckId: number | undefined, options?: { limit?: number }) {
+  const { organizationId } = useOrganization();
   const params = options ? `?limit=${options.limit || 50}` : "";
   return useQuery<TruckEventsResponse>({
-    queryKey: ["/api/v1/trucks", truckId, "events"],
+    queryKey: ["/api/v1/trucks", truckId, "events", "org", organizationId],
     queryFn: async () => {
       const res = await fetch(`/api/v1/trucks/${truckId}/events${params}`, {
         headers: {
-          "X-Organization-Id": "6",
+          "X-Organization-Id": String(organizationId),
         },
       });
       if (!res.ok) throw new Error("Failed to fetch truck events");
       return res.json();
     },
-    enabled: !!truckId,
+    enabled: !!truckId && !!organizationId,
   });
 }
 

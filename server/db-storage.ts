@@ -510,15 +510,16 @@ export class DbStorage {
     endTime: Date,
     limit: number = 1000
   ): Promise<DeviceMeasurement[]> {
-    return db.select().from(deviceMeasurements)
+    const measurements = await db.select().from(deviceMeasurements)
       .where(and(
         eq(deviceMeasurements.organizationId, organizationId),
         eq(deviceMeasurements.deviceId, deviceId),
         gte(deviceMeasurements.recordedAt, startTime),
         lte(deviceMeasurements.recordedAt, endTime)
       ))
-      .orderBy(asc(deviceMeasurements.recordedAt))
+      .orderBy(desc(deviceMeasurements.recordedAt))
       .limit(limit);
+    return measurements.reverse();
   }
 
   async getMeasurementsByTruck(

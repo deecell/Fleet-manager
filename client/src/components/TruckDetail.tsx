@@ -4,10 +4,94 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useState } from "react";
+import { format } from "date-fns";
 import { useTruckHistory, LegacyTruckWithDevice } from "@/lib/api";
 import { TruckTimeline } from "./TruckTimeline";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { StatCard, StatCardStatus } from "./StatCard";
+
+interface StatPoint {
+  timestamp: number;
+  value: number;
+}
+
+interface PeriodStats {
+  current: number;
+  min: number;
+  max: number;
+  avg: number;
+  minAt: number;
+  maxAt: number;
+}
+
+function computeStats(points: StatPoint[]): PeriodStats | null {
+  if (points.length === 0) return null;
+
+  let min = points[0].value;
+  let max = points[0].value;
+  let minAt = points[0].timestamp;
+  let maxAt = points[0].timestamp;
+  let sum = 0;
+
+  for (const point of points) {
+    sum += point.value;
+    if (point.value < min) {
+      min = point.value;
+      minAt = point.timestamp;
+    }
+    if (point.value > max) {
+      max = point.value;
+      maxAt = point.timestamp;
+    }
+  }
+
+  return {
+    current: points[points.length - 1].value,
+    min,
+    max,
+    avg: sum / points.length,
+    minAt,
+    maxAt,
+  };
+}
+
+function formatPeakTime(timestamp: number): string {
+  return format(new Date(timestamp), "MMM d, h:mm a");
+}
+
+function getSocStatus(value: number): StatCardStatus {
+  if (value < 15) return "critical";
+  if (value < 25) return "warning";
+  return "good";
+}
+
+function getVoltageStatus(value: number): StatCardStatus {
+  if (value < 11.5 || value > 14.5) return "critical";
+  if (value < 12.0 || value > 14.0) return "warning";
+  return "good";
+}
+
+function MetricSummary({
+  stats,
+  unit,
+  decimals,
+  status,
+}: {
+  stats: PeriodStats;
+  unit: string;
+  decimals: number;
+  status?: StatCardStatus;
+}) {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <StatCard compact title="Current" targetNumber={stats.current} suffix={unit} decimals={decimals} status={status} />
+      <StatCard compact title="Min" targetNumber={stats.min} suffix={unit} decimals={decimals} caption={formatPeakTime(stats.minAt)} />
+      <StatCard compact title="Max" targetNumber={stats.max} suffix={unit} decimals={decimals} caption={formatPeakTime(stats.maxAt)} />
+      <StatCard compact title="Average" targetNumber={stats.avg} suffix={unit} decimals={decimals} />
+    </div>
+  );
+}
 
 interface TruckDetailProps {
   truck: LegacyTruckWithDevice;
@@ -91,6 +175,7 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
   const [powerMeterOpen, setPowerMeterOpen] = useState(false);
   const [metricsOpen, setMetricsOpen] = useState(true);
   const [historyOpen, setHistoryOpen] = useState(true);
+  const [chartsOpen, setChartsOpen] = useState(false);
 
   const { data: history, isLoading: historyLoading } = useTruckHistory(truck.deviceId);
 
@@ -100,10 +185,15 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
   };
 
   const historyData = history || [];
-  const socData = historyData.map((d: HistoricalDataPoint) => ({ time: formatTime(d.timestamp), value: d.soc }));
-  const voltageData = historyData.map((d: HistoricalDataPoint) => ({ time: formatTime(d.timestamp), value: d.voltage }));
-  const currentData = historyData.map((d: HistoricalDataPoint) => ({ time: formatTime(d.timestamp), value: d.current }));
-  const wattsData = historyData.map((d: HistoricalDataPoint) => ({ time: formatTime(d.timestamp), value: d.watts }));
+  const socData = historyData.map((d: HistoricalDataPoint) => ({ time: formatTime(d.timestamp), timestamp: d.timestamp, value: d.soc }));
+  const voltageData = historyData.map((d: HistoricalDataPoint) => ({ time: formatTime(d.timestamp), timestamp: d.timestamp, value: d.voltage }));
+  const currentData = historyData.map((d: HistoricalDataPoint) => ({ time: formatTime(d.timestamp), timestamp: d.timestamp, value: d.current }));
+  const wattsData = historyData.map((d: HistoricalDataPoint) => ({ time: formatTime(d.timestamp), timestamp: d.timestamp, value: d.watts }));
+
+  const socStats = computeStats(socData);
+  const voltageStats = computeStats(voltageData);
+  const currentStats = computeStats(currentData);
+  const wattsStats = computeStats(wattsData);
 
   return (
     <div className="fixed inset-y-0 right-0 w-full md:w-[610px] bg-white shadow-[-1px_0px_22px_-6px_rgba(0,0,0,0.17)] overflow-y-auto z-50">
@@ -246,7 +336,7 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
                   <span className="text-sm font-medium text-muted-foreground">State of Charge</span>
                   <Battery className="h-4 w-4 text-muted-foreground" />
                 </div>
-                <div className="text-3xl font-bold" data-testid="metric-soc">{truck.soc.toFixed(0)}%</div>
+                <div className="text-3xl font-bold" data-testid="metric-soc">{(socStats?.current ?? truck.soc).toFixed(0)}%</div>
               </div>
 
               <div className="rounded-lg bg-white border border-[#EBEEF2] shadow-[0_1px_3px_0_rgba(96,108,128,0.05)] p-4">
@@ -254,12 +344,12 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
                   <span className="text-sm font-medium text-muted-foreground">Voltage</span>
                   <Zap className="h-4 w-4 text-muted-foreground" />
                 </div>
-                <div className="text-3xl font-bold text-[#0a0a0a]" data-testid="metric-voltage">{truck.v1.toFixed(2)}V</div>
+                <div className="text-3xl font-bold text-[#0a0a0a]" data-testid="metric-voltage">{(voltageStats?.current ?? truck.v1).toFixed(2)}V</div>
               </div>
 
               <div className="rounded-lg bg-white border border-[#EBEEF2] shadow-[0_1px_3px_0_rgba(96,108,128,0.05)] p-4">
                 <div className="flex items-center justify-between gap-2 pb-2">
-                  <span className="text-sm font-medium text-muted-foreground">Current</span>
+                  <span className="text-sm font-medium text-muted-foreground">Amp-Hours</span>
                   <Activity className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <div className="text-3xl font-bold text-[#0a0a0a]" data-testid="metric-current">{truck.ah.toFixed(1)}Ah</div>
@@ -270,7 +360,7 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
                   <span className="text-sm font-medium text-muted-foreground">Power</span>
                   <Thermometer className="h-4 w-4 text-muted-foreground" />
                 </div>
-                <div className="text-3xl font-bold text-[#0a0a0a]" data-testid="metric-power">{truck.p.toFixed(1)}W</div>
+                <div className="text-3xl font-bold text-[#0a0a0a]" data-testid="metric-power">{(wattsStats?.current ?? truck.p).toFixed(1)}W</div>
               </div>
             </div>
           </CollapsibleContent>
@@ -300,21 +390,9 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
                   <CardTitle className="text-sm font-medium">State of Charge (%)</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <LineChart data={socData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="time" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-                      <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'hsl(var(--background))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '6px'
-                        }}
-                      />
-                      <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  {socStats && (
+                    <MetricSummary stats={socStats} unit="%" decimals={0} status={getSocStatus(socStats.current)} />
+                  )}
                 </CardContent>
               </Card>
 
@@ -323,21 +401,9 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
                   <CardTitle className="text-sm font-medium">Voltage (V)</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <LineChart data={voltageData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="time" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-                      <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'hsl(var(--background))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '6px'
-                        }}
-                      />
-                      <Line type="monotone" dataKey="value" stroke="hsl(var(--chart-2))" strokeWidth={2} dot={false} />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  {voltageStats && (
+                    <MetricSummary stats={voltageStats} unit="V" decimals={2} status={getVoltageStatus(voltageStats.current)} />
+                  )}
                 </CardContent>
               </Card>
 
@@ -346,21 +412,7 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
                   <CardTitle className="text-sm font-medium">Current (A)</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <LineChart data={currentData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="time" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-                      <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'hsl(var(--background))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '6px'
-                        }}
-                      />
-                      <Line type="monotone" dataKey="value" stroke="hsl(var(--chart-3))" strokeWidth={2} dot={false} />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  {currentStats && <MetricSummary stats={currentStats} unit="A" decimals={1} />}
                 </CardContent>
               </Card>
 
@@ -369,23 +421,109 @@ export default function TruckDetail({ truck, onClose, alert }: TruckDetailProps)
                   <CardTitle className="text-sm font-medium">Power (W)</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <LineChart data={wattsData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="time" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-                      <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'hsl(var(--background))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '6px'
-                        }}
-                      />
-                      <Line type="monotone" dataKey="value" stroke="hsl(var(--chart-4))" strokeWidth={2} dot={false} />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  {wattsStats && <MetricSummary stats={wattsStats} unit="W" decimals={1} />}
                 </CardContent>
               </Card>
+
+              <Collapsible open={chartsOpen} onOpenChange={setChartsOpen}>
+                <CollapsibleTrigger className="flex items-center gap-2 text-sm font-medium text-muted-foreground" data-testid="toggle-detailed-charts">
+                  {chartsOpen ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                  Show detailed charts
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-4 space-y-6">
+                  <Card className="bg-[#FAFBFC]">
+                    <CardHeader>
+                      <CardTitle className="text-sm font-medium">State of Charge (%)</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={200}>
+                        <LineChart data={socData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis dataKey="time" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+                          <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: 'hsl(var(--background))',
+                              border: '1px solid hsl(var(--border))',
+                              borderRadius: '6px'
+                            }}
+                          />
+                          <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-[#FAFBFC]">
+                    <CardHeader>
+                      <CardTitle className="text-sm font-medium">Voltage (V)</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={200}>
+                        <LineChart data={voltageData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis dataKey="time" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+                          <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: 'hsl(var(--background))',
+                              border: '1px solid hsl(var(--border))',
+                              borderRadius: '6px'
+                            }}
+                          />
+                          <Line type="monotone" dataKey="value" stroke="hsl(var(--chart-2))" strokeWidth={2} dot={false} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-[#FAFBFC]">
+                    <CardHeader>
+                      <CardTitle className="text-sm font-medium">Current (A)</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={200}>
+                        <LineChart data={currentData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis dataKey="time" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+                          <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: 'hsl(var(--background))',
+                              border: '1px solid hsl(var(--border))',
+                              borderRadius: '6px'
+                            }}
+                          />
+                          <Line type="monotone" dataKey="value" stroke="hsl(var(--chart-3))" strokeWidth={2} dot={false} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-[#FAFBFC]">
+                    <CardHeader>
+                      <CardTitle className="text-sm font-medium">Power (W)</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={200}>
+                        <LineChart data={wattsData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis dataKey="time" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+                          <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: 'hsl(var(--background))',
+                              border: '1px solid hsl(var(--border))',
+                              borderRadius: '6px'
+                            }}
+                          />
+                          <Line type="monotone" dataKey="value" stroke="hsl(var(--chart-4))" strokeWidth={2} dot={false} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+                </CollapsibleContent>
+              </Collapsible>
             </div>
             )}
           </CollapsibleContent>

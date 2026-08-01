@@ -1,8 +1,8 @@
-import { BatteryCharging, TrendingUp, TrendingDown, Leaf } from "lucide-react";
+import { BatteryCharging, Leaf } from "lucide-react";
 import dolarIcon from "@assets/dolar.svg";
 import trendIcon from "@assets/trend.svg";
-import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { StatCard, useCountUp, formatNumber, formatSmartDecimal } from "./StatCard";
 
 interface TruckWithSoc {
   soc: number;
@@ -41,113 +41,6 @@ interface SavingsData {
   mtdCO2Reduction: number;
   mtdParkedMinutes: number;
   currentFuelPrice: number;
-}
-
-interface StatCardProps {
-  title: string;
-  value: string;
-  trend?: {
-    value: string;
-    isPositive: boolean;
-  };
-  icon: JSX.Element;
-  iconBgColor: string;
-  valueColor?: string;
-  targetNumber: number;
-  prefix?: string;
-  suffix?: string;
-  decimals?: number;
-  hasInsufficientData?: boolean;
-  alwaysShowDecimals?: boolean;
-}
-
-function useCountUp(target: number, duration: number = 1500, decimals: number = 0) {
-  const [count, setCount] = useState(0);
-  const startTime = useRef<number | null>(null);
-  const animationFrame = useRef<number | null>(null);
-
-  useEffect(() => {
-    const animate = (timestamp: number) => {
-      if (startTime.current === null) {
-        startTime.current = timestamp;
-      }
-
-      const progress = Math.min((timestamp - startTime.current) / duration, 1);
-      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-      const currentValue = easeOutQuart * target;
-
-      setCount(currentValue);
-
-      if (progress < 1) {
-        animationFrame.current = requestAnimationFrame(animate);
-      }
-    };
-
-    animationFrame.current = requestAnimationFrame(animate);
-
-    return () => {
-      if (animationFrame.current) {
-        cancelAnimationFrame(animationFrame.current);
-      }
-    };
-  }, [target, duration]);
-
-  return decimals > 0 ? count.toFixed(decimals) : Math.floor(count).toString();
-}
-
-function formatNumber(num: string): string {
-  const parts = num.split('.');
-  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  return parts.join('.');
-}
-
-function formatSmartDecimal(value: number, maxDecimals: number = 1): string {
-  if (Number.isInteger(value)) {
-    return value.toString();
-  }
-  const fixed = value.toFixed(maxDecimals);
-  return fixed.replace(/\.?0+$/, '');
-}
-
-function formatSmartString(value: string): string {
-  return value.replace(/\.00$/, '').replace(/(\.\d)0$/, '$1');
-}
-
-function StatCard({ title, trend, icon, iconBgColor, valueColor = "text-neutral-950", targetNumber, prefix = "", suffix = "", decimals = 0, hasInsufficientData = false, alwaysShowDecimals = false }: StatCardProps) {
-  const animatedValue = useCountUp(targetNumber, 1500, decimals);
-  const formattedValue = alwaysShowDecimals ? formatNumber(animatedValue) : formatSmartString(formatNumber(animatedValue));
-
-  return (
-    <div className="bg-white rounded-lg shadow-[0px_1px_3px_0px_rgba(96,108,128,0.05)] p-6 h-[185px] flex flex-col">
-      <div className="flex items-center justify-between">
-        <div className={`w-[49px] h-[49px] rounded-[9px] flex items-center justify-center ${iconBgColor}`}>
-          {icon}
-        </div>
-        {!hasInsufficientData && trend && (
-          <div className="flex items-center gap-1">
-            {trend.isPositive ? (
-              <TrendingUp className="h-4 w-4 text-[#39c900]" />
-            ) : (
-              <TrendingDown className="h-4 w-4 text-[#ff0900]" />
-            )}
-            <span className={`text-xs font-normal ${trend.isPositive ? "text-[#39c900]" : "text-[#ff0900]"}`}>
-              {trend.value}
-            </span>
-          </div>
-        )}
-      </div>
-      <p className="text-sm text-[#4a5565] mt-[17px]">{title}</p>
-      {hasInsufficientData ? (
-        <p className="text-[18px] min-[1440px]:text-[20px] leading-8 mt-3 tracking-tight text-[#9ca3af] font-light" data-testid={`stat-${title.toLowerCase().replace(/\s+/g, '-')}`}>
-          Awaiting data...
-        </p>
-      ) : (
-        <p className="text-[26px] min-[1440px]:text-[30px] font-medium leading-8 mt-3 tracking-tight text-[#0a0a0a]" data-testid={`stat-${title.toLowerCase().replace(/\s+/g, '-')}`}>
-          {prefix}{formattedValue}{suffix}
-        </p>
-      )}
-    </div>
-  );
 }
 
 interface SavingsCardProps {
@@ -247,7 +140,6 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
       />
       <StatCard
         title="Avg. State of Charge"
-        value={`${formatSmartDecimal(avgSoc, 2)}%`}
         targetNumber={avgSoc}
         suffix="%"
         decimals={2}
@@ -260,24 +152,20 @@ export default function FleetStats({ trucks }: FleetStatsProps) {
       />
       <StatCard
         title="CO₂ Reduction"
-        value={`${todayCO2Reduction.toFixed(1)} lbs`}
         targetNumber={todayCO2Reduction}
         suffix=" lbs"
         decimals={1}
         icon={<Leaf className="h-[24px] w-[24px] text-[#6B6164]" />}
         iconBgColor="bg-[#ECE8E4]"
-        valueColor="text-[#008236]"
       />
       <StatCard
         title="Stored Energy Value"
-        value={`$ ${storedEnergyValue.toFixed(2)}`}
         targetNumber={storedEnergyValue}
         prefix="$ "
         decimals={2}
         alwaysShowDecimals={true}
         icon={<img src={trendIcon} alt="Trend" className="h-[24px] w-[24px]" />}
         iconBgColor="bg-[#EBEFFA]"
-        valueColor="text-[#008236]"
       />
     </div>
   );

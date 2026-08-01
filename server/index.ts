@@ -104,7 +104,8 @@ app.use((req, res, next) => {
   server.listen({
     port,
     host: "0.0.0.0",
-    reusePort: true,
+    // reusePort (SO_REUSEPORT) isn't supported on macOS/Windows — only enable it on Linux deploy targets.
+    ...(process.platform === "linux" ? { reusePort: true } : {}),
   }, () => {
     log(`serving on port ${port}`);
     
