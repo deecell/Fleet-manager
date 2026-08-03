@@ -13,7 +13,7 @@ import {
   type CreateExportJobError,
   type ExportJobStatus,
 } from "./exports-api";
-import type { HistoricalGranularity } from "@shared/export-historical";
+import type { HistoricalGranularity, HistoricalSummary } from "@shared/export-historical";
 
 export interface CreateAdminDevicesExportInput {
   kind: "devices";
@@ -126,6 +126,42 @@ export function useAdminExportJobs(limit = 20) {
       return res.json();
     },
     refetchInterval: 5000,
+  });
+}
+
+export interface HistoricalSummaryInput {
+  organizationId: number;
+  truckId: number;
+  granularity: HistoricalGranularity;
+  /** ISO 8601 string. */
+  startTime: string;
+  /** ISO 8601 string. */
+  endTime: string;
+}
+
+export interface HistoricalSummaryResponse {
+  summary: HistoricalSummary;
+  truck: { truckNumber: string };
+  fleetName: string | null;
+  powerMonSerial: string | null;
+}
+
+/**
+ * "View on Screen" — synchronous aggregate summary, no job queue involved.
+ * Reuses the same underlying query as the file export (see
+ * `computeHistoricalSummary` server-side) so the numbers always match what
+ * a CSV/Excel export over the same range would contain.
+ */
+export function useHistoricalSummary() {
+  return useMutation<HistoricalSummaryResponse, CreateExportJobError, HistoricalSummaryInput>({
+    mutationFn: async (input) => {
+      try {
+        const res = await apiRequest("POST", `${ADMIN_EXPORTS_ENDPOINT}/historical-summary`, input);
+        return (await res.json()) as HistoricalSummaryResponse;
+      } catch (e) {
+        throw parseAdminExportError(e);
+      }
+    },
   });
 }
 

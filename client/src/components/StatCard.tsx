@@ -24,6 +24,18 @@ const STATUS_STYLES: Record<StatCardStatus, { bg: string; border: string; text: 
   },
 };
 
+export function getSocStatus(value: number): StatCardStatus {
+  if (value < 15) return "critical";
+  if (value < 25) return "warning";
+  return "good";
+}
+
+export function getVoltageStatus(value: number): StatCardStatus {
+  if (value < 11.5 || value > 14.5) return "critical";
+  if (value < 12.0 || value > 14.0) return "warning";
+  return "good";
+}
+
 export function useCountUp(target: number, duration: number = 1500, decimals: number = 0) {
   const [count, setCount] = useState(0);
   const startTime = useRef<number | null>(null);

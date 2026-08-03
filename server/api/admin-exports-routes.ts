@@ -32,6 +32,7 @@ import {
 import { storage } from "../storage";
 import { adminMiddleware } from "./admin-routes";
 import { exportJobWorker } from "../services/exports/job-worker";
+import { computeHistoricalSummary } from "../services/exports/historical-summary";
 
 const router = Router();
 
@@ -307,6 +308,98 @@ router.post("/", adminMiddleware, async (req: Request, res: Response) => {
   if (!result.ok) return respondLimit(res, result);
   exportJobWorker.nudge();
   return res.status(202).json({ job: serializeAdminJob(result.job) });
+});
+
+const historicalSummaryPayload = z.object({
+  organizationId: z.coerce.number().int().positive(),
+  truckId: z.coerce.number().int().positive(),
+  granularity: z.enum(["minute", "hour", "day"]),
+  startTime: z.string().min(1),
+  endTime: z.string().min(1),
+});
+
+/**
+ * "View on Screen" alternative to queuing a file export — synchronous, no
+ * job queue / S3 / worker involved. Calls the exact same
+ * `storage.getHistoricalMeasurements` query the file export uses so the
+ * numbers always match what the CSV/Excel would contain, then reduces rows
+ * to an aggregate summary in-process. Total kWh is always computed from a
+ * day-granularity query regardless of the requested granularity, since only
+ * day buckets carry the energy-throughput calculation.
+ */
+router.post("/historical-summary", adminMiddleware, async (req: Request, res: Response) => {
+  const parsed = historicalSummaryPayload.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    return res.status(400).json({
+      error: "Invalid request",
+      details: parsed.error.flatten(),
+    });
+  }
+  const input = parsed.data;
+
+  const startTime = new Date(input.startTime);
+  const endTime = new Date(input.endTime);
+  if (Number.isNaN(startTime.getTime()) || Number.isNaN(endTime.getTime())) {
+    return res.status(400).json({ error: "Invalid startTime or endTime" });
+  }
+  if (endTime.getTime() <= startTime.getTime()) {
+    return res.status(400).json({ error: "endTime must be after startTime" });
+  }
+  const rangeMs = endTime.getTime() - startTime.getTime();
+  if (rangeMs > HISTORICAL_MAX_RANGE_MS) {
+    return res.status(400).json({ error: "Date range exceeds 1 year maximum" });
+  }
+  const estimate = estimateHistoricalRows({
+    startMs: startTime.getTime(),
+    endMs: endTime.getTime(),
+    granularity: input.granularity,
+  });
+  if (estimate.exceedsMaxRows) {
+    return res.status(400).json({
+      error: `Estimated ${estimate.rowCount.toLocaleString()} rows exceeds the ${HISTORICAL_MAX_ROWS.toLocaleString()} row cap. Choose a coarser granularity or a shorter range.`,
+    });
+  }
+
+  const org = await storage.getOrganization(input.organizationId);
+  if (!org) return res.status(404).json({ error: "Organization not found" });
+
+  const truck = await storage.getTruck(input.organizationId, input.truckId);
+  if (!truck) {
+    return res.status(404).json({
+      error: "Truck not found in the selected organization",
+    });
+  }
+
+  const result = await storage.getHistoricalMeasurements({
+    organizationId: input.organizationId,
+    truckId: input.truckId,
+    startTime,
+    endTime,
+    granularity: input.granularity,
+  });
+
+  const dayResult = input.granularity === "day"
+    ? result
+    : await storage.getHistoricalMeasurements({
+        organizationId: input.organizationId,
+        truckId: input.truckId,
+        startTime,
+        endTime,
+        granularity: "day",
+      });
+
+  const summary = computeHistoricalSummary(result.rows, dayResult.rows, {
+    startTime,
+    endTime,
+    granularity: input.granularity,
+  });
+
+  return res.json({
+    summary,
+    truck: { truckNumber: result.truck.truckNumber },
+    fleetName: result.fleetName,
+    powerMonSerial: result.powerMonSerial,
+  });
 });
 
 function respondLimit(

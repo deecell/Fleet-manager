@@ -51,15 +51,18 @@ import {
   type SimBackfillSummary,
   type RefreshSimResult,
 } from "@/lib/admin-api";
-import { useCreateAdminExport } from "@/lib/admin-exports-api";
+import { useCreateAdminExport, useHistoricalSummary, type HistoricalSummaryResponse } from "@/lib/admin-exports-api";
 import {
   HISTORICAL_GRANULARITY_META,
   HISTORICAL_MAX_RANGE_MS,
   HISTORICAL_MAX_ROWS,
   estimateHistoricalRows,
+  defaultGranularityForRangeDays,
   type HistoricalGranularity,
 } from "@shared/export-historical";
-import { Plus, Pencil, Cpu, Link2, Unlink, Key, Search, Trash2, RotateCcw, WifiOff, RefreshCw, AlertCircle, AlertTriangle, RotateCw, MoreHorizontal, Download, Loader2 } from "lucide-react";
+import { StatCard, getSocStatus, getVoltageStatus, type StatCardStatus } from "@/components/StatCard";
+import { format } from "date-fns";
+import { Plus, Pencil, Cpu, Link2, Unlink, Key, Search, Trash2, RotateCcw, WifiOff, RefreshCw, AlertCircle, AlertTriangle, RotateCw, MoreHorizontal, Download, Loader2, Eye, ArrowLeft } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -1455,12 +1458,103 @@ function endOfDayLocal(d: Date): Date {
   return out;
 }
 
+function SummaryMetricRow({
+  label,
+  unit,
+  decimals,
+  metric,
+  statusFn,
+  caption,
+}: {
+  label: string;
+  unit: string;
+  decimals: number;
+  metric: { avg: number | null; min: number | null; max: number | null };
+  statusFn?: (value: number) => StatCardStatus;
+  caption?: string;
+}) {
+  if (metric.avg === null && metric.min === null && metric.max === null) return null;
+  return (
+    <div>
+      <div className="flex items-baseline justify-between mb-2">
+        <p className="text-sm font-medium text-neutral-950">{label}</p>
+        {caption && <p className="text-xs text-muted-foreground">{caption}</p>}
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        <StatCard
+          compact
+          title="Min"
+          targetNumber={metric.min ?? 0}
+          suffix={unit}
+          decimals={decimals}
+          status={metric.min !== null ? statusFn?.(metric.min) : undefined}
+        />
+        <StatCard
+          compact
+          title="Average"
+          targetNumber={metric.avg ?? 0}
+          suffix={unit}
+          decimals={decimals}
+          status={metric.avg !== null ? statusFn?.(metric.avg) : undefined}
+        />
+        <StatCard
+          compact
+          title="Max"
+          targetNumber={metric.max ?? 0}
+          suffix={unit}
+          decimals={decimals}
+          status={metric.max !== null ? statusFn?.(metric.max) : undefined}
+        />
+      </div>
+    </div>
+  );
+}
+
+function HistoricalSummaryResults({ result }: { result: HistoricalSummaryResponse }) {
+  const { summary } = result;
+  const periodLabel = `${format(new Date(summary.startTime), "MMM d, yyyy")} – ${format(new Date(summary.endTime), "MMM d, yyyy")}`;
+  const socCaption =
+    summary.soc.start !== null && summary.soc.end !== null
+      ? `${summary.soc.start.toFixed(0)}% → ${summary.soc.end.toFixed(0)}%`
+      : undefined;
+
+  return (
+    <div className="space-y-5">
+      <div className="text-xs text-muted-foreground" data-testid="text-summary-period">
+        {periodLabel} · {summary.dataPoints.toLocaleString()} data points ({HISTORICAL_GRANULARITY_META[summary.granularity].label.toLowerCase()})
+      </div>
+
+      <SummaryMetricRow label="State of Charge" unit="%" decimals={0} metric={summary.soc} statusFn={getSocStatus} caption={socCaption} />
+      <SummaryMetricRow label="Voltage 1 (Chassis)" unit="V" decimals={2} metric={summary.voltage1} statusFn={getVoltageStatus} />
+      {summary.voltage2 && (
+        <SummaryMetricRow label="Voltage 2 (Sleeper)" unit="V" decimals={2} metric={summary.voltage2} />
+      )}
+      <SummaryMetricRow label="Current" unit="A" decimals={1} metric={summary.current} />
+      <SummaryMetricRow label="Power" unit="W" decimals={1} metric={summary.power} />
+      {summary.temperatureF && (
+        <SummaryMetricRow label="Temperature" unit="°F" decimals={1} metric={summary.temperatureF} />
+      )}
+
+      {summary.totalKwh !== null && (
+        <div>
+          <p className="text-sm font-medium text-neutral-950 mb-2">Energy Throughput</p>
+          <div className="w-1/3">
+            <StatCard compact title="Total" targetNumber={summary.totalKwh} suffix=" kWh" decimals={1} />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /**
  * Same historical-export payload/validation as the Export tab's
  * `HistoricalForm`, trimmed to start/end date + granularity + format since
  * the organization and truck are already known from the row this was
- * opened from. Queues via the same job, so progress shows up in the
- * top-right ExportsBanner notification like any other admin export.
+ * opened from. Queuing (Download File) submits via the same job as before,
+ * so progress shows up in the top-right ExportsBanner notification. View on
+ * Screen instead calls a synchronous summary endpoint that reuses the exact
+ * same historical query, and renders the result in place of the form.
  */
 function DeviceExportDialog({
   device,
@@ -1473,11 +1567,13 @@ function DeviceExportDialog({
 }) {
   const { toast } = useToast();
   const create = useCreateAdminExport();
+  const viewSummary = useHistoricalSummary();
 
+  const [mode, setMode] = useState<"download" | "view">("download");
   const [startDate, setStartDate] = useState<string>(() => isoLocalDate(new Date(Date.now() - 7 * 86400000)));
   const [endDate, setEndDate] = useState<string>(() => isoLocalDate(new Date()));
   const [granularity, setGranularity] = useState<HistoricalGranularity>("hour");
-  const [format, setFormat] = useState<"csv" | "xlsx">("csv");
+  const [format2, setFormat] = useState<"csv" | "xlsx">("csv");
 
   const startMs = startDate ? startOfDayLocal(new Date(startDate)).getTime() : NaN;
   const endMs = endDate ? endOfDayLocal(new Date(endDate)).getTime() : NaN;
@@ -1492,12 +1588,12 @@ function DeviceExportDialog({
   const rangeTooLong =
     Number.isFinite(startMs) && Number.isFinite(endMs) && endMs - startMs > HISTORICAL_MAX_RANGE_MS;
 
-  const submit = async () => {
+  const submitDownload = async () => {
     if (!device.truckId || !validRange) return;
     try {
       await create.mutateAsync({
         kind: "historical",
-        format,
+        format: format2,
         organizationId: device.organizationId,
         truckId: device.truckId,
         granularity,
@@ -1519,6 +1615,30 @@ function DeviceExportDialog({
     }
   };
 
+  const submitView = async () => {
+    if (!device.truckId || !validRange) return;
+    const rangeDays = (endMs - startMs) / 86400000;
+    try {
+      await viewSummary.mutateAsync({
+        organizationId: device.organizationId,
+        truckId: device.truckId,
+        granularity: defaultGranularityForRangeDays(rangeDays),
+        startTime: new Date(startMs).toISOString(),
+        endTime: new Date(endMs).toISOString(),
+      });
+    } catch (e) {
+      const err = e as { message?: string };
+      toast({
+        title: "Could not load summary",
+        description: err?.message ?? "Unexpected error",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const submit = mode === "download" ? submitDownload : submitView;
+  const isPending = mode === "download" ? create.isPending : viewSummary.isPending;
+
   return (
     <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent>
@@ -1528,120 +1648,178 @@ function DeviceExportDialog({
             {truckNumber} · {device.serialNumber || device.deviceName || `Device #${device.id}`}
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-5">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label className="text-xs text-muted-foreground" htmlFor="device-export-start">Start date</Label>
-              <Input
-                id="device-export-start"
-                type="date"
-                className="mt-1"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                data-testid="input-device-export-start"
-              />
-            </div>
-            <div>
-              <Label className="text-xs text-muted-foreground" htmlFor="device-export-end">End date</Label>
-              <Input
-                id="device-export-end"
-                type="date"
-                className="mt-1"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                data-testid="input-device-export-end"
-              />
-            </div>
-          </div>
 
-          <div>
-            <Label className="text-xs text-muted-foreground">Granularity</Label>
-            <RadioGroup
-              value={granularity}
-              onValueChange={(v) => setGranularity(v as HistoricalGranularity)}
-              className="mt-2 space-y-2"
-            >
-              {(Object.keys(HISTORICAL_GRANULARITY_META) as HistoricalGranularity[]).map((g) => {
-                const meta = HISTORICAL_GRANULARITY_META[g];
-                return (
+        {viewSummary.data ? (
+          <>
+            <HistoricalSummaryResults result={viewSummary.data} />
+            <DialogFooter>
+              <Button variant="outline" onClick={() => viewSummary.reset()} data-testid="button-summary-back">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back
+              </Button>
+              <Button onClick={onClose} data-testid="button-summary-close">
+                Close
+              </Button>
+            </DialogFooter>
+          </>
+        ) : (
+          <>
+            <div className="space-y-5">
+              <div>
+                <RadioGroup
+                  value={mode}
+                  onValueChange={(v) => setMode(v as "download" | "view")}
+                  className="grid grid-cols-2 gap-2"
+                >
                   <Label
-                    key={g}
-                    htmlFor={`device-export-gran-${g}`}
-                    className="flex items-start gap-3 cursor-pointer rounded-md border border-border px-3 py-2 hover-elevate"
+                    htmlFor="device-export-mode-download"
+                    className="flex items-center gap-2 cursor-pointer rounded-md border border-border px-3 py-2 hover-elevate"
                   >
-                    <RadioGroupItem value={g} id={`device-export-gran-${g}`} data-testid={`radio-device-export-granularity-${g}`} />
-                    <div className="flex-1">
-                      <div className="text-sm font-medium">{meta.label}</div>
-                      <div className="text-xs text-muted-foreground">{meta.description}</div>
-                    </div>
+                    <RadioGroupItem value="download" id="device-export-mode-download" data-testid="radio-device-export-mode-download" />
+                    <Download className="h-4 w-4 shrink-0" />
+                    <span className="text-sm font-medium">Download File</span>
                   </Label>
-                );
-              })}
-            </RadioGroup>
-          </div>
+                  <Label
+                    htmlFor="device-export-mode-view"
+                    className="flex items-center gap-2 cursor-pointer rounded-md border border-border px-3 py-2 hover-elevate"
+                  >
+                    <RadioGroupItem value="view" id="device-export-mode-view" data-testid="radio-device-export-mode-view" />
+                    <Eye className="h-4 w-4 shrink-0" />
+                    <span className="text-sm font-medium">View on Screen</span>
+                  </Label>
+                </RadioGroup>
+              </div>
 
-          <div>
-            <Label className="text-xs text-muted-foreground">Format</Label>
-            <RadioGroup
-              value={format}
-              onValueChange={(v) => setFormat(v as "csv" | "xlsx")}
-              className="flex gap-4 mt-2"
-            >
-              <Label htmlFor="device-export-fmt-csv" className="flex items-center gap-2 cursor-pointer">
-                <RadioGroupItem value="csv" id="device-export-fmt-csv" data-testid="radio-device-export-format-csv" />
-                <span className="text-sm">CSV</span>
-              </Label>
-              <Label htmlFor="device-export-fmt-xlsx" className="flex items-center gap-2 cursor-pointer">
-                <RadioGroupItem value="xlsx" id="device-export-fmt-xlsx" data-testid="radio-device-export-format-xlsx" />
-                <span className="text-sm">Excel (.xlsx)</span>
-              </Label>
-            </RadioGroup>
-          </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-xs text-muted-foreground" htmlFor="device-export-start">Start date</Label>
+                  <Input
+                    id="device-export-start"
+                    type="date"
+                    className="mt-1"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    data-testid="input-device-export-start"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground" htmlFor="device-export-end">End date</Label>
+                  <Input
+                    id="device-export-end"
+                    type="date"
+                    className="mt-1"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    data-testid="input-device-export-end"
+                  />
+                </div>
+              </div>
 
-          {rangeTooLong && (
-            <div className="flex items-start gap-2 text-sm text-destructive" data-testid="text-device-export-range-error">
-              <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
-              <span>Range cannot exceed 1 year.</span>
+              {mode === "download" && (
+                <>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Granularity</Label>
+                    <RadioGroup
+                      value={granularity}
+                      onValueChange={(v) => setGranularity(v as HistoricalGranularity)}
+                      className="mt-2 space-y-2"
+                    >
+                      {(Object.keys(HISTORICAL_GRANULARITY_META) as HistoricalGranularity[]).map((g) => {
+                        const meta = HISTORICAL_GRANULARITY_META[g];
+                        return (
+                          <Label
+                            key={g}
+                            htmlFor={`device-export-gran-${g}`}
+                            className="flex items-start gap-3 cursor-pointer rounded-md border border-border px-3 py-2 hover-elevate"
+                          >
+                            <RadioGroupItem value={g} id={`device-export-gran-${g}`} data-testid={`radio-device-export-granularity-${g}`} />
+                            <div className="flex-1">
+                              <div className="text-sm font-medium">{meta.label}</div>
+                              <div className="text-xs text-muted-foreground">{meta.description}</div>
+                            </div>
+                          </Label>
+                        );
+                      })}
+                    </RadioGroup>
+                  </div>
+
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Format</Label>
+                    <RadioGroup
+                      value={format2}
+                      onValueChange={(v) => setFormat(v as "csv" | "xlsx")}
+                      className="flex gap-4 mt-2"
+                    >
+                      <Label htmlFor="device-export-fmt-csv" className="flex items-center gap-2 cursor-pointer">
+                        <RadioGroupItem value="csv" id="device-export-fmt-csv" data-testid="radio-device-export-format-csv" />
+                        <span className="text-sm">CSV</span>
+                      </Label>
+                      <Label htmlFor="device-export-fmt-xlsx" className="flex items-center gap-2 cursor-pointer">
+                        <RadioGroupItem value="xlsx" id="device-export-fmt-xlsx" data-testid="radio-device-export-format-xlsx" />
+                        <span className="text-sm">Excel (.xlsx)</span>
+                      </Label>
+                    </RadioGroup>
+                  </div>
+                </>
+              )}
+
+              {rangeTooLong && (
+                <div className="flex items-start gap-2 text-sm text-destructive" data-testid="text-device-export-range-error">
+                  <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+                  <span>Range cannot exceed 1 year.</span>
+                </div>
+              )}
+              {mode === "download" && tooManyRows && (
+                <div className="flex items-start gap-2 text-sm text-destructive" data-testid="text-device-export-rows-error">
+                  <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+                  <span>
+                    Estimated {estimate!.rowCount.toLocaleString()} rows exceeds the {HISTORICAL_MAX_ROWS.toLocaleString()} row
+                    cap. Choose a coarser granularity or shorter range.
+                  </span>
+                </div>
+              )}
+              {mode === "download" && create.error && (
+                <div className="flex items-start gap-2 text-sm text-destructive" data-testid="text-device-export-error">
+                  <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+                  <span>{create.error.message}</span>
+                </div>
+              )}
+              {mode === "view" && viewSummary.error && (
+                <div className="flex items-start gap-2 text-sm text-destructive" data-testid="text-device-export-view-error">
+                  <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+                  <span>{viewSummary.error.message}</span>
+                </div>
+              )}
             </div>
-          )}
-          {tooManyRows && (
-            <div className="flex items-start gap-2 text-sm text-destructive" data-testid="text-device-export-rows-error">
-              <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
-              <span>
-                Estimated {estimate!.rowCount.toLocaleString()} rows exceeds the {HISTORICAL_MAX_ROWS.toLocaleString()} row
-                cap. Choose a coarser granularity or shorter range.
-              </span>
-            </div>
-          )}
-          {create.error && (
-            <div className="flex items-start gap-2 text-sm text-destructive" data-testid="text-device-export-error">
-              <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
-              <span>{create.error.message}</span>
-            </div>
-          )}
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            onClick={submit}
-            disabled={!validRange || tooManyRows || create.isPending}
-            data-testid="button-submit-device-export"
-          >
-            {create.isPending ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Queuing…
-              </>
-            ) : (
-              <>
-                <Download className="h-4 w-4 mr-2" />
-                Queue export
-              </>
-            )}
-          </Button>
-        </DialogFooter>
+            <DialogFooter>
+              <Button variant="outline" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button
+                onClick={submit}
+                disabled={!validRange || (mode === "download" && tooManyRows) || isPending}
+                data-testid="button-submit-device-export"
+              >
+                {isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    {mode === "download" ? "Queuing…" : "Loading…"}
+                  </>
+                ) : mode === "download" ? (
+                  <>
+                    <Download className="h-4 w-4 mr-2" />
+                    Queue export
+                  </>
+                ) : (
+                  <>
+                    <Eye className="h-4 w-4 mr-2" />
+                    View Summary
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

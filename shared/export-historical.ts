@@ -243,6 +243,57 @@ export function isHistoricalGranularity(v: unknown): v is HistoricalGranularity 
   return v === "minute" || v === "hour" || v === "day";
 }
 
+// ---------------------------------------------------------------------------
+// On-screen summary (View on Screen dialog option)
+// ---------------------------------------------------------------------------
+
+/**
+ * Avg/min/max for one reading over a date range. Min/max are exact when the
+ * underlying rows carry true daily min/max columns (day granularity); at
+ * minute/hour granularity they're the min/max of the per-bucket averages —
+ * an approximation, same one the CSV/Excel export itself is limited to for
+ * fields with no dedicated min/max column (current, power).
+ */
+export interface HistoricalMetricSummary {
+  avg: number | null;
+  min: number | null;
+  max: number | null;
+}
+
+/**
+ * On-screen aggregate summary for a truck's history over a date range —
+ * the "View on Screen" alternative to downloading a CSV/Excel file. Computed
+ * from the exact same `getHistoricalMeasurements` query the file export
+ * uses, so these numbers always match what the file would contain.
+ */
+export interface HistoricalSummary {
+  startTime: string;
+  endTime: string;
+  granularity: HistoricalGranularity;
+  /** Number of buckets (rows) the query returned for this granularity. */
+  dataPoints: number;
+  soc: HistoricalMetricSummary & {
+    /** SoC of the first bucket with a reading — net-change reference point. */
+    start: number | null;
+    /** SoC of the last bucket with a reading. */
+    end: number | null;
+  };
+  voltage1: HistoricalMetricSummary;
+  /** Null when the truck has no voltage2 (sleeper) readings in range. */
+  voltage2: HistoricalMetricSummary | null;
+  current: HistoricalMetricSummary;
+  power: HistoricalMetricSummary;
+  /** Null when no temperature readings exist in range. */
+  temperatureF: HistoricalMetricSummary | null;
+  /**
+   * Total energy throughput in kWh across the full range, always computed
+   * from day-level buckets internally regardless of the granularity chosen
+   * for the other stats above — the day-only energy calculation is the only
+   * one accurate enough to sum. Null when no day-level data exists in range.
+   */
+  totalKwh: number | null;
+}
+
 // Re-export the shared format types so historical-only callers don't have to
 // reach into export-columns just for ColumnFormat.
 export type { ColumnFormat, ColumnSource, ExportColumn };

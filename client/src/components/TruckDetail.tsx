@@ -9,7 +9,7 @@ import { useTruckHistory, LegacyTruckWithDevice } from "@/lib/api";
 import { TruckTimeline } from "./TruckTimeline";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { StatCard, StatCardStatus } from "./StatCard";
+import { StatCard, StatCardStatus, getSocStatus, getVoltageStatus } from "./StatCard";
 
 interface StatPoint {
   timestamp: number;
@@ -58,18 +58,6 @@ function computeStats(points: StatPoint[]): PeriodStats | null {
 
 function formatPeakTime(timestamp: number): string {
   return format(new Date(timestamp), "MMM d, h:mm a");
-}
-
-function getSocStatus(value: number): StatCardStatus {
-  if (value < 15) return "critical";
-  if (value < 25) return "warning";
-  return "good";
-}
-
-function getVoltageStatus(value: number): StatCardStatus {
-  if (value < 11.5 || value > 14.5) return "critical";
-  if (value < 12.0 || value > 14.0) return "warning";
-  return "good";
 }
 
 function MetricSummary({
