@@ -4,4 +4,5 @@
 - [SIM link swap recovery](sim-link-swap-recovery.md) — repairing two SIMs cross-linked to each other's PowerMon device when Wireless Logic Custom Field 1 was set backwards.
 - [InHand location is cell-tower not GPS](inhand-location-is-celltower.md) — location.source="cellTower" fleet-wide (0/48 gps); positions teleport; fresher cid/lac + signalStrength fetched every poll but discarded.
 - [Drizzle array binding](drizzle-array-binding.md) — `ANY(${jsArray})` in raw sql`` breaks ("requires array on right side"); drizzle expands arrays to a param list, so use `IN (${sql.join(...)})`.
+- [Device-manager ASG churn](device-manager-asg-churn.md) — prod EC2 is AutoScaling-managed; instance IDs go stale, resolve by Name tag instead of hardcoding.
 - [GPS movement thresholds](gps-movement-thresholds.md) — parked trucks jitter up to ~0.2 mi; use 0.03 mi per-segment + 0.2 mi total floors, sum consecutive segments (not spread), clamp acos.
