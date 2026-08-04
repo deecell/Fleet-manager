@@ -9,4 +9,6 @@ The production device-manager EC2 (`deecell-fleet-production-device-manager`, us
 
 **How to apply:** resolve the current ID by Name tag before connecting or documenting:
 `aws ec2 describe-instances --region us-east-2 --filters "Name=tag:Name,Values=deecell-fleet-production-device-manager" "Name=instance-state-name,Values=running" --query 'Reservations[].Instances[].InstanceId' --output text`
+**Critical gap:** the launch-template user_data provisions the box (Node, systemd unit, deploy.sh) but does NOT deploy app code — deploy is a manual `sudo -u ubuntu bash /opt/device-manager/deploy.sh` (pulls `device-manager-latest.zip` from the S3 deploy bucket). The 2026-07-27 ASG replacement therefore left the fleet unpolled for a week until someone ran deploy.sh on 2026-08-04. Symptom: `systemctl status device-manager` shows nothing useful, `/opt/device-manager/` contains only certs/deploy.sh/start.sh (no `app/`).
+
 Replacement cause lives in EC2 → Auto Scaling Groups → Activity history. The Replit `deecell-terraform` IAM user cannot read CloudTrail or `ssm:DescribeInstanceInformation`.
