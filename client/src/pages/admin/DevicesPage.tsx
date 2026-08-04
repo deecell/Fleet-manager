@@ -57,7 +57,6 @@ import {
   HISTORICAL_MAX_RANGE_MS,
   HISTORICAL_MAX_ROWS,
   estimateHistoricalRows,
-  defaultGranularityForRangeDays,
   type HistoricalGranularity,
 } from "@shared/export-historical";
 import { StatCard, getSocStatus, getVoltageStatus, type StatCardStatus } from "@/components/StatCard";
@@ -1476,7 +1475,7 @@ function SummaryMetricRow({
   if (metric.avg === null && metric.min === null && metric.max === null) return null;
   return (
     <div>
-      <div className="flex items-baseline justify-between mb-2">
+      <div className="flex items-baseline justify-between mb-1.5">
         <p className="text-sm font-medium text-neutral-950">{label}</p>
         {caption && <p className="text-xs text-muted-foreground">{caption}</p>}
       </div>
@@ -1519,7 +1518,7 @@ function HistoricalSummaryResults({ result }: { result: HistoricalSummaryRespons
       : undefined;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <div className="text-xs text-muted-foreground" data-testid="text-summary-period">
         {periodLabel} · {summary.dataPoints.toLocaleString()} data points ({HISTORICAL_GRANULARITY_META[summary.granularity].label.toLowerCase()})
       </div>
@@ -1537,7 +1536,7 @@ function HistoricalSummaryResults({ result }: { result: HistoricalSummaryRespons
 
       {summary.totalKwh !== null && (
         <div>
-          <p className="text-sm font-medium text-neutral-950 mb-2">Energy Throughput</p>
+          <p className="text-sm font-medium text-neutral-950 mb-1.5">Energy Throughput</p>
           <div className="w-1/3">
             <StatCard compact title="Total" targetNumber={summary.totalKwh} suffix=" kWh" decimals={1} />
           </div>
@@ -1617,12 +1616,11 @@ function DeviceExportDialog({
 
   const submitView = async () => {
     if (!device.truckId || !validRange) return;
-    const rangeDays = (endMs - startMs) / 86400000;
     try {
       await viewSummary.mutateAsync({
         organizationId: device.organizationId,
         truckId: device.truckId,
-        granularity: defaultGranularityForRangeDays(rangeDays),
+        granularity,
         startTime: new Date(startMs).toISOString(),
         endTime: new Date(endMs).toISOString(),
       });
@@ -1641,8 +1639,8 @@ function DeviceExportDialog({
 
   return (
     <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent>
-        <DialogHeader>
+      <DialogContent className="flex max-h-[85vh] flex-col gap-0 p-0 overflow-hidden">
+        <DialogHeader className="shrink-0 px-6 pt-6 pb-4">
           <DialogTitle>Export Truck History</DialogTitle>
           <DialogDescription>
             {truckNumber} · {device.serialNumber || device.deviceName || `Device #${device.id}`}
@@ -1651,8 +1649,10 @@ function DeviceExportDialog({
 
         {viewSummary.data ? (
           <>
-            <HistoricalSummaryResults result={viewSummary.data} />
-            <DialogFooter>
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <HistoricalSummaryResults result={viewSummary.data} />
+            </div>
+            <DialogFooter className="shrink-0 border-t px-6 py-4">
               <Button variant="outline" onClick={() => viewSummary.reset()} data-testid="button-summary-back">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
@@ -1664,7 +1664,7 @@ function DeviceExportDialog({
           </>
         ) : (
           <>
-            <div className="space-y-5">
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-5">
               <div>
                 <RadioGroup
                   value={mode}
@@ -1715,52 +1715,50 @@ function DeviceExportDialog({
                 </div>
               </div>
 
-              {mode === "download" && (
-                <>
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Granularity</Label>
-                    <RadioGroup
-                      value={granularity}
-                      onValueChange={(v) => setGranularity(v as HistoricalGranularity)}
-                      className="mt-2 space-y-2"
-                    >
-                      {(Object.keys(HISTORICAL_GRANULARITY_META) as HistoricalGranularity[]).map((g) => {
-                        const meta = HISTORICAL_GRANULARITY_META[g];
-                        return (
-                          <Label
-                            key={g}
-                            htmlFor={`device-export-gran-${g}`}
-                            className="flex items-start gap-3 cursor-pointer rounded-md border border-border px-3 py-2 hover-elevate"
-                          >
-                            <RadioGroupItem value={g} id={`device-export-gran-${g}`} data-testid={`radio-device-export-granularity-${g}`} />
-                            <div className="flex-1">
-                              <div className="text-sm font-medium">{meta.label}</div>
-                              <div className="text-xs text-muted-foreground">{meta.description}</div>
-                            </div>
-                          </Label>
-                        );
-                      })}
-                    </RadioGroup>
-                  </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">Granularity</Label>
+                <RadioGroup
+                  value={granularity}
+                  onValueChange={(v) => setGranularity(v as HistoricalGranularity)}
+                  className="mt-2 space-y-2"
+                >
+                  {(Object.keys(HISTORICAL_GRANULARITY_META) as HistoricalGranularity[]).map((g) => {
+                    const meta = HISTORICAL_GRANULARITY_META[g];
+                    return (
+                      <Label
+                        key={g}
+                        htmlFor={`device-export-gran-${g}`}
+                        className="flex items-start gap-3 cursor-pointer rounded-md border border-border px-3 py-2 hover-elevate"
+                      >
+                        <RadioGroupItem value={g} id={`device-export-gran-${g}`} data-testid={`radio-device-export-granularity-${g}`} />
+                        <div className="flex-1">
+                          <div className="text-sm font-medium">{meta.label}</div>
+                          <div className="text-xs text-muted-foreground">{meta.description}</div>
+                        </div>
+                      </Label>
+                    );
+                  })}
+                </RadioGroup>
+              </div>
 
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Format</Label>
-                    <RadioGroup
-                      value={format2}
-                      onValueChange={(v) => setFormat(v as "csv" | "xlsx")}
-                      className="flex gap-4 mt-2"
-                    >
-                      <Label htmlFor="device-export-fmt-csv" className="flex items-center gap-2 cursor-pointer">
-                        <RadioGroupItem value="csv" id="device-export-fmt-csv" data-testid="radio-device-export-format-csv" />
-                        <span className="text-sm">CSV</span>
-                      </Label>
-                      <Label htmlFor="device-export-fmt-xlsx" className="flex items-center gap-2 cursor-pointer">
-                        <RadioGroupItem value="xlsx" id="device-export-fmt-xlsx" data-testid="radio-device-export-format-xlsx" />
-                        <span className="text-sm">Excel (.xlsx)</span>
-                      </Label>
-                    </RadioGroup>
-                  </div>
-                </>
+              {mode === "download" && (
+                <div>
+                  <Label className="text-xs text-muted-foreground">Format</Label>
+                  <RadioGroup
+                    value={format2}
+                    onValueChange={(v) => setFormat(v as "csv" | "xlsx")}
+                    className="flex gap-4 mt-2"
+                  >
+                    <Label htmlFor="device-export-fmt-csv" className="flex items-center gap-2 cursor-pointer">
+                      <RadioGroupItem value="csv" id="device-export-fmt-csv" data-testid="radio-device-export-format-csv" />
+                      <span className="text-sm">CSV</span>
+                    </Label>
+                    <Label htmlFor="device-export-fmt-xlsx" className="flex items-center gap-2 cursor-pointer">
+                      <RadioGroupItem value="xlsx" id="device-export-fmt-xlsx" data-testid="radio-device-export-format-xlsx" />
+                      <span className="text-sm">Excel (.xlsx)</span>
+                    </Label>
+                  </RadioGroup>
+                </div>
               )}
 
               {rangeTooLong && (
@@ -1769,7 +1767,7 @@ function DeviceExportDialog({
                   <span>Range cannot exceed 1 year.</span>
                 </div>
               )}
-              {mode === "download" && tooManyRows && (
+              {tooManyRows && (
                 <div className="flex items-start gap-2 text-sm text-destructive" data-testid="text-device-export-rows-error">
                   <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
                   <span>
@@ -1791,13 +1789,13 @@ function DeviceExportDialog({
                 </div>
               )}
             </div>
-            <DialogFooter>
+            <DialogFooter className="shrink-0 border-t px-6 py-4">
               <Button variant="outline" onClick={onClose}>
                 Cancel
               </Button>
               <Button
                 onClick={submit}
-                disabled={!validRange || (mode === "download" && tooManyRows) || isPending}
+                disabled={!validRange || tooManyRows || isPending}
                 data-testid="button-submit-device-export"
               >
                 {isPending ? (
