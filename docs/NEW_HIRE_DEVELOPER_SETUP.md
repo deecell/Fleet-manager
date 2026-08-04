@@ -143,7 +143,7 @@ aws ec2 describe-instances \
 You should see:
 ```
 +----------------------+-------------------------------------------+
-|  i-05443904f977d7301 |  deecell-fleet-production-device-manager  |
+|  i-045caff18c8857872 |  deecell-fleet-production-device-manager  |
 +----------------------+-------------------------------------------+
 ```
 
@@ -183,7 +183,7 @@ If you need to run SQL manually without a script:
 ### Step 1: Connect to EC2 via SSM
 
 ```bash
-aws ssm start-session --target i-05443904f977d7301 --region us-east-2
+aws ssm start-session --target i-045caff18c8857872 --region us-east-2
 ```
 
 ### Step 2: Get the Database URL (run this inside the EC2 session)
@@ -244,7 +244,7 @@ Then type `exit` to close the SSM session.
 | Repository | https://github.com/deecell/Fleet-manager |
 | AWS Region | us-east-2 (Ohio) |
 | Production App | https://app.deecell.com |
-| Device Manager EC2 | i-05443904f977d7301 |
+| Device Manager EC2 | i-045caff18c8857872 |
 | Database Secret | `deecell-fleet-production/database-url` |
 
 ---
