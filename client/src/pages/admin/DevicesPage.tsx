@@ -56,12 +56,13 @@ import {
   HISTORICAL_GRANULARITY_META,
   HISTORICAL_MAX_RANGE_MS,
   HISTORICAL_MAX_ROWS,
+  HISTORICAL_SYNC_MAX_RANGE_MS,
   estimateHistoricalRows,
   type HistoricalGranularity,
 } from "@shared/export-historical";
 import { StatCard, getSocStatus, getVoltageStatus, type StatCardStatus } from "@/components/StatCard";
 import { format } from "date-fns";
-import { Plus, Pencil, Cpu, Link2, Unlink, Key, Search, Trash2, RotateCcw, WifiOff, RefreshCw, AlertCircle, AlertTriangle, RotateCw, MoreHorizontal, Download, Loader2, Eye, ArrowLeft } from "lucide-react";
+import { Plus, Pencil, Cpu, Link2, Unlink, Key, Search, Trash2, RotateCcw, WifiOff, RefreshCw, AlertCircle, AlertTriangle, RotateCw, MoreHorizontal, Download, Loader2, Eye, ArrowLeft, Info } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -1546,6 +1547,16 @@ function HistoricalSummaryResults({ result }: { result: HistoricalSummaryRespons
   );
 }
 
+/** Renders a sync-cap range like `HISTORICAL_SYNC_MAX_RANGE_MS.minute` as "14 days" / "1 year". */
+function formatSyncRangeLimit(ms: number): string {
+  const days = Math.round(ms / (24 * 60 * 60 * 1000));
+  if (days % 365 === 0) {
+    const years = days / 365;
+    return years === 1 ? "1 year" : `${years} years`;
+  }
+  return `${days} days`;
+}
+
 /**
  * Same historical-export payload/validation as the Export tab's
  * `HistoricalForm`, trimmed to start/end date + granularity + format since
@@ -1740,6 +1751,30 @@ function DeviceExportDialog({
                   })}
                 </RadioGroup>
               </div>
+
+              {mode === "view" && (
+                <div className="flex items-start gap-2 rounded-md border border-border bg-muted/30 p-3" data-testid="text-device-export-sync-limits">
+                  <Info className="h-4 w-4 mt-0.5 shrink-0 text-blue-600" />
+                  <div className="text-xs">
+                    <div className="font-medium text-foreground">On-screen summaries are limited to:</div>
+                    <div className="mt-1.5 space-y-0.5">
+                      {(Object.keys(HISTORICAL_GRANULARITY_META) as HistoricalGranularity[]).map((g) => {
+                        const isActive = g === granularity;
+                        return (
+                          <div
+                            key={g}
+                            className={`flex justify-between ${isActive ? "font-semibold text-foreground" : "text-muted-foreground"}`}
+                          >
+                            <span>{HISTORICAL_GRANULARITY_META[g].label}</span>
+                            <span>{formatSyncRangeLimit(HISTORICAL_SYNC_MAX_RANGE_MS[g])}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="mt-1.5 text-muted-foreground">For longer ranges, use Download File.</div>
+                  </div>
+                </div>
+              )}
 
               {mode === "download" && (
                 <div>
