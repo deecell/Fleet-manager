@@ -26,7 +26,10 @@ import {
 import {
   HISTORICAL_MAX_RANGE_MS,
   HISTORICAL_MAX_ROWS,
+  HISTORICAL_SYNC_MAX_RANGE_MS,
+  HISTORICAL_GRANULARITY_META,
   estimateHistoricalRows,
+  exceedsHistoricalSyncRange,
   type HistoricalGranularity,
 } from "@shared/export-historical";
 import { storage } from "../storage";
@@ -320,12 +323,18 @@ const historicalSummaryPayload = z.object({
 
 /**
  * "View on Screen" alternative to queuing a file export — synchronous, no
- * job queue / S3 / worker involved. Calls the exact same
- * `storage.getHistoricalMeasurements` query the file export uses so the
- * numbers always match what the CSV/Excel would contain, then reduces rows
- * to an aggregate summary in-process. Total kWh is always computed from a
+ * job queue / S3 / worker involved, and no ALB headroom the way the queued
+ * export has. Calls the exact same `storage.getHistoricalMeasurements`
+ * query the file export uses (with `skipExtras` so it skips the
+ * position/alerts/savings work the summary doesn't render) so the numbers
+ * always match what the CSV/Excel would contain, then reduces rows to an
+ * aggregate summary in-process. Total kWh is always computed from a
  * day-granularity query regardless of the requested granularity, since only
  * day buckets carry the energy-throughput calculation.
+ *
+ * Range is capped much tighter than the async export
+ * (`HISTORICAL_SYNC_MAX_RANGE_MS`, not `HISTORICAL_MAX_RANGE_MS`) since this
+ * request has to finish inside the load balancer's idle timeout.
  */
 router.post("/historical-summary", adminMiddleware, async (req: Request, res: Response) => {
   const parsed = historicalSummaryPayload.safeParse(req.body ?? {});
@@ -348,6 +357,12 @@ router.post("/historical-summary", adminMiddleware, async (req: Request, res: Re
   const rangeMs = endTime.getTime() - startTime.getTime();
   if (rangeMs > HISTORICAL_MAX_RANGE_MS) {
     return res.status(400).json({ error: "Date range exceeds 1 year maximum" });
+  }
+  if (exceedsHistoricalSyncRange(rangeMs, input.granularity)) {
+    const maxDays = Math.round(HISTORICAL_SYNC_MAX_RANGE_MS[input.granularity] / (24 * 60 * 60 * 1000));
+    return res.status(400).json({
+      error: `On-screen summaries at "${HISTORICAL_GRANULARITY_META[input.granularity].label}" granularity are limited to a ${maxDays}-day range. Choose a coarser granularity, a shorter range, or use "Download File" instead.`,
+    });
   }
   const estimate = estimateHistoricalRows({
     startMs: startTime.getTime(),
@@ -376,6 +391,7 @@ router.post("/historical-summary", adminMiddleware, async (req: Request, res: Re
     startTime,
     endTime,
     granularity: input.granularity,
+    skipExtras: true,
   });
 
   const dayResult = input.granularity === "day"
@@ -386,6 +402,7 @@ router.post("/historical-summary", adminMiddleware, async (req: Request, res: Re
         startTime,
         endTime,
         granularity: "day",
+        skipExtras: true,
       });
 
   const summary = computeHistoricalSummary(result.rows, dayResult.rows, {

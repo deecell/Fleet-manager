@@ -248,6 +248,29 @@ export function isHistoricalGranularity(v: unknown): v is HistoricalGranularity 
 // ---------------------------------------------------------------------------
 
 /**
+ * Tighter per-granularity range caps for the synchronous "View on Screen"
+ * summary endpoint ONLY. `HISTORICAL_MAX_ROWS` / `HISTORICAL_MAX_RANGE_MS`
+ * above stay as-is for the async CSV/XLSX export (queued, runs in the job
+ * worker, no ALB deadline). The summary endpoint has none of that headroom —
+ * it must finish inside the load balancer's idle timeout — so it gets its
+ * own, much shorter ranges, chosen to keep the underlying bucket count in
+ * the tens of thousands rather than the hundreds of thousands.
+ */
+export const HISTORICAL_SYNC_MAX_RANGE_MS: Record<HistoricalGranularity, number> = {
+  minute: 14 * 24 * 60 * 60 * 1000, // 14 days  → ≤ 20,160 buckets
+  hour: 60 * 24 * 60 * 60 * 1000, // ~2 months → ≤ 1,440 buckets
+  day: HISTORICAL_MAX_RANGE_MS, // 1 year, unchanged — already ≤ 365 buckets
+};
+
+/** True when a range exceeds the sync-only cap for the given granularity. */
+export function exceedsHistoricalSyncRange(
+  rangeMs: number,
+  granularity: HistoricalGranularity,
+): boolean {
+  return rangeMs > HISTORICAL_SYNC_MAX_RANGE_MS[granularity];
+}
+
+/**
  * Avg/min/max for one reading over a date range. Min/max are exact when the
  * underlying rows carry true daily min/max columns (day granularity); at
  * minute/hour granularity they're the min/max of the per-bucket averages —

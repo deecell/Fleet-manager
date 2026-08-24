@@ -170,6 +170,14 @@ export interface HistoricalQueryOptions {
   startTime: Date;
   endTime: Date;
   granularity: HistoricalGranularity;
+  /**
+   * Skip the position (`sim_location_history`), alerts, and savings/fuel-price
+   * lookups — none of which the "View on Screen" summary renders. The file
+   * export (CSV/XLSX) always wants these, so it omits this flag (defaults to
+   * `false`). Rows still come back with `latitude`/`longitude`/`endLatitude`/
+   * `endLongitude`/`alertsRaised`/`daySavings` set to `null` in this mode.
+   */
+  skipExtras?: boolean;
 }
 
 export interface HistoricalQueryResult {

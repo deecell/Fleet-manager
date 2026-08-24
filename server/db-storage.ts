@@ -1801,7 +1801,7 @@ export class DbStorage {
   async getHistoricalMeasurements(
     opts: import("./services/exports/types").HistoricalQueryOptions,
   ): Promise<import("./services/exports/types").HistoricalQueryResult> {
-    const { organizationId, truckId, startTime, endTime, granularity } = opts;
+    const { organizationId, truckId, startTime, endTime, granularity, skipExtras = false } = opts;
 
     if (!(endTime > startTime)) {
       throw new Error("getHistoricalMeasurements: endTime must be after startTime");
@@ -1917,40 +1917,45 @@ export class DbStorage {
 
     // Per-bucket position from sim_location_history (PowerMon doesn't store
     // position). DISTINCT ON keeps the LAST recorded position per bucket, so
-    // daily exports get end-of-day position automatically.
-    // Same parameter-vs-literal trap as the GROUP BY fix above: each
-    // `${truncUnit}` here would be emitted as a fresh $N placeholder, so
-    // Postgres would see DISTINCT ON ($1, …) vs ORDER BY ($N, …) as different
-    // expressions and throw "SELECT DISTINCT ON expressions must match
-    // initial ORDER BY expressions". Inline truncUnit (controlled enum) via
-    // sql.raw so all three occurrences emit identical text.
-    const truncUnitLit = sql.raw(`'${truncUnit}'`);
-    const positionRows = await db.execute<{
-      bucket: Date | string;
-      latitude: number;
-      longitude: number;
-    }>(sql`
-      SELECT DISTINCT ON (date_trunc(${truncUnitLit}, recorded_at))
-        date_trunc(${truncUnitLit}, recorded_at) AS bucket,
-        latitude::float8                          AS latitude,
-        longitude::float8                         AS longitude
-      FROM ${simLocationHistory}
-      WHERE organization_id = ${organizationId}
-        AND truck_id = ${truckId}
-        AND recorded_at >= ${startTime}
-        AND recorded_at <= ${endTime}
-      ORDER BY date_trunc(${truncUnitLit}, recorded_at), recorded_at DESC
-    `);
+    // daily exports get end-of-day position automatically. Skipped entirely
+    // when `skipExtras` — the "View on Screen" summary never renders
+    // lat/long, so there's no reason to pay for this query on that path.
     const positionByBucket = new Map<number, { latitude: number; longitude: number }>();
-    for (const r of positionRows.rows) {
-      const ts = (r.bucket instanceof Date ? r.bucket : new Date(r.bucket as unknown as string)).getTime();
-      positionByBucket.set(ts, { latitude: r.latitude, longitude: r.longitude });
+    if (!skipExtras) {
+      // Same parameter-vs-literal trap as the GROUP BY fix above: each
+      // `${truncUnit}` here would be emitted as a fresh $N placeholder, so
+      // Postgres would see DISTINCT ON ($1, …) vs ORDER BY ($N, …) as different
+      // expressions and throw "SELECT DISTINCT ON expressions must match
+      // initial ORDER BY expressions". Inline truncUnit (controlled enum) via
+      // sql.raw so all three occurrences emit identical text.
+      const truncUnitLit = sql.raw(`'${truncUnit}'`);
+      const positionRows = await db.execute<{
+        bucket: Date | string;
+        latitude: number;
+        longitude: number;
+      }>(sql`
+        SELECT DISTINCT ON (date_trunc(${truncUnitLit}, recorded_at))
+          date_trunc(${truncUnitLit}, recorded_at) AS bucket,
+          latitude::float8                          AS latitude,
+          longitude::float8                         AS longitude
+        FROM ${simLocationHistory}
+        WHERE organization_id = ${organizationId}
+          AND truck_id = ${truckId}
+          AND recorded_at >= ${startTime}
+          AND recorded_at <= ${endTime}
+        ORDER BY date_trunc(${truncUnitLit}, recorded_at), recorded_at DESC
+      `);
+      for (const r of positionRows.rows) {
+        const ts = (r.bucket instanceof Date ? r.bucket : new Date(r.bucket as unknown as string)).getTime();
+        positionByBucket.set(ts, { latitude: r.latitude, longitude: r.longitude });
+      }
     }
 
     // Daily granularity also reports an "alerts raised" count per day.
     // Cheap separate query keyed by `created_at` truncated the same way.
+    // Skipped under `skipExtras` for the same reason as position, above.
     let alertsByBucket = new Map<number, number>();
-    if (granularity === "day") {
+    if (granularity === "day" && !skipExtras) {
       const alertBucket = sql<Date>`date_trunc('day', ${alerts.createdAt})`;
       const alertRows = await db
         .select({
@@ -1972,11 +1977,13 @@ export class DbStorage {
     }
 
     // Savings config (daily mode only). Defaults match savings-calculator.ts
-    // when no org row exists.
+    // when no org row exists. Skipped under `skipExtras` — falls back to the
+    // defaults below, which is fine since the summary path never reads
+    // `daySavings`.
     let defaultFuelPrice = 3.5;
     let useLiveFuelPrices = true;
     let livePriceByDay = new Map<string, number>();
-    if (granularity === "day") {
+    if (granularity === "day" && !skipExtras) {
       const cfg = await db
         .select({
           defaultFuelPricePerGallon: savingsConfig.defaultFuelPricePerGallon,
