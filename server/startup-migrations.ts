@@ -1,5 +1,88 @@
 import { pool } from "./db";
 
+// Reserved advisory-lock key for `runMeasurementTruckIndexMigration` below.
+// Session-level `pg_try_advisory_lock` shares a keyspace with the two-int
+// form used elsewhere (`pg_advisory_xact_lock(organizationId, 1)` in
+// db-storage.ts's export-job limiter), which packs as roughly
+// `(organizationId << 32) | 1` — a small number for any realistic org id.
+// This constant is chosen far outside that range so the two can never
+// collide.
+const MEASUREMENT_TRUCK_INDEX_LOCK_KEY = 847001982345;
+
+/**
+ * Builds `measurement_org_truck_time_idx` on an EXISTING (possibly huge,
+ * possibly production) `device_measurements` table. Split out from
+ * `runIncrementalMigrations` because `CREATE INDEX CONCURRENTLY`:
+ *   - cannot run inside a transaction block, so it must be the only
+ *     statement in its query (no batching with other DDL), and
+ *   - can take a long time on a large table, so multiple ECS tasks
+ *     starting at once (rolling deploys run old + new tasks together)
+ *     must not all attempt it simultaneously.
+ *
+ * Runs unawaited relative to `server.listen()` (see server/index.ts), so a
+ * slow build here does not delay the app becoming healthy or affect the ALB
+ * target group. Safe to call on every boot: a session-level advisory lock
+ * means only one task attempts the build at a time (others skip
+ * immediately, no blocking wait), and `IF NOT EXISTS` makes every call
+ * after the first a fast no-op.
+ */
+export async function runMeasurementTruckIndexMigration(): Promise<void> {
+  const client = await pool.connect();
+  try {
+    const { rows: lockRows } = await client.query<{ acquired: boolean }>(
+      "SELECT pg_try_advisory_lock($1) AS acquired",
+      [MEASUREMENT_TRUCK_INDEX_LOCK_KEY],
+    );
+    if (!lockRows[0]?.acquired) {
+      console.log("[Migrations] measurement_org_truck_time_idx build already in progress on another task — skipping");
+      return;
+    }
+
+    try {
+      const { rows: existingRows } = await client.query<{ indisvalid: boolean }>(`
+        SELECT indisvalid FROM pg_index
+        WHERE indexrelid = to_regclass('measurement_org_truck_time_idx')
+      `);
+      if (existingRows.length > 0) {
+        if (!existingRows[0].indisvalid) {
+          // A prior CONCURRENTLY attempt was interrupted (task killed mid-build,
+          // deploy superseded it, etc.) and left an unusable INVALID index.
+          // Postgres won't let CREATE INDEX CONCURRENTLY IF NOT EXISTS replace
+          // it, so drop (also CONCURRENTLY — non-blocking) and rebuild below.
+          console.log("[Migrations] measurement_org_truck_time_idx exists but is INVALID (interrupted build) — dropping and retrying");
+          await client.query("DROP INDEX CONCURRENTLY IF EXISTS measurement_org_truck_time_idx");
+        } else {
+          return; // already built and valid — nothing to do
+        }
+      }
+
+      // Logged for operators without direct DB access: n_live_tup is a fast
+      // planner estimate (not an exact COUNT(*), which would itself be a
+      // slow full scan on a table this size) and gives a before/after
+      // reference point purely from CloudWatch.
+      const { rows: statRows } = await client.query<{ estimated_rows: number; table_size: string }>(`
+        SELECT n_live_tup AS estimated_rows, pg_size_pretty(pg_total_relation_size('device_measurements')) AS table_size
+        FROM pg_stat_user_tables WHERE relname = 'device_measurements'
+      `);
+      console.log(`[Migrations] Building measurement_org_truck_time_idx CONCURRENTLY on device_measurements (~${statRows[0]?.estimated_rows?.toLocaleString() ?? "unknown"} rows, ${statRows[0]?.table_size ?? "unknown size"}) — this can take a while, does not block reads/writes...`);
+      const startedAt = Date.now();
+      await client.query(
+        "CREATE INDEX CONCURRENTLY IF NOT EXISTS measurement_org_truck_time_idx ON device_measurements (organization_id, truck_id, recorded_at)",
+      );
+      const { rows: sizeRows } = await client.query<{ index_size: string }>(`
+        SELECT pg_size_pretty(pg_relation_size('measurement_org_truck_time_idx')) AS index_size
+      `);
+      console.log(`[Migrations] measurement_org_truck_time_idx build complete in ${Math.round((Date.now() - startedAt) / 1000)}s, index size ${sizeRows[0]?.index_size ?? "unknown"}`);
+    } finally {
+      await client.query("SELECT pg_advisory_unlock($1)", [MEASUREMENT_TRUCK_INDEX_LOCK_KEY]);
+    }
+  } catch (error) {
+    console.error("[Migrations] measurement_org_truck_time_idx build failed:", error);
+  } finally {
+    client.release();
+  }
+}
+
 // Incremental migrations for adding new columns to existing tables
 // These run safely on existing databases without dropping/recreating tables
 // Last updated: December 3, 2025 - Added parked status columns
@@ -113,6 +196,11 @@ export async function runStartupMigrations(): Promise<boolean> {
       if (existsCheck.rows[0].exists) {
         console.log("[Migrations] Schema is current, running incremental migrations only");
         await runIncrementalMigrations();
+        // Deliberately not awaited: CREATE INDEX CONCURRENTLY can take a
+        // long time on a large table and must not delay startup migrations
+        // from completing (or, transitively, the app becoming healthy).
+        // Errors are caught and logged inside the function itself.
+        void runMeasurementTruckIndexMigration();
         return true;
       }
     }
@@ -297,6 +385,7 @@ export async function runStartupMigrations(): Promise<boolean> {
         created_at TIMESTAMP DEFAULT NOW()
       );
       CREATE INDEX IF NOT EXISTS measurement_org_device_time_idx ON device_measurements(organization_id, device_id, recorded_at);
+      CREATE INDEX IF NOT EXISTS measurement_org_truck_time_idx ON device_measurements(organization_id, truck_id, recorded_at);
       CREATE INDEX IF NOT EXISTS measurement_recorded_at_idx ON device_measurements(recorded_at);
       CREATE INDEX IF NOT EXISTS measurement_device_time_idx ON device_measurements(device_id, recorded_at);
     `);

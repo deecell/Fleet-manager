@@ -238,6 +238,15 @@ export const deviceMeasurements = pgTable("device_measurements", {
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => ({
   orgDeviceTimeIdx: index("measurement_org_device_time_idx").on(table.organizationId, table.deviceId, table.recordedAt),
+  // Backs getHistoricalMeasurements' truck-scoped range queries (admin device
+  // history export + the "View on Screen" summary). Neither of the other
+  // indexes here can support a `truck_id` equality filter, so without this
+  // one the planner falls back to a global-time-window scan across every
+  // org's rows and filters truck_id out afterward. On production this was
+  // built out-of-band with CREATE INDEX CONCURRENTLY (see
+  // server/startup-migrations.ts's `runMeasurementTruckIndexMigration`) —
+  // `drizzle-kit push` should never need to touch it once that's run.
+  orgTruckTimeIdx: index("measurement_org_truck_time_idx").on(table.organizationId, table.truckId, table.recordedAt),
   recordedAtIdx: index("measurement_recorded_at_idx").on(table.recordedAt),
   deviceTimeIdx: index("measurement_device_time_idx").on(table.deviceId, table.recordedAt),
 }));
