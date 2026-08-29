@@ -70,7 +70,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { PowerMonDevice } from "@shared/schema";
+import type { PowerMonDevice, EquipmentSpecs } from "@shared/schema";
+import { Textarea } from "@/components/ui/textarea";
 import type { DeviceWithSnapshot } from "@/lib/admin-api";
 import { SignalCell, classifySignal } from "@/components/SignalCell";
 import { LocationCell } from "@/components/LocationCell";
@@ -105,6 +106,276 @@ function SortIcon() {
   );
 }
 
+// Manually-entered equipment spec sheet (Inverter/Charge Controller/Solar/AGS/
+// Generator/Cell Router) collected as flat strings in the form, then packed
+// into the equipmentSpecs jsonb column on submit. Battery Volts/Ah/Qty are
+// NOT here — they're pre-existing top-level columns on the device (feed the
+// live kWh formula elsewhere) and stay in the page's main `formData` state;
+// only Battery Mfg is new and lives in this form alongside them.
+interface EquipmentForm {
+  inverterMfg: string;
+  inverterModel: string;
+  inverterPowerW: string;
+  chargeControllerMfg: string;
+  chargeControllerModel: string;
+  solarMfg: string;
+  solarModel: string;
+  solarWattsEach: string;
+  solarQty: string;
+  batteryMfg: string;
+  agsSetpoints: string;
+  generatorNotes: string;
+  cellRouterIccid: string;
+  cellRouterMsisdn: string;
+}
+
+const emptyEquipmentForm: EquipmentForm = {
+  inverterMfg: "",
+  inverterModel: "",
+  inverterPowerW: "",
+  chargeControllerMfg: "",
+  chargeControllerModel: "",
+  solarMfg: "",
+  solarModel: "",
+  solarWattsEach: "",
+  solarQty: "",
+  batteryMfg: "",
+  agsSetpoints: "",
+  generatorNotes: "",
+  cellRouterIccid: "",
+  cellRouterMsisdn: "",
+};
+
+function equipmentSpecsToForm(specs: EquipmentSpecs | null | undefined): EquipmentForm {
+  return {
+    inverterMfg: specs?.inverter?.mfg || "",
+    inverterModel: specs?.inverter?.model || "",
+    inverterPowerW: specs?.inverter?.powerW?.toString() || "",
+    chargeControllerMfg: specs?.chargeController?.mfg || "",
+    chargeControllerModel: specs?.chargeController?.model || "",
+    solarMfg: specs?.solarPanels?.mfg || "",
+    solarModel: specs?.solarPanels?.model || "",
+    solarWattsEach: specs?.solarPanels?.wattsEach?.toString() || "",
+    solarQty: specs?.solarPanels?.qty?.toString() || "",
+    batteryMfg: specs?.battery?.mfg || "",
+    agsSetpoints: specs?.ags?.setpoints || "",
+    generatorNotes: specs?.generator?.notes || "",
+    cellRouterIccid: specs?.cellRouter?.iccid || "",
+    cellRouterMsisdn: specs?.cellRouter?.msisdn || "",
+  };
+}
+
+// Only sets a group's key when it has at least one non-empty field, so
+// clearing every field in a section removes it from the stored JSON rather
+// than leaving behind an object of empty strings.
+function compact<T extends Record<string, string | number | undefined>>(obj: T): Partial<T> | undefined {
+  const out: Partial<T> = {};
+  (Object.keys(obj) as (keyof T)[]).forEach((key) => {
+    if (obj[key] !== undefined) out[key] = obj[key];
+  });
+  return Object.keys(out).length > 0 ? out : undefined;
+}
+
+function formToEquipmentSpecs(form: EquipmentForm): EquipmentSpecs {
+  const str = (s: string): string | undefined => s.trim() || undefined;
+  const num = (s: string): number | undefined => (s.trim() ? Number(s) : undefined);
+
+  const specs: EquipmentSpecs = {};
+  const inverter = compact({ mfg: str(form.inverterMfg), model: str(form.inverterModel), powerW: num(form.inverterPowerW) });
+  if (inverter) specs.inverter = inverter;
+  const chargeController = compact({ mfg: str(form.chargeControllerMfg), model: str(form.chargeControllerModel) });
+  if (chargeController) specs.chargeController = chargeController;
+  const solarPanels = compact({ mfg: str(form.solarMfg), model: str(form.solarModel), wattsEach: num(form.solarWattsEach), qty: num(form.solarQty) });
+  if (solarPanels) specs.solarPanels = solarPanels;
+  const battery = compact({ mfg: str(form.batteryMfg) });
+  if (battery) specs.battery = battery;
+  const ags = compact({ setpoints: str(form.agsSetpoints) });
+  if (ags) specs.ags = ags;
+  const generator = compact({ notes: str(form.generatorNotes) });
+  if (generator) specs.generator = generator;
+  const cellRouter = compact({ iccid: str(form.cellRouterIccid), msisdn: str(form.cellRouterMsisdn) });
+  if (cellRouter) specs.cellRouter = cellRouter;
+  return specs;
+}
+
+function EquipmentSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-md border border-border p-3">
+      <h4 className="text-sm font-semibold mb-3">{title}</h4>
+      {children}
+    </div>
+  );
+}
+
+function EquipmentInput({
+  id,
+  label,
+  value,
+  onChange,
+  type = "text",
+  placeholder,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  type?: string;
+  placeholder?: string;
+}) {
+  return (
+    <div>
+      <Label htmlFor={id} className="text-xs text-muted-foreground">{label}</Label>
+      <Input
+        id={id}
+        type={type}
+        step={type === "number" ? "any" : undefined}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className="mt-1"
+        data-testid={`input-${id}`}
+      />
+    </div>
+  );
+}
+
+function EquipmentComputed({ label, value }: { label: string; value: number | null }) {
+  return (
+    <div>
+      <Label className="text-xs text-muted-foreground">{label}</Label>
+      <Input disabled className="mt-1 bg-muted" value={value !== null ? value.toLocaleString() : ""} placeholder="—" />
+    </div>
+  );
+}
+
+// Shared by the Register Device and Edit Device dialogs so both stay in sync
+// with the same grouping/layout instead of duplicating ~130 lines of JSX.
+function EquipmentSpecsFields({
+  idPrefix,
+  equipment,
+  onEquipmentChange,
+  batteryVoltage,
+  batteryAh,
+  numberOfBatteries,
+  onBatteryFieldChange,
+}: {
+  idPrefix: string;
+  equipment: EquipmentForm;
+  onEquipmentChange: (next: EquipmentForm) => void;
+  batteryVoltage: string;
+  batteryAh: string;
+  numberOfBatteries: string;
+  onBatteryFieldChange: (field: "batteryVoltage" | "batteryAh" | "numberOfBatteries", value: string) => void;
+}) {
+  const set = (field: keyof EquipmentForm) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    onEquipmentChange({ ...equipment, [field]: e.target.value });
+
+  const wattsEach = parseFloat(equipment.solarWattsEach);
+  const solarQty = parseFloat(equipment.solarQty);
+  const totalW = Number.isFinite(wattsEach) && Number.isFinite(solarQty) ? wattsEach * solarQty : null;
+
+  const volts = parseFloat(batteryVoltage);
+  const ah = parseFloat(batteryAh);
+  const numBatteries = parseFloat(numberOfBatteries);
+  const capacityKwh = Number.isFinite(volts) && Number.isFinite(ah) && Number.isFinite(numBatteries)
+    ? Math.round((volts * ah * numBatteries) / 10) / 100
+    : null;
+
+  return (
+    <div className="space-y-3">
+      <EquipmentSection title="Inverter">
+        <div className="grid grid-cols-3 gap-3">
+          <EquipmentInput id={`${idPrefix}-inverter-mfg`} label="Mfg" value={equipment.inverterMfg} onChange={set("inverterMfg")} />
+          <EquipmentInput id={`${idPrefix}-inverter-model`} label="Model" value={equipment.inverterModel} onChange={set("inverterModel")} />
+          <EquipmentInput id={`${idPrefix}-inverter-power`} label="Power (W)" type="number" value={equipment.inverterPowerW} onChange={set("inverterPowerW")} />
+        </div>
+      </EquipmentSection>
+
+      <EquipmentSection title="Solar Charge Controller">
+        <div className="grid grid-cols-3 gap-3">
+          <EquipmentInput id={`${idPrefix}-scc-mfg`} label="Mfg" value={equipment.chargeControllerMfg} onChange={set("chargeControllerMfg")} />
+          <EquipmentInput id={`${idPrefix}-scc-model`} label="Model" value={equipment.chargeControllerModel} onChange={set("chargeControllerModel")} />
+        </div>
+      </EquipmentSection>
+
+      <EquipmentSection title="Solar PV Panels">
+        <div className="grid grid-cols-3 gap-3">
+          <EquipmentInput id={`${idPrefix}-solar-mfg`} label="Mfg" value={equipment.solarMfg} onChange={set("solarMfg")} />
+          <EquipmentInput id={`${idPrefix}-solar-model`} label="Model" value={equipment.solarModel} onChange={set("solarModel")} />
+          <EquipmentInput id={`${idPrefix}-solar-watts`} label="W ea" type="number" value={equipment.solarWattsEach} onChange={set("solarWattsEach")} />
+          <EquipmentInput id={`${idPrefix}-solar-qty`} label="Qty" type="number" value={equipment.solarQty} onChange={set("solarQty")} />
+          <EquipmentComputed label="Total W" value={totalW} />
+        </div>
+      </EquipmentSection>
+
+      <EquipmentSection title="Battery">
+        <div className="grid grid-cols-3 gap-3">
+          <EquipmentInput id={`${idPrefix}-battery-mfg`} label="Mfg" value={equipment.batteryMfg} onChange={set("batteryMfg")} />
+          <EquipmentInput
+            id={`${idPrefix}-battery-volts`}
+            label="Volts"
+            type="number"
+            value={batteryVoltage}
+            onChange={(e) => onBatteryFieldChange("batteryVoltage", e.target.value)}
+          />
+          <EquipmentInput
+            id={`${idPrefix}-battery-ahr`}
+            label="Ahr"
+            type="number"
+            value={batteryAh}
+            onChange={(e) => onBatteryFieldChange("batteryAh", e.target.value)}
+          />
+          <EquipmentInput
+            id={`${idPrefix}-battery-qty`}
+            label="Qty"
+            type="number"
+            value={numberOfBatteries}
+            onChange={(e) => onBatteryFieldChange("numberOfBatteries", e.target.value)}
+          />
+          <EquipmentComputed label="kWh" value={capacityKwh} />
+        </div>
+      </EquipmentSection>
+
+      <EquipmentSection title="AGS">
+        <div>
+          <Label htmlFor={`${idPrefix}-ags-setpoints`} className="text-xs text-muted-foreground">Setpoints</Label>
+          <Textarea
+            id={`${idPrefix}-ags-setpoints`}
+            value={equipment.agsSetpoints}
+            onChange={(e) => onEquipmentChange({ ...equipment, agsSetpoints: e.target.value })}
+            placeholder="e.g. Start 40% / Stop 90%"
+            className="mt-1"
+            rows={2}
+            data-testid={`input-${idPrefix}-ags-setpoints`}
+          />
+        </div>
+      </EquipmentSection>
+
+      <EquipmentSection title="Generator">
+        <div>
+          <Label htmlFor={`${idPrefix}-generator-notes`} className="text-xs text-muted-foreground">Notes</Label>
+          <Textarea
+            id={`${idPrefix}-generator-notes`}
+            value={equipment.generatorNotes}
+            onChange={(e) => onEquipmentChange({ ...equipment, generatorNotes: e.target.value })}
+            placeholder="Mfg, model, and any other details"
+            className="mt-1"
+            rows={2}
+            data-testid={`input-${idPrefix}-generator-notes`}
+          />
+        </div>
+      </EquipmentSection>
+
+      <EquipmentSection title="Cell Router">
+        <div className="grid grid-cols-3 gap-3">
+          <EquipmentInput id={`${idPrefix}-cell-iccid`} label="ICCID" value={equipment.cellRouterIccid} onChange={set("cellRouterIccid")} />
+          <EquipmentInput id={`${idPrefix}-cell-msisdn`} label="MSISDN" value={equipment.cellRouterMsisdn} onChange={set("cellRouterMsisdn")} />
+        </div>
+      </EquipmentSection>
+    </div>
+  );
+}
+
 export default function DevicesPage() {
   const { toast } = useToast();
   const { data: orgsData } = useAdminOrganizations();
@@ -134,6 +405,8 @@ export default function DevicesPage() {
   const [assigningDevice, setAssigningDevice] = useState<PowerMonDevice | null>(null);
   const [credentialsDevice, setCredentialsDevice] = useState<PowerMonDevice | null>(null);
   const [exportingDevice, setExportingDevice] = useState<PowerMonDevice | null>(null);
+  const [viewingDevice, setViewingDevice] = useState<PowerMonDevice | null>(null);
+  const [equipmentForm, setEquipmentForm] = useState<EquipmentForm>(emptyEquipmentForm);
   const [selectedTruckId, setSelectedTruckId] = useState<number | undefined>();
   const [applinkUrl, setApplinkUrl] = useState("");
   
@@ -179,6 +452,11 @@ export default function DevicesPage() {
       numberOfBatteries: "2",
       status: "offline",
     });
+    setEquipmentForm(emptyEquipmentForm);
+  };
+
+  const handleBatteryFieldChange = (field: "batteryVoltage" | "batteryAh" | "numberOfBatteries", value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
 
@@ -186,11 +464,13 @@ export default function DevicesPage() {
     if (!selectedOrgId) return;
     setCreateError(null);
     try {
+      const specs = formToEquipmentSpecs(equipmentForm);
       const data = {
         ...formData,
         batteryVoltage: formData.batteryVoltage ? parseFloat(formData.batteryVoltage) : null,
         batteryAh: formData.batteryAh ? parseFloat(formData.batteryAh) : null,
         numberOfBatteries: formData.numberOfBatteries ? parseInt(formData.numberOfBatteries) : null,
+        equipmentSpecs: Object.keys(specs).length > 0 ? specs : null,
       };
       const response = await createDevice.mutateAsync({ orgId: selectedOrgId, data });
       toast({
@@ -248,11 +528,13 @@ export default function DevicesPage() {
     if (!editingDevice) return;
     const orgId = editingDevice.organizationId;
     try {
+      const specs = formToEquipmentSpecs(equipmentForm);
       const data = {
         ...formData,
         batteryVoltage: formData.batteryVoltage ? parseFloat(formData.batteryVoltage) : null,
         batteryAh: formData.batteryAh ? parseFloat(formData.batteryAh) : null,
         numberOfBatteries: formData.numberOfBatteries ? parseInt(formData.numberOfBatteries) : null,
+        equipmentSpecs: Object.keys(specs).length > 0 ? specs : null,
       };
       await updateDevice.mutateAsync({ id: editingDevice.id, orgId, data });
       toast({ title: "Device updated successfully" });
@@ -356,6 +638,7 @@ export default function DevicesPage() {
       numberOfBatteries: device.numberOfBatteries?.toString() || "",
       status: device.status || "offline",
     });
+    setEquipmentForm(equipmentSpecsToForm(device.equipmentSpecs));
     setEditingDevice(device);
   };
 
@@ -849,6 +1132,13 @@ export default function DevicesPage() {
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" className="w-52">
                                   <DropdownMenuItem
+                                    onClick={() => setViewingDevice(device)}
+                                    data-testid={`button-view-details-device-${device.id}`}
+                                  >
+                                    <Info className="h-4 w-4 text-blue-600" />
+                                    View Details
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
                                     onClick={() => openEdit(device)}
                                     data-testid={`button-edit-device-${device.id}`}
                                   >
@@ -940,31 +1230,31 @@ export default function DevicesPage() {
         </Card>
 
         <Dialog open={isCreateOpen} onOpenChange={(open) => { setIsCreateOpen(open); if (!open) setCreateError(null); }}>
-          <DialogContent>
-            <DialogHeader>
+          <DialogContent className="flex max-h-[85vh] flex-col gap-0 p-0 overflow-hidden sm:max-w-2xl">
+            <DialogHeader className="shrink-0 px-6 pt-6 pb-4">
               <DialogTitle>Register Device</DialogTitle>
               <DialogDescription>
                 Add a new PowerMon device. The device name must already exist in Wireless Logic (Custom Field 1) — its SIM is looked up and linked at registration. Serial number, firmware, and hardware revision auto-populate when the device connects.
               </DialogDescription>
             </DialogHeader>
-            {createError && (
-              <div
-                className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive"
-                data-testid="alert-create-error"
-              >
-                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
-                <div>
-                  <div className="font-medium">
-                    {createError.code === "SIM_NOT_FOUND" && "SIM not found in Wireless Logic"}
-                    {createError.code === "SIM_MULTIPLE_MATCH" && "Multiple SIMs match this name"}
-                    {createError.code === "SIM_ALREADY_LINKED" && "SIM already linked to another device"}
-                    {createError.code === "DEVICE_NAME_REQUIRED" && "Device name required"}
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+              {createError && (
+                <div
+                  className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive"
+                  data-testid="alert-create-error"
+                >
+                  <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                  <div>
+                    <div className="font-medium">
+                      {createError.code === "SIM_NOT_FOUND" && "SIM not found in Wireless Logic"}
+                      {createError.code === "SIM_MULTIPLE_MATCH" && "Multiple SIMs match this name"}
+                      {createError.code === "SIM_ALREADY_LINKED" && "SIM already linked to another device"}
+                      {createError.code === "DEVICE_NAME_REQUIRED" && "Device name required"}
+                    </div>
+                    <div className="text-xs mt-0.5 opacity-90">{createError.message}</div>
                   </div>
-                  <div className="text-xs mt-0.5 opacity-90">{createError.message}</div>
                 </div>
-              </div>
-            )}
-            <div className="space-y-4">
+              )}
               <div>
                 <Label htmlFor="deviceName">Device Name <span className="text-destructive">*</span></Label>
                 <Input
@@ -978,47 +1268,18 @@ export default function DevicesPage() {
                   Must match Custom Field 1 of an existing SIM in Wireless Logic.
                 </p>
               </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="batteryVoltage">Battery Voltage (V)</Label>
-                  <Input
-                    id="batteryVoltage"
-                    type="number"
-                    step="0.1"
-                    value={formData.batteryVoltage}
-                    onChange={(e) => setFormData({ ...formData, batteryVoltage: e.target.value })}
-                    placeholder="12.8"
-                    data-testid="input-battery-voltage"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="batteryAh">Battery Ah</Label>
-                  <Input
-                    id="batteryAh"
-                    type="number"
-                    step="0.1"
-                    value={formData.batteryAh}
-                    onChange={(e) => setFormData({ ...formData, batteryAh: e.target.value })}
-                    placeholder="100"
-                    data-testid="input-battery-ah"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="numberOfBatteries"># of Batteries</Label>
-                  <Input
-                    id="numberOfBatteries"
-                    type="number"
-                    step="1"
-                    min="1"
-                    value={formData.numberOfBatteries}
-                    onChange={(e) => setFormData({ ...formData, numberOfBatteries: e.target.value })}
-                    placeholder="4"
-                    data-testid="input-num-batteries"
-                  />
-                </div>
-              </div>
+
+              <EquipmentSpecsFields
+                idPrefix="create"
+                equipment={equipmentForm}
+                onEquipmentChange={setEquipmentForm}
+                batteryVoltage={formData.batteryVoltage}
+                batteryAh={formData.batteryAh}
+                numberOfBatteries={formData.numberOfBatteries}
+                onBatteryFieldChange={handleBatteryFieldChange}
+              />
             </div>
-            <DialogFooter>
+            <DialogFooter className="shrink-0 border-t px-6 py-4">
               <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
                 Cancel
               </Button>
@@ -1030,14 +1291,14 @@ export default function DevicesPage() {
         </Dialog>
 
         <Dialog open={!!editingDevice} onOpenChange={() => setEditingDevice(null)}>
-          <DialogContent>
-            <DialogHeader>
+          <DialogContent className="flex max-h-[85vh] flex-col gap-0 p-0 overflow-hidden sm:max-w-2xl">
+            <DialogHeader className="shrink-0 px-6 pt-6 pb-4">
               <DialogTitle>Edit Device</DialogTitle>
               <DialogDescription>
                 Update device details.
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
               <div>
                 <Label htmlFor="edit-serialNumber">Serial Number</Label>
                 <Input
@@ -1076,47 +1337,18 @@ export default function DevicesPage() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="edit-batteryVoltage">Battery Voltage (V)</Label>
-                  <Input
-                    id="edit-batteryVoltage"
-                    type="number"
-                    step="0.1"
-                    value={formData.batteryVoltage}
-                    onChange={(e) => setFormData({ ...formData, batteryVoltage: e.target.value })}
-                    placeholder="12.8"
-                    data-testid="input-edit-battery-voltage"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-batteryAh">Battery Ah</Label>
-                  <Input
-                    id="edit-batteryAh"
-                    type="number"
-                    step="0.1"
-                    value={formData.batteryAh}
-                    onChange={(e) => setFormData({ ...formData, batteryAh: e.target.value })}
-                    placeholder="100"
-                    data-testid="input-edit-battery-ah"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-numberOfBatteries"># of Batteries</Label>
-                  <Input
-                    id="edit-numberOfBatteries"
-                    type="number"
-                    step="1"
-                    min="1"
-                    value={formData.numberOfBatteries}
-                    onChange={(e) => setFormData({ ...formData, numberOfBatteries: e.target.value })}
-                    placeholder="4"
-                    data-testid="input-edit-num-batteries"
-                  />
-                </div>
-              </div>
+
+              <EquipmentSpecsFields
+                idPrefix="edit"
+                equipment={equipmentForm}
+                onEquipmentChange={setEquipmentForm}
+                batteryVoltage={formData.batteryVoltage}
+                batteryAh={formData.batteryAh}
+                numberOfBatteries={formData.numberOfBatteries}
+                onBatteryFieldChange={handleBatteryFieldChange}
+              />
             </div>
-            <DialogFooter>
+            <DialogFooter className="shrink-0 border-t px-6 py-4">
               <Button variant="outline" onClick={() => setEditingDevice(null)}>
                 Cancel
               </Button>
@@ -1268,6 +1500,16 @@ export default function DevicesPage() {
             device={exportingDevice}
             truckNumber={allTrucks.find((t) => t.id === exportingDevice.truckId)?.truckNumber ?? `Truck #${exportingDevice.truckId}`}
             onClose={() => setExportingDevice(null)}
+          />
+        )}
+
+        {viewingDevice && (
+          <DeviceDetailsDialog
+            device={viewingDevice}
+            organizationName={organizations.find((o) => o.id === viewingDevice.organizationId)?.name}
+            truckNumber={viewingDevice.truckId ? allTrucks.find((t) => t.id === viewingDevice.truckId)?.truckNumber : undefined}
+            onEdit={() => { openEdit(viewingDevice); setViewingDevice(null); }}
+            onClose={() => setViewingDevice(null)}
           />
         )}
 
@@ -1555,6 +1797,133 @@ function formatSyncRangeLimit(ms: number): string {
     return years === 1 ? "1 year" : `${years} years`;
   }
   return `${days} days`;
+}
+
+function SpecRow({ label, value }: { label: string; value?: string | number | null }) {
+  const display = value === undefined || value === null || value === "" ? "—" : value;
+  return (
+    <div className="flex items-baseline justify-between gap-4 text-sm leading-tight">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-medium text-right">{display}</span>
+    </div>
+  );
+}
+
+// Compact section wrapper for the read-only Device Details dialog only —
+// deliberately separate from EquipmentSection (used by the Register/Edit
+// forms) so tightening this spacing can't affect the input dialogs. Sections
+// sit in a 2-col dense grid; pass className="col-span-2" for the ones with
+// enough rows (Solar PV Panels, Battery) that need the full width.
+function DetailsSection({ title, className, children }: { title: string; className?: string; children: React.ReactNode }) {
+  return (
+    <div className={`rounded-md border border-border p-2.5 ${className ?? ""}`}>
+      <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">{title}</h4>
+      <div className="space-y-0.5">{children}</div>
+    </div>
+  );
+}
+
+// Read-only counterpart to EquipmentSpecsFields, opened via the row's "View
+// Details" action — same category grouping/order so the two stay visually
+// consistent with each other and with the reference spreadsheet layout.
+function DeviceDetailsDialog({
+  device,
+  organizationName,
+  truckNumber,
+  onEdit,
+  onClose,
+}: {
+  device: PowerMonDevice;
+  organizationName?: string;
+  truckNumber?: string;
+  onEdit: () => void;
+  onClose: () => void;
+}) {
+  const specs = device.equipmentSpecs || {};
+  const wattsEach = specs.solarPanels?.wattsEach;
+  const solarQty = specs.solarPanels?.qty;
+  const totalW = wattsEach != null && solarQty != null ? wattsEach * solarQty : null;
+
+  const volts = device.batteryVoltage;
+  const ah = device.batteryAh;
+  const numBatteries = device.numberOfBatteries;
+  const capacityKwh = volts != null && ah != null && numBatteries != null
+    ? Math.round((volts * ah * numBatteries) / 10) / 100
+    : null;
+
+  return (
+    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="flex max-h-[85vh] flex-col gap-0 p-0 overflow-hidden sm:max-w-2xl">
+        <DialogHeader className="shrink-0 px-6 pt-6 pb-4">
+          <DialogTitle>Device Details</DialogTitle>
+          <DialogDescription>
+            {[organizationName, truckNumber ? `Truck ${truckNumber}` : null, device.serialNumber || device.deviceName || `Device #${device.id}`]
+              .filter(Boolean)
+              .join(" · ")}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          <div className="grid grid-cols-2 gap-2 [grid-auto-flow:dense]">
+            <DetailsSection title="Device">
+              <SpecRow label="Device Name" value={device.deviceName} />
+              <SpecRow label="Serial Number" value={device.serialNumber} />
+              <SpecRow label="Hardware Revision" value={device.hardwareRevision} />
+              <SpecRow label="Firmware Version" value={device.firmwareVersion} />
+            </DetailsSection>
+
+            <DetailsSection title="Inverter">
+              <SpecRow label="Mfg" value={specs.inverter?.mfg} />
+              <SpecRow label="Model" value={specs.inverter?.model} />
+              <SpecRow label="Power" value={specs.inverter?.powerW != null ? `${specs.inverter.powerW} W` : null} />
+            </DetailsSection>
+
+            <DetailsSection title="Solar Charge Controller">
+              <SpecRow label="Mfg" value={specs.chargeController?.mfg} />
+              <SpecRow label="Model" value={specs.chargeController?.model} />
+            </DetailsSection>
+
+            <DetailsSection title="AGS">
+              <SpecRow label="Setpoints" value={specs.ags?.setpoints} />
+            </DetailsSection>
+
+            <DetailsSection title="Solar PV Panels" className="col-span-2">
+              <SpecRow label="Mfg" value={specs.solarPanels?.mfg} />
+              <SpecRow label="Model" value={specs.solarPanels?.model} />
+              <SpecRow label="W ea" value={wattsEach} />
+              <SpecRow label="Qty" value={solarQty} />
+              <SpecRow label="Total W" value={totalW} />
+            </DetailsSection>
+
+            <DetailsSection title="Battery" className="col-span-2">
+              <SpecRow label="Mfg" value={specs.battery?.mfg} />
+              <SpecRow label="Volts" value={volts} />
+              <SpecRow label="Ahr" value={ah} />
+              <SpecRow label="Qty" value={numBatteries} />
+              <SpecRow label="kWh" value={capacityKwh} />
+            </DetailsSection>
+
+            <DetailsSection title="Generator">
+              <SpecRow label="Notes" value={specs.generator?.notes} />
+            </DetailsSection>
+
+            <DetailsSection title="Cell Router">
+              <SpecRow label="ICCID" value={specs.cellRouter?.iccid} />
+              <SpecRow label="MSISDN" value={specs.cellRouter?.msisdn} />
+            </DetailsSection>
+          </div>
+        </div>
+        <DialogFooter className="shrink-0 border-t px-6 py-4">
+          <Button variant="outline" onClick={onClose} data-testid="button-details-close">
+            Close
+          </Button>
+          <Button onClick={onEdit} data-testid="button-details-edit">
+            <Pencil className="h-4 w-4 mr-2" />
+            Edit Details
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 /**

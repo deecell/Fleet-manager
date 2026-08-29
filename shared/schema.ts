@@ -102,6 +102,25 @@ export const trucks = pgTable("trucks", {
   truckNumberIdx: index("truck_number_idx").on(table.organizationId, table.truckNumber),
 }));
 
+// Manually-entered equipment/spec sheet for a device's physical installation
+// (inverter, solar, battery bank mfg, AGS, generator, cell router). Distinct
+// from batteryVoltage/batteryAh/numberOfBatteries below, which are also
+// manually entered but predate this column and feed the live kWh formula
+// (device-manager, exports, mobile-routes) — left as top-level columns so
+// that formula code doesn't have to reach into jsonb. Pure reference data,
+// never filtered/joined/aggregated on, so one jsonb blob over ~15 individual
+// columns keeps this additive with no touch to the generic insert/update/list
+// code path in db-storage.ts.
+export interface EquipmentSpecs {
+  inverter?: { mfg?: string; model?: string; powerW?: number };
+  chargeController?: { mfg?: string; model?: string };
+  solarPanels?: { mfg?: string; model?: string; wattsEach?: number; qty?: number };
+  battery?: { mfg?: string };
+  ags?: { setpoints?: string };
+  generator?: { notes?: string };
+  cellRouter?: { iccid?: string; msisdn?: string };
+}
+
 // =============================================================================
 // POWER MON DEVICES (1:1 with truck)
 // =============================================================================
@@ -122,6 +141,7 @@ export const powerMonDevices = pgTable("power_mon_devices", {
   batteryVoltage: real("battery_voltage"),
   batteryAh: real("battery_ah"),
   numberOfBatteries: integer("number_of_batteries"),
+  equipmentSpecs: jsonb("equipment_specs").$type<EquipmentSpecs>(),
   status: text("status").default("offline"),
   lastSeenAt: timestamp("last_seen_at"),
   lastReportedAt: timestamp("last_reported_at"),
