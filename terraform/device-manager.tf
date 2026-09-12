@@ -221,20 +221,36 @@ locals {
     fi
 
     echo "Restarting service..."
+    RESTART_TS=$(date -u '+%Y-%m-%d %H:%M:%S')
     sudo systemctl restart device-manager
 
-    echo "Waiting for device-manager service to become active..."
+    echo "Waiting for device-manager to finish startup..."
+    READY=false
+    LOG=""
     for i in $(seq 1 30); do
-      if systemctl is-active --quiet device-manager; then
-        echo "device-manager is active (running)"
+      LOG=$(sudo journalctl -u device-manager --since "$RESTART_TS UTC" --no-pager 2>/dev/null)
+      if echo "$LOG" | grep -q "Supervisor: Failed to start"; then
+        echo "ERROR: device-manager failed to start" >&2
+        echo "$LOG" | tail -n 40 >&2
+        exit 1
+      fi
+      if echo "$LOG" | grep -q "Supervisor: All services started"; then
+        echo "device-manager started successfully (Supervisor: All services started)"
+        READY=true
         break
       fi
       sleep 2
     done
 
-    if ! systemctl is-active --quiet device-manager; then
-      echo "ERROR: device-manager did not reach active state within 60s" >&2
+    if [ "$READY" != "true" ]; then
+      echo "ERROR: device-manager did not log startup completion within 60s" >&2
       sudo systemctl status device-manager --no-pager || true
+      echo "$LOG" | tail -n 40 >&2
+      exit 1
+    fi
+
+    if ! systemctl is-active --quiet device-manager; then
+      echo "ERROR: startup logged success but service is not active" >&2
       exit 1
     fi
 
