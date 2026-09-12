@@ -213,13 +213,31 @@ locals {
     
     echo "Building native addon for this platform..."
     npm rebuild
-    
+
     echo "Verifying native addon..."
-    ls -la build/Release/powermon_addon.node 2>/dev/null || echo "Warning: addon not built"
-    
+    if [ ! -f build/Release/powermon_addon.node ]; then
+      echo "ERROR: native addon build failed - build/Release/powermon_addon.node not found" >&2
+      exit 1
+    fi
+
     echo "Restarting service..."
     sudo systemctl restart device-manager
-    
+
+    echo "Waiting for device-manager service to become active..."
+    for i in $(seq 1 30); do
+      if systemctl is-active --quiet device-manager; then
+        echo "device-manager is active (running)"
+        break
+      fi
+      sleep 2
+    done
+
+    if ! systemctl is-active --quiet device-manager; then
+      echo "ERROR: device-manager did not reach active state within 60s" >&2
+      sudo systemctl status device-manager --no-pager || true
+      exit 1
+    fi
+
     echo "Deployment complete!"
     DEPLOYSCRIPT
     
@@ -279,8 +297,13 @@ locals {
 
     # Enable the service (will start after code is deployed via deploy.sh)
     systemctl enable device-manager
-    
-    echo "Device Manager setup complete. Run /opt/device-manager/deploy.sh to deploy code."
+
+    # Run the initial deployment so the instance is fully functional as soon as
+    # bootstrap finishes, instead of requiring a manual deploy.sh invocation.
+    echo "Running initial deployment..."
+    sudo -u ubuntu /opt/device-manager/deploy.sh
+
+    echo "Device Manager deployment finished successfully."
   EOF
 }
 
