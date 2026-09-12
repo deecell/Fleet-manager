@@ -8,6 +8,7 @@ locals {
   simpro_key_arn    = try(aws_secretsmanager_secret.simpro_api_key[0].arn, "")
   inhand_username_arn = try(data.aws_secretsmanager_secret.inhand_api_username.arn, "")
   inhand_password_arn = try(data.aws_secretsmanager_secret.inhand_api_password.arn, "")
+  alerts_topic_arn     = var.alert_email != "" ? aws_sns_topic.alerts[0].arn : ""
 }
 
 # InHand Networks API credentials — created out-of-band via AWS Console/CLI
@@ -93,7 +94,7 @@ locals {
 
     # Install Node.js 20 via NodeSource
     curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-    apt-get install -y nodejs git build-essential jq unzip
+    apt-get install -y nodejs git build-essential jq unzip postgresql-client
 
     # Install AWS CLI v2
     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
@@ -124,7 +125,12 @@ locals {
       --query 'SecretString' \
       --output text \
       --region ${var.aws_region})
-    
+
+    # Persist DATABASE_URL for health-check.sh to reuse, so its data-freshness
+    # check follows whatever DB this instance is actually configured against.
+    echo "export DATABASE_URL=\"$DATABASE_URL\"" > /opt/device-manager/.runtime-env
+    chmod 600 /opt/device-manager/.runtime-env
+
     # Fetch SIMPro credentials if enabled
     %{if var.enable_simpro~}
     export SIMPRO_API_CLIENT=$(aws secretsmanager get-secret-value \
@@ -258,6 +264,182 @@ locals {
     DEPLOYSCRIPT
     
     chmod +x /opt/device-manager/deploy.sh
+
+    # Create health-check script that publishes service status + data
+    # freshness to CloudWatch, and sends a rich SNS alert on state transitions
+    cat > /opt/device-manager/health-check.sh << 'HEALTHCHECK'
+    #!/bin/bash
+
+    REGION="${var.aws_region}"
+    NAMESPACE="Deecell/DeviceManager"
+    STATE_FILE="/opt/device-manager/.health-check-state"
+    FRESHNESS_STATE_FILE="/opt/device-manager/.freshness-check-state"
+    RUNTIME_ENV="/opt/device-manager/.runtime-env"
+    SNS_TOPIC_ARN="${local.alerts_topic_arn}"
+    STALE_THRESHOLD_SECONDS=300
+
+    TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+    INSTANCE_ID=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id)
+    NOW_HUMAN=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
+
+    # --- Process check ---
+    if systemctl is-active --quiet device-manager; then
+      ACTIVE_VALUE=1
+      CURRENT_STATE="active"
+    else
+      ACTIVE_VALUE=0
+      CURRENT_STATE="inactive"
+    fi
+
+    aws cloudwatch put-metric-data --region "$REGION" --namespace "$NAMESPACE" \
+      --metric-name ServiceActive --value "$ACTIVE_VALUE" --unit Count 2>/dev/null || true
+
+    # --- Data freshness check (follows whatever DB this instance is configured against) ---
+    if [ -f "$RUNTIME_ENV" ]; then
+      . "$RUNTIME_ENV"
+    fi
+    AGE_SECONDS=""
+    FRESHNESS_STATE="unknown"
+    if [ -n "$DATABASE_URL" ]; then
+      AGE_SECONDS=$(psql "$DATABASE_URL" -tAc "SELECT COALESCE(EXTRACT(EPOCH FROM (NOW() - MAX(recorded_at))), 999999) FROM device_measurements;" 2>/dev/null | tr -d '[:space:]')
+      case "$AGE_SECONDS" in
+        ''|*[!0-9.]*) AGE_SECONDS=999999 ;;
+      esac
+      aws cloudwatch put-metric-data --region "$REGION" --namespace "$NAMESPACE" \
+        --metric-name DataAgeSeconds --value "$AGE_SECONDS" --unit Seconds 2>/dev/null || true
+      if awk -v a="$AGE_SECONDS" -v t="$STALE_THRESHOLD_SECONDS" 'BEGIN{exit !(a > t)}'; then
+        FRESHNESS_STATE="stale"
+      else
+        FRESHNESS_STATE="fresh"
+      fi
+    fi
+
+    # --- Rich SNS alert on service state transition only (avoid spamming every tick) ---
+    PREV_STATE="unknown"
+    if [ -f "$STATE_FILE" ]; then
+      PREV_STATE=$(cat "$STATE_FILE")
+    fi
+
+    if [ "$CURRENT_STATE" != "$PREV_STATE" ] && [ -n "$SNS_TOPIC_ARN" ]; then
+      LOGS=$(journalctl -u device-manager -n 40 --no-pager 2>/dev/null || echo "no logs available")
+      if [ "$CURRENT_STATE" = "inactive" ]; then
+        SUBJECT="$(printf '\xF0\x9F\x94\xB4') Device Manager Service: DOWN"
+        BODY="$(printf '\xF0\x9F\x94\xB4') Device Manager Service: DOWN
+
+    The system that monitors your trucks' PowerMon devices has stopped working. No new data is being collected right now.
+
+    Instance: $INSTANCE_ID
+    Time: $NOW_HUMAN
+
+    ---
+    Technical details (for engineers):
+
+    device-manager.service is INACTIVE on instance $INSTANCE_ID.
+
+    Recent systemd logs:
+    $LOGS"
+      else
+        SUBJECT="$(printf '\xF0\x9F\x9F\xA2') Device Manager Service: RESTORED"
+        BODY="$(printf '\xF0\x9F\x9F\xA2') Device Manager Service: RESTORED
+
+    The system is back up and working normally. Data collection has resumed.
+
+    Instance: $INSTANCE_ID
+    Time: $NOW_HUMAN
+
+    ---
+    Technical details (for engineers):
+
+    device-manager.service has RECOVERED to active on instance $INSTANCE_ID.
+
+    Recent systemd logs:
+    $LOGS"
+      fi
+      aws sns publish --region "$REGION" --topic-arn "$SNS_TOPIC_ARN" --subject "$SUBJECT" --message "$BODY" 2>/dev/null || true
+    fi
+
+    echo "$CURRENT_STATE" > "$STATE_FILE"
+
+    # --- Rich SNS alert on data-freshness state transition only ---
+    PREV_FRESHNESS="unknown"
+    if [ -f "$FRESHNESS_STATE_FILE" ]; then
+      PREV_FRESHNESS=$(cat "$FRESHNESS_STATE_FILE")
+    fi
+
+    if [ -n "$AGE_SECONDS" ] && [ "$FRESHNESS_STATE" != "$PREV_FRESHNESS" ] && [ -n "$SNS_TOPIC_ARN" ]; then
+      LOGS=$(journalctl -u device-manager -n 40 --no-pager 2>/dev/null || echo "no logs available")
+      AGE_MIN=$(awk -v a="$AGE_SECONDS" 'BEGIN{printf "%.1f", a/60}')
+      if [ "$FRESHNESS_STATE" = "stale" ]; then
+        SUBJECT="$(printf '\xF0\x9F\x94\xB4') Device Manager Data: STALE"
+        BODY="$(printf '\xF0\x9F\x94\xB4') Device Manager Data: STALE
+
+    No new truck data has been received in over 5 minutes. PowerMon device readings may not be updating.
+
+    Instance: $INSTANCE_ID
+    Time: $NOW_HUMAN
+    Data age: ~$${AGE_MIN} minutes since the last reading
+
+    ---
+    Technical details (for engineers):
+
+    MAX(device_measurements.recorded_at) age is $${AGE_SECONDS}s, exceeding the $${STALE_THRESHOLD_SECONDS}s threshold, on instance $INSTANCE_ID.
+
+    Recent systemd logs:
+    $LOGS"
+      else
+        SUBJECT="$(printf '\xF0\x9F\x9F\xA2') Device Manager Data: FLOWING"
+        BODY="$(printf '\xF0\x9F\x9F\xA2') Device Manager Data: FLOWING
+
+    Truck data is flowing normally again. New PowerMon device readings are being received.
+
+    Instance: $INSTANCE_ID
+    Time: $NOW_HUMAN
+    Data age: $${AGE_SECONDS}s
+
+    ---
+    Technical details (for engineers):
+
+    MAX(device_measurements.recorded_at) age is back to $${AGE_SECONDS}s (threshold: $${STALE_THRESHOLD_SECONDS}s) on instance $INSTANCE_ID.
+
+    Recent systemd logs:
+    $LOGS"
+      fi
+      aws sns publish --region "$REGION" --topic-arn "$SNS_TOPIC_ARN" --subject "$SUBJECT" --message "$BODY" 2>/dev/null || true
+    fi
+
+    if [ -n "$AGE_SECONDS" ]; then
+      echo "$FRESHNESS_STATE" > "$FRESHNESS_STATE_FILE"
+    fi
+    HEALTHCHECK
+
+    chmod +x /opt/device-manager/health-check.sh
+
+    # Create systemd oneshot service + timer to run the health check every minute
+    cat > /etc/systemd/system/device-manager-healthcheck.service << 'HCSERVICE'
+    [Unit]
+    Description=Device Manager Health Check
+
+    [Service]
+    Type=oneshot
+    User=ubuntu
+    ExecStart=/opt/device-manager/health-check.sh
+    HCSERVICE
+
+    cat > /etc/systemd/system/device-manager-healthcheck.timer << 'HCTIMER'
+    [Unit]
+    Description=Run Device Manager Health Check every minute
+
+    [Timer]
+    OnBootSec=30
+    OnUnitActiveSec=60
+    AccuracySec=5
+
+    [Install]
+    WantedBy=timers.target
+    HCTIMER
+
+    systemctl daemon-reload
+    systemctl enable --now device-manager-healthcheck.timer
 
     # Configure CloudWatch Agent
     cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json << 'CWAGENT'
@@ -433,6 +615,46 @@ resource "aws_cloudwatch_metric_alarm" "device_manager_cpu" {
 
   actions_enabled = var.alert_email != ""
   alarm_actions   = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : []
+
+  tags = local.common_tags
+}
+
+# Device Manager Service Health Alarms (published by health-check.sh via a
+# systemd timer running on the instance - see device_manager_user_data above)
+resource "aws_cloudwatch_metric_alarm" "device_manager_service_inactive" {
+  alarm_name          = "${local.name_prefix}-device-manager-service-inactive"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = 2
+  metric_name         = "ServiceActive"
+  namespace           = "Deecell/DeviceManager"
+  period              = 60
+  statistic           = "Minimum"
+  threshold           = 1
+  alarm_description   = "device-manager.service is not active (systemctl is-active reports inactive/failed)"
+  treat_missing_data  = "breaching"
+
+  actions_enabled = var.alert_email != ""
+  alarm_actions   = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : []
+  ok_actions      = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : []
+
+  tags = local.common_tags
+}
+
+resource "aws_cloudwatch_metric_alarm" "device_manager_data_stale" {
+  alarm_name          = "${local.name_prefix}-device-manager-data-stale"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 2
+  metric_name         = "DataAgeSeconds"
+  namespace           = "Deecell/DeviceManager"
+  period              = 60
+  statistic           = "Maximum"
+  threshold           = 300
+  alarm_description   = "No new device_measurements rows written in over 5 minutes"
+  treat_missing_data  = "breaching"
+
+  actions_enabled = var.alert_email != ""
+  alarm_actions   = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : []
+  ok_actions      = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : []
 
   tags = local.common_tags
 }

@@ -219,6 +219,15 @@ resource "aws_iam_role_policy" "device_manager" {
       {
         Effect = "Allow"
         Action = [
+          "sns:Publish"
+        ]
+        Resource = [
+          local.alerts_topic_arn != "" ? local.alerts_topic_arn : "arn:aws:sns:${local.region}:${local.account_id}:none"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
           "ssm:GetParameter",
           "ssm:GetParameters",
           "ssm:GetParameterHistory"
