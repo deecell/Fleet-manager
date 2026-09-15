@@ -111,5 +111,10 @@ log_retention_days         = 90     # CloudWatch log retention
 # Alerting
 # -----------------------------------------------------------------------------
 
-# Set to receive alerts via email
+# Set to receive detailed alerts via email
 alert_email = ""  # e.g., "ops@deecell.com"
+
+# Set to receive simple service up/down alerts in Slack via an Incoming
+# Webhook (create one at https://api.slack.com/apps -> your app -> Incoming
+# Webhooks -> Add New Webhook to Workspace)
+slack_webhook_url = ""  # e.g., "https://hooks.slack.com/services/T000/B000/XXXX"

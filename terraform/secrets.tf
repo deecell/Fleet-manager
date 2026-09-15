@@ -109,3 +109,19 @@ resource "aws_secretsmanager_secret_version" "simpro_api_key" {
   secret_id     = aws_secretsmanager_secret.simpro_api_key[0].id
   secret_string = var.simpro_api_key
 }
+
+# Slack Incoming Webhook URL (optional - simple service up/down alerts)
+resource "aws_secretsmanager_secret" "slack_webhook_url" {
+  count                   = var.slack_webhook_url != "" ? 1 : 0
+  name                    = "${local.name_prefix}/slack-webhook-url-${local.unique_suffix}"
+  description             = "Slack Incoming Webhook URL for device-manager service status alerts"
+  recovery_window_in_days = var.environment == "production" ? 7 : 0
+
+  tags = local.common_tags
+}
+
+resource "aws_secretsmanager_secret_version" "slack_webhook_url" {
+  count         = var.slack_webhook_url != "" ? 1 : 0
+  secret_id     = aws_secretsmanager_secret.slack_webhook_url[0].id
+  secret_string = var.slack_webhook_url
+}

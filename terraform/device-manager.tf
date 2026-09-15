@@ -4,11 +4,12 @@
 
 # Local variables for SIMPro secrets (safe references that work when count=0)
 locals {
-  simpro_client_arn = try(aws_secretsmanager_secret.simpro_api_client[0].arn, "")
-  simpro_key_arn    = try(aws_secretsmanager_secret.simpro_api_key[0].arn, "")
-  inhand_username_arn = try(data.aws_secretsmanager_secret.inhand_api_username.arn, "")
-  inhand_password_arn = try(data.aws_secretsmanager_secret.inhand_api_password.arn, "")
-  alerts_topic_arn     = var.alert_email != "" ? aws_sns_topic.alerts[0].arn : ""
+  simpro_client_arn        = try(aws_secretsmanager_secret.simpro_api_client[0].arn, "")
+  simpro_key_arn           = try(aws_secretsmanager_secret.simpro_api_key[0].arn, "")
+  inhand_username_arn      = try(data.aws_secretsmanager_secret.inhand_api_username.arn, "")
+  inhand_password_arn      = try(data.aws_secretsmanager_secret.inhand_api_password.arn, "")
+  alerts_topic_arn         = var.alert_email != "" ? aws_sns_topic.alerts[0].arn : ""
+  slack_webhook_secret_arn = try(aws_secretsmanager_secret.slack_webhook_url[0].arn, "")
 }
 
 # InHand Networks API credentials — created out-of-band via AWS Console/CLI
@@ -126,9 +127,20 @@ locals {
       --output text \
       --region ${var.aws_region})
 
-    # Persist DATABASE_URL for health-check.sh to reuse, so its data-freshness
-    # check follows whatever DB this instance is actually configured against.
+    %{if var.slack_webhook_url != ""~}
+    export SLACK_WEBHOOK_URL=$(aws secretsmanager get-secret-value \
+      --secret-id "${local.slack_webhook_secret_arn}" \
+      --query 'SecretString' \
+      --output text \
+      --region ${var.aws_region})
+    %{endif~}
+
+    # Persist DATABASE_URL (and SLACK_WEBHOOK_URL, if set) for health-check.sh
+    # to reuse, so its checks follow whatever this instance is configured with.
     echo "export DATABASE_URL=\"$DATABASE_URL\"" > /opt/device-manager/.runtime-env
+    %{if var.slack_webhook_url != ""~}
+    echo "export SLACK_WEBHOOK_URL=\"$SLACK_WEBHOOK_URL\"" >> /opt/device-manager/.runtime-env
+    %{endif~}
     chmod 600 /opt/device-manager/.runtime-env
 
     # Fetch SIMPro credentials if enabled
@@ -282,6 +294,10 @@ locals {
     INSTANCE_ID=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id)
     NOW_HUMAN=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
 
+    if [ -f "$RUNTIME_ENV" ]; then
+      . "$RUNTIME_ENV"
+    fi
+
     # --- Process check ---
     if systemctl is-active --quiet device-manager; then
       ACTIVE_VALUE=1
@@ -295,9 +311,6 @@ locals {
       --metric-name ServiceActive --value "$ACTIVE_VALUE" --unit Count 2>/dev/null || true
 
     # --- Data freshness check (follows whatever DB this instance is configured against) ---
-    if [ -f "$RUNTIME_ENV" ]; then
-      . "$RUNTIME_ENV"
-    fi
     AGE_SECONDS=""
     FRESHNESS_STATE="unknown"
     if [ -n "$DATABASE_URL" ]; then
@@ -356,6 +369,16 @@ locals {
     $LOGS"
       fi
       aws sns publish --region "$REGION" --topic-arn "$SNS_TOPIC_ARN" --subject "$SUBJECT" --message "$BODY" 2>/dev/null || true
+
+      if [ -n "$SLACK_WEBHOOK_URL" ]; then
+        if [ "$CURRENT_STATE" = "inactive" ]; then
+          SLACK_TEXT="Device Manager ($INSTANCE_ID): STOPPED"
+        else
+          SLACK_TEXT="Device Manager ($INSTANCE_ID): RUNNING"
+        fi
+        SLACK_PAYLOAD=$(printf '{"text":"%s"}' "$SLACK_TEXT")
+        curl -sS -X POST -H 'Content-Type: application/json' --data "$SLACK_PAYLOAD" "$SLACK_WEBHOOK_URL" >/dev/null 2>&1 || true
+      fi
     fi
 
     echo "$CURRENT_STATE" > "$STATE_FILE"

@@ -303,7 +303,14 @@ variable "log_retention_days" {
 # -----------------------------------------------------------------------------
 
 variable "alert_email" {
-  description = "Email address for alerts (optional)"
+  description = "Email address for detailed alerts (optional)"
   type        = string
+  default     = ""
+}
+
+variable "slack_webhook_url" {
+  description = "Slack Incoming Webhook URL for simple service up/down alerts (optional)"
+  type        = string
+  sensitive   = true
   default     = ""
 }
